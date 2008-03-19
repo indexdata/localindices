@@ -14,21 +14,25 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="styles.css"/>
         <title>Add new resource</title>
     </head>
     <body>
         <f:view>
             <a href="faces/list_resources.jsp">Resource List</a>
-            <h:outputText value=" | "/>
-            <a href="faces/add_resource.jsp">Add new resource</a>
             <h:form>
+                <h3>New resource:</h3>
                 <h:panelGrid columns="2">
-                    <h:outputText value="Id"/>
-                    <h:inputText value="#{oaiPmhResourceController.resource.id}" />
-                    <h:outputText value="Name"/>
-                    <h:inputText value="#{oaiPmhResourceController.resource.name}"/>
+                    <h:outputText value="Name:"/>
+                    <h:inputText value="#{resourceController.resource.name}"/>
+                    <h:outputText value="Title:"/>
+                    <h:inputText value="#{resourceController.resource.title}" />
+                    <h:outputText value="Description:"/>
+                    <h:inputText value="#{resourceController.resource.description}"/>
+                    <h:outputText value="Maximum records:"/>
+                    <h:inputText value="#{resourceController.resource.maxDbSize}" />
                 </h:panelGrid>
-                <h:commandButton value="Add" action="#{oaiPmhResourceController.addEditedResource}"/>
+                <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
             </h:form>
         </f:view>
     </body>

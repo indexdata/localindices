@@ -27,6 +27,6 @@
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>faces/add_resource.jsp</welcome-file>
+        <welcome-file>faces/list_resources.jsp</welcome-file>
         </welcome-file-list>
     </web-app>

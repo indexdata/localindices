@@ -7,8 +7,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_1_2.xsd">
     <managed-bean>
-        <managed-bean-name>oaiPmhResourceController</managed-bean-name>
-        <managed-bean-class>com.indexdata.localindexes.web.controllers.OaiPmhResourceController</managed-bean-class>
+        <managed-bean-name>resourceController</managed-bean-name>
+        <managed-bean-class>com.indexdata.localindexes.web.controllers.ResourceController</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
     </managed-bean>
     <navigation-rule>
@@ -20,6 +20,13 @@
         <navigation-case>
             <from-outcome>failure</from-outcome>
             <to-view-id>/error.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/list_resources.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>resource_ready</from-outcome>
+            <to-view-id>/add_resource.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>

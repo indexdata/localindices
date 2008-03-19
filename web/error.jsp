@@ -14,13 +14,12 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="styles.css"/>
         <title>Error Page</title>
     </head>
     <body>
         <f:view>
             <a href="faces/list_resources.jsp">Resource List</a>
-            <h:outputText value=" | "/>
-            <a href="faces/add_resource.jsp">Add new resource</a>
             <h1><h:outputText value="Error has occured." /></h1>
         </f:view>
     </body>

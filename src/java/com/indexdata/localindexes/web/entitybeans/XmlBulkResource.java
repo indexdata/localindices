@@ -13,19 +13,17 @@ import javax.persistence.Entity;
  * @author jakub
  */
 @Entity
-public class OaiPmhResource extends Harvestable implements Serializable {
-
-    private String oaiSetName;
-    private String metadataPrefix;
-    private String schemaURI;
+public class XmlBulkResource extends Harvestable implements Serializable {
+    private String url;
+    private String expectedSchema;
     private String normalizationFilter;
 
-    public String getMetadataPrefix() {
-        return metadataPrefix;
+    public String getExpectedSchema() {
+        return expectedSchema;
     }
 
-    public void setMetadataPrefix(String metadataPrefix) {
-        this.metadataPrefix = metadataPrefix;
+    public void setExpectedSchema(String expectedSchema) {
+        this.expectedSchema = expectedSchema;
     }
 
     public String getNormalizationFilter() {
@@ -36,22 +34,14 @@ public class OaiPmhResource extends Harvestable implements Serializable {
         this.normalizationFilter = normalizationFilter;
     }
 
-    public String getOaiSetName() {
-        return oaiSetName;
+    public String getUrl() {
+        return url;
     }
 
-    public void setOaiSetName(String oaiSetName) {
-        this.oaiSetName = oaiSetName;
+    public void setUrl(String url) {
+        this.url = url;
     }
-
-    public String getSchemaURI() {
-        return schemaURI;
-    }
-
-    public void setSchemaURI(String schemaURI) {
-        this.schemaURI = schemaURI;
-    }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -62,10 +52,10 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof OaiPmhResource)) {
+        if (!(object instanceof XmlBulkResource)) {
             return false;
         }
-        OaiPmhResource other = (OaiPmhResource) object;
+        XmlBulkResource other = (XmlBulkResource) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -74,7 +64,7 @@ public class OaiPmhResource extends Harvestable implements Serializable {
 
     @Override
     public String toString() {
-        return "com.indexdata.localindexes.web.entitybeans.OaiPmhResource[id=" + id + "]";
+        return "com.indexdata.localindexes.web.entitybeans.XmlBulkResource[id=" + id + "]";
     }
 
 }
