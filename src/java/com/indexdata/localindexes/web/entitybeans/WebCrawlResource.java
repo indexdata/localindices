@@ -14,24 +14,24 @@ import javax.persistence.Entity;
  */
 @Entity
 public class WebCrawlResource extends Harvestable implements Serializable {
-    private String harvestedURls;
+    private String harvestedUrls;
     private String filetypeMask;
     private String uriMask;
-    
+
+    public String getHarvestedUrls() {
+        return harvestedUrls;
+    }
+
+    public void setHarvestedUrls(String harvestedUrls) {
+        this.harvestedUrls = harvestedUrls;
+    }
+
     public String getFiletypeMask() {
         return filetypeMask;
     }
 
     public void setFiletypeMask(String filetypeMask) {
         this.filetypeMask = filetypeMask;
-    }
-
-    public String getHarvestedURls() {
-        return harvestedURls;
-    }
-
-    public void setHarvestedURls(String harvestedURls) {
-        this.harvestedURls = harvestedURls;
     }
 
     public String getUriMask() {

@@ -11,23 +11,29 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="styles.css"/>
-        <title>All resources</title>
+        <title>Available resources</title>
     </head>
     <body>
         <f:view>
             <h:form>
                 <a href="faces/list_resources.jsp">Resource List</a>
+                <h:outputText value=" | Add new resource: "/>
+                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
                 <h:outputText value=" | "/>
-                <h:commandLink value="Add new resource" action="#{resourceController.prepareResourceToAdd}" />
+                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />
+                <h:outputText value=" | "/>
+                <h:commandLink value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
             </h:form>
             <h:form>
-                <h2><h:outputText value="Available resources:" /></h2>
-                <h:outputText value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}"/>&nbsp;
-                <h:commandLink action="#{resourceController.prev}" value="Previous #{resourceController.batchSize}" rendered="#{resourceController.firstItem >= resourceController.batchSize}"/>&nbsp;
-                <h:commandLink action="#{resourceController.next}" value="Next #{resourceController.batchSize}" rendered="#{resourceController.lastItem + resourceController.batchSize <= resourceController.itemCount}"/>&nbsp;
-                <h:commandLink action="#{resourceController.next}" value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
-                               rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
-                <h:dataTable value="#{resourceController.resources}" var="item">
+                <h3><h:outputText value="Available resources:" /></h3>
+                <div id="pager">
+                    <h:outputText value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}"/>&nbsp;
+                    <h:commandLink action="#{resourceController.prev}" value="Previous #{resourceController.batchSize}" rendered="#{resourceController.firstItem >= resourceController.batchSize}"/>&nbsp;
+                    <h:commandLink action="#{resourceController.next}" value="Next #{resourceController.batchSize}" rendered="#{resourceController.lastItem + resourceController.batchSize <= resourceController.itemCount}"/>&nbsp;
+                    <h:commandLink action="#{resourceController.next}" value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
+                                   rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
+                </div>               
+                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="first_in_row,number,number,number,action">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name: " />

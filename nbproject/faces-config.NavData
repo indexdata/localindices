@@ -2,8 +2,11 @@
 <Scene Scope="Project" version="2">
     <Scope Scope="Faces Configuration Only"/>
     <Scope Scope="Project">
-        <Node id="list_resources.jsp" x="417" y="91" zoom="true"/>
-        <Node id="add_resource.jsp" x="418" y="260" zoom="true"/>
-        <Node id="error.jsp" x="157" y="361" zoom="true"/>
+        <Node id="add_oaipmh.jsp" x="656" y="-11" zoom="true"/>
+        <Node id="add_xmlbulk.jsp" x="653" y="75" zoom="true"/>
+        <Node id="add_webcrawl.jsp" x="650" y="150" zoom="true"/>
+        <Node id="list_resources.jsp" x="5" y="-182" zoom="true"/>
+        <Node id="add_resource.jsp" x="651" y="219" zoom="true"/>
+        <Node id="error.jsp" x="105" y="193" zoom="true"/>
     </Scope>
 </Scene>

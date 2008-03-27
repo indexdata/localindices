@@ -31,6 +31,11 @@ a:after {
     content:"\00A0\00BB";
 }
 
+#pager {
+    font: bold 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+    /*text-align: right;*/
+}
+
 table {
     background: #fff;
     border: 0;
@@ -50,15 +55,26 @@ caption {
 }
 
 td, th {
-    padding: .5em .5em;
+    padding: .3em .6em;
+}
+
+tbody td.first_in_row {
+    text-align: left;
+}
+
+tbody td.number {
+    text-align: right;
+}
+
+tbody td.action {
+    text-aling: center;
 }
 
 th {
     background: #9CA2CB;
     border-left: 2px solid #4779B6;
-    -moz-border-radius: 8px;
+    -moz-border-radius: 4px;
     color: #fff;
-    font-size: 1em;
     font-weight: bold;
     text-align: left;
 }

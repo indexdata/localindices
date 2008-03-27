@@ -5,6 +5,9 @@
 package com.indexdata.localindexes.web.controllers;
 
 import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.entitybeans.OaiPmhResource;
+import com.indexdata.localindexes.web.entitybeans.WebCrawlResource;
+import com.indexdata.localindexes.web.entitybeans.XmlBulkResource;
 import javax.annotation.Resource;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -39,7 +42,8 @@ public class ResourceController {
     public void setResource(Harvestable resource) {
         this.resource = resource;
     }
-    /* paging */
+    
+    // <editor-fold defaultstate="collapsed" desc="Resource list paging functions">
     private int firstItem = 0;
     private int batchSize = 10;
 
@@ -80,14 +84,22 @@ public class ResourceController {
         }
         return "prev_resource_batch";
     }
+    
+    //</editor-fold>
 
-    /** Creates a new instance of OaiPmhResourceController */
-    public ResourceController() {
+    public String prepareOaiPmhResourceToAdd() {
+        resource = new OaiPmhResource();
+        return "new_oaipmh";
     }
 
-    public String prepareResourceToAdd() {
-        resource = new Harvestable();
-        return "resource_ready";
+    public String prepareWebCrawlResourceToAdd() {
+        resource = new WebCrawlResource();
+        return "new_webcrawl";
+    }
+
+    public String prepareXmlBulkResourceToAdd() {
+        resource = new XmlBulkResource();
+        return "new_xmlbulk";
     }
 
     public String addEditedResource() {
