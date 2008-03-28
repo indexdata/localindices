@@ -18,18 +18,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>New OAI-PMH resource: </h3>
-                <%@ include file="add_resource.jsp" %>
-                <h5>OAI-PMH specific information: </h5>
-                <h:panelGrid columns="2">
-                    <h:outputText value="OAI Set Name:"/>
-                    <h:inputText value="#{resourceController.resource.oaiSetName}"/>
-                    <h:outputText value="Metadata Prefix: "/>
-                    <h:inputText value="#{resourceController.resource.metadataPrefix}" />
-                    <h:outputText value="Metdata Schema URI: "/>
-                    <h:inputText value="#{resourceController.resource.schemaURI}"/>
-                    <h:outputText value="Normalization Filter: "/>
-                    <h:inputText value="#{resourceController.resource.normalizationFilter}" />
-                </h:panelGrid>
+                <%@ include file="generic_resource_forminputs.jsp" %>
+                <%@ include file="oaipmh_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
             </h:form>
         </f:view>

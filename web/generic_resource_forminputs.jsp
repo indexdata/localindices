@@ -4,7 +4,7 @@
 <%@taglib prefix="f" uri="http://java.sun.com/jsf/core"%>
 <%@taglib prefix="h" uri="http://java.sun.com/jsf/html"%>
 
-<f:subview id="generic_resource_form_fragment">
+<f:subview id="generic_resource_form_inputs">
     <h5>General information: </h5>
     <h:panelGrid columns="2">
         <h:outputText value="Name:"/>

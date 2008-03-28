@@ -18,16 +18,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>New WebCrawl resource:</h3>
-                <%@ include file="add_resource.jsp" %>
-                <h5>WebCrawl specific information: </h5>
-                <h:panelGrid columns="2">
-                    <h:outputText value="Harvested URIs:"/>
-                    <h:inputText value="#{resourceController.resource.harvestedUrls}"/>
-                    <h:outputText value="Filetype mask:"/>
-                    <h:inputText value="#{resourceController.resource.filetypeMask}" />
-                    <h:outputText value="URI Mask:"/>
-                    <h:inputText value="#{resourceController.resource.uriMask}"/>
-                </h:panelGrid>
+                <%@ include file="generic_resource_forminputs.jsp" %>
+                <%@ include file="webcrawl_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
             </h:form>
         </f:view>

@@ -22,16 +22,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>New XML bulk resource:</h3>
-                <%@ include file="add_resource.jsp" %>
-                <h5>XML bulk specific information:</h5>
-                <h:panelGrid columns="2">
-                    <h:outputText value="URL:"/>
-                    <h:inputText value="#{resourceController.resource.url}"/>
-                    <h:outputText value="Expected Schema:"/>
-                    <h:inputText value="#{resourceController.resource.expectedSchema}" />
-                    <h:outputText value="Normalization Filter:"/>
-                    <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
-                </h:panelGrid>
+                <%@ include file="generic_resource_forminputs.jsp" %>
+                <%@ include file="xmlbulk_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
             </h:form>
         </f:view>

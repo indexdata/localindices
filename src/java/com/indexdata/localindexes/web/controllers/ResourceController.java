@@ -87,6 +87,8 @@ public class ResourceController {
     
     //</editor-fold>
 
+    /* add new resource */
+    
     public String prepareOaiPmhResourceToAdd() {
         resource = new OaiPmhResource();
         return "new_oaipmh";
@@ -109,6 +111,7 @@ public class ResourceController {
             eM.joinTransaction();
             eM.persist(resource);
             utx.commit();
+            addSuccessMessage("Resource was successfully added.");
         } catch (Exception e) {
             addErrorMessage(e.getLocalizedMessage());
             try {
@@ -123,7 +126,37 @@ public class ResourceController {
         }
         return "resource_added";
     }
+    
+    /* update resource */
+    
+    public String prepareResourceToEdit () {
+        resource = getResourceFromRequestParam();
+        return "edit_resource";
+    }
+    
+    public String saveEditedResource() {
+        EntityManager em = getEntityManager();
+        try {
+            utx.begin();
+            em.joinTransaction();
+            resource = em.merge(resource);
+            utx.commit();
+            addSuccessMessage("Resource was successfully updated.");
+        } catch (Exception ex) {
+            try {
+                addErrorMessage(ex.getLocalizedMessage());
+                utx.rollback();
+            } catch (Exception e) {
+                addErrorMessage(e.getLocalizedMessage());
+            }
+        } finally {
+            em.close();
+        }
+        return "resource_saved";
+    }
 
+    /* list resources */
+    
     public DataModel getResources() {
         EntityManager em = getEntityManager();
         try {
@@ -160,6 +193,8 @@ public class ResourceController {
         return "resource_list";
     }
 
+    /* objects from request */
+    
     public Harvestable getResourceFromRequestParam() {
         EntityManager em = getEntityManager();
         try {
@@ -177,6 +212,8 @@ public class ResourceController {
             em.close();
         }
     }
+    
+    /* logging messages */
 
     public static void addSuccessMessage(String msg) {
         FacesMessage facesMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, msg, msg);
