@@ -25,6 +25,10 @@
             <from-outcome>new_webcrawl</from-outcome>
             <to-view-id>/add_webcrawl.jsp</to-view-id>
         </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_resource</from-outcome>
+            <to-view-id>/edit_oaipmh.jsp</to-view-id>
+        </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <from-view-id>/add_webcrawl.jsp</from-view-id>
@@ -44,6 +48,13 @@
         <from-view-id>/add_oaipmh.jsp</from-view-id>
         <navigation-case>
             <from-outcome>resource_added</from-outcome>
+            <to-view-id>/list_resources.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/edit_oaipmh.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>resource_saved</from-outcome>
             <to-view-id>/list_resources.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>

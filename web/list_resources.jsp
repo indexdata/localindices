@@ -62,7 +62,7 @@
                         <f:facet name="header">
                             <h:outputText value="Available Actions: " />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="edit">
+                        <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
                         <h:outputText value=" | "/>
