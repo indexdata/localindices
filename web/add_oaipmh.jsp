@@ -20,7 +20,7 @@
                 <h3>New OAI-PMH resource: </h3>
                 <%@ include file="generic_resource_forminputs.jsp" %>
                 <%@ include file="oaipmh_forminputs.jsp" %>
-                <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
+                <h:commandButton value="Add" action="#{resourceController.addResource}"/>
             </h:form>
         </f:view>
     </body>

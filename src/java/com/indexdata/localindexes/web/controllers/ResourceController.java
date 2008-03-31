@@ -104,7 +104,7 @@ public class ResourceController {
         return "new_xmlbulk";
     }
 
-    public String addEditedResource() {
+    public String addResource() {
         EntityManager eM = getEntityManager();
         try {
             utx.begin();
@@ -144,7 +144,7 @@ public class ResourceController {
         }
     }
     
-    public String saveEditedResource() {
+    public String saveResource() {
         EntityManager em = getEntityManager();
         try {
             utx.begin();

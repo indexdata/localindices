@@ -20,7 +20,7 @@
                 <h3>Edit XML bulk resource:</h3>
                 <%@ include file="generic_resource_forminputs.jsp" %>
                 <%@ include file="xmlbulk_forminputs.jsp" %>
-                <h:commandButton value="Save" action="#{resourceController.saveEditedResource}"/>
+                <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
             </h:form>
         </f:view>
     </body>

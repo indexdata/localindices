@@ -24,7 +24,7 @@
                 <h3>New XML bulk resource:</h3>
                 <%@ include file="generic_resource_forminputs.jsp" %>
                 <%@ include file="xmlbulk_forminputs.jsp" %>
-                <h:commandButton value="Add" action="#{resourceController.addEditedResource}"/>
+                <h:commandButton value="Add" action="#{resourceController.addResource}"/>
             </h:form>
         </f:view>
     </body>

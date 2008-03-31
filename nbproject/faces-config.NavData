@@ -3,10 +3,10 @@
     <Scope Scope="Faces Configuration Only"/>
     <Scope Scope="Project">
         <Node id="add_webcrawl.jsp" x="650" y="150" zoom="true"/>
-        <Node id="webcrawl_forminputs.jsp" x="353" y="172" zoom="true"/>
-        <Node id="add_xmlbulk.jsp" x="653" y="75" zoom="true"/>
-        <Node id="xmlbulk_forminputs.jsp" x="354" y="221" zoom="true"/>
         <Node id="add_oaipmh.jsp" x="656" y="-11" zoom="true"/>
+        <Node id="webcrawl_forminputs.jsp" x="353" y="172" zoom="true"/>
+        <Node id="xmlbulk_forminputs.jsp" x="354" y="221" zoom="true"/>
+        <Node id="add_xmlbulk.jsp" x="653" y="75" zoom="true"/>
         <Node id="list_resources.jsp" x="5" y="-182" zoom="true"/>
         <Node id="edit_oaipmh.jsp" x="616" y="-399" zoom="true"/>
         <Node id="edit_webcrawl.jsp" x="50" y="-406" zoom="true"/>

@@ -20,7 +20,7 @@
                 <h3>Edit WebCrawl resource:</h3>
                 <%@ include file="generic_resource_forminputs.jsp" %>
                 <%@ include file="webcrawl_forminputs.jsp" %>
-                <h:commandButton value="Save" action="#{resourceController.saveEditedResource}"/>
+                <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
             </h:form>
         </f:view>
     </body>
