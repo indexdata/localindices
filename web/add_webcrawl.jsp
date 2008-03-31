@@ -10,7 +10,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
         <title>Add a new WebCrawl resource</title>
     </head>
     <body>
@@ -18,8 +18,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>New WebCrawl resource:</h3>
-                <%@ include file="generic_resource_forminputs.jsp" %>
-                <%@ include file="webcrawl_forminputs.jsp" %>
+                <%@ include file="fragments/generic_resource_forminputs.jsp" %>
+                <%@ include file="fragments/webcrawl_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addResource}"/>
             </h:form>
         </f:view>

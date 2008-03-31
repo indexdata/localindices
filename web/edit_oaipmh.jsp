@@ -7,14 +7,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 
-<%--
-    This file is an entry point for JavaServer Faces application.
---%>
-
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
         <title>Add new resource</title>
     </head>
     <body>
@@ -22,8 +18,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>Edit OAI-PMH resource:</h3>
-                <%@ include file="generic_resource_forminputs.jsp" %>
-                <%@ include file="oaipmh_forminputs.jsp" %>
+                <%@ include file="fragments/generic_resource_forminputs.jsp" %>
+                <%@ include file="fragments/oaipmh_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
             </h:form>
         </f:view>

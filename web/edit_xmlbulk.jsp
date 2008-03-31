@@ -10,7 +10,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
         <title>Edit resource</title>
     </head>
     <body>
@@ -18,8 +18,8 @@
             <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
                 <h3>Edit XML bulk resource:</h3>
-                <%@ include file="generic_resource_forminputs.jsp" %>
-                <%@ include file="xmlbulk_forminputs.jsp" %>
+                <%@ include file="fragments/generic_resource_forminputs.jsp" %>
+                <%@ include file="fragments/xmlbulk_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
             </h:form>
         </f:view>
