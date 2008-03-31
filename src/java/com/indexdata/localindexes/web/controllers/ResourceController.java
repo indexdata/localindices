@@ -131,7 +131,17 @@ public class ResourceController {
     
     public String prepareResourceToEdit () {
         resource = getResourceFromRequestParam();
-        return "edit_resource";
+        addSuccessMessage("Retrieved persisted resource of type " + resource.getClass().getName());
+        if (resource instanceof OaiPmhResource)
+            return "edit_oaipmh";
+        else if (resource instanceof WebCrawlResource)
+            return "edit_webcrawl";
+        else if (resource instanceof XmlBulkResource)
+            return "edit_xmlbulk";
+        else {
+            addErrorMessage("Unknonw resource type. No matching form defined.");
+            return "failure";
+        }
     }
     
     public String saveEditedResource() {
