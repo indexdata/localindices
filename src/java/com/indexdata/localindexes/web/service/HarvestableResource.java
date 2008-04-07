@@ -8,20 +8,16 @@
  */
 package com.indexdata.localindexes.web.service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.ProduceMime;
 import javax.ws.rs.ConsumeMime;
 import javax.ws.rs.WebApplicationException;
-import javax.persistence.NoResultException;
 import javax.ws.rs.core.UriInfo;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
 import javax.transaction.UserTransaction;
 
 import com.indexdata.localindexes.web.entitybeans.Harvestable;
@@ -30,38 +26,41 @@ import javax.persistence.PersistenceContext;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 /**
  *
  * @author jakub
  */
+@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
 public class HarvestableResource {
 
     /** Persistence stuff */
-    //@PersistenceContext(unitName="localindexes")
-    //private EntityManager em;
-    //@PersistenceUnit(unitName = "localindexes")
-    //private EntityManagerFactory emf;
-    
+
+    // application-managed em
+    @PersistenceUnit(unitName = "localindexes")
+    private EntityManagerFactory emf;
+    private EntityManager getEntityManager() { 
+        return emf.createEntityManager();
+        //return EntityManagerRetriever.getEntityManager();
+    }
+
+    // container-managed em
+    /*
     private EntityManager getEntityManager() {
-        //return emf.createEntityManager();
         EntityManager em = null;
         try {
-             em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
         } catch (NamingException e) {
             Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
         }
         return em;
-        //return em;
-        //return EntityManagerRetriever.getEntityManager();
     }
-    
+     * */
     @Resource
     private UserTransaction utx;
     /* persistence stuff ends */
-    
     private Long id;
     private UriInfo context;
 
@@ -119,7 +118,8 @@ public class HarvestableResource {
         } finally {
         service.close();
         }*/
-        deleteEntity(retrieveEntity());
+        //deleteEntity(retrieveEntity());
+        delete2Entity(retrieveEntity());
     }
 
     /**
@@ -162,7 +162,7 @@ public class HarvestableResource {
                 Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-            //em.close();
+        //em.close();
         }
         return entity;
     }
@@ -187,7 +187,20 @@ public class HarvestableResource {
                 Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, e);
             }
         } finally {
-            //em.close();
+        //em.close();
         }
+    }
+
+    protected void delete2Entity(Harvestable entity) {
+        EntityManager em = getEntityManager();
+        /*
+        EntityTransaction tx = em.getTransaction();
+        if (!tx.isActive()) {
+            tx.begin();
+        }
+         * */
+        
+        em.remove(entity);
+        //tx.commit();
     }
 }

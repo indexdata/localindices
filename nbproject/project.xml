@@ -9,11 +9,11 @@
             <name>localindexes</name>
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
-                <library>
-                    <file>${build.classes.dir}</file>
+                <library files="6">
+                    <file>${libs.jsf12.classpath}</file>
                 </library>
-                <library>
-                    <file>${javac.classpath}</file>
+                <library files="2">
+                    <file>${libs.jstl11.classpath}</file>
                 </library>
                 <library files="18">
                     <file>${libs.restlib.classpath}</file>

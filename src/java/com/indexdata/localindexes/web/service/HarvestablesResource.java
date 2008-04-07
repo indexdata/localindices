@@ -47,12 +47,19 @@ import javax.naming.NamingException;
 public class HarvestablesResource {
     /** Persistence stuff */
 
-    //private EntityManager em;
-    //@PersistenceUnit(unitName = "localindexes")
-    //private EntityManagerFactory emf;
+    // application-managed em
+    
+    @PersistenceUnit(unitName = "localindexes")
+    private EntityManagerFactory emf;
+    
+    private EntityManager getEntityManager() { 
+        return emf.createEntityManager();
+        //return EntityManagerRetriever.getEntityManager();
+    }
 
+    // container-managed em
+ /*
     private EntityManager getEntityManager() {
-        //return emf.createEntityManager();
         EntityManager em = null;
         try {
              em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
@@ -60,9 +67,8 @@ public class HarvestablesResource {
             Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
         }
         return em;
-        //return em;
-        //return EntityManagerRetriever.getEntityManager();
     }
+  */
     
     @Resource
     private UserTransaction utx;
