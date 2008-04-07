@@ -1,15 +1,12 @@
 /*
- *  HarvestablesResource
+ * HarvestablesResource
  *
  * Created on April 4, 2008, 12:06 PM
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package com.indexdata.localindexes.web.service;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
 import java.util.Collection;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
@@ -22,17 +19,55 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import com.indexdata.localindexes.web.converter.HarvestablesConverter;
-import com.indexdata.localindexes.web.converter.HarvestableConverter;
 
+import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+import javax.persistence.Query;
+import javax.transaction.UserTransaction;
+
+import com.indexdata.localindexes.web.converter.HarvestableConverter;
+import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.converter.HarvestablesConverter;
+import javax.persistence.PersistenceContext;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 /**
  *
  * @author jakub
  */
 
+@PersistenceContext(name="persistence/localindexes",unitName="localindexes")
 @Path("/harvestables/")
 public class HarvestablesResource {
+    /** Persistence stuff */
+
+    //private EntityManager em;
+    //@PersistenceUnit(unitName = "localindexes")
+    //private EntityManagerFactory emf;
+
+    private EntityManager getEntityManager() {
+        //return emf.createEntityManager();
+        EntityManager em = null;
+        try {
+             em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+        } catch (NamingException e) {
+            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return em;
+        //return em;
+        //return EntityManagerRetriever.getEntityManager();
+    }
+    
+    @Resource
+    private UserTransaction utx;
+    /* persistence stuff ends */
+    
     @Context
     private UriInfo context;
     
@@ -61,11 +96,7 @@ public class HarvestablesResource {
     int start, @QueryParam("max")
     @DefaultValue("10")
     int max) {
-        try {
-            return new HarvestablesConverter(getEntities(start, max), context.getAbsolutePath());
-        } finally {
-            PersistenceService.getInstance().close();
-        }
+        return new HarvestablesConverter(retrieveEntities(start, max), context.getAbsolutePath());
     }
 
     /**
@@ -77,16 +108,9 @@ public class HarvestablesResource {
     @POST
     @ConsumeMime({"application/xml", "application/json"})
     public Response post(HarvestableConverter data) {
-        PersistenceService service = PersistenceService.getInstance();
-        try {
-            service.beginTx();
-            Harvestable entity = data.getEntity();
-            createEntity(entity);
-            service.commitTx();
-            return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
-        } finally {
-            service.close();
-        }
+        Harvestable entity = data.getEntity();
+        createEntity(entity);
+        return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }
 
     /**
@@ -105,8 +129,17 @@ public class HarvestablesResource {
      *
      * @return a collection of Harvestable instances
      */
-    protected Collection<Harvestable> getEntities(int start, int max) {
-        return PersistenceService.getInstance().createQuery("SELECT e FROM Harvestable e").setFirstResult(start).setMaxResults(max).getResultList();
+    protected Collection<Harvestable> retrieveEntities(int start, int max) {
+        /*return PersistenceService.getInstance().createQuery("SELECT e FROM Harvestable e").setFirstResult(start).setMaxResults(max).getResultList();*/
+        EntityManager em = getEntityManager();
+        try {
+            Query q = em.createQuery("select object(o) from Harvestable as o");
+            q.setMaxResults(max);
+            q.setFirstResult(start);
+            return q.getResultList();
+        } finally {
+            //em.close();
+        }
     }
 
     /**
@@ -115,6 +148,22 @@ public class HarvestablesResource {
      * @param entity the entity to persist
      */
     protected void createEntity(Harvestable entity) {
-        PersistenceService.getInstance().persistEntity(entity);
+        /*PersistenceService.getInstance().persistEntity(entity);*/
+        EntityManager em = getEntityManager();
+        try {
+            utx.begin();
+            em.joinTransaction();
+            em.persist(entity);
+            utx.commit();
+        } catch (Exception ex) {
+            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                utx.rollback();
+            } catch (Exception e) {
+                Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+            }    
+        } finally {
+            //em.close();
+        }
     }
 }

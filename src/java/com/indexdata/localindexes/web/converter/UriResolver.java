@@ -15,7 +15,15 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import javax.xml.bind.JAXBContext;
-import com.indexdata.localindexes.web.service.PersistenceService;
+
+import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+import javax.transaction.UserTransaction;
+
+/*import com.indexdata.localindexes.web.service.PersistenceService;*/
+
 
 /**
  * Utility class for resolving an uri into an entity.
@@ -23,6 +31,17 @@ import com.indexdata.localindexes.web.service.PersistenceService;
  * @author jakub
  */
 public class UriResolver {
+    
+     /** Persistence stuff */
+    @PersistenceUnit(unitName = "localindexes")
+    private EntityManagerFactory emf;
+
+    private EntityManager getEntityManager() {
+        return emf.createEntityManager();
+    }
+    @Resource
+    private UserTransaction utx;
+    /* persistence stuff ends */
     
     private static ThreadLocal<UriResolver> instance = new ThreadLocal<UriResolver>() {
         protected UriResolver initialValue() {
@@ -88,14 +107,22 @@ public class UriResolver {
     }
     
     private void resolveEntity(Object obj) {
+        EntityManager em = getEntityManager();
         try {
             Method method = obj.getClass().getMethod("getEntity");
             Object entity = method.invoke(obj);
-            entity = PersistenceService.getInstance().resolveEntity(entity);
+            utx.begin();
+            em.joinTransaction();
+            entity = em.merge(entity);
+            em.refresh(entity);
+            utx.commit();
+            /*entity = PersistenceService.getInstance().resolveEntity(entity);*/
             method = obj.getClass().getMethod("setEntity", entity.getClass());
             method.invoke(obj, entity.getClass().cast(entity));
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
+        } finally {
+            em.close();
         }
     }
 }

@@ -38,4 +38,9 @@
     <welcome-file-list>
         <welcome-file>faces/list_resources.jsp</welcome-file>
     </welcome-file-list>
+    <persistence-context-ref>
+        <description>Persistence context for the web services</description>
+        <persistence-context-ref-name>persistence/localindexes</persistence-context-ref-name>
+        <persistence-unit-name>localindexes</persistence-unit-name>
+    </persistence-context-ref>
 </web-app>

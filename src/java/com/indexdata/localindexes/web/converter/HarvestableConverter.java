@@ -77,7 +77,7 @@ public class HarvestableConverter {
      *
      * @return an entity
      */
-    @XmlTransient
+    //@XmlTransient
     public Harvestable getEntity() {
         return entity;
     }

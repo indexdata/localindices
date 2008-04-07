@@ -6,10 +6,8 @@
  * To change this template, choose Tools | Template Manager
  * and open the template in the editor.
  */
-
 package com.indexdata.localindexes.web.service;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -18,19 +16,55 @@ import javax.ws.rs.ProduceMime;
 import javax.ws.rs.ConsumeMime;
 import javax.ws.rs.WebApplicationException;
 import javax.persistence.NoResultException;
-import com.indexdata.localindexes.web.converter.HarvestableConverter;
 import javax.ws.rs.core.UriInfo;
 
+import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+import javax.transaction.UserTransaction;
+
+import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.converter.HarvestableConverter;
+import javax.persistence.PersistenceContext;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 /**
  *
  * @author jakub
  */
-
 public class HarvestableResource {
+
+    /** Persistence stuff */
+    //@PersistenceContext(unitName="localindexes")
+    //private EntityManager em;
+    //@PersistenceUnit(unitName = "localindexes")
+    //private EntityManagerFactory emf;
+    
+    private EntityManager getEntityManager() {
+        //return emf.createEntityManager();
+        EntityManager em = null;
+        try {
+             em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+        } catch (NamingException e) {
+            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return em;
+        //return em;
+        //return EntityManagerRetriever.getEntityManager();
+    }
+    
+    @Resource
+    private UserTransaction utx;
+    /* persistence stuff ends */
+    
     private Long id;
     private UriInfo context;
-    
+
     /** Creates a new instance of HarvestableResource */
     public HarvestableResource() {
     }
@@ -46,7 +80,7 @@ public class HarvestableResource {
     }
 
     /**
-     * Get method for retrieving an instance of Harvestable identified by id in XML format.
+     * Get method for retrieving an instance of Harvestable in XML format, identified by id.
      *
      * @param id identifier for the entity
      * @return an instance of HarvestableConverter
@@ -54,15 +88,11 @@ public class HarvestableResource {
     @GET
     @ProduceMime({"application/xml", "application/json"})
     public HarvestableConverter get() {
-        try {
-            return new HarvestableConverter(getEntity(), context.getAbsolutePath());
-        } finally {
-            PersistenceService.getInstance().close();
-        }
+        return new HarvestableConverter(retrieveEntity(), context.getAbsolutePath());
     }
 
     /**
-     * Put method for updating an instance of Harvestable identified by id using XML as the input format.
+     * Put method for updating an instance of Harvestable identified by id, using XML as the input format.
      *
      * @param id identifier for the entity
      * @param data an HarvestableConverter entity that is deserialized from a XML stream
@@ -70,14 +100,7 @@ public class HarvestableResource {
     @PUT
     @ConsumeMime({"application/xml", "application/json"})
     public void put(HarvestableConverter data) {
-        PersistenceService service = PersistenceService.getInstance();
-        try {
-            service.beginTx();
-            updateEntity(getEntity(), data.getEntity());
-            service.commitTx();
-        } finally {
-            service.close();
-        }
+        updateEntity(retrieveEntity(), data.getEntity());
     }
 
     /**
@@ -87,15 +110,16 @@ public class HarvestableResource {
      */
     @DELETE
     public void delete() {
-        PersistenceService service = PersistenceService.getInstance();
+        /*PersistenceService service = PersistenceService.getInstance();
         try {
-            service.beginTx();
-            Harvestable entity = getEntity();
-            service.removeEntity(entity);
-            service.commitTx();
+        service.beginTx();
+        Harvestable entity = getEntity();
+        service.removeEntity(entity);
+        service.commitTx();
         } finally {
-            service.close();
-        }
+        service.close();
+        }*/
+        deleteEntity(retrieveEntity());
     }
 
     /**
@@ -104,10 +128,12 @@ public class HarvestableResource {
      * @param id identifier for the entity
      * @return an instance of Harvestable
      */
-    protected Harvestable getEntity() {
+    protected Harvestable retrieveEntity() {
+        EntityManager em = getEntityManager();
         try {
-            return (Harvestable) PersistenceService.getInstance().createQuery("SELECT e FROM Harvestable e where e.id = :id").setParameter("id", id).getSingleResult();
-        } catch (NoResultException ex) {
+            /*return (Harvestable) PersistenceService.getInstance().createQuery("SELECT e FROM Harvestable e where e.id = :id").setParameter("id", id).getSingleResult();*/
+            return em.find(Harvestable.class, id);
+        } catch (Exception ex) {
             throw new WebApplicationException(new Throwable("Resource for " + context.getAbsolutePath() + " does not exist."), 404);
         }
     }
@@ -120,8 +146,48 @@ public class HarvestableResource {
      * @return the updated entity
      */
     protected Harvestable updateEntity(Harvestable entity, Harvestable newEntity) {
-        newEntity.setId(entity.getId());
-        entity = PersistenceService.getInstance().mergeEntity(newEntity);
+        /*newEntity.setId(entity.getId());
+        entity = PersistenceService.getInstance().mergeEntity(newEntity);*/
+        EntityManager em = getEntityManager();
+        try {
+            utx.begin();
+            em.joinTransaction();
+            entity = em.merge(newEntity);
+            utx.commit();
+        } catch (Exception ex) {
+            Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                utx.rollback();
+            } catch (Exception e) {
+                Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } finally {
+            //em.close();
+        }
         return entity;
+    }
+
+    /**
+     * Deletes entity.
+     *
+     * @param entity the entity to delete
+     */
+    protected void deleteEntity(Harvestable entity) {
+        EntityManager em = getEntityManager();
+        try {
+            utx.begin();
+            em.joinTransaction();
+            em.remove(entity);
+            utx.commit();
+        } catch (Exception ex) {
+            Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                utx.rollback();
+            } catch (Exception e) {
+                Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, e);
+            }
+        } finally {
+            //em.close();
+        }
     }
 }

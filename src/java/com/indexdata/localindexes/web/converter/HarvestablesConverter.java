@@ -1,10 +1,8 @@
 /*
- *  HarvestablesConverter
+ * HarvestablesConverter
  *
  * Created on April 4, 2008, 12:06 PM
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package com.indexdata.localindexes.web.converter;

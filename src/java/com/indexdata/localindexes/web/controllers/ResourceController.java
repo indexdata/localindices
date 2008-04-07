@@ -32,6 +32,7 @@ public class ResourceController {
     }
     @Resource
     private UserTransaction utx;
+    
     private Harvestable resource;
     private DataModel model;
 
