@@ -20,16 +20,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
 import javax.annotation.Resource;
+import javax.transaction.UserTransaction;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.Query;
-import javax.transaction.UserTransaction;
+import javax.persistence.PersistenceContext;
 
 import com.indexdata.localindexes.web.converter.HarvestableConverter;
 import com.indexdata.localindexes.web.entitybeans.Harvestable;
 import com.indexdata.localindexes.web.converter.HarvestablesConverter;
-import javax.persistence.PersistenceContext;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +40,7 @@ import javax.naming.NamingException;
  *
  * @author jakub
  */
-@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
+//@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
 @Path("/harvestables/")
 public class HarvestablesResource {
 
@@ -52,41 +52,53 @@ public class HarvestablesResource {
      * CMT:
      * requires JTA transaction type (persistrence.xml)
      * uses injected/looked-up EntityManager/EntityManagerFactory
-     * uses (injected) UserTransaction API
+     * uses injected/looked-up UserTransaction
+     * moreover if EntityManager is looked-up, it shall never be closed
      * 
      * AMT:
      * one has to handle EntityManagerFactory (expensive) 
      * and EntityManager (cheap) creation
      * (through some thread-safe patterns like thread-local)
-     * uses EntityTransaction API retrieved from EM
+     * uses EntityTransaction, retrieved from EM by getTransaction
      * uses RESOURCE_LOCAL transaction type
      */
 
-    // container-managed transactions (em injected)
-    @PersistenceUnit(unitName = "localindexes")
-    private EntityManagerFactory emf;
-
-    private EntityManager getEntityManager() {
-        return emf.createEntityManager();
-    }
-    @Resource
-    private UserTransaction utx;
-
-    // container-managed transactions (em looked-up)
+    // container-managed transactions (em/utx injected)
+    // this how it should work
+//    @PersistenceUnit(unitName = "localindexes")
+//    private EntityManagerFactory emf;
+//
 //    private EntityManager getEntityManager() {
-//        EntityManager em = null;
-//        try {
-//            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
-//        } catch (NamingException e) {
-//            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-//        }
-//        return em;
+//        return emf.createEntityManager();
 //    }
-    
-    // application-managed transaction
-    // private EntityManager getEntityManager() {
-    //    return EntityManagerRetriever.getEntityManager();
-    // }
+//    @Resource
+//    private UserTransaction utx;
+//
+//    private UserTransaction getUserTransaction() {
+//        return this.utx;
+//    }
+
+    // container-managed transactions (em/utx looked-up)
+    // works for now
+    private EntityManager getEntityManager() {
+        EntityManager em = null;
+        try {
+            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+        } catch (NamingException e) {
+            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return em;
+    }
+
+    private UserTransaction getUserTransaction() {
+        UserTransaction utx = null;
+        try {
+            utx = (UserTransaction) new InitialContext().lookup("java:comp/UserTransaction");
+        } catch (NamingException e) {
+            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return utx;
+    }
 
     /* persistence stuff ends */
     
@@ -114,8 +126,10 @@ public class HarvestablesResource {
     @GET
     @ProduceMime({"application/xml", "application/json"})
     public HarvestablesConverter get(
+            
             @QueryParam("start")
-            @DefaultValue("0") int start, 
+            @DefaultValue("0") int start,
+            
             @QueryParam("max")
             @DefaultValue("10") int max) {
         return new HarvestablesConverter(retrieveEntities(start, max), context.getAbsolutePath());
@@ -142,6 +156,7 @@ public class HarvestablesResource {
      */
     @Path("{id}/")
     public HarvestableResource getHarvestableResource(
+            
             @PathParam("id") Long id) {
         return new HarvestableResource(id, context);
     }
@@ -152,7 +167,6 @@ public class HarvestablesResource {
      * @return a collection of Harvestable instances
      */
     protected Collection<Harvestable> retrieveEntities(int start, int max) {
-        /*return PersistenceService.getInstance().createQuery("SELECT e FROM Harvestable e").setFirstResult(start).setMaxResults(max).getResultList();*/
         EntityManager em = getEntityManager();
         try {
             Query q = em.createQuery("select object(o) from Harvestable as o");
@@ -160,7 +174,7 @@ public class HarvestablesResource {
             q.setFirstResult(start);
             return q.getResultList();
         } finally {
-            em.close();
+        //em.close();
         }
     }
 
@@ -170,8 +184,8 @@ public class HarvestablesResource {
      * @param entity the entity to persist
      */
     protected void createEntity(Harvestable entity) {
-        /*PersistenceService.getInstance().persistEntity(entity);*/
         EntityManager em = getEntityManager();
+        UserTransaction utx = getUserTransaction();
         try {
             utx.begin();
             em.joinTransaction();
@@ -185,7 +199,7 @@ public class HarvestablesResource {
                 Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
             }
         } finally {
-            em.close();
+            //em.close();
         }
     }
 }
