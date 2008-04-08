@@ -8,6 +8,7 @@
  */
 package com.indexdata.localindexes.web.service;
 
+import javax.persistence.EntityTransaction;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
@@ -36,31 +37,52 @@ import javax.persistence.PersistenceUnit;
 @PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
 public class HarvestableResource {
 
-    /** Persistence stuff */
+    /* *Persistence stuff*
+     * There are two ways of doing persistence:
+     * - container-managed transactions
+     * - application-managed transactions
+     * 
+     * CMT:
+     * requires JTA transaction type (persistrence.xml)
+     * uses injected/looked-up EntityManager/EntityManagerFactory
+     * uses (injected) UserTransaction API
+     * 
+     * AMT:
+     * one has to handle EntityManagerFactory (expensive) 
+     * and EntityManager (cheap) creation
+     * (through some thread-safe patterns like thread-local)
+     * uses EntityTransaction API retrieved from EM
+     * uses RESOURCE_LOCAL transaction type
+     */
 
-    // application-managed em
+    // container-managed transactions (em injected)
     @PersistenceUnit(unitName = "localindexes")
     private EntityManagerFactory emf;
-    private EntityManager getEntityManager() { 
-        return emf.createEntityManager();
-        //return EntityManagerRetriever.getEntityManager();
-    }
 
-    // container-managed em
-    /*
     private EntityManager getEntityManager() {
-        EntityManager em = null;
-        try {
-            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
-        } catch (NamingException e) {
-            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return em;
+        return emf.createEntityManager();
     }
-     * */
     @Resource
     private UserTransaction utx;
+
+    // container-managed transactions (em looked-up)
+//    private EntityManager getEntityManager() {
+//        EntityManager em = null;
+//        try {
+//            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+//        } catch (NamingException e) {
+//            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+//        }
+//        return em;
+//    }
+    
+    // application-managed transaction
+    // private EntityManager getEntityManager() {
+    //    return EntityManagerRetriever.getEntityManager();
+    // }
+
     /* persistence stuff ends */
+    
     private Long id;
     private UriInfo context;
 
@@ -119,7 +141,7 @@ public class HarvestableResource {
         service.close();
         }*/
         //deleteEntity(retrieveEntity());
-        delete2Entity(retrieveEntity());
+        nonJtaDeleteEntity(retrieveEntity());
     }
 
     /**
@@ -162,7 +184,7 @@ public class HarvestableResource {
                 Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-        //em.close();
+            em.close();
         }
         return entity;
     }
@@ -187,20 +209,17 @@ public class HarvestableResource {
                 Logger.getLogger(HarvestableResource.class.getName()).log(Level.SEVERE, null, e);
             }
         } finally {
-        //em.close();
+            em.close();
         }
     }
 
-    protected void delete2Entity(Harvestable entity) {
+    protected void nonJtaDeleteEntity(Harvestable entity) {
         EntityManager em = getEntityManager();
-        /*
         EntityTransaction tx = em.getTransaction();
         if (!tx.isActive()) {
             tx.begin();
         }
-         * */
-        
         em.remove(entity);
-        //tx.commit();
+        tx.commit();
     }
 }

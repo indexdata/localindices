@@ -4,7 +4,6 @@
  * Created on April 4, 2008, 12:06 PM
  *
  */
-
 package com.indexdata.localindexes.web.service;
 
 import java.util.Collection;
@@ -41,42 +40,59 @@ import javax.naming.NamingException;
  *
  * @author jakub
  */
-
-@PersistenceContext(name="persistence/localindexes",unitName="localindexes")
+@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
 @Path("/harvestables/")
 public class HarvestablesResource {
-    /** Persistence stuff */
 
-    // application-managed em
-    
+    /* *Persistence stuff*
+     * There are two ways of doing persistence:
+     * - container-managed transactions
+     * - application-managed transactions
+     * 
+     * CMT:
+     * requires JTA transaction type (persistrence.xml)
+     * uses injected/looked-up EntityManager/EntityManagerFactory
+     * uses (injected) UserTransaction API
+     * 
+     * AMT:
+     * one has to handle EntityManagerFactory (expensive) 
+     * and EntityManager (cheap) creation
+     * (through some thread-safe patterns like thread-local)
+     * uses EntityTransaction API retrieved from EM
+     * uses RESOURCE_LOCAL transaction type
+     */
+
+    // container-managed transactions (em injected)
     @PersistenceUnit(unitName = "localindexes")
     private EntityManagerFactory emf;
-    
-    private EntityManager getEntityManager() { 
-        return emf.createEntityManager();
-        //return EntityManagerRetriever.getEntityManager();
-    }
 
-    // container-managed em
- /*
     private EntityManager getEntityManager() {
-        EntityManager em = null;
-        try {
-             em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
-        } catch (NamingException e) {
-            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return em;
+        return emf.createEntityManager();
     }
-  */
-    
     @Resource
     private UserTransaction utx;
+
+    // container-managed transactions (em looked-up)
+//    private EntityManager getEntityManager() {
+//        EntityManager em = null;
+//        try {
+//            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+//        } catch (NamingException e) {
+//            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
+//        }
+//        return em;
+//    }
+    
+    // application-managed transaction
+    // private EntityManager getEntityManager() {
+    //    return EntityManagerRetriever.getEntityManager();
+    // }
+
     /* persistence stuff ends */
     
     @Context
     private UriInfo context;
-    
+
     /** Creates a new instance of HarvestablesResource */
     public HarvestablesResource() {
     }
@@ -97,11 +113,11 @@ public class HarvestablesResource {
      */
     @GET
     @ProduceMime({"application/xml", "application/json"})
-    public HarvestablesConverter get(@QueryParam("start")
-    @DefaultValue("0")
-    int start, @QueryParam("max")
-    @DefaultValue("10")
-    int max) {
+    public HarvestablesConverter get(
+            @QueryParam("start")
+            @DefaultValue("0") int start, 
+            @QueryParam("max")
+            @DefaultValue("10") int max) {
         return new HarvestablesConverter(retrieveEntities(start, max), context.getAbsolutePath());
     }
 
@@ -125,8 +141,8 @@ public class HarvestablesResource {
      * @return an instance of HarvestableResource
      */
     @Path("{id}/")
-    public HarvestableResource getHarvestableResource(@PathParam("id")
-    Long id) {
+    public HarvestableResource getHarvestableResource(
+            @PathParam("id") Long id) {
         return new HarvestableResource(id, context);
     }
 
@@ -144,7 +160,7 @@ public class HarvestablesResource {
             q.setFirstResult(start);
             return q.getResultList();
         } finally {
-            //em.close();
+            em.close();
         }
     }
 
@@ -167,9 +183,9 @@ public class HarvestablesResource {
                 utx.rollback();
             } catch (Exception e) {
                 Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-            }    
+            }
         } finally {
-            //em.close();
+            em.close();
         }
     }
 }
