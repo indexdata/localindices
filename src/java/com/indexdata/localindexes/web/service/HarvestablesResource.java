@@ -47,23 +47,30 @@ public class HarvestablesResource {
     /* *Persistence stuff*
      * There are two ways of doing persistence:
      * - container-managed transactions
-     * - application-managed transactions
+     * - bean-managed transactions (or application-managed tx)
      * 
      * CMT:
-     * requires JTA transaction type (persistrence.xml)
-     * uses injected/looked-up EntityManager/EntityManagerFactory
-     * uses injected/looked-up UserTransaction
-     * moreover if EntityManager is looked-up, it shall never be closed
+     * requires JTA transaction-type (persistrence.xml)
+     * uses injected/looked-up EntityManager (through @PersistenceContext)
+     * uses injected/looked-up UserTransaction (through @Resource)
+     * EntityManger is nerver closed in the finally block
      * 
-     * AMT:
-     * one has to handle EntityManagerFactory (expensive) 
-     * and EntityManager (cheap) creation
-     * (through some thread-safe patterns like thread-local)
-     * uses EntityTransaction, retrieved from EM by getTransaction
-     * uses RESOURCE_LOCAL transaction type
+     * BMT:
+     * here we have two more options:
+     * -JTA transaction-type (UserTransaction API):
+     * -- injected EntityManagerFactory (through @PersistenceUnit)
+     * -- injected UserTransaction (throough @Resource)
+     * -- EM has to be closes when needed
+     * (through )
+     * -RESOURCE_LOCAL transaction-type (EntityTransaction API):
+     * -- EntityManagerFactory has to be created ( Persistence.createEntityManagerFactory(PU) )
+     *    - expensive - and EntityManager has to be managed through some 
+     *     thread-safe patterns like thread-local session.
+     * -- uses EntityTransaction, retrieved from EM by getTransaction
+     * -- EM has to be closed when needed
      */
 
-    // container-managed transactions (em/utx injected)
+    // JTA bean-managed transactions (em/utx injected)
     // this how it should work
 //    @PersistenceUnit(unitName = "localindexes")
 //    private EntityManagerFactory emf;
