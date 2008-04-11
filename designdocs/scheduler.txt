@@ -43,7 +43,8 @@ Communications between the harvester and scheduler
     and the scheduler can read this when it wants.
   - Constructor call
       - job-specific parameters
-      - including an ID the harvester can use to find its stored state, if any
+      - Storage handler, it will use for storing the results
+      - an ID (or something) the harvester can use to find its stored state, if any
   - Harvest method
       - runs as long as it wants
       - reutrns one of
@@ -54,6 +55,30 @@ Communications between the harvester and scheduler
   - Progress info
       - Percentage
       - Possibly some info on how many recoverable errors happend.
+
+
+What next
+  - Make a listener that runs under glassfish (will morph into the
+    main scheduler)
+  - See how to talk to Jakub's ws. Get a list of jobs to do
+  - Parse cron-like strings against current time and decide when to start
+    (nice pure java exercise). In its own class?
+  - Main loop through the task list
+  - create dummy harvesting threads that return dummy results after some time
+  - More details on the interfaces to both directions
+  - Get more understanding of how the class structure should be
+
+Classes needed
+  - harverster itself 
+    - implements runnable
+    - Make an abstract one
+  - StorageManager, parameter for harvester that specifies where to put stuff
+  - Scheduler (main class)
+  - HarversterInstance (item in my main table). Can have an active harverster
+    class, or not. Knows when it should be running. Private to Scheduler?
+  - What ever needed for using the ws (ask Jakub)
+
+
 
 
 
