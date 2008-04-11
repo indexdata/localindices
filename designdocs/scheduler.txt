@@ -10,6 +10,7 @@ Simple pseudocode:
 
   - Poll list of jobs
   - For each job, see if it is already running. If not
+      - check if it is time to run it now. If not, move on to the next.
       - if we don't have too many threads running already
          - create a harvester with the job parameters
          - create a thread that will run the job
@@ -23,10 +24,10 @@ Simple pseudocode:
 
 Communications between the Scheduler and the ws
   - Has anything changed? In the beginning, just answer yes.
-  - Get list of active jobs. That is those that have passed next-time-to-run,
-    and have status set to active. For each job
+  - Get list of active jobs
+  - For each job
       - id
-      - next-time-to-run
+      - timing info
       - job-specific parameters
   - Update status of a job
       - Status: running or waiting
