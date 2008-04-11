@@ -1,0 +1,60 @@
+The scheduler
+
+The scheduler is responsible for getting harvesting requests from Jakub's 
+web service, and creating a number of harvesting threads (using Marc's 
+harvesting classes) to do the actual work.
+
+
+
+Simple pseudocode:
+
+  - Poll list of jobs
+  - For each job, see if it is already running. If not
+      - if we don't have too many threads running already
+         - create a harvester with the job parameters
+         - create a thread that will run the job
+  - For each job that has gone missing from the list
+      - if there is a thread running, send it a signal to close down
+      - remove from the list when it reports done or error
+  - Poll active threads for some status information, and pass it to the ws.
+  - When a thread is done, get its status information and pass it to the ws.
+  - Sleep a while
+
+
+Communications between the Scheduler and the ws
+  - Has anything changed? In the beginning, just answer yes.
+  - Get list of active jobs. That is those that have passed next-time-to-run,
+    and have status set to active. For each job
+      - id
+      - next-time-to-run
+      - job-specific parameters
+  - Update status of a job
+      - Status: running or waiting
+      - Result: ok or error message
+      - Progress (percentage?)
+      - Next-time-to-run
+
+
+Communications between the harvester and scheduler
+  - Since these are in the same process, we don't need fnacy xml protocols.
+    The harvester job can have an object that contains its status information
+    (and a lock semaphore or something). It can update it when it feels like,
+    and the scheduler can read this when it wants.
+  - Constructor call
+      - job-specific parameters
+      - including an ID the harvester can use to find its stored state, if any
+  - Harvest method
+      - runs as long as it wants
+      - reutrns one of
+          - Finished OK
+          - Please restart me in some time
+          - Error message
+          - Terminated as per instructions
+  - Progress info
+      - Percentage
+      - Possibly some info on how many recoverable errors happend.
+
+
+
+
+
