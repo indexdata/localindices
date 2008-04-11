@@ -77,6 +77,9 @@ Classes needed
   - HarversterInstance (item in my main table). Can have an active harverster
     class, or not. Knows when it should be running. Private to Scheduler?
   - What ever needed for using the ws (ask Jakub)
+  - CronLine. Keeps a cron line, and answers the question if it should be run.
+    Knows when last run, as well. Private to Scheduler?
+
 
 
 
