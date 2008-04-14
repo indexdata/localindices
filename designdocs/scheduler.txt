@@ -60,6 +60,7 @@ Communications between the harvester and scheduler
 What next
   - Make a listener that runs under glassfish (will morph into the
     main scheduler)
+  - define an abstract interface to a harvesterinstance
   - See how to talk to Jakub's ws. Get a list of jobs to do
   - Parse cron-like strings against current time and decide when to start
     (nice pure java exercise). In its own class?
