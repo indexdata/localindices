@@ -8,11 +8,14 @@ import com.indexdata.localindexes.web.entitybeans.Harvestable;
 import com.indexdata.localindexes.web.entitybeans.OaiPmhResource;
 import com.indexdata.localindexes.web.entitybeans.WebCrawlResource;
 import com.indexdata.localindexes.web.entitybeans.XmlBulkResource;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Resource;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
 import javax.persistence.*;
 import javax.transaction.UserTransaction;
 
@@ -35,6 +38,47 @@ public class ResourceController {
     
     private Harvestable resource;
     private DataModel model;
+    private enum Month { Any, January, Febraruary, March, April, May, June, July, August, September, November, October, December };
+    private enum DayOfTheWeek { Any, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
+
+    public List<SelectItem> getMonths() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        for (Month month : Month.values()) {
+            SelectItem selectItem = new SelectItem();
+            String key = month.name();
+            Integer value = month.ordinal();
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
+    
+    public List<SelectItem> getDays() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        for (DayOfTheWeek day : DayOfTheWeek.values()) {
+            SelectItem selectItem = new SelectItem();
+            String key = day.name();
+            Integer value = day.ordinal();
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
+    
+    public List<SelectItem> getDaysOfMonth() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        for (int i=0; i < 31; i++) {
+            SelectItem selectItem = new SelectItem();
+            String key = i == 0 ? "Any" : String.valueOf(i);
+            Integer value = i;
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
 
     public Harvestable getResource() {
         return resource;

@@ -15,5 +15,19 @@
         <h:inputText value="#{resourceController.resource.description}"/>
         <h:outputText value="Maximum records:"/>
         <h:inputText value="#{resourceController.resource.maxDbSize}" />
+        <h:outputText value="Harvest schedule:"/>
+        Harvest 
+        <h:selectOneMenu>
+                    <f:selectItems value="#{resourceController.daysOfMonth}" />
+        </h:selectOneMenu>
+        (day) of
+        <h:selectOneMenu>
+                    <f:selectItems value="#{resourceController.months}" />
+        </h:selectOneMenu>
+        (month) if it's
+        <h:selectOneMenu>
+                    <f:selectItems value="#{resourceController.days}" />
+        </h:selectOneMenu>
+        (day of the week).
     </h:panelGrid>
 </f:subview>
