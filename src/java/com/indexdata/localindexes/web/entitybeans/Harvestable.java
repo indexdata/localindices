@@ -17,6 +17,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
@@ -25,7 +26,8 @@ import javax.persistence.TemporalType;
 @Entity
 @NamedQueries({@NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public class Harvestable implements Serializable {
+//@XmlRootElement(name="abstractHarvestable")
+public abstract class Harvestable implements Serializable {
     protected static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,10 +37,14 @@ public class Harvestable implements Serializable {
     protected String description;
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastUpdated;
-    protected Boolean active;
-    protected String currentStatus;
+    //@Temporal(TemporalType.TIMESTAMP)
+    //protected Date lastHarvestStarted;
+    protected Boolean active; // rename to enabled
+    protected String currentStatus; // error string
     protected Integer recordsHarvested;
     protected Integer maxDbSize;
+    // String cronString
+    // Boolean immediately
 
     public void setId(Long id) {
         this.id = id;
