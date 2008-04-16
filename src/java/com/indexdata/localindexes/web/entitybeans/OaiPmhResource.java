@@ -7,14 +7,16 @@ package com.indexdata.localindexes.web.entitybeans;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author jakub
  */
 @Entity
+@XmlRootElement(name="oaiPmh")
 public class OaiPmhResource extends Harvestable implements Serializable {
-
+    //url
     private String oaiSetName;
     private String metadataPrefix;
     private String schemaURI;

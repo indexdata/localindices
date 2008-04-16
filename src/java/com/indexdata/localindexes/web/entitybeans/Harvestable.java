@@ -26,7 +26,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @NamedQueries({@NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-//@XmlRootElement(name="abstractHarvestable")
 public abstract class Harvestable implements Serializable {
     protected static final long serialVersionUID = 1L;
     @Id

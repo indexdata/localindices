@@ -9,12 +9,13 @@
 
 package com.indexdata.localindexes.web.converter;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.entitybeans.*;
 import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
 
 
 /**
@@ -29,7 +30,6 @@ public class HarvestableConverter {
     
     /** Creates a new instance of HarvestableConverter */
     public HarvestableConverter() {
-        entity = new Harvestable();
     }
 
     /**
@@ -77,7 +77,7 @@ public class HarvestableConverter {
      *
      * @return an entity
      */
-    //@XmlTransient
+    @XmlElementRef
     public Harvestable getEntity() {
         return entity;
     }

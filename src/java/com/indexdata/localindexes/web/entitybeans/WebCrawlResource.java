@@ -7,12 +7,14 @@ package com.indexdata.localindexes.web.entitybeans;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author jakub
  */
 @Entity
+@XmlRootElement(name="webCrawl")
 public class WebCrawlResource extends Harvestable implements Serializable {
     private String harvestedUrls;
     private String filetypeMask;
