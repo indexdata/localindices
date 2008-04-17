@@ -12,6 +12,7 @@ import javax.servlet.ServletContextListener;
  * This is the main scheduler for the OAI harvester. 
  * Basically, it just starts a thread when the object is created, 
  * which should happen automagically when ever the app server is (re)started.
+ * It also kills it when the server is going down.
  * 
  * @author heikki
  */
@@ -25,9 +26,11 @@ public class MainScheduler implements ServletContextListener {
         if (st != null) {
             System.err.println("MainScheduler: Telling the SchedulerThread to stop");
             st.enough(); 
+            System.err.println("MainScheduler: Waking the SchedulerThread up so it can close down");
+            th.interrupt();
         }
         System.err.println("MainScheduler: Destroyed");
-    }
+    } 
 
     public void contextInitialized(ServletContextEvent arg0) {
         System.err.println("MainScheduler Context is initialized...");

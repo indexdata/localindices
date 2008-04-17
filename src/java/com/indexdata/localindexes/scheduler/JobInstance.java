@@ -1,7 +1,11 @@
 
 package com.indexdata.localindexes.scheduler;
 
+import java.util.Date;
+
 import com.indexdata.localindexes.web.entitybeans.Harvestable;
+
+
 
 
 
@@ -39,5 +43,14 @@ public class JobInstance {
         }
         
     } // startThread
+
+    /**
+     * Checks if the time has come to run this job
+     * @param now  current time to check against
+     */
+    public boolean timeToRun( ) {
+     
+        return false;
+    } // timeToRun
     
 } // class JobInstance
