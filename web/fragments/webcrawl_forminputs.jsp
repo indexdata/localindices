@@ -8,10 +8,12 @@
     <h5>WebCrawl specific information: </h5>
     <h:panelGrid columns="2">
         <h:outputText value="Harvested URIs:"/>
-        <h:inputText value="#{resourceController.resource.harvestedUrls}"/>
+        <h:inputText value="#{resourceController.resource.startUrls}"/>
         <h:outputText value="Filetype mask:"/>
-        <h:inputText value="#{resourceController.resource.filetypeMask}" />
+        <h:inputText value="#{resourceController.resource.filetypeMasks}" />
         <h:outputText value="URI Mask:"/>
-        <h:inputText value="#{resourceController.resource.uriMask}"/>
+        <h:inputText value="#{resourceController.resource.uriMasks}"/>
+        <h:outputText value="Recursion depth:"/>
+        <h:inputText value="#{resourceController.resource.recursionDepth}"/>
     </h:panelGrid>
 </f:subview>

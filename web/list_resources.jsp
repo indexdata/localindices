@@ -42,21 +42,27 @@
                     </h:column>                
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Records Harvested: " />
+                            <h:outputText value="Records: " />
                         </f:facet> 
                         <h:outputText value="#{item.recordsHarvested}"></h:outputText>
                     </h:column>                
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last Updated: " />
+                            <h:outputText value="Last harvested at: " />
                         </f:facet> 
-                        <h:outputText value="#{item.lastUpdated}"></h:outputText>
+                        <h:outputText value="#{item.lastHarvestStarted}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status: " />
+                            <h:outputText value="Status info: " />
                         </f:facet> 
                         <h:outputText value="#{item.currentStatus}"></h:outputText>
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">
+                            <h:outputText value="Last edited: " />
+                        </f:facet> 
+                        <h:outputText value="#{item.lastUpdated}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
