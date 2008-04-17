@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.indexdata.localindexes.web.entitybeans;
 
 import java.io.Serializable;
@@ -14,13 +13,21 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author jakub
  */
 @Entity
-@XmlRootElement(name="oaiPmh")
+@XmlRootElement(name = "oaiPmh")
 public class OaiPmhResource extends Harvestable implements Serializable {
-    //url
+    private String url;
     private String oaiSetName;
     private String metadataPrefix;
     private String schemaURI;
     private String normalizationFilter;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public String getMetadataPrefix() {
         return metadataPrefix;
@@ -78,5 +85,4 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     public String toString() {
         return "com.indexdata.localindexes.web.entitybeans.OaiPmhResource[id=" + id + "]";
     }
-
 }

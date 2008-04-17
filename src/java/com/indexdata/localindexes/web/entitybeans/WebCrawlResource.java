@@ -16,33 +16,45 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement(name="webCrawl")
 public class WebCrawlResource extends Harvestable implements Serializable {
-    private String harvestedUrls;
-    private String filetypeMask;
-    private String uriMask;
+    // spce-delimited list
+    private String startUrls;
+    private String filetypeMasks;
+    // space-delimited list
+    private String uriMasks;
+    private Integer recursionDepth;
 
-    public String getHarvestedUrls() {
-        return harvestedUrls;
+    public String getFiletypeMasks() {
+        return filetypeMasks;
     }
 
-    public void setHarvestedUrls(String harvestedUrls) {
-        this.harvestedUrls = harvestedUrls;
+    public void setFiletypeMasks(String filetypeMasks) {
+        this.filetypeMasks = filetypeMasks;
     }
 
-    public String getFiletypeMask() {
-        return filetypeMask;
+    public Integer getRecursionDepth() {
+        return recursionDepth;
     }
 
-    public void setFiletypeMask(String filetypeMask) {
-        this.filetypeMask = filetypeMask;
+    public void setRecursionDepth(Integer recursionDepth) {
+        this.recursionDepth = recursionDepth;
     }
 
-    public String getUriMask() {
-        return uriMask;
+    public String getStartUrls() {
+        return startUrls;
     }
 
-    public void setUriMask(String uriMask) {
-        this.uriMask = uriMask;
+    public void setStartUrls(String startUrls) {
+        this.startUrls = startUrls;
     }
+
+    public String getUriMasks() {
+        return uriMasks;
+    }
+
+    public void setUriMasks(String uriMasks) {
+        this.uriMasks = uriMasks;
+    }
+
 
     @Override
     public int hashCode() {

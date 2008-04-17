@@ -28,38 +28,24 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public abstract class Harvestable implements Serializable {
     protected static final long serialVersionUID = 1L;
+    // user-set properties
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
     protected String name;
     protected String title;
     protected String description;
+    protected String scheduleString;
+    protected Integer maxDbSize;
+    protected Boolean enabled;
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastUpdated;
-    //@Temporal(TemporalType.TIMESTAMP)
-    //protected Date lastHarvestStarted;
-    protected Boolean active; // rename to enabled
-    protected String currentStatus; // error string
+    //harvester-set properties
+    @Temporal(TemporalType.TIMESTAMP)
+    protected Date lastHarvestStarted;
+    protected String currentStatus;
     protected Integer recordsHarvested;
-    protected Integer maxDbSize;
-    // String cronString
-    // Boolean immediately
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
+    // boolean immediately?
 
     public String getCurrentStatus() {
         return currentStatus;
@@ -75,6 +61,30 @@ public abstract class Harvestable implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Date getLastHarvestStarted() {
+        return lastHarvestStarted;
+    }
+
+    public void setLastHarvestStarted(Date lastHarvestStarted) {
+        this.lastHarvestStarted = lastHarvestStarted;
     }
 
     public Date getLastUpdated() {
@@ -109,6 +119,14 @@ public abstract class Harvestable implements Serializable {
         this.recordsHarvested = recordsHarvested;
     }
 
+    public String getScheduleString() {
+        return scheduleString;
+    }
+
+    public void setScheduleString(String scheduleString) {
+        this.scheduleString = scheduleString;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -116,7 +134,7 @@ public abstract class Harvestable implements Serializable {
     public void setTitle(String title) {
         this.title = title;
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -126,7 +144,6 @@ public abstract class Harvestable implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Harvestable)) {
             return false;
         }
