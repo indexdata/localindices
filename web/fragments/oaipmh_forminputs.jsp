@@ -7,6 +7,8 @@
 <f:subview id="oaipmh_form_inputs">
     <h5>OAI-PMH specific information: </h5>
     <h:panelGrid columns="2">
+        <h:outputText value="OAI Repository URL:"/>
+        <h:inputText value="#{resourceController.resource.url}"/>
         <h:outputText value="OAI Set Name:"/>
         <h:inputText value="#{resourceController.resource.oaiSetName}"/>
         <h:outputText value="Metadata Prefix: "/>

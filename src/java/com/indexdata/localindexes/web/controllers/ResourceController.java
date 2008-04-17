@@ -10,6 +10,8 @@ import com.indexdata.localindexes.web.entitybeans.WebCrawlResource;
 import com.indexdata.localindexes.web.entitybeans.XmlBulkResource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -35,11 +37,83 @@ public class ResourceController {
     }
     @Resource
     private UserTransaction utx;
-    
     private Harvestable resource;
     private DataModel model;
-    private enum Month { Any, January, Febraruary, March, April, May, June, July, August, September, November, October, December };
-    private enum DayOfTheWeek { Any, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
+
+    public Harvestable getResource() {
+        return resource;
+    }
+
+    public void setResource(Harvestable resource) {
+        this.resource = resource;
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="Harvest schedule handling functions">
+    private enum Month {
+
+        Any, January, Febraruary, March, April, May, June,
+        July, August, September, November, October, December
+    }
+
+    private enum DayOfTheWeek {
+
+        Any, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+    }
+    private String month;
+    private String dayOfWeek;
+    private String dayOfMonth;
+
+    public String getDayOfMonth() {
+        return dayOfMonth;
+    }
+
+    public void setDayOfMonth(String dayOfMonth) {
+        this.dayOfMonth = dayOfMonth;
+    }
+
+    public String getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(String dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+
+    public String getMonth() {
+        return month;
+    }
+
+    public void setMonth(String month) {
+        this.month = month;
+    }
+
+    private String scheduleInputsToString() {
+        String dayOfMonth = this.dayOfMonth;
+        String month = this.month;
+        String dayOfWeek = this.dayOfWeek;
+        this.dayOfMonth = this.month = this.dayOfWeek = null;
+        if (dayOfMonth != null && month != null && dayOfWeek != null) {
+            return dayOfMonth + ":" + month + ":" + dayOfWeek;
+        } else {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule inputs.");
+            return null;
+        }
+    }
+
+    private void scheduleStringToInputs(String scheduleString) {
+        if (scheduleString != null) {
+            String[] inputs = scheduleString.split(":");
+            if (inputs.length == 3) {
+                dayOfMonth = inputs[0];
+                month = inputs[1];
+                dayOfWeek = inputs[2];
+            } else {
+                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule string.");
+            }
+        } else {
+            this.dayOfMonth = this.month = this.dayOfWeek = null;
+        }
+    }
 
     public List<SelectItem> getMonths() {
         List<SelectItem> list = new ArrayList<SelectItem>();
@@ -53,8 +127,8 @@ public class ResourceController {
         }
         return list;
     }
-    
-    public List<SelectItem> getDays() {
+
+    public List<SelectItem> getDaysOfWeek() {
         List<SelectItem> list = new ArrayList<SelectItem>();
         for (DayOfTheWeek day : DayOfTheWeek.values()) {
             SelectItem selectItem = new SelectItem();
@@ -66,10 +140,10 @@ public class ResourceController {
         }
         return list;
     }
-    
+
     public List<SelectItem> getDaysOfMonth() {
         List<SelectItem> list = new ArrayList<SelectItem>();
-        for (int i=0; i < 31; i++) {
+        for (int i = 0; i < 31; i++) {
             SelectItem selectItem = new SelectItem();
             String key = i == 0 ? "Any" : String.valueOf(i);
             Integer value = i;
@@ -79,15 +153,7 @@ public class ResourceController {
         }
         return list;
     }
-
-    public Harvestable getResource() {
-        return resource;
-    }
-
-    public void setResource(Harvestable resource) {
-        this.resource = resource;
-    }
-    
+    //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Resource list paging functions">
     private int firstItem = 0;
     private int batchSize = 10;
@@ -129,11 +195,10 @@ public class ResourceController {
         }
         return "prev_resource_batch";
     }
-    
+
     //</editor-fold>
 
     /* add new resource */
-    
     public String prepareOaiPmhResourceToAdd() {
         resource = new OaiPmhResource();
         return "new_oaipmh";
@@ -150,6 +215,7 @@ public class ResourceController {
     }
 
     public String addResource() {
+        resource.setScheduleString(scheduleInputsToString());
         EntityManager eM = getEntityManager();
         try {
             utx.begin();
@@ -171,25 +237,26 @@ public class ResourceController {
         }
         return "resource_added";
     }
-    
+
     /* update resource */
-    
-    public String prepareResourceToEdit () {
+    public String prepareResourceToEdit() {
         resource = getResourceFromRequestParam();
+        scheduleStringToInputs(resource.getScheduleString());
         addSuccessMessage("Retrieved persisted resource of type " + resource.getClass().getName());
-        if (resource instanceof OaiPmhResource)
+        if (resource instanceof OaiPmhResource) {
             return "edit_oaipmh";
-        else if (resource instanceof WebCrawlResource)
+        } else if (resource instanceof WebCrawlResource) {
             return "edit_webcrawl";
-        else if (resource instanceof XmlBulkResource)
+        } else if (resource instanceof XmlBulkResource) {
             return "edit_xmlbulk";
-        else {
+        } else {
             addErrorMessage("Unknonw resource type. No matching form defined.");
             return "failure";
         }
     }
-    
+
     public String saveResource() {
+        resource.setScheduleString(scheduleInputsToString());
         EntityManager em = getEntityManager();
         try {
             utx.begin();
@@ -211,7 +278,6 @@ public class ResourceController {
     }
 
     /* list resources */
-    
     public DataModel getResources() {
         EntityManager em = getEntityManager();
         try {
@@ -249,7 +315,6 @@ public class ResourceController {
     }
 
     /* objects from request */
-    
     public Harvestable getResourceFromRequestParam() {
         EntityManager em = getEntityManager();
         try {
@@ -267,9 +332,8 @@ public class ResourceController {
             em.close();
         }
     }
-    
-    /* logging messages */
 
+    /* logging messages */
     public static void addSuccessMessage(String msg) {
         FacesMessage facesMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, msg, msg);
         FacesContext fc = FacesContext.getCurrentInstance();
