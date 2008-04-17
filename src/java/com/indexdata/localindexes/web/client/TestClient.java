@@ -2,14 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.indexdata.localindexes.web.client;
 
 import com.indexdata.localindexes.web.entitybeans.*;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-
+import com.indexdata.localindexes.web.converter.*;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collection;
 
 /**
  *
@@ -20,27 +19,20 @@ public class TestClient {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        Harvestable harvestable = new OaiPmhResource();
-        harvestable.setName("some resource");
-        harvestable.setTitle("of a given title");
-        harvestable.setMaxDbSize(320);
-        //marshal(harvestable);
-        System.out.println(harvestable.getClass());
-    }
-   
-    
-    private static void marshal(Harvestable harvestable) {
+    public static void main(String[] args) throws IOException {
         try {
-            JAXBContext jaxbCtx = JAXBContext.newInstance(harvestable.getClass().getPackage().getName());
-            Marshaller marshaller = jaxbCtx.createMarshaller();
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_ENCODING, "UTF-8"); //NOI18N
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            marshaller.marshal(harvestable, System.out);
-        } catch (JAXBException ex) {
-            // XXXTODO Handle exception
-            java.util.logging.Logger.getLogger("global").log(java.util.logging.Level.SEVERE, null, ex); //NOI18N
-        }
-    } 
+            String uri = "http://localhost:8080/localindexes/resources/harvestables/";
+            ResourceConnector<HarvestablesConverter> rc =
+                    new ResourceConnector<HarvestablesConverter>(
+                        new URI(uri), HarvestablesConverter.class);
+//                        "com.indexdata.localindexes.web.entitybeans" +
+//                        ":com.indexdata.localindexes.web.converter");
 
+            HarvestablesConverter hc = rc.get();
+            System.out.println(hc.getResourceUri());
+
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
 }
