@@ -21,7 +21,7 @@ public class ResourceConnector<T> {
     private URI uri;
     private String entityPackages;
     private Class entityType;
-    private static JAXBContext jaxbCtx;
+    private JAXBContext jaxbCtx;
     
     public ResourceConnector(URI uri, Class<T> type) {
         this.uri = uri;
@@ -64,14 +64,40 @@ public class ResourceConnector<T> {
     }
     
     
-    public void put(T t) {
-        
+    public void put(T t) throws Exception {
+        try {
+            URL url = uri.toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("PUT");
+
+            if (conn.getResponseCode() == 200) {
+                JAXBContext context = getJAXBContext();
+                context.createMarshaller().marshal(t, conn.getOutputStream());
+            } else {
+                throw new Exception("Cannot update resource");
+            }
+        } catch (Exception ex) {
+            throw new Exception("Cannot update resource", ex);
+        }
     }
+    
     public void delete() {
         
     }
-    public void post(T t) {
-        
-    }
+    public void post(T t) throws Exception {
+        try {
+            URL url = uri.toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("PUT");
 
+            if (conn.getResponseCode() == 200) {
+                JAXBContext context = getJAXBContext();
+                context.createMarshaller().marshal(t, conn.getOutputStream());
+            } else {
+                throw new Exception("Cannot update resource");
+            }
+        } catch (Exception ex) {
+            throw new Exception("Cannot update resource", ex);
+        }
+    }
 }
