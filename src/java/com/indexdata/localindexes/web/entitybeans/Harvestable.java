@@ -26,7 +26,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @NamedQueries({@NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public abstract class Harvestable implements Serializable {
+public abstract class Harvestable implements Serializable, Cloneable {
+
     protected static final long serialVersionUID = 1L;
     // user-set properties
     @Id
@@ -144,6 +145,7 @@ public abstract class Harvestable implements Serializable {
 
     @Override
     public boolean equals(Object object) {
+        // change that so that it check the reall class
         if (!(object instanceof Harvestable)) {
             return false;
         }
@@ -156,7 +158,12 @@ public abstract class Harvestable implements Serializable {
 
     @Override
     public String toString() {
-        return "com.indexdata.localindexes.web.entitybeans.Harvestable[id=" + id + "]";
+        return this.getClass().getCanonicalName() + "[id=" + id + "]";
+    }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
 }

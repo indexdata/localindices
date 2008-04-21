@@ -7,7 +7,7 @@ package com.indexdata.localindexes.web.client;
 import com.indexdata.localindexes.web.entitybeans.*;
 import com.indexdata.localindexes.web.converter.*;
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 
 /**
@@ -21,35 +21,72 @@ public class TestClient {
      */
     public static void main(String[] args) throws IOException {
         try {
-            String uri = "http://localhost:8080/localindexes/resources/harvestables/";
-            ResourceConnector<HarvestablesConverter> rc =
-                    new ResourceConnector<HarvestablesConverter>(
-                        new URI(uri), HarvestablesConverter.class);
-
-            HarvestablesConverter hc = rc.get();
-            System.out.println(hc.getResourceUri());
+            System.out.println("+++ Retrieving harvestables:");
             
-            uri = "http://localhost:8080/localindexes/resources/harvestables/52/";
-            ResourceConnector<HarvestableConverter> rc2 =
-                    new ResourceConnector<HarvestableConverter>(
-                        new URI(uri), "com.indexdata.localindexes.web.entitybeans" +
+            String url = "http://localhost:8080/localindexes/resources/harvestables/";
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                        new URL(url), "com.indexdata.localindexes.web.entitybeans" +
                         ":com.indexdata.localindexes.web.converter");
-            Harvestable harvestable = rc2.get().getEntity();
+
+            HarvestablesConverter hc = harvestablesConnector.get();
+            for (HarvestableRefConverter ref : hc.getReferences()) {
+                System.out.println(ref.getResourceUri());
+            }
+            
+            int newHarvestableId = 101;
+            System.out.println("+++ Creating new harvestable with id " + newHarvestableId);
+            
+            Harvestable harvestable = new OaiPmhResource();
+            harvestable.setId(new Long(newHarvestableId));
+            harvestable.setName("test entry");
+            harvestable.setTitle("automatically posted harvestable");
+            harvestable.setDescription("relevant description");
+            harvestable.setEnabled(false);
+            harvestable.setCurrentStatus("no status");
+            harvestable.setMaxDbSize(320);
+            harvestable.setScheduleString("0:1:1");
+            
+            HarvestableConverter harvestableContainer = new HarvestableConverter();
+            harvestableContainer.setEntity(harvestable);
+            harvestablesConnector.postAny(harvestableContainer);
+            
+            System.out.println("+++ Retrieving harvestable resource with id " + newHarvestableId);
+            
+            url = "http://localhost:8080/localindexes/resources/harvestables/" + newHarvestableId + "/";
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                    new ResourceConnector<HarvestableConverter>(
+                        new URL(url), "com.indexdata.localindexes.web.entitybeans" +
+                        ":com.indexdata.localindexes.web.converter");
+            
+            harvestable = harvestableConnector.get().getEntity();
                         
             System.out.println("+++ Retrieved harvestable resource:");
             System.out.println("Harvestable id: " + harvestable.getId());
+            System.out.println("Harvestable name: " + harvestable.getName());
             System.out.println("Harvestable title: " + harvestable.getTitle());
             System.out.println("Harvestable description: " + harvestable.getDescription());
             
-            System.out.println("+++ creting a resource resource:");
+            System.out.println("+++ Updating the harvestable resource:");
+            String newName = "updated resource name";
+            String newTitle = "updated title";
             
-            harvestable.setName("new posted resource");
-            harvestable.setTitle("some title");
+            System.out.println("Harvestable name: " + newName);
+            System.out.println("Harvestable title: " + newTitle);
             
-            HarvestableConverter postConverter = new HarvestableConverter();
-            postConverter.setEntity(harvestable);
+            Harvestable harvestableCopy = (Harvestable) harvestable.clone();
+            harvestable.setName(newName);
+            harvestable.setTitle(newTitle);
             
-            rc2.post(postConverter);
+            harvestableContainer.setEntity(harvestable);
+            harvestableConnector.put(harvestableContainer);
+            
+            System.out.println("+++ Reverting the harvestable resource:");
+            harvestableContainer.setEntity(harvestableCopy);
+            harvestableConnector.put(harvestableContainer);
+            
+            System.out.println("+++ Deleting harvestable resource with id " + newHarvestableId);
+            harvestableConnector.delete();
 
         } catch (Exception e) {
             throw new IOException(e);

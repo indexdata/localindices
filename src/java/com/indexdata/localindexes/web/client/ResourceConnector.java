@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.indexdata.localindexes.web.client;
 
 import java.net.HttpURLConnection;
@@ -18,86 +17,143 @@ import javax.xml.bind.JAXBException;
  * @author jakub
  */
 public class ResourceConnector<T> {
-    private URI uri;
+
+    private URL url;
+    private String mimeType = "application/xml";
     private String entityPackages;
     private Class entityType;
     private JAXBContext jaxbCtx;
-    
-    public ResourceConnector(URI uri, Class<T> type) {
-        this.uri = uri;
+
+    public ResourceConnector(URL url, Class<T> type) {
+        this.url = url;
         this.entityType = type;
     }
-    
-    public ResourceConnector(URI uri, String entityPackages) {
-        this.uri = uri;
+
+    public ResourceConnector(URL url, String entityPackages) {
+        this.url = url;
         this.entityPackages = entityPackages;
     }
-    
+
     private JAXBContext getJAXBContext() throws JAXBException {
         if (jaxbCtx == null) {
-            if (entityPackages != null)
+            if (entityPackages != null) {
                 jaxbCtx = JAXBContext.newInstance(entityPackages);
-            else
+            } else {
                 jaxbCtx = JAXBContext.newInstance(entityType);
+            }
         }
         return jaxbCtx;
     }
-    
-    
+
     public T get() throws Exception {
         Object obj = null;
-        try {
-            URL url = uri.toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
 
-            if (conn.getResponseCode() == 200) {
-                JAXBContext context = getJAXBContext();
-                obj = context.createUnmarshaller().unmarshal(conn.getInputStream());
-            } else {
-                throw new Exception("Cannot retrieve resource");
-            }
-        } catch (Exception ex) {
-            throw new Exception("Cannot retrieve resource", ex);
+        if (conn.getResponseCode() == 200) {
+            JAXBContext context = getJAXBContext();
+            obj = context.createUnmarshaller().unmarshal(conn.getInputStream());
+        } else {
+            throw new Exception("Cannot retrieve resource");
         }
+
         return (T) obj;
     }
-    
-    
-    public void put(T t) throws Exception {
-        try {
-            URL url = uri.toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("PUT");
 
-            if (conn.getResponseCode() == 200) {
-                JAXBContext context = getJAXBContext();
-                context.createMarshaller().marshal(t, conn.getOutputStream());
-            } else {
-                throw new Exception("Cannot update resource");
-            }
-        } catch (Exception ex) {
-            throw new Exception("Cannot update resource", ex);
+    public void put(T t) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("PUT");
+
+        JAXBContext context = getJAXBContext();
+        context.createMarshaller().marshal(t, conn.getOutputStream());
+
+        int responseCode = conn.getResponseCode();
+        switch (responseCode) {
+            case 200:   //OK
+            case 201:   //Created
+            case 202:   //Accpeted
+            case 203:   //Non-authoritative
+            case 204:   //No-content
+            case 205:   //Reset
+            case 206:   //Partial
+                break;
+            case 405:
+                throw new Exception("Cannot update resource (HTTP method not allowed).");
+            default:
+                throw new Exception("Cannot update resource (server returned " + responseCode + ")");
         }
     }
-    
-    public void delete() {
-        
-    }
-    public void post(T t) throws Exception {
-        try {
-            URL url = uri.toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("PUT");
 
-            if (conn.getResponseCode() == 200) {
-                JAXBContext context = getJAXBContext();
-                context.createMarshaller().marshal(t, conn.getOutputStream());
-            } else {
-                throw new Exception("Cannot update resource");
-            }
-        } catch (Exception ex) {
-            throw new Exception("Cannot update resource", ex);
+    public void delete() throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("DELETE");
+
+        int responseCode = conn.getResponseCode();
+        switch (responseCode) {
+            case 200:   //OK
+            case 201:   //Created
+            case 202:   //Accpeted
+            case 203:   //Non-authoritative
+            case 204:   //No-content
+            case 205:   //Reset
+            case 206:   //Partial
+                break;
+            case 405:
+                throw new Exception("Cannot delete resource (HTTP method not allowed).");
+            default:
+                throw new Exception("Cannot delete resource (server returned " + responseCode + ")");
+        }
+    }
+
+    public void post(T t) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+
+        JAXBContext context = getJAXBContext();
+        context.createMarshaller().marshal(t, conn.getOutputStream());
+
+        int responseCode = conn.getResponseCode();
+        switch (responseCode) {
+            case 200:   //OK
+            case 201:   //Created
+            case 202:   //Accpeted
+            case 203:   //Non-authoritative
+            case 204:   //No-content
+            case 205:   //Reset
+            case 206:   //Partial
+                break;
+            case 405:
+                throw new Exception("Cannot create resource (HTTP method not allowed).");
+            default:
+                throw new Exception("Cannot create resource (server returned " + responseCode + ")");
+        }
+    }
+
+    public void postAny(Object obj) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", mimeType);
+        conn.setRequestMethod("POST");
+
+        JAXBContext context = getJAXBContext();
+        context.createMarshaller().marshal(obj, conn.getOutputStream());
+
+        int responseCode = conn.getResponseCode();
+        switch (responseCode) {
+            case 200:   //OK
+            case 201:   //Created
+            case 202:   //Accpeted
+            case 203:   //Non-authoritative
+            case 204:   //No-content
+            case 205:   //Reset
+            case 206:   //Partial
+                break;
+            case 405:
+                throw new Exception("Cannot create resource (HTTP method not allowed).");
+            default:
+                throw new Exception("Cannot create resource (server returned " + responseCode + ")");
         }
     }
 }

@@ -50,10 +50,13 @@ public class HarvestablesConverter {
      */
     @XmlElement(name = "harvestableRef")
     public Collection<HarvestableRefConverter> getReferences() {
-        references = new ArrayList<HarvestableRefConverter>();
-        if (entities != null) {
-            for (Harvestable entity : entities) {
-                references.add(new HarvestableRefConverter(entity, uri, true));
+        // this is marshalling hack
+        if (references == null) {
+            references = new ArrayList<HarvestableRefConverter>();
+            if (entities != null) {
+                for (Harvestable entity : entities) {
+                    references.add(new HarvestableRefConverter(entity, uri, true));
+                }
             }
         }
         return references;
