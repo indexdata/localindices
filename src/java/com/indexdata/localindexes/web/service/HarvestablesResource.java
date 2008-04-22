@@ -27,8 +27,8 @@ import javax.persistence.PersistenceUnit;
 import javax.persistence.Query;
 import javax.persistence.PersistenceContext;
 
-import com.indexdata.localindexes.web.converter.HarvestableConverter;
 import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.converter.HarvestableConverter;
 import com.indexdata.localindexes.web.converter.HarvestablesConverter;
 
 import java.util.logging.Level;
@@ -159,18 +159,20 @@ public class HarvestablesResource {
     /**
      * Returns a dynamic instance of HarvestableResource used for entity navigation.
      *
+     * @param id resource id
      * @return an instance of HarvestableResource
      */
     @Path("{id}/")
-    public HarvestableResource getHarvestableResource(
-            
-            @PathParam("id") Long id) {
+    public HarvestableResource getHarvestableResource(            
+    @PathParam("id") Long id) {
         return new HarvestableResource(id, context);
     }
 
     /**
      * Returns all the entities associated with this resource.
      *
+     * @param start 
+     * @param max 
      * @return a collection of Harvestable instances
      */
     protected Collection<Harvestable> retrieveEntities(int start, int max) {

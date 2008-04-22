@@ -19,14 +19,12 @@ import javax.ws.rs.core.UriBuilder;
 
 
 /**
- *
+ * 
  * @author jakub
  */
-
 @XmlRootElement(name = "harvestableRef")
 public class HarvestableRefConverter {
-    private Harvestable entity;
-    private boolean isUriExtendable;
+    private Long id;
     private URI uri;
     
     /** Creates a new instance of HarvestableRefConverter */
@@ -41,9 +39,9 @@ public class HarvestableRefConverter {
      * @param isUriExtendable indicates whether the uri can be extended
      */
     public HarvestableRefConverter(Harvestable entity, URI uri, boolean isUriExtendable) {
-        this.entity = entity;
-        this.uri = uri;
-        this.isUriExtendable = isUriExtendable;
+        id = entity.getId();
+        if (isUriExtendable)
+            this.uri = UriBuilder.fromUri(uri).path(entity.getId() + "/").build();
     }
 
     /**
@@ -53,7 +51,7 @@ public class HarvestableRefConverter {
      */
     @XmlElement
     public Long getId() {
-        return entity.getId();
+        return id;
     }
 
     /**
@@ -63,31 +61,15 @@ public class HarvestableRefConverter {
      */
     @XmlAttribute(name = "uri")
     public URI getResourceUri() {
-        if (isUriExtendable) {
-            return UriBuilder.fromUri(uri).path(entity.getId() + "/").build();
-        }
         return uri;
     }
 
     /**
      * Sets the URI for this reference converter.
      *
+     * @param uri resource uri
      */
     public void setResourceUri(URI uri) {
         this.uri = uri;
-    }
-
-    /**
-     * Returns the Harvestable entity.
-     *
-     * @return Harvestable entity
-     */
-    @XmlTransient
-    public Harvestable getEntity() {
-        HarvestableConverter result = UriResolver.getInstance().resolve(HarvestableConverter.class, uri);
-        if (result != null) {
-            return result.getEntity();
-        }
-        return null;
     }
 }

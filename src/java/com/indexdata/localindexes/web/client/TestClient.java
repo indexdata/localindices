@@ -22,11 +22,12 @@ public class TestClient {
     public static void main(String[] args) throws IOException {
         try {
             System.out.println("+++ Retrieving harvestables:");
+            String baseURL = "http://localhost:8080/localindexes/resources/";
             
-            String url = "http://localhost:8080/localindexes/resources/harvestables/";
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
-                        new URL(url), "com.indexdata.localindexes.web.entitybeans" +
+                        new URL(baseURL + "harvestables/"), 
+                        "com.indexdata.localindexes.web.entitybeans" +
                         ":com.indexdata.localindexes.web.converter");
 
             HarvestablesConverter hc = harvestablesConnector.get();
@@ -53,10 +54,10 @@ public class TestClient {
             
             System.out.println("+++ Retrieving harvestable resource with id " + newHarvestableId);
             
-            url = "http://localhost:8080/localindexes/resources/harvestables/" + newHarvestableId + "/";
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
-                        new URL(url), "com.indexdata.localindexes.web.entitybeans" +
+                        new URL(baseURL + "harvestables/" + newHarvestableId + "/"), 
+                        "com.indexdata.localindexes.web.entitybeans" +
                         ":com.indexdata.localindexes.web.converter");
             
             harvestable = harvestableConnector.get().getEntity();

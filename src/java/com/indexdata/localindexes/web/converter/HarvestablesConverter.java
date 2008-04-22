@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 @XmlRootElement(name = "harvestables")
 public class HarvestablesConverter {
-    private Collection<Harvestable> entities;
     private Collection<HarvestableRefConverter> references;
     private URI uri;
     
@@ -39,7 +38,10 @@ public class HarvestablesConverter {
      * @param uri associated uri
      */
     public HarvestablesConverter(Collection<Harvestable> entities, URI uri) {
-        this.entities = entities;
+        this.references = new ArrayList<HarvestableRefConverter>();
+        for (Harvestable entity : entities) {
+            references.add(new HarvestableRefConverter(entity, uri, true));
+        }
         this.uri = uri;
     }
 
@@ -50,22 +52,13 @@ public class HarvestablesConverter {
      */
     @XmlElement(name = "harvestableRef")
     public Collection<HarvestableRefConverter> getReferences() {
-        // this is marshalling hack
-        if (references == null) {
-            references = new ArrayList<HarvestableRefConverter>();
-            if (entities != null) {
-                for (Harvestable entity : entities) {
-                    references.add(new HarvestableRefConverter(entity, uri, true));
-                }
-            }
-        }
         return references;
     }
 
     /**
      * Sets a collection of HarvestableRefConverter.
      *
-     * @param a collection of HarvestableRefConverter to set
+     * @param references a collection of HarvestableRefConverter to set
      */
     public void setReferences(Collection<HarvestableRefConverter> references) {
         this.references = references;
@@ -79,21 +72,5 @@ public class HarvestablesConverter {
     @XmlAttribute(name = "uri")
     public URI getResourceUri() {
         return uri;
-    }
-
-    /**
-     * Returns a collection Harvestable entities.
-     *
-     * @return a collection of Harvestable entities
-     */
-    @XmlTransient
-    public Collection<Harvestable> getEntities() {
-        entities = new ArrayList<Harvestable>();
-        if (references != null) {
-            for (HarvestableRefConverter ref : references) {
-                entities.add(ref.getEntity());
-            }
-        }
-        return entities;
     }
 }

@@ -13,8 +13,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 /**
- *
+ * 
  * @author jakub
+ * @param T data-binding container type
  */
 public class ResourceConnector<T> {
 
