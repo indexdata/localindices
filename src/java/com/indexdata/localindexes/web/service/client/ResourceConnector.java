@@ -107,7 +107,7 @@ public class ResourceConnector<T> {
         }
     }
 
-    public void post(T t) throws Exception {
+    public URL post(T t) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
@@ -130,9 +130,10 @@ public class ResourceConnector<T> {
             default:
                 throw new Exception("Cannot create resource (server returned " + responseCode + ")");
         }
+        return new URL(conn.getHeaderField("Location"));
     }
 
-    public void postAny(Object obj) throws Exception {
+    public URL postAny(Object obj) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", mimeType);
@@ -156,5 +157,6 @@ public class ResourceConnector<T> {
             default:
                 throw new Exception("Cannot create resource (server returned " + responseCode + ")");
         }
+        return new URL(conn.getHeaderField("Location"));
     }
 }
