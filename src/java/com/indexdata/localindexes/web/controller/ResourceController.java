@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.indexdata.localindexes.web.controllers;
+package com.indexdata.localindexes.web.controller;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
-import com.indexdata.localindexes.web.entitybeans.OaiPmhResource;
-import com.indexdata.localindexes.web.entitybeans.WebCrawlResource;
-import com.indexdata.localindexes.web.entitybeans.XmlBulkResource;
+import com.indexdata.localindexes.web.entity.Harvestable;
+import com.indexdata.localindexes.web.entity.OaiPmhResource;
+import com.indexdata.localindexes.web.entity.WebCrawlResource;
+import com.indexdata.localindexes.web.entity.XmlBulkResource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;

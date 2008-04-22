@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.indexdata.localindexes.web.entitybeans;
+package com.indexdata.localindexes.web.entity;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
@@ -78,7 +78,7 @@ public class WebCrawlResource extends Harvestable implements Serializable {
 
     @Override
     public String toString() {
-        return "com.indexdata.localindexes.web.entitybeans.WebCrawlResource[id=" + id + "]";
+        return "com.indexdata.localindexes.web.entity.WebCrawlResource[id=" + id + "]";
     }
 
 }

@@ -2,13 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.indexdata.localindexes.web.client;
+package com.indexdata.localindexes.web.service.client;
 
-import com.indexdata.localindexes.web.entitybeans.*;
-import com.indexdata.localindexes.web.converter.*;
+import com.indexdata.localindexes.web.entity.*;
+import com.indexdata.localindexes.web.service.converter.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
 
 /**
  *
@@ -27,8 +26,8 @@ public class TestClient {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
                         new URL(baseURL + "harvestables/"), 
-                        "com.indexdata.localindexes.web.entitybeans" +
-                        ":com.indexdata.localindexes.web.converter");
+                        "com.indexdata.localindexes.web.entity" +
+                        ":com.indexdata.localindexes.web.service.converter");
 
             HarvestablesConverter hc = harvestablesConnector.get();
             for (HarvestableRefConverter ref : hc.getReferences()) {
@@ -57,8 +56,8 @@ public class TestClient {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
                         new URL(baseURL + "harvestables/" + newHarvestableId + "/"), 
-                        "com.indexdata.localindexes.web.entitybeans" +
-                        ":com.indexdata.localindexes.web.converter");
+                        "com.indexdata.localindexes.web.entity" +
+                        ":com.indexdata.localindexes.web.service.converter");
             
             harvestable = harvestableConnector.get().getEntity();
                         

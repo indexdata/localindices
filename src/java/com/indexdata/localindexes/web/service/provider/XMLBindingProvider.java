@@ -1,4 +1,4 @@
-package com.indexdata.localindexes.web.provider;
+package com.indexdata.localindexes.web.service.provider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +27,8 @@ public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBod
     
     //each-package has to contain a jaxb.index file with classes specified
     private static String entityPackage = 
-            "com.indexdata.localindexes.web.entitybeans" +
-            ":com.indexdata.localindexes.web.converter";
+            "com.indexdata.localindexes.web.entity" +
+            ":com.indexdata.localindexes.web.service.converter";
     
     private static JAXBContext jaxbCtx;
     // context creation is expensive, and since our classes don't change we can cache it

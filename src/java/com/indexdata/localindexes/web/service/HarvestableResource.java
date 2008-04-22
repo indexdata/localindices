@@ -24,8 +24,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.PersistenceContext;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
-import com.indexdata.localindexes.web.converter.HarvestableConverter;
+import com.indexdata.localindexes.web.entity.Harvestable;
+import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

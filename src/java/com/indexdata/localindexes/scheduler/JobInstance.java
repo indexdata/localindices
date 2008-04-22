@@ -3,7 +3,7 @@ package com.indexdata.localindexes.scheduler;
 
 import java.util.Date;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.entity.Harvestable;
 
 
 

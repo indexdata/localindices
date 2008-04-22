@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.indexdata.localindexes.web.entitybeans;
+package com.indexdata.localindexes.web.entity;
 
 import java.io.Serializable;
 import java.util.Date;

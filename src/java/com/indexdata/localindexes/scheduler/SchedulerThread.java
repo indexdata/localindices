@@ -8,9 +8,9 @@ import java.util.Iterator;
 
 
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.entity.Harvestable;
 // TODO : We need a logging thing too!
-import com.indexdata.localindexes.web.entitybeans.OaiPmhResource;
+import com.indexdata.localindexes.web.entity.OaiPmhResource;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
 

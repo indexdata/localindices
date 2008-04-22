@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.indexdata.localindexes.web.client;
+package com.indexdata.localindexes.web.service.client;
 
 import java.net.HttpURLConnection;
 import java.net.URI;

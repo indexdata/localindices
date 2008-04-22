@@ -7,9 +7,9 @@
  * and open the template in the editor.
  */
 
-package com.indexdata.localindexes.web.converter;
+package com.indexdata.localindexes.web.service.converter;
 
-import com.indexdata.localindexes.web.entitybeans.Harvestable;
+import com.indexdata.localindexes.web.entity.Harvestable;
 import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
