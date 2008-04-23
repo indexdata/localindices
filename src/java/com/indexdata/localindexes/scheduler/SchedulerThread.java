@@ -132,6 +132,20 @@ public class SchedulerThread implements Runnable {
         }
     }
     
+    private Harvestable retrieveFromRef(HarvestableRefConverter href) {
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                    new ResourceConnector<HarvestableConverter>(
+                    href.getResourceUri().toURL(),
+                    "com.indexdata.localindexes.web.entity" +
+                    ":com.indexdata.localindexes.web.service.converter");
+            return harvestableConnector.get().getEntity();
+        } catch (Exception male) {
+            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, "", male);
+        }
+        return null;
+    }
+    
     /**
      * Update the job list (jobs) based on a new list (newjoblist)
      *   Clear seen-marks on all jobs
