@@ -23,7 +23,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.rmi.runtime.Log;
+
 
 /**
  * The SchedulerThread does the actual scheduling of harvester threads
@@ -45,7 +45,8 @@ import sun.rmi.runtime.Log;
  * @author heikki
  */
 public class SchedulerThread implements Runnable {
-    private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
+    //private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
+    private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
     private boolean keeprunning = true;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
 
@@ -64,7 +65,7 @@ public class SchedulerThread implements Runnable {
         int i = 0;
         testit();
         while (stillRunning()) {
-            System.err.print("Looping " + i + " \n");
+            //System.err.print("Looping " + i + " \n");
             System.err.flush();
             i++;
             try {
