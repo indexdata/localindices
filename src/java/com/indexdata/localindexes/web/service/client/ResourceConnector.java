@@ -50,8 +50,8 @@ public class ResourceConnector<T> {
         Object obj = null;
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
-
-        if (conn.getResponseCode() == 200) {
+        int responseCode = conn.getResponseCode();
+        if (responseCode == 200) {
             JAXBContext context = getJAXBContext();
             obj = context.createUnmarshaller().unmarshal(conn.getInputStream());
         } else {

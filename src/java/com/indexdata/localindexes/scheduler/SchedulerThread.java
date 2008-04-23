@@ -12,7 +12,18 @@ import com.indexdata.localindexes.web.entity.Harvestable;
 // TODO : We need a logging thing too!
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 //import java.util.logging.Level;
+import com.indexdata.localindexes.web.service.HarvestablesResource;
+import com.indexdata.localindexes.web.service.client.ResourceConnector;
+import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
+import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
+import com.indexdata.localindexes.web.service.converter.HarvestablesConverter;
+import java.net.MalformedURLException;
+import java.net.URL;
 //import java.util.logging.Logger;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import sun.rmi.runtime.Log;
 
 /**
  * The SchedulerThread does the actual scheduling of harvester threads
@@ -34,7 +45,7 @@ import com.indexdata.localindexes.web.entity.OaiPmhResource;
  * @author heikki
  */
 public class SchedulerThread implements Runnable {
-
+    private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
     private boolean keeprunning = true;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
 
@@ -77,13 +88,49 @@ public class SchedulerThread implements Runnable {
      * Check if time to start new threads
      */
     private void mainLoop() {
-
+        
     } // mainLoop
 
     private Collection<Harvestable> pollJobList() {
-        return null; // ToDo
-        
+        try {
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.localindexes.web.entity" +
+                    ":com.indexdata.localindexes.web.service.converter");
+            
+            // TODO try to optimize polling
+            Collection<Harvestable> harvestables = new ArrayList<Harvestable>();
+            HarvestablesConverter hc = harvestablesConnector.get();
+            for (HarvestableRefConverter ref : hc.getReferences()) {
+                ResourceConnector<HarvestableConverter> harvestableConnector =
+                        new ResourceConnector<HarvestableConverter>(
+                        ref.getResourceUri().toURL(),
+                        "com.indexdata.localindexes.web.entity" +
+                        ":com.indexdata.localindexes.web.service.converter");
+                 harvestables.add(harvestableConnector.get().getEntity());
+            }
+            return harvestables;
+        } catch (Exception male) {
+            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, null, male);
+        }
+        return null;        
     } // pollJobList()
+    
+    private void updateJob(Harvestable harvestable) {
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                    new ResourceConnector<HarvestableConverter>(
+                    new URL(serviceBaseURL + harvestable.getId() + "/"),
+                    "com.indexdata.localindexes.web.entity" +
+                    ":com.indexdata.localindexes.web.service.converter");
+            HarvestableConverter hc = new HarvestableConverter();
+            hc.setEntity(harvestable);
+            harvestableConnector.put(hc);
+        } catch (Exception male) {
+            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, "", male);
+        }
+    }
     
     /**
      * Update the job list (jobs) based on a new list (newjoblist)
@@ -176,6 +223,7 @@ public class SchedulerThread implements Runnable {
 
         hlist.remove(h2);
         
+        hlist = pollJobList();        
         this.updateJobs(hlist);
         System.err.println("Second joblist: " + this.jobs.toString() );
         
@@ -193,9 +241,17 @@ public class SchedulerThread implements Runnable {
                 cur.matches(cur) );
     }
     
+    private void testUpdateJob () {
+        Harvestable h = new OaiPmhResource();
+        h.setId(new Long(100));
+        h.setCurrentStatus("failed");
+        h.setLastHarvestStarted(new Date());
+        updateJob(h);
+    }
+    
     private void testit() {
         try {
-            Thread.sleep(500); 
+            Thread.sleep(5000); 
         } catch (InterruptedException ex) {
             //Logger.getLogger(SchedulerThread.class.getName()).log(Level.SEVERE, null, ex);
             // just ignore it, this is a test routine to be deleted later
@@ -203,6 +259,7 @@ public class SchedulerThread implements Runnable {
         System.err.println("Testit starting * * * * * * * * * * * *");
         testUpdateJobs(); 
         testCronLine();
+        testUpdateJob();
         System.err.println("Testit done * * * * * * * * * * * *");
     }
     

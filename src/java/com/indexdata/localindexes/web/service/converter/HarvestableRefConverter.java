@@ -6,17 +6,16 @@
  * To change this template, choose Tools | Template Manager
  * and open the template in the editor.
  */
-
 package com.indexdata.localindexes.web.service.converter;
 
 import com.indexdata.localindexes.web.entity.Harvestable;
 import java.net.URI;
+import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.ws.rs.core.UriBuilder;
-
 
 /**
  * 
@@ -24,9 +23,11 @@ import javax.ws.rs.core.UriBuilder;
  */
 @XmlRootElement(name = "harvestableRef")
 public class HarvestableRefConverter {
+
     private Long id;
     private URI uri;
-    
+    private Date lastUpdated;
+
     /** Creates a new instance of HarvestableRefConverter */
     public HarvestableRefConverter() {
     }
@@ -40,8 +41,10 @@ public class HarvestableRefConverter {
      */
     public HarvestableRefConverter(Harvestable entity, URI uri, boolean isUriExtendable) {
         id = entity.getId();
-        if (isUriExtendable)
+        lastUpdated = entity.getLastUpdated();
+        if (isUriExtendable) {
             this.uri = UriBuilder.fromUri(uri).path(entity.getId() + "/").build();
+        }
     }
 
     /**
@@ -71,5 +74,14 @@ public class HarvestableRefConverter {
      */
     public void setResourceUri(URI uri) {
         this.uri = uri;
+    }
+    
+    @XmlElement
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 }
