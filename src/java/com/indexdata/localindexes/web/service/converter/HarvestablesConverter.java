@@ -73,4 +73,9 @@ public class HarvestablesConverter {
     public URI getResourceUri() {
         return uri;
     }
+
+    public void setResourceUri(URI uri) {
+        this.uri = uri;
+    }
+    
 }
