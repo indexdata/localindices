@@ -59,7 +59,7 @@ public class TestClient {
                         resourceURL, 
                         "com.indexdata.localindexes.web.entity" +
                         ":com.indexdata.localindexes.web.service.converter");
-            
+                        
             harvestable = harvestableConnector.get().getEntity();
                         
             System.out.println("+++ Retrieved harvestable:");
