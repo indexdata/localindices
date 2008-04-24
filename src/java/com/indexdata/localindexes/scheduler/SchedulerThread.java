@@ -12,18 +12,15 @@ import com.indexdata.localindexes.web.entity.Harvestable;
 // TODO : We need a logging thing too!
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 //import java.util.logging.Level;
-import com.indexdata.localindexes.web.service.HarvestablesResource;
 import com.indexdata.localindexes.web.service.client.ResourceConnector;
 import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import com.indexdata.localindexes.web.service.converter.HarvestablesConverter;
-import java.net.MalformedURLException;
 import java.net.URL;
 //import java.util.logging.Logger;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.rmi.runtime.Log;
 
 /**
  * The SchedulerThread does the actual scheduling of harvester threads
@@ -90,7 +87,7 @@ public class SchedulerThread implements Runnable {
     private void mainLoop() {
         
     } // mainLoop
-
+    
     private Collection<Harvestable> pollJobList() {
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -111,6 +108,20 @@ public class SchedulerThread implements Runnable {
                  harvestables.add(harvestableConnector.get().getEntity());
             }
             return harvestables;
+        } catch (Exception male) {
+            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, null, male);
+        }
+        return null;        
+    } // pollJobList()
+
+    private Collection<HarvestableRefConverter> pollJobRefList() {
+        try {
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.localindexes.web.entity" +
+                    ":com.indexdata.localindexes.web.service.converter");
+            return harvestablesConnector.get().getReferences();
         } catch (Exception male) {
             Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, null, male);
         }
