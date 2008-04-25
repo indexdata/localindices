@@ -4,6 +4,7 @@ package com.indexdata.localindexes.scheduler;
 import java.util.Date;
 
 import com.indexdata.localindexes.web.entity.Harvestable;
+import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 
 
 
@@ -19,14 +20,16 @@ import com.indexdata.localindexes.web.entity.Harvestable;
 public class JobInstance {
 
     // private Harvester harvesterThing; // from Marc
+    public HarvestableRefConverter harvestableRef;
     public Harvestable harvestableData; // from Jakub
     private Thread harvestingThread;
     public boolean seen; // for checking what has been deleted
     
-    public JobInstance ( Harvestable hable ) {
-        this.harvestableData = hable;
-        this.seen=false;
-        this.harvestingThread=null;
+    public JobInstance ( HarvestableRefConverter href, Harvestable hable ) {
+        harvestableData = hable;
+        harvestableRef = href;
+        seen=false;
+        harvestingThread=null;
     } // JobInstance constructor
     
     /**

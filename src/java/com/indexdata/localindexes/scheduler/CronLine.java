@@ -43,9 +43,11 @@ public class CronLine {
             String pf = pattern.fields[i];
             String ff = fields[i];
             if (!pf.equals("*") && !pf.equals(ff)) {
-                System.err.println("Mismatch '" + pf + "' and '"+ ff + "'");
+                //System.err.println("Mismatch '" + pf + "' and '"+ ff + "'");
                 m=false;
-            }
+            } 
+            // else 
+            //    System.err.println("Match '" + pf + "' and '"+ ff + "'");                
         }
         return m;
     }
@@ -55,7 +57,7 @@ public class CronLine {
         int min = g.get(Calendar.MINUTE);
         int hr  = g.get(Calendar.HOUR_OF_DAY);
         int mday= g.get(Calendar.DAY_OF_MONTH);
-        int mon = g.get(Calendar.MONTH);
+        int mon = g.get(Calendar.MONTH)+1;  // JAN = 1
         int wday= g.get(Calendar.DAY_OF_WEEK);
         Formatter f = new Formatter();
         f.format("%d %d %d %d %d", min, hr, mday, mon, wday);
