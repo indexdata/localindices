@@ -31,6 +31,15 @@ public class HarvestableConverter {
     /** Creates a new instance of HarvestableConverter */
     public HarvestableConverter() {
     }
+    
+    /**
+     * Creates a new instance of HarvestableConverter.
+     *
+     * @param entity associated entity
+     */
+    public HarvestableConverter(Harvestable entity) {
+        this.entity = entity;
+    }
 
     /**
      * Creates a new instance of HarvestableConverter.
@@ -70,6 +79,10 @@ public class HarvestableConverter {
     @XmlAttribute(name = "uri")
     public URI getResourceUri() {
         return uri;
+    }
+    
+    public void setResourceUri(URI uri) {
+        this.uri = uri;
     }
 
     /**

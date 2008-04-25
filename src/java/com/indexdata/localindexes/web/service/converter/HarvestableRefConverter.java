@@ -31,6 +31,16 @@ public class HarvestableRefConverter {
     /** Creates a new instance of HarvestableRefConverter */
     public HarvestableRefConverter() {
     }
+    
+    /**
+     * Creates a new instance of HarvestableRefConverter.
+     *
+     * @param entity associated entity
+     */
+    public HarvestableRefConverter(Harvestable entity) {
+        id = entity.getId();
+        lastUpdated = entity.getLastUpdated();
+    }
 
     /**
      * Creates a new instance of HarvestableRefConverter.
@@ -55,6 +65,10 @@ public class HarvestableRefConverter {
     @XmlElement
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
