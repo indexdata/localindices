@@ -315,9 +315,11 @@
             -->
     <target depends="init" if="no.dist.ear.dir" name="deps-module-jar" unless="no.deps">
         <ant antfile="${project.oclc-harvester}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.oclc-harvester-1}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init" if="dist.ear.dir" name="deps-ear-jar" unless="no.deps">
         <ant antfile="${project.oclc-harvester}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.oclc-harvester-1}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init, deps-module-jar, deps-ear-jar" name="deps-jar" unless="no.deps"/>
     <target depends="init,deps-jar" name="-pre-pre-compile">
@@ -457,16 +459,16 @@
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,-do-dist-with-manifest,-do-dist-without-manifest" name="do-dist"/>
     <target depends="init" if="dist.ear.dir" name="library-inclusion-in-manifest">
-        <basename file="${reference.oclc-harvester.jar}" property="included.lib.reference.oclc-harvester.jar"/>
-        <copy-ear-war file="${reference.oclc-harvester.jar}" propname="included.lib.reference.oclc-harvester.jar.X"/>
+        <basename file="${reference.oclc-harvester-1.jar}" property="included.lib.reference.oclc-harvester-1.jar"/>
+        <copy-ear-war file="${reference.oclc-harvester-1.jar}" propname="included.lib.reference.oclc-harvester-1.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.oclc-harvester.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.oclc-harvester-1.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
     <target depends="init" name="library-inclusion-in-archive" unless="dist.ear.dir">
-        <copy file="${reference.oclc-harvester.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${reference.oclc-harvester-1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">
         <dirname file="${dist.ear.war}" property="dist.jar.dir"/>
@@ -747,6 +749,7 @@
             -->
     <target depends="init" if="no.dist.ear.dir" name="deps-clean" unless="no.deps">
         <ant antfile="${project.oclc-harvester}/build.xml" inheritall="false" target="clean"/>
+        <ant antfile="${project.oclc-harvester-1}/build.xml" inheritall="false" target="clean"/>
     </target>
     <target depends="init" name="do-clean">
         <condition property="build.dir.to.clean" value="${build.web.dir}">
