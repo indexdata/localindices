@@ -7,7 +7,7 @@
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
                 <library files="1">
-                    <file>${reference.oclcharvester2.jar}</file>
+                    <file>${reference.oclc-harvester.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>
@@ -21,7 +21,7 @@
         </data>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
-                <foreign-project>oclcharvester2</foreign-project>
+                <foreign-project>oclc-harvester</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
