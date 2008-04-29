@@ -18,6 +18,8 @@ import java.util.Formatter;
  * @author heikki
  */
 
+/* minimal change */
+
 public class CronLine {
     private String[] fields;
     private final static int nfields = 5;
