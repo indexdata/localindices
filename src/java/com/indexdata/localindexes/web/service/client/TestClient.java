@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- *
+ * Tests the WS client.
  * @author jakub
  */
 public class TestClient {
