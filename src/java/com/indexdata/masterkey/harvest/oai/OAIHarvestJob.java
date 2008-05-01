@@ -1,301 +1,161 @@
 package com.indexdata.masterkey.harvest.oai;
 
-
 /**
-   Copyright 2008 Index Data ApS
-   http://www.indexdata.com
-   Licensed under the GNU Public License, Version 2.0.
-*/
-
-/* package ; */
-
-// import java.io.*;
-// import java.lang.NoSuchFieldException;
-// import java.util.ArrayList;
-// import java.util.List;
-// import java.util.HashMap;
-// import javax.xml.parsers.ParserConfigurationException;
-// import javax.xml.transform.TransformerException;
-// import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.util.Date;
+Copyright 2008 Index Data ApS
+http://www.indexdata.com
+Licensed under the GNU Public License, Version 2.0.
+ */
 import ORG.oclc.oai.harvester2.verb.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-//import org.apache.log4j.Logger;
+import com.indexdata.localindexes.web.entity.OaiPmhResource;
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import org.xml.sax.SAXException;
 
-public class OAIHarvestJob extends HarvestJob {
+/**
+ * This class was rewritten and now follows OCLC's RawWrite.java
+ * @author jakub
+ */
+public class OAIHarvestJob implements HarvestJob {
 
-    public static final String JOB_TYPE = "OAI"; 
+    private String baseURL;
+    private String from;
+    private String until;
+    private String metadataPrefix;
+    private String setSpec;
+    private String resumptionToken;
+    
+    private int status;
+    private HarvestStorage storage;
+    private static Logger logger;
 
-    public OAIHarvestJob (String baseURL,
-                          String from,
-                          String until,
-                          String metadataPrefix,
-                          String setSpec) {
+    public OAIHarvestJob(OaiPmhResource resource) {
+        // TODO not implemented yet
+    }
+
+    public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
+        
+        logger = Logger.getLogger(this.getClass().getCanonicalName());
+        
         this.baseURL = baseURL;
         this.from = from;
         this.until = until;
         this.metadataPrefix = metadataPrefix;
         this.setSpec = setSpec;
 
-        if (this.baseURL == null) 
-            throw new IllegalArgumentException("OAIHarvestJob: " 
-                                               + "expect 'baseURL' parameter");
-
-        if (this.from == null) 
-            throw new IllegalArgumentException("OAIHarvestJob: "
-                                               + "expect 'from' parameter");
-
-        if (this.until == null) 
-            throw new IllegalArgumentException("OAIHarvestJob: "
-                                               + "expect 'until' parameter");
-
-        if (this.metadataPrefix == null) 
-            this.metadataPrefix = "oai_dc";
-
-        //if (this.setSpec == null) 
-        //  throw new IllegalArgumentException("OAIHarvestJob: "
-        //                                     + "expect 'setSpec' parameter");
-
-        this.job = this.from + "+" + this.until 
-            + "+" + this.metadataPrefix + "+" + this.setSpec;
-
-        this.resumptionToken = null;
-
-        this.status = STATUS_NEW;
-    }
-
-    // HarvestJob overrides
-
-    public String baseURL() { return this.baseURL; }
-    public String job() { return this.job; }
-    public String part() {
-        if (this.part == "ListRecords") {
-            return this.part + File.separatorChar + this.job; 
+        if (this.baseURL == null) {
+            throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
-        return this.part; 
-    }
-    public String batch() { return this.resumptionToken; }
-    public String status() { return this.status; }
-    public String type() { return JOB_TYPE; }
-
-    public void run() 
-    //throws IOException, ParserConfigurationException, SAXException, 
-    //           TransformerException, NoSuchFieldException
-    {
-        try {
-            //OutputStream os = System.out;
-
-            // Before the job starts
-            logger.info(message());
-            this.status = STATUS_ACTIVE;
-    
-            this.storage.store(this, "test");
-
-            // Identify
-            {
-                if (this.status != STATUS_ACTIVE) return; 
-                this.part = "Identify";
-                logger.info(message());
-                    //.toString().getBytes("UTF-8");
-                Identify identify = new Identify(baseURL);
-
-                if (identify != null) {
-                    NodeList errors = identify.getErrors();
-                    if (got_error(errors)) {
-                        this.status = STATUS_ERROR;
-                        // logger.info(error_message(errors));
-                        logger.info(identify.toString());
-                        //break;
-                    } 
-                    this.storage.store(this, identify.toString());
-                }
-                else {
-                    this.status = STATUS_ERROR;
-                    logger.info(message());
-                    return;
-                }
-            }
-
-            // ListMetadataFormats
-            {
-                if (this.status != STATUS_ACTIVE) return; 
-                this.part = "ListMetadataFormats";
-                logger.info(message());
-                ListMetadataFormats meta = new ListMetadataFormats(baseURL);
-
-                if (meta != null) {
-                    NodeList errors = meta.getErrors();
-                    if (got_error(errors)) {
-                        this.status = STATUS_ERROR;
-                        // logger.info(error_message(errors));
-                        logger.info(meta.toString());
-                    } 
-                    this.storage.store(this, meta.toString());
-                }
-                else {
-                    this.status = STATUS_ERROR;
-                    logger.info(message());
-                    return;
-                }
-            }
-
-            // ListSets
-            {
-                if (this.status != STATUS_ACTIVE) return; 
-                this.part = "ListSets";
-                logger.info(message());
-                ListSets sets = new ListSets(this.baseURL);
-
-                // while (sets != null) {0
-                if (sets != null) {
-                    NodeList errors = sets.getErrors();
-                    if (got_error(errors)) {
-                        this.status = STATUS_ERROR; 
-                        logger.info(message());
-                        // logger.info(error_message(errors));
-                        logger.info(sets.toString());
-                        // some servers don't support ListSets, that's OK
-                        this.status = STATUS_ACTIVE; 
-                        //break;
-                    }
-                    
-                    this.storage.store(this, sets.toString());
-
-                    // the current implementation of the OCLC OAI libs does
-                    // not allow for resumption tokens during ListSets, as
-                    // they should according to the OAI protocol. 
-
-                    //checking for resumption tokens and next batch
-                    //this.resumptionToken = sets.getResumptionToken();
-                    //if (this.resumptionToken == null 
-                    //   || this.resumptionToken.length() == 0) {
-                    //    this.resumptionToken = null; 
-                    //   sets = null;
-                    //} else {
-                    // logger.info(message());
-                    //   //sets = new ListSets(baseURL, this.resumptionToken);
-                    //   sets = new ListSets(baseURL);
-                    //}
-                }
-                else {
-                    this.status = STATUS_ERROR;
-                    logger.info(message());
-                    return;
-                }
-            }
-
-
-            // ListIdentifiers - not done, we want the data !!
-
-            // ListRecords
-            {
-                if (this.status != STATUS_ACTIVE) return; 
-                this.part = "ListRecords";
-                logger.info(message());
-                ListRecords records 
-                    = new ListRecords(this.baseURL, 
-                                      this.from, this.until,
-                                      this.setSpec, this.metadataPrefix);
-
-                while (records != null) {
-                    NodeList errors = records.getErrors();
-                    if (got_error(errors)) {
-                        this.status = STATUS_ERROR;
-                        logger.info(message());
-                        // logger.info(error_message(errors));
-                        // logger.info(records.toString());
-
-                        this.storage.store(this, records.toString());
-
-                        break;
-                    } 
-                    
-                    this.storage.store(this, records.toString());
-
-
-                    // checking for resumption tokens and next batch
-                    this.resumptionToken = records.getResumptionToken();
-                    if (this.resumptionToken == null 
-                        || this.resumptionToken.length() == 0) {
-                        this.resumptionToken = null; 
-                        records = null;
-                    } else {
-                        logger.info(message());
-                        records = new ListRecords(baseURL, 
-                                                  this.resumptionToken);
-                    }   
-                }
-            }
-           
-            // we got through the entire harvesting without problems
-            this.end = new Date();
-            this.resumptionToken = null; 
-            this.status = STATUS_FINISHED;
-            logger.info(message());
-
-
-            // Exceptions which need additional handling are:
-            // IOException, ParserConfigurationException, SAXException, 
-            // TransformerException, NoSuchFieldException
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
+        if (this.from == null) {
+            throw new IllegalArgumentException("from parameter cannot be null");
+        }
+        if (this.until == null) {
+            throw new IllegalArgumentException("'until parameter cannot be null");
+        }
         
-        } catch (Error e) {
-            e.printStackTrace();
-            System.exit(-1);
+        if (this.metadataPrefix == null) {
+            this.metadataPrefix = "oai_dc";
         }
-    }
-    
 
-
-
-    // OAIHarvestJob private things
-
-    private boolean got_error(NodeList errors){
-         if (errors != null && errors.getLength() > 0) {
-             this.status = STATUS_ERROR;
-             return true;
-         }
-         return false;
-    }               
-         
-    private String error_message(NodeList errors){
-
-         if (errors != null && errors.getLength() > 0) {
-             this.status = STATUS_ERROR;
-                        
-             logger.info(message());
-             
-             int length = errors.getLength();
-             for (int i=0; i<length; ++i) {
-                 Node item = errors.item(i);
-                 logger.log(Level.INFO, item.getTextContent());
-             }
-         }
-         return "error";
+        this.status = HarvestJob.STATUS_ACTIVE;
     }
 
-    private static Logger logger = Logger.getLogger(OAIHarvestJob.class.getCanonicalName());
-   
-    private String baseURL = null;
-    private String from = null;
-    private String until = null;
-    private String metadataPrefix = null;
-    private String resumptionToken = null;
-    private String setSpec = null;
+    public void run() {
+        logger.log(Level.INFO, "OAI harvest thread started.");
+        try {
+            OutputStream out = storage.getOutputStream();
 
-    private Date start = new Date();
-    private Date end = null;
+            if (resumptionToken != null) {
+                harvest(baseURL, resumptionToken, out);
+            } else {
+                harvest(baseURL, from, until, metadataPrefix, setSpec, out);
+            }
+            if (out != System.out) {
+                out.close();
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, e.getMessage());
+        }
 
-    private String job = null;
-    private String part = null;
-    private String status = null;
+        logger.log(Level.INFO, "OAI harvest thread finishes.");
+    }
 
+    public void setStorage(HarvestStorage storage) {
+        this.storage = storage;
+    }
+
+    private void harvest(String baseURL, String resumptionToken,
+            OutputStream out)
+            throws IOException, ParserConfigurationException, SAXException, TransformerException,
+            NoSuchFieldException {
+        ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
+        while (listRecords != null) {
+            NodeList errors = listRecords.getErrors();
+            if (errors != null && errors.getLength() > 0) {
+                System.out.println("Found errors");
+                int length = errors.getLength();
+                for (int i = 0; i < length; ++i) {
+                    Node item = errors.item(i);
+                    System.out.println(item);
+                }
+                System.out.println("Error record: " + listRecords.toString());
+                break;
+            }
+            out.write(listRecords.toString().getBytes("UTF-8"));
+            out.write("\n".getBytes("UTF-8"));
+            resumptionToken = listRecords.getResumptionToken();
+            System.out.println("resumptionToken: " + resumptionToken);
+            if (resumptionToken == null || resumptionToken.length() == 0) {
+                listRecords = null;
+            } else {
+                listRecords = new ListRecords(baseURL, resumptionToken);
+            }
+        }
+        out.write("</harvest>\n".getBytes("UTF-8"));
+    }
+
+    private void harvest(String baseURL, String from, String until,
+            String metadataPrefix, String setSpec,
+            OutputStream out)
+            throws IOException, ParserConfigurationException, SAXException, TransformerException,
+            NoSuchFieldException {
+        out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
+        out.write("<harvest>\n".getBytes("UTF-8"));
+        out.write(new Identify(baseURL).toString().getBytes("UTF-8"));
+        out.write("\n".getBytes("UTF-8"));
+        out.write(new ListMetadataFormats(baseURL).toString().getBytes("UTF-8"));
+        out.write("\n".getBytes("UTF-8"));
+        out.write(new ListSets(baseURL).toString().getBytes("UTF-8"));
+        out.write("\n".getBytes("UTF-8"));
+        ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
+                metadataPrefix);
+        while (listRecords != null) {
+            NodeList errors = listRecords.getErrors();
+            if (errors != null && errors.getLength() > 0) {
+                System.out.println("Found errors");
+                int length = errors.getLength();
+                for (int i = 0; i < length; ++i) {
+                    Node item = errors.item(i);
+                    System.out.println(item);
+                }
+                System.out.println("Error record: " + listRecords.toString());
+                break;
+            }
+            out.write(listRecords.toString().getBytes("UTF-8"));
+            out.write("\n".getBytes("UTF-8"));
+            String resumptionToken = listRecords.getResumptionToken();
+            System.out.println("resumptionToken: " + resumptionToken);
+            if (resumptionToken == null || resumptionToken.length() == 0) {
+                listRecords = null;
+            } else {
+                listRecords = new ListRecords(baseURL, resumptionToken);
+            }
+        }
+        out.write("</harvest>\n".getBytes("UTF-8"));
+    }
 }
