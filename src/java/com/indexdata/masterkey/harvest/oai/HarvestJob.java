@@ -8,13 +8,10 @@ package com.indexdata.masterkey.harvest.oai;
 */
 
 public interface HarvestJob extends Runnable {
-
-    public static final int STATUS_NEW = 1; 
-    public static final int STATUS_ACTIVE = 2; 
-    public static final int STATUS_FINISHED = 3; 
-    public static final int STATUS_KILL = 4; 
-    public static final int STATUS_ERROR = 5; 
-
+    
+    public void kill();
+    public HarvestStatus getStatus();
     public void setStorage(HarvestStorage storage);
-
+    public void finishReceived();
+    
 }

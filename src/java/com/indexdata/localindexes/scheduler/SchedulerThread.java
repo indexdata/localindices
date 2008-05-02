@@ -1,5 +1,6 @@
 package com.indexdata.localindexes.scheduler;
 
+import com.indexdata.masterkey.harvest.oai.HarvestStatus;
 import java.util.Map;
 import java.util.Collection;
 import java.util.ArrayList;
@@ -49,6 +50,10 @@ public class SchedulerThread implements Runnable {
     //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
     private boolean keeprunning = true;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
+
+    private void reportStatus(JobInstance ji) {
+        //Harvestable hStatus = new ji.getHarvestableData().getClass();
+    }
 
     private synchronized boolean stillRunning() {
         return keeprunning;
@@ -159,7 +164,7 @@ public class SchedulerThread implements Runnable {
 
                 JobInstance ji = jobs.get(id);
                 if (ji != null) {
-                    if (ji.harvestableRef.getLastUpdated() != href.getLastUpdated()) {
+                    if (ji.getHarvestableRef().getLastUpdated() != href.getLastUpdated()) {
                         System.err.println("Parameters changed for job " + ji + " killing old");
                         ji.kill();
                         ji = null; // signal to creatre a new one
@@ -167,8 +172,12 @@ public class SchedulerThread implements Runnable {
                 }
                 if (ji == null) {
                     Harvestable harv = retrieveFromRef(href);
-                    ji = new JobInstance(href, harv);
-                    jobs.put(id, ji);
+                    try {
+                        ji = new JobInstance(href, harv);
+                        jobs.put(id, ji);
+                    } catch (IllegalArgumentException ile) {
+                       System.err.println(ile);
+                    }
                     // todo: set status to 'starting' or something like that
                     System.err.println("Created a new JobInstance " + ji);
                 }
@@ -177,7 +186,7 @@ public class SchedulerThread implements Runnable {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    System.err.println("Job " + ji.harvestableData.getId() +
+                    System.err.println("Job " + ji.getHarvestableData().getId() +
                             " gone missing. Deleting");
                     ji.kill();
                     it.remove();
@@ -185,6 +194,7 @@ public class SchedulerThread implements Runnable {
             }
         }
     } // updateJobs
+  
 
     /**
      * Check if the status has changed in any of the running threads
@@ -193,6 +203,10 @@ public class SchedulerThread implements Runnable {
      * (but keep the job for the next time)
      */
     private void checkThreads() {
+        for(JobInstance ji : jobs.values()) {
+            if(ji.isStatusChanged())
+                reportStatus(ji);
+        }
     } // checkThreads
 
     /**
@@ -200,6 +214,11 @@ public class SchedulerThread implements Runnable {
      * has come.
      */
     private void checkTimes() {
+        CronLine currentCronLine = CronLine.currentCronLine();
+        for(JobInstance ji : jobs.values()) {
+            if (ji.timeToRun(currentCronLine))
+                ji.startThread();
+        }
     } // startThreads
 
     /** * * * * * * * * * * * * * * * * * 

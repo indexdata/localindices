@@ -29,19 +29,27 @@ public class OAIHarvestJob implements HarvestJob {
     private String metadataPrefix;
     private String setSpec;
     private String resumptionToken;
-    
-    private int status;
+    private HarvestStatus status;
     private HarvestStorage storage;
     private static Logger logger;
+    private boolean die = false;
+
+    private synchronized boolean isKillSendt() {
+        return die;
+    }
+
+    private synchronized void onKillSendt() {
+        die = true;
+    }
 
     public OAIHarvestJob(OaiPmhResource resource) {
         // TODO not implemented yet
     }
 
     public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
-        
+
         logger = Logger.getLogger(this.getClass().getCanonicalName());
-        
+
         this.baseURL = baseURL;
         this.from = from;
         this.until = until;
@@ -57,16 +65,26 @@ public class OAIHarvestJob implements HarvestJob {
         if (this.until == null) {
             throw new IllegalArgumentException("'until parameter cannot be null");
         }
-        
+
         if (this.metadataPrefix == null) {
             this.metadataPrefix = "oai_dc";
         }
 
-        this.status = HarvestJob.STATUS_ACTIVE;
+        status = HarvestStatus.NEW;
+    }
+
+    public void kill() {
+        status = HarvestStatus.KILLED;
+        onKillSendt();
+    }
+
+    public HarvestStatus getStatus() {
+        return status;
     }
 
     public void run() {
         logger.log(Level.INFO, "OAI harvest thread started.");
+        status = HarvestStatus.RUNNING;
         try {
             OutputStream out = storage.getOutputStream();
 
@@ -83,6 +101,8 @@ public class OAIHarvestJob implements HarvestJob {
         }
 
         logger.log(Level.INFO, "OAI harvest thread finishes.");
+        if (status != HarvestStatus.ERROR)
+            status = HarvestStatus.FINISHED;        
     }
 
     public void setStorage(HarvestStorage storage) {
@@ -94,10 +114,11 @@ public class OAIHarvestJob implements HarvestJob {
             throws IOException, ParserConfigurationException, SAXException, TransformerException,
             NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
-        while (listRecords != null) {
+        while (listRecords != null || !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
                 System.out.println("Found errors");
+                status = HarvestStatus.ERROR;
                 int length = errors.getLength();
                 for (int i = 0; i < length; ++i) {
                     Node item = errors.item(i);
@@ -134,10 +155,11 @@ public class OAIHarvestJob implements HarvestJob {
         out.write("\n".getBytes("UTF-8"));
         ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix);
-        while (listRecords != null) {
+        while (listRecords != null || !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
                 System.out.println("Found errors");
+                status = HarvestStatus.ERROR;
                 int length = errors.getLength();
                 for (int i = 0; i < length; ++i) {
                     Node item = errors.item(i);
@@ -157,5 +179,10 @@ public class OAIHarvestJob implements HarvestJob {
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
+    }
+
+    public void finishReceived() {
+        if (status.equals(HarvestStatus.FINISHED))
+            status = HarvestStatus.WAITING;
     }
 }
