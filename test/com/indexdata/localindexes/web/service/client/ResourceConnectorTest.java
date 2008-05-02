@@ -8,7 +8,6 @@ package com.indexdata.localindexes.web.service.client;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
-import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import com.indexdata.localindexes.web.service.converter.HarvestablesConverter;
 import java.net.MalformedURLException;
 import java.net.URL;
