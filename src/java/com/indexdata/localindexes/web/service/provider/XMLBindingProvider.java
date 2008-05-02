@@ -3,6 +3,8 @@ package com.indexdata.localindexes.web.service.provider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.ProduceMime;
@@ -80,5 +82,21 @@ public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBod
                 return true;
         }
         return false;
+    }
+
+    public boolean isWriteable(Class<?> arg0, Type arg1, Annotation[] arg2) {
+        return isWriteable(arg0);
+    }
+
+    public void writeTo(Object arg0, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType arg4, MultivaluedMap<String, Object> arg5, OutputStream arg6) throws IOException {
+        writeTo(arg0, arg4, arg5, arg6);
+    }
+
+    public boolean isReadable(Class<?> arg0, Type arg1, Annotation[] arg2) {
+        return isReadable(arg0);
+    }
+
+    public Object readFrom(Class<Object> arg0, Type arg1, MediaType arg2, Annotation[] arg3, MultivaluedMap<String, String> arg4, InputStream arg5) throws IOException {
+        return readFrom(arg0, arg2, arg4, arg5);
     }
 }
