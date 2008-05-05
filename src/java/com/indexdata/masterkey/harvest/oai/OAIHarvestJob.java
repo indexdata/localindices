@@ -33,6 +33,7 @@ public class OAIHarvestJob implements HarvestJob {
     private HarvestStorage storage;
     private static Logger logger;
     private boolean die = false;
+    private String error;
 
     private synchronized boolean isKillSendt() {
         return die;
@@ -81,6 +82,19 @@ public class OAIHarvestJob implements HarvestJob {
     public HarvestStatus getStatus() {
         return status;
     }
+    
+    public void finishReceived() {
+        if (status.equals(HarvestStatus.FINISHED))
+            status = HarvestStatus.WAITING;
+    }
+
+    public String getError() {
+        return error;
+    }
+    
+    public void setStorage(HarvestStorage storage) {
+        this.storage = storage;
+    }
 
     public void run() {
         logger.log(Level.INFO, "OAI harvest thread started.");
@@ -105,28 +119,13 @@ public class OAIHarvestJob implements HarvestJob {
             status = HarvestStatus.FINISHED;        
     }
 
-    public void setStorage(HarvestStorage storage) {
-        this.storage = storage;
-    }
-
     private void harvest(String baseURL, String resumptionToken,
             OutputStream out)
             throws IOException, ParserConfigurationException, SAXException, TransformerException,
             NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
         while (listRecords != null || !isKillSendt()) {
-            NodeList errors = listRecords.getErrors();
-            if (errors != null && errors.getLength() > 0) {
-                System.out.println("Found errors");
-                status = HarvestStatus.ERROR;
-                int length = errors.getLength();
-                for (int i = 0; i < length; ++i) {
-                    Node item = errors.item(i);
-                    System.out.println(item);
-                }
-                System.out.println("Error record: " + listRecords.toString());
-                break;
-            }
+            if (checkError(listRecords)) break;
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             resumptionToken = listRecords.getResumptionToken();
@@ -156,18 +155,7 @@ public class OAIHarvestJob implements HarvestJob {
         ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix);
         while (listRecords != null || !isKillSendt()) {
-            NodeList errors = listRecords.getErrors();
-            if (errors != null && errors.getLength() > 0) {
-                System.out.println("Found errors");
-                status = HarvestStatus.ERROR;
-                int length = errors.getLength();
-                for (int i = 0; i < length; ++i) {
-                    Node item = errors.item(i);
-                    System.out.println(item);
-                }
-                System.out.println("Error record: " + listRecords.toString());
-                break;
-            }
+            if (checkError(listRecords)) break;
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             String resumptionToken = listRecords.getResumptionToken();
@@ -180,9 +168,22 @@ public class OAIHarvestJob implements HarvestJob {
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
     }
-
-    public void finishReceived() {
-        if (status.equals(HarvestStatus.FINISHED))
-            status = HarvestStatus.WAITING;
+    
+    private boolean checkError(ListRecords listRecords) throws TransformerException {
+        NodeList errors = listRecords.getErrors();
+        if (errors != null && errors.getLength() > 0) {
+            System.out.println("Found errors");
+            status = HarvestStatus.ERROR;
+            int length = errors.getLength();
+            error = null;
+            for (int i = 0; i < length; ++i) {
+                Node item = errors.item(i);
+                error += item.getTextContent();
+                System.out.println(item);
+            }
+            System.out.println("Error record: " + listRecords.toString());
+            return true;
+        }
+        return false;
     }
 }

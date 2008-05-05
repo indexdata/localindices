@@ -164,7 +164,7 @@ public class SchedulerThread implements Runnable {
 
                 JobInstance ji = jobs.get(id);
                 if (ji != null) {
-                    if (ji.getHarvestableRef().getLastUpdated() != href.getLastUpdated()) {
+                    if (ji.getHarvestableData().getLastUpdated() != href.getLastUpdated()) {
                         System.err.println("Parameters changed for job " + ji + " killing old");
                         ji.kill();
                         ji = null; // signal to creatre a new one
@@ -173,7 +173,7 @@ public class SchedulerThread implements Runnable {
                 if (ji == null) {
                     Harvestable harv = retrieveFromRef(href);
                     try {
-                        ji = new JobInstance(href, harv);
+                        ji = new JobInstance(harv);
                         jobs.put(id, ji);
                     } catch (IllegalArgumentException ile) {
                        System.err.println(ile);

@@ -13,5 +13,6 @@ public interface HarvestJob extends Runnable {
     public HarvestStatus getStatus();
     public void setStorage(HarvestStorage storage);
     public void finishReceived();
+    public String getError();
     
 }

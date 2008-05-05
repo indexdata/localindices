@@ -15,7 +15,6 @@ import com.indexdata.masterkey.harvest.oai.OAIHarvestJob;
  */
 public class JobInstance {
 
-    private HarvestableRefConverter harvestableRef;
     private Harvestable harvestableData;
     private Thread harvestingThread;
     private HarvestJob harvestJob;
@@ -25,9 +24,8 @@ public class JobInstance {
     public boolean seen; // for checking what has been deleted
 
 
-    public JobInstance(HarvestableRefConverter href, Harvestable hable) throws IllegalArgumentException {
+    public JobInstance(Harvestable hable) throws IllegalArgumentException {
         harvestableData = hable;
-        harvestableRef = href;
 
         if (hable instanceof OaiPmhResource) {
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
@@ -43,10 +41,6 @@ public class JobInstance {
 
     public Harvestable getHarvestableData() {
         return harvestableData;
-    }
-
-    public HarvestableRefConverter getHarvestableRef() {
-        return harvestableRef;
     }
 
     /**
@@ -74,13 +68,17 @@ public class JobInstance {
      * @return true/false
      */
     public boolean timeToRun(CronLine curCl) {
-        if (harvestJob.getStatus().equals(HarvestStatus.WAITING) || harvestJob.getStatus().equals(HarvestStatus.NEW)) {
+        if (harvestJob.getStatus().equals(HarvestStatus.WAITING) 
+                || harvestJob.getStatus().equals(HarvestStatus.NEW)) {
             return curCl.matches(cronLine);
         }
         return false;
-    } // timeToRu
+    }
 
-
+    /**
+     * Checks if the error status has changed since last check
+     * @return true/false
+     */
     public boolean isStatusChanged() {
         boolean changed;
 
