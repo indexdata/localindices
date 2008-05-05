@@ -15,43 +15,37 @@ import com.indexdata.masterkey.harvest.oai.OAIHarvestJob;
  */
 public class JobInstance {
 
-    private Harvestable harvestableData;
+    private Harvestable harvestable;
     private Thread harvestingThread;
     private HarvestJob harvestJob;
     private CronLine cronLine;
-    private HarvestStatus lastCheckedStatus;
-
+    private String harvestError;
+    
     public boolean seen; // for checking what has been deleted
 
-
     public JobInstance(Harvestable hable) throws IllegalArgumentException {
-        harvestableData = hable;
-
+        // harvest job factory
         if (hable instanceof OaiPmhResource) {
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
-        // TODO string in might not fit
         }
+        harvestable = hable;
         cronLine = new CronLine(hable.getScheduleString());
-
         seen = false;
-    } // JobInstance constructor
+    }
 
-
-    public Harvestable getHarvestableData() {
-        return harvestableData;
+    public Harvestable getHarvestable() {
+        return harvestable;
     }
 
     /**
-     * kill the job instance
-     *   Tell the thread to stop, if running
-     *   Tell the harvesterThing to clean up
+     *   Tell the harvesting thread to stop, if running
+     *   and the harvest job to clean up.
      */
-    public void kill() {
+    public void killThread() {
         harvestJob.kill();
-    } //
-
+    }
 
     public void startThread() {
         if (harvestingThread == null) {
@@ -59,8 +53,7 @@ public class JobInstance {
             harvestingThread.start();
         }
 
-    } // startThread
-
+    }
 
     /**
      * Checks if the time has come to run this job
@@ -79,20 +72,19 @@ public class JobInstance {
      * Checks if the error status has changed since last check
      * @return true/false
      */
-    public boolean isStatusChanged() {
+    public boolean errorChanged() {
         boolean changed;
-
-        if (lastCheckedStatus == null) {
+        if (harvestError == null) {
             changed = true;
         } else {
-            changed = (lastCheckedStatus == harvestJob.getStatus());
+            changed = harvestError.equals(harvestJob.getError());
         }
-        lastCheckedStatus = harvestJob.getStatus();
+        harvestError = harvestJob.getError();
         return changed;
     }
     
-    public HarvestStatus getLastCheckedStatus() {
-        return lastCheckedStatus;
-    } //
+    public String getError() {
+        return harvestError;
+    }
 
-} // class JobInstance
+}

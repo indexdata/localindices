@@ -164,9 +164,9 @@ public class SchedulerThread implements Runnable {
 
                 JobInstance ji = jobs.get(id);
                 if (ji != null) {
-                    if (ji.getHarvestableData().getLastUpdated() != href.getLastUpdated()) {
+                    if (ji.getHarvestable().getLastUpdated() != href.getLastUpdated()) {
                         System.err.println("Parameters changed for job " + ji + " killing old");
-                        ji.kill();
+                        ji.killThread();
                         ji = null; // signal to creatre a new one
                     }
                 }
@@ -186,9 +186,9 @@ public class SchedulerThread implements Runnable {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    System.err.println("Job " + ji.getHarvestableData().getId() +
+                    System.err.println("Job " + ji.getHarvestable().getId() +
                             " gone missing. Deleting");
-                    ji.kill();
+                    ji.killThread();
                     it.remove();
                 }
             }
@@ -204,7 +204,7 @@ public class SchedulerThread implements Runnable {
      */
     private void checkThreads() {
         for(JobInstance ji : jobs.values()) {
-            if(ji.isStatusChanged())
+            if(ji.errorChanged())
                 reportStatus(ji);
         }
     } // checkThreads
