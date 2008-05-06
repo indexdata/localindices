@@ -88,12 +88,12 @@ public class ResourceController {
     }
 
     private String scheduleInputsToString() {
-        String dayOfMonth = this.dayOfMonth;
-        String month = this.month;
-        String dayOfWeek = this.dayOfWeek;
+        String dayOfMonth = this.dayOfMonth.equals("0") ? "*" : this.dayOfMonth;
+        String month = this.month.equals("0") ? "*" : this.month;
+        String dayOfWeek = this.dayOfWeek.equals("0") ? "*" : this.dayOfWeek;
         this.dayOfMonth = this.month = this.dayOfWeek = null;
         if (dayOfMonth != null && month != null && dayOfWeek != null) {
-            return dayOfMonth + ":" + month + ":" + dayOfWeek;
+            return "0" + " " + "0" + " " + dayOfMonth + " " + month + " " + dayOfWeek;
         } else {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule inputs.");
             return null;
@@ -102,13 +102,13 @@ public class ResourceController {
 
     private void scheduleStringToInputs(String scheduleString) {
         if (scheduleString != null) {
-            String[] inputs = scheduleString.split(":");
-            if (inputs.length == 3) {
-                dayOfMonth = inputs[0];
-                month = inputs[1];
-                dayOfWeek = inputs[2];
+            String[] inputs = scheduleString.split(" +");
+            if (inputs.length == 5) {
+                dayOfMonth = inputs[2].equals("*") ? "0" : inputs[2];
+                month = inputs[3].equals("*") ? "0" : inputs[3];
+                dayOfWeek = inputs[4].equals("*") ? "0" : inputs[4];
             } else {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule string.");
+                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the persisted schedule string (" + scheduleString + ").");
             }
         } else {
             this.dayOfMonth = this.month = this.dayOfWeek = null;
