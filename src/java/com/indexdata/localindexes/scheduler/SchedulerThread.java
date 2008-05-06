@@ -41,21 +41,21 @@ public class SchedulerThread implements Runnable {
     }
 
     public void run() {
-        logger.log(Level.INFO, "SchedulerThread started.");
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread started.");
         keepRunning = true;
         while (keepRunning()) {
             try {
                 mainLoop();
                 Thread.sleep(30 * 1000);
             } catch (InterruptedException e) {
-                logger.log(Level.WARNING, "SchedulerThread was interrrupted. Exiting.", e);
+                logger.log(Level.WARNING, Thread.currentThread().getName() + ": SchedulerThread was interrrupted. Exiting.", e);
             }
         }
-        logger.log(Level.INFO, "SchedulerThread exiting.");
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread exits.");
     }
 
     public synchronized void kill() {
-        logger.log(Level.INFO, "SchedulerThread was kindly asked to stop.");
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread was kindly asked to stop.");
         keepRunning = false;
     }
 
@@ -72,7 +72,9 @@ public class SchedulerThread implements Runnable {
      * Check if time to start new threads
      */
     private void mainLoop() {
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": updating current job list..");
         scheduler.updateJobs();
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": checking current job list..");
         scheduler.checkJobs();
     } // mainLoop
     

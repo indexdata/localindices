@@ -74,9 +74,9 @@ public class JobInstance {
     public boolean errorChanged() {
         boolean changed;
         if (harvestError == null) {
-            changed = true;
+            changed = false;
         } else {
-            changed = harvestError.equals(harvestJob.getError());
+            changed = !harvestError.equals(harvestJob.getError());
         }
         harvestError = harvestJob.getError();
         return changed;

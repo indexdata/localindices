@@ -50,8 +50,9 @@ public class JobScheduler {
                 // corresponding job is in the current list
                 if (ji != null) {
                     // and seetings has changed
-                    if (ji.getHarvestable().getLastUpdated() != href.getLastUpdated()) {
-                        logger.log(Level.INFO, "Parameters changed for job " + ji + ", killing old thread.");
+                    if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
+                        logger.log(Level.INFO, "Parameters changed for job with id: " 
+                                + ji.getHarvestable().getId() + ", killing old harvesting thread.");
                         ji.killThread();
                         ji = null; // signal to create a new one
                         // should we remove it from the list?
@@ -75,7 +76,7 @@ public class JobScheduler {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    logger.log(Level.INFO, "Job " + ji.getHarvestable().getId() +
+                    logger.log(Level.INFO, "Job with id: " + ji.getHarvestable().getId() +
                             " gone missing. Deleting");
                     ji.killThread();
                     it.remove();
@@ -105,6 +106,6 @@ public class JobScheduler {
      */
     private void reportJobStatus(JobInstance ji) {
         // this gotta report back to the WS
-        logger.log(Level.INFO, "Harvesting job error has changed to: " + ji.getError());
+        logger.log(Level.INFO, "Job with id: " + ji.getHarvestable().getId() +" has changed error to " + ji.getError());
     }
 }
