@@ -80,6 +80,7 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void kill() {
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received kill signal.");
         status = HarvestStatus.KILLED;
         onKillSendt();
     }
@@ -89,8 +90,10 @@ public class OAIHarvestJob implements HarvestJob {
     }
     
     public void finishReceived() {
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received finish notification.");
         if (status.equals(HarvestStatus.FINISHED))
             status = HarvestStatus.WAITING;
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread status: " + status);
     }
 
     public String getError() {
@@ -120,6 +123,7 @@ public class OAIHarvestJob implements HarvestJob {
         }
 
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread finishes.");
+        // clean-up when killed
         if (status != HarvestStatus.ERROR)
             status = HarvestStatus.FINISHED;        
     }
@@ -177,15 +181,14 @@ public class OAIHarvestJob implements HarvestJob {
     private boolean checkError(ListRecords listRecords) throws TransformerException {
         NodeList errors = listRecords.getErrors();
         if (errors != null && errors.getLength() > 0) {
-            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Found errors:");
             status = HarvestStatus.ERROR;
             int length = errors.getLength();
             error = null;
             for (int i = 0; i < length; ++i) {
                 Node item = errors.item(i);
                 error += item.getTextContent();
-                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": " + item.getTextContent());
             }
+            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": OAI harvest error: " + error);
             logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
             return true;
         }
