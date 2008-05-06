@@ -4,6 +4,7 @@ package com.indexdata.localindexes.scheduler;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
+import com.indexdata.localindexes.scheduler.exception.CronLineParseException;
 
 /**
  * a CronLine is an internal representation of the time specification
@@ -29,14 +30,14 @@ public class CronLine {
      * @param line. For example: "55 23 * * 1" which means every Tuesday 23:55
      */
     public CronLine(String line) {
+        if (line == null)
+            throw new CronLineParseException("Supplied cron line is null");
+        
         fields = line.split(" +");
         // todo: throw an exception if not exactly 5 numerical fields!
-        if ( (fields==null ) || (fields.length!=nfields)) {
-            // FIXME - Throw an exception !!!
-            System.err.println("Trying to create a Cronline with '"+
-                    line+"', which splits into " + fields.length + " " +
-                    "elements, not into " + nfields);
-        } 
+        if ((fields == null) || (fields.length != nfields)) {
+            throw new CronLineParseException("Supplied cron line '" + line +"' cannot be parsed.");
+        }
     } // Cronline constructor
 
     public boolean matches (CronLine pattern) {

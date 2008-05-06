@@ -21,11 +21,13 @@ import javax.servlet.ServletContextListener;
 public class MainScheduler implements ServletContextListener {
     Thread th = null;
     SchedulerThread st = null;
+    private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
+    //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
 
     public void contextDestroyed(ServletContextEvent arg0) {
         if (st != null) {
             System.err.println("MainScheduler: Telling the SchedulerThread to stop");
-            st.enough(); 
+            st.kill(); 
             System.err.println("MainScheduler: Waking the SchedulerThread up so it can close down");
             th.interrupt();
         }
@@ -34,7 +36,7 @@ public class MainScheduler implements ServletContextListener {
 
     public void contextInitialized(ServletContextEvent arg0) {
         System.err.println("MainScheduler Context is initialized...");
-        st = new SchedulerThread();
+        st = new SchedulerThread(serviceBaseURL);
         th = new Thread(st);
         th.start();
         System.err.println("Created and started the background thread...");

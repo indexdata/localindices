@@ -1,12 +1,9 @@
 package com.indexdata.localindexes.scheduler;
 
-import com.indexdata.masterkey.harvest.oai.HarvestStatus;
 import java.util.Map;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
 
 
 import com.indexdata.localindexes.web.entity.Harvestable;
@@ -46,44 +43,38 @@ import java.util.logging.Logger;
  * @author heikki
  */
 public class SchedulerThread implements Runnable {
-    private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
-    //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
-    private boolean keeprunning = true;
-    private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
 
-    private void reportStatus(JobInstance ji) {
-        //Harvestable hStatus = new ji.getHarvestableData().getClass();
+    private String serviceBaseURL;
+    private boolean keepRunning;
+    private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+
+    public SchedulerThread(String serviceBaseURL) {
+        this.serviceBaseURL = serviceBaseURL;
     }
 
-    private synchronized boolean stillRunning() {
-        return keeprunning;
-    } //stillRunning
-
-    public synchronized void enough() {
-        System.err.print("Telling the thread to stop running");
-        keeprunning = false;
-    } // enough()
-
     public void run() {
-        System.err.print("Starting to run the background thread...\n");
-        keeprunning = true;
-        int i = 0;
-        testit();
-        while (stillRunning()) {
-            //System.err.print("Looping " + i + " \n");
-            System.err.flush();
-            i++;
+        logger.log(Level.INFO, "SchedulerThread started.");
+        keepRunning = true;
+        while (keepRunning()) {
             try {
-                //mainLoop();
+                mainLoop();
                 Thread.sleep(30 * 1000);
             } catch (InterruptedException e) {
-                System.err.print("Caught an exception " + e.getMessage());
-            // e.printStackTrace();
+                logger.log(Level.WARNING, "SchedulerThread was interrrupted. Exiting.", e);
             }
         }
-        System.err.print("Someone has told us to stop, exiting after " +
-                i + " rounds\n");
-    } // run()
+        logger.log(Level.INFO, "SchedulerThread exiting.");
+    }
+
+    public synchronized void kill() {
+        logger.log(Level.INFO, "SchedulerThread was kindly asked to stop.");
+        keepRunning = false;
+    }
+
+    private synchronized boolean keepRunning() {
+        return keepRunning;
+    }
 
     /**
      * The "main" loop:
@@ -94,11 +85,91 @@ public class SchedulerThread implements Runnable {
      * Check if time to start new threads
      */
     private void mainLoop() {
-        Collection<HarvestableRefConverter> reflist = pollJobRefList();
+        Collection<HarvestableRefConverter> reflist = pollHarvestableRefList();
         updateJobs(reflist);
+        checkJobs();
     } // mainLoop
 
-    private Collection<HarvestableRefConverter> pollJobRefList() {
+    /**
+     * Update the current job list (jobs) based on a polled harvestableRef list (refs)
+     */
+    private void updateJobs(Collection<HarvestableRefConverter> refs) {
+        if (refs == null) {
+            logger.log(Level.SEVERE, "harvestableRef list is null. Cannot update current job list");
+        } else {
+            // mark all job so we know what to remove
+            for (JobInstance j : jobs.values()) {
+                j.seen = false;
+            }
+            for (HarvestableRefConverter href : refs) {
+                Long id = href.getId();
+                JobInstance ji = jobs.get(id);
+                // corresponding job is in the current list
+                if (ji != null) {
+                    // and seetings has changed
+                    if (ji.getHarvestable().getLastUpdated() != href.getLastUpdated()) {
+                        logger.log(Level.INFO, "Parameters changed for job " + ji + ", killing old thread.");
+                        ji.killThread();
+                        ji = null; // signal to create a new one
+                        // should we remove it from the list?
+                    }
+                }
+                // crate new job
+                if (ji == null) {
+                    Harvestable harv = retrieveFromRef(href);
+                    try {
+                        ji = new JobInstance(harv);
+                        jobs.put(id, ji);
+                        logger.log(Level.INFO, "Created a new job " + ji);
+                    } catch (IllegalArgumentException ile) {
+                        logger.log(Level.SEVERE, "Cannot update the current job list with given entity.", ile);
+                    }
+                }
+                ji.seen = true;
+            }
+
+            // kill jobs with no entities in the WS
+            for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
+                JobInstance ji = it.next();
+                if (!ji.seen) {
+                    logger.log(Level.INFO, "Job " + ji.getHarvestable().getId() +
+                            " gone missing. Deleting");
+                    ji.killThread();
+                    it.remove();
+                }
+            }
+        }
+    } // updateJobs
+    
+    /**
+     * Start, kill, report status of the running jobs.
+     */
+    private void checkJobs() {
+        CronLine currentCronLine = CronLine.currentCronLine();
+        for (JobInstance ji : jobs.values()) {
+            if (ji.timeToRun(currentCronLine)) {
+                ji.startThread();
+            }
+            if (ji.errorChanged()) {
+                reportJobStatus(ji);
+            }
+        }
+    }
+    
+    /**
+     * Reports job status back to the Web Service
+     * @param ji running job instance
+     */
+    private void reportJobStatus(JobInstance ji) {
+        // this gotta report back to the WS
+        logger.log(Level.INFO, "Harvesting job error has changed to: " + ji.getError());
+    }
+
+    /**
+     * Retrieve list of all harvestables from the Web Service
+     * @return
+     */
+    private Collection<HarvestableRefConverter> pollHarvestableRefList() {
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
@@ -107,15 +178,36 @@ public class SchedulerThread implements Runnable {
                     ":com.indexdata.localindexes.web.service.converter");
             HarvestablesConverter hc = harvestablesConnector.get();
             return hc.getReferences();
-            //System.err.println("Got a list of " + hrefs.size() );
         } catch (Exception male) {
-            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, null, male);
-            System.err.println("PollRefList: Exception: " + male.toString() );
+            logger.log(Level.SEVERE, "Cannot retrieve the list of harvestables", male);
         }
         return null;
     }
+    
+    /**
+     * Retrieve harvestable from the Web Service using it's reference (URL)
+     * @param href harvestableRef entity
+     * @return harvesatble entity
+     */
+    private Harvestable retrieveFromRef(HarvestableRefConverter href) {
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                    new ResourceConnector<HarvestableConverter>(
+                    href.getResourceUri().toURL(),
+                    "com.indexdata.localindexes.web.entity" +
+                    ":com.indexdata.localindexes.web.service.converter");
+            return harvestableConnector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.SEVERE, "Cannot retreve harvestable from it's ref", male);
+        }
+        return null;
+    } // retrieveFromRef
 
-    private void updateJob(Harvestable harvestable) {
+    /**
+     * PUT harvestable to the Web Service
+     * @param harvestable entity to be put
+     */
+    private void updateHarvestable(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
@@ -126,156 +218,9 @@ public class SchedulerThread implements Runnable {
             hc.setEntity(harvestable);
             harvestableConnector.put(hc);
         } catch (Exception male) {
-            Logger.getLogger("com.indexdata.localindexes.scheduler").log(Level.SEVERE, "", male);
+            logger.log(Level.SEVERE, "Cannot update harvestable", male);
         }
     } // updateJob
-
-    private Harvestable retrieveFromRef(HarvestableRefConverter href) {
-        try {
-            ResourceConnector<HarvestableConverter> harvestableConnector =
-                    new ResourceConnector<HarvestableConverter>(
-                    href.getResourceUri().toURL(),
-                    "com.indexdata.localindexes.web.entity" +
-                    ":com.indexdata.localindexes.web.service.converter");
-            return harvestableConnector.get().getEntity();
-        } catch (Exception male) {
-            Logger.getLogger("com.indexdata.localindexes.scheduler").
-                    log(Level.SEVERE, "", male);
-        }
-        return null;
-    } // retrieveFromRef
-
-    /**
-     * Update the job list (jobs) based on a new list (refs)
-     */
-    private void updateJobs(Collection<HarvestableRefConverter> refs) {
-        if (refs == null) {
-            System.err.println("updatejobs called with null refs list");
-        } else {
-            for (JobInstance j : jobs.values()) {
-                j.seen = false;
-            }
-            for (HarvestableRefConverter href : refs) {
-                Long id = href.getId();
-                if (id == null) {
-                    System.err.println("Got a null id!!! "); 
-                }
-                System.err.println("Check-1 id=" + id.toString() );
-
-                JobInstance ji = jobs.get(id);
-                if (ji != null) {
-                    if (ji.getHarvestable().getLastUpdated() != href.getLastUpdated()) {
-                        System.err.println("Parameters changed for job " + ji + " killing old");
-                        ji.killThread();
-                        ji = null; // signal to creatre a new one
-                    }
-                }
-                if (ji == null) {
-                    Harvestable harv = retrieveFromRef(href);
-                    try {
-                        ji = new JobInstance(harv);
-                        jobs.put(id, ji);
-                    } catch (IllegalArgumentException ile) {
-                       System.err.println(ile);
-                    }
-                    // todo: set status to 'starting' or something like that
-                    System.err.println("Created a new JobInstance " + ji);
-                }
-                ji.seen = true;
-            } // harvestables loop
-            for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
-                JobInstance ji = it.next();
-                if (!ji.seen) {
-                    System.err.println("Job " + ji.getHarvestable().getId() +
-                            " gone missing. Deleting");
-                    ji.killThread();
-                    it.remove();
-                }
-            }
-        }
-    } // updateJobs
-  
-
-    /**
-     * Check if the status has changed in any of the running threads
-     * If so, pass on to the WS
-     * If thread finished, remove the thread object 
-     * (but keep the job for the next time)
-     */
-    private void checkThreads() {
-        for(JobInstance ji : jobs.values()) {
-            if(ji.errorChanged())
-                reportStatus(ji);
-        }
-    } // checkThreads
-
-    /**
-     * Check all the jobs, and start threads for those whose time
-     * has come.
-     */
-    private void checkTimes() {
-        CronLine currentCronLine = CronLine.currentCronLine();
-        for(JobInstance ji : jobs.values()) {
-            if (ji.timeToRun(currentCronLine))
-                ji.startThread();
-        }
-    } // startThreads
-
-    /** * * * * * * * * * * * * * * * * * 
-     * Some consistency checks
-     * Remove these routines later!
-     */
-
-    private void testCronLine() {
-        CronLine c = new CronLine("1 2 3 4 5");
-        c = new CronLine("1 2 3 4");
-        c = new CronLine("1  2 3 4  5");
-        c = new CronLine("15,45 2/2 3 4 5");
-        c = new CronLine("* * 17 3 *");
-        CronLine cur = CronLine.currentCronLine();
-        System.err.println("Current cronline is '" + cur.toString() + "'");
-        System.err.println(c.toString() + " matches cur: " +
-                cur.matches(c));
-    }
-
-    private void testUpdateJob() {
-        Harvestable h = new OaiPmhResource();
-        h.setId(new Long(100));
-        h.setCurrentStatus("failed");
-        h.setLastHarvestStarted(new Date());
-        updateJob(h);
-    }
-
-    private void testMainLoop() {
-        try {
-            System.err.println("About to call mainloop for the first time");
-            mainLoop();
-            Thread.sleep(1000);
-            System.err.println("About to call mainloop for the first time");
-            mainLoop();
-            Thread.sleep(10000);
-            System.err.println("About to call mainloop for the first time");
-            mainLoop();
-            System.err.println("TestMainLoop done");
-        } catch (InterruptedException ex) {
-            //Logger.getLogger(SchedulerThread.class.getName()).log(Level.SEVERE, null, ex);
-            System.err.println("testMainLoop interrupted while sleeping");
-        }
-    }
-
-    private void testit() {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException ex) {
-        //Logger.getLogger(SchedulerThread.class.getName()).log(Level.SEVERE, null, ex);
-        // just ignore it, this is a test routine to be deleted later
-        }
-        System.err.println("Testit starting * * * * * * * * * * * *");
-        //testUpdateJobs();
-        testMainLoop();
-        testCronLine();
-        testUpdateJob();
-        System.err.println("Testit done * * * * * * * * * * * *");
-    }
+    
 } // class SchedulerThread
 
