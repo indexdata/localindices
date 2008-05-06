@@ -1,10 +1,8 @@
 package com.indexdata.localindexes.scheduler;
 
 import com.indexdata.localindexes.web.entity.*;
-import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
-import com.indexdata.masterkey.harvest.oai.HarvestJob;
-import com.indexdata.masterkey.harvest.oai.HarvestStatus;
-import com.indexdata.masterkey.harvest.oai.OAIHarvestJob;
+import com.indexdata.masterkey.harvest.oai.*;
+
 
 /**
  * a JobInstance is one instance of a harvesting job.
@@ -23,10 +21,11 @@ public class JobInstance {
     
     public boolean seen; // for checking what has been deleted
 
-    public JobInstance(Harvestable hable) throws IllegalArgumentException {
+    public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
         // harvest job factory
         if (hable instanceof OaiPmhResource) {
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
+            harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }

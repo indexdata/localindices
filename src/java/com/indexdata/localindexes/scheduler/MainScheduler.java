@@ -4,10 +4,6 @@ package com.indexdata.localindexes.scheduler;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-// import com.indexdata.localindexes.scheduler.SchedulerThread;
-
-
-
 /**
  * This is the main scheduler for the OAI harvester. 
  * Basically, it just starts a thread when the object is created, 
@@ -16,11 +12,9 @@ import javax.servlet.ServletContextListener;
  * 
  * @author heikki
  */
-
-
 public class MainScheduler implements ServletContextListener {
-    Thread th = null;
-    SchedulerThread st = null;
+    Thread th;
+    SchedulerThread st;
     private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
     //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
 

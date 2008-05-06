@@ -44,7 +44,12 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public OAIHarvestJob(OaiPmhResource resource) {
-        // TODO not implemented yet
+        this(resource.getUrl(), 
+                "2008-03-01", 
+                "2008-05-05", 
+                resource.getMetadataPrefix(), 
+                resource.getOaiSetName()
+                );
     }
 
     public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
