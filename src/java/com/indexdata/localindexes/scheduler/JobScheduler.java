@@ -10,6 +10,7 @@ import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import com.indexdata.masterkey.harvest.oai.FileStorage;
 import com.indexdata.masterkey.harvest.oai.HarvestStorage;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -99,6 +100,17 @@ public class JobScheduler {
                 reportJobStatus(ji);
             }
         }
+    }
+    
+    public Collection<JobInfo> getJobInfo() {
+        Collection<JobInfo> jInfoList = new ArrayList<JobInfo>();
+        for (JobInstance ji : jobs.values()) {
+            JobInfo jInfo = new JobInfo();
+            jInfo.setHarvestable(ji.getHarvestable());
+            jInfo.setStatus(ji.getStatus());
+            jInfoList.add(jInfo);
+        }
+        return jInfoList;
     }
     
     /**

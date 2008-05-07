@@ -3,4 +3,12 @@
      <listener>
         <listener-class>com.indexdata.localindexes.scheduler.MainScheduler</listener-class>
     </listener>
+    <servlet>
+        <servlet-name>SchedulerStatusServlet</servlet-name>
+        <servlet-class>com.indexdata.localindexes.scheduler.SchedulerStatusServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SchedulerStatusServlet</servlet-name>
+        <url-pattern>/SchedulerStatusServlet</url-pattern>
+    </servlet-mapping>
 </web-app>

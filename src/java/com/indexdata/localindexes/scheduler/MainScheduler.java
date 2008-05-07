@@ -1,6 +1,7 @@
 
 package com.indexdata.localindexes.scheduler;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -17,25 +18,28 @@ public class MainScheduler implements ServletContextListener {
     SchedulerThread st;
     private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
     //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
-
-    public void contextDestroyed(ServletContextEvent arg0) {
-        if (st != null) {
-            System.err.println("MainScheduler: Telling the SchedulerThread to stop");
-            st.kill(); 
-            System.err.println("MainScheduler: Waking the SchedulerThread up so it can close down");
-            th.interrupt();
-        }
-        System.err.println("MainScheduler: Destroyed");
-    } 
-
-    public void contextInitialized(ServletContextEvent arg0) {
-        System.err.println("MainScheduler Context is initialized...");
+    
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+        System.err.println("ContextListener: harvester context is initialized...");
+        ServletContext servletContext = servletContextEvent.getServletContext();
         st = new SchedulerThread(serviceBaseURL);
         th = new Thread(st);
         th.start();
-        System.err.println("Created and started the background thread...");
-
+        servletContext.setAttribute("schedulerThread", st);
+        System.err.println("ContextListener: scheduling thread created, started and placed in the context...");
     }
+
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+        if (st != null) {
+            System.err.println("ContextListener: telling the scheduling thread to stop...");
+            st.kill(); 
+            System.err.println("ContextListener: waking the scheduling thread up so it can close down");
+            th.interrupt();
+        }
+        System.err.println("ContextListener: application context destroyed.");
+    } 
+
+
 
 } // class MainScheduler
 

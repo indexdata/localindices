@@ -3,6 +3,7 @@ package com.indexdata.localindexes.scheduler;
 import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
 import com.indexdata.localindexes.scheduler.dao.bean.HarvestableDAOFake;
 import com.indexdata.masterkey.harvest.oai.ConsoleStorage;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,6 +58,10 @@ public class SchedulerThread implements Runnable {
     public synchronized void kill() {
         logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread was kindly asked to stop.");
         keepRunning = false;
+    }
+    
+    public Collection<JobInfo> getJobInfo() {
+        return scheduler.getJobInfo();
     }
 
     private synchronized boolean keepRunning() {

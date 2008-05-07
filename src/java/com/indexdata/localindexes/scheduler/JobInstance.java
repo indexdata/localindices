@@ -85,5 +85,9 @@ public class JobInstance {
     public String getError() {
         return harvestError;
     }
+    
+    public HarvestStatus getStatus() {
+        return harvestJob.getStatus();
+    }
 
 }
