@@ -9,11 +9,15 @@ import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,45 +26,61 @@ import java.util.logging.Logger;
  * @author jakub
  */
 public class HarvestableDAOFake implements HarvestableDAO {
-
+    private Map<Long, Harvestable> harvestables;
     private static Logger logger = Logger.getLogger("com.indexdata.localindexes.scheduler.dao.bean");
+    
+    public HarvestableDAOFake() {
+        harvestables = new HashMap<Long, Harvestable>();
+        try {
+            OaiPmhResource hable = new OaiPmhResource();
+            hable.setId(new Long(1));
+            hable.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("05/05/2008"));
+            hable.setName("HeinOnline");
+            hable.setTitle("HeinOnline.org");
+            hable.setDescription("leading preservation publisher producing long out-of-print legal research materials in reprint and microfilm/fiche format and also became the world's largest distributor of legal periodicals");
+            hable.setScheduleString("* * * * *");
+            hable.setUrl("http://heinonline.org/HOL/OAI");
+            hable.setMetadataPrefix("oai_dc");
+            
+            harvestables.put(hable.getId(), hable);
+            
+            OaiPmhResource hable2 = new OaiPmhResource();
+            hable2.setId(new Long(2));
+            hable2.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("04/04/2008"));
+            hable2.setName("University of Groningen");
+            hable2.setTitle("University Digital Archive of the University of Groningen, The Netherlands");
+            hable2.setScheduleString("* * * * *");
+            hable2.setUrl("http://ir.ub.rug.nl/oai/");
+            hable2.setMetadataPrefix("oai_dc");
+            
+            harvestables.put(hable2.getId(), hable2);
+            
+        } catch (ParseException pe) {
+            logger.log(Level.SEVERE, "This will never happen.");
+        }
+    }
 
     public Collection<HarvestableRefConverter> pollHarvestableRefList() {
         Collection<HarvestableRefConverter> hrefs = new ArrayList<HarvestableRefConverter>();
-
-        try {
-            HarvestableRefConverter href1 = new HarvestableRefConverter();
-            href1.setId(new Long(1));
-            href1.setLastUpdated(new Date());
-            href1.setResourceUri(new URI("http://localhost/harvestables/1/"));
-
-            HarvestableRefConverter href2 = new HarvestableRefConverter();
-            href2.setId(new Long(2));
-            href2.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("05/05/2008"));
-            href2.setResourceUri(new URI("http://localhost/harvestable/2/"));
-            hrefs.add(href1);
-            hrefs.add(href2);
-        } catch (Exception e) {
-            logger.log(Level.INFO, "Cannot create test entities", e);
+        for(Harvestable hable : harvestables.values()) {
+            try {
+                HarvestableRefConverter href = new HarvestableRefConverter(hable);
+                href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
+                // update the dat
+                //if (href.getId() == 2)  
+                hrefs.add(href);
+            } catch (URISyntaxException urie) {
+                logger.log(Level.SEVERE, "This will never happen.");
+            }
         }
-
         return hrefs;
     }
 
     public Harvestable retrieveFromRef(HarvestableRefConverter href) {
-        OaiPmhResource hable = new OaiPmhResource();
-        hable.setId(href.getId());
-        hable.setLastUpdated(href.getLastUpdated());
-        hable.setName("some generated name");
-        hable.setTitle("some generated title");
-        hable.setScheduleString("* * * * *");
-        hable.setUrl("http://heinonline.org/HOL/OAI");
-        hable.setMetadataPrefix("oai_dc");
-        
-        return hable;
+        return harvestables.get(href.getId());
     }
 
-    public void updateHarvestable(Harvestable harvestable) {
+    public void updateHarvestable(Harvestable harvestable) {        
         logger.log(Level.INFO, "harvestable updated");
     }
 }
