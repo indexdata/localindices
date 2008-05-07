@@ -48,7 +48,7 @@ public class SchedulerThread implements Runnable {
                 mainLoop();
                 Thread.sleep(30 * 1000);
             } catch (InterruptedException e) {
-                logger.log(Level.WARNING, Thread.currentThread().getName() + ": SchedulerThread was interrrupted. Exiting.", e);
+                logger.log(Level.WARNING, Thread.currentThread().getName() + ": SchedulerThread was interrrupted. Exiting.");
             }
         }
         logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread exits.");

@@ -27,7 +27,7 @@ public class CronLine {
 
     /**
      * Constructs a CronLine from a string representation.
-     * @param line. For example: "55 23 * * 1" which means every Tuesday 23:55
+     * @param line For example: "55 23 * * 1" which means every Tuesday 23:55
      */
     public CronLine(String line) {
         if (line == null)

@@ -36,6 +36,9 @@ public class OAIHarvestJob implements HarvestJob {
     private String error;
 
     private synchronized boolean isKillSendt() {
+        if (die) {
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received kill signal.");
+        }
         return die;
     }
 
@@ -44,12 +47,11 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public OAIHarvestJob(OaiPmhResource resource) {
-        this(resource.getUrl(), 
-                "2008-03-01", 
-                "2008-05-05", 
-                resource.getMetadataPrefix(), 
-                resource.getOaiSetName()
-                );
+        this(resource.getUrl(),
+                "2008-03-01",
+                "2008-05-05",
+                resource.getMetadataPrefix(),
+                resource.getOaiSetName());
     }
 
     public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
@@ -80,7 +82,6 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void kill() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received kill signal.");
         status = HarvestStatus.KILLED;
         onKillSendt();
     }
@@ -88,18 +89,19 @@ public class OAIHarvestJob implements HarvestJob {
     public HarvestStatus getStatus() {
         return status;
     }
-    
+
     public void finishReceived() {
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received finish notification.");
-        if (status.equals(HarvestStatus.FINISHED))
+        if (status.equals(HarvestStatus.FINISHED)) {
             status = HarvestStatus.WAITING;
+        }
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread status: " + status);
     }
 
     public String getError() {
         return error;
     }
-    
+
     public void setStorage(HarvestStorage storage) {
         this.storage = storage;
     }
@@ -111,6 +113,7 @@ public class OAIHarvestJob implements HarvestJob {
             OutputStream out = storage.getOutputStream();
 
             if (resumptionToken != null) {
+                // this is actually never called since we do not store resumption tokens
                 harvest(baseURL, resumptionToken, out);
             } else {
                 harvest(baseURL, from, until, metadataPrefix, setSpec, out);
@@ -124,8 +127,9 @@ public class OAIHarvestJob implements HarvestJob {
 
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread finishes.");
         // clean-up when killed
-        if (status != HarvestStatus.ERROR)
-            status = HarvestStatus.FINISHED;        
+        if (status != HarvestStatus.ERROR) {
+            status = HarvestStatus.FINISHED;
+        }
     }
 
     private void harvest(String baseURL, String resumptionToken,
@@ -133,12 +137,16 @@ public class OAIHarvestJob implements HarvestJob {
             throws IOException, ParserConfigurationException, SAXException, TransformerException,
             NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
-        while (listRecords != null || !isKillSendt()) {
-            if (checkError(listRecords)) break;
+        while (listRecords != null && !isKillSendt()) {
+            NodeList errors = listRecords.getErrors();
+            if (checkError(errors)) {
+                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                break;
+            }
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             resumptionToken = listRecords.getResumptionToken();
-            logger.log(Level.INFO, Thread.currentThread().getName() +": resumptionToken: " + resumptionToken);
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": next resumptionToken: " + resumptionToken);
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
             } else {
@@ -163,23 +171,27 @@ public class OAIHarvestJob implements HarvestJob {
         //out.write("\n".getBytes("UTF-8"));
         ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix);
-        while (listRecords != null || !isKillSendt()) {
-            if (checkError(listRecords)) break;
+        while (listRecords != null && !isKillSendt()) {
+            NodeList errors = listRecords.getErrors();
+            if (checkError(errors)) {
+                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                break;
+            }
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             String resumptionToken = listRecords.getResumptionToken();
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": resumptionToken: " + resumptionToken);
             if (resumptionToken == null || resumptionToken.length() == 0) {
+                logger.log(Level.INFO, Thread.currentThread().getName() + ": Records stored. No resumptionToken received, harvest done.");
                 listRecords = null;
             } else {
+                logger.log(Level.INFO, Thread.currentThread().getName() + ": Records stored, next resumptionToken is " + resumptionToken);
                 listRecords = new ListRecords(baseURL, resumptionToken);
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
     }
-    
-    private boolean checkError(ListRecords listRecords) throws TransformerException {
-        NodeList errors = listRecords.getErrors();
+
+    private boolean checkError(NodeList errors) {
         if (errors != null && errors.getLength() > 0) {
             status = HarvestStatus.ERROR;
             int length = errors.getLength();
@@ -189,7 +201,6 @@ public class OAIHarvestJob implements HarvestJob {
                 error += item.getTextContent();
             }
             logger.log(Level.SEVERE, Thread.currentThread().getName() + ": OAI harvest error: " + error);
-            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
             return true;
         }
         return false;

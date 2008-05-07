@@ -8,6 +8,7 @@ package com.indexdata.localindexes.scheduler;
 import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.harvest.oai.FileStorage;
 import com.indexdata.masterkey.harvest.oai.HarvestStorage;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class JobScheduler {
     public void updateJobs() {
         Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList();
         if (refs == null) {
-            logger.log(Level.SEVERE, "harvestableRef list is null. Cannot update current job list");
+            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": harvestableRef list is null. Cannot update current job list");
         } else {
             // mark all job so we know what to remove
             for (JobInstance j : jobs.values()) {
@@ -51,7 +52,7 @@ public class JobScheduler {
                 if (ji != null) {
                     // and seetings has changed
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
-                        logger.log(Level.INFO, "Parameters changed for job with id: " 
+                        logger.log(Level.INFO, Thread.currentThread().getName() + ": Parameters changed for job with id: " 
                                 + ji.getHarvestable().getId() + ", killing old harvesting thread.");
                         ji.killThread();
                         ji = null; // signal to create a new one
@@ -62,11 +63,11 @@ public class JobScheduler {
                 if (ji == null) {
                     Harvestable harv = dao.retrieveFromRef(href);
                     try {
-                        ji = new JobInstance(harv, storage);
+                        ji = new JobInstance(harv, new FileStorage(harv));
                         jobs.put(id, ji);
-                        logger.log(Level.INFO, "Created a new job with id: " + ji.getHarvestable().getId());
-                    } catch (IllegalArgumentException ile) {
-                        logger.log(Level.SEVERE, "Cannot update the current job list with given entity.", ile);
+                        logger.log(Level.INFO, Thread.currentThread().getName() + ": Created a new job with id: " + ji.getHarvestable().getId());
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Cannot update the current job list with given entity.", e);
                     }
                 }
                 ji.seen = true;
@@ -76,7 +77,7 @@ public class JobScheduler {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    logger.log(Level.INFO, "Job with id: " + ji.getHarvestable().getId() +
+                    logger.log(Level.INFO, Thread.currentThread().getName() + ": Job with id: " + ji.getHarvestable().getId() +
                             " gone missing. Deleting");
                     ji.killThread();
                     it.remove();

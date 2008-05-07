@@ -18,11 +18,16 @@ public class FileStorage implements HarvestStorage {
     }
     
     public FileStorage(String outFileName) throws FileNotFoundException {
+        this.outFileName = outFileName;
         fos = new FileOutputStream(outFileName, true);
     }
 
     public OutputStream getOutputStream() {
         return fos;
+    }
+    
+    public String getOutFileName() {
+        return outFileName;
     }
 
 }

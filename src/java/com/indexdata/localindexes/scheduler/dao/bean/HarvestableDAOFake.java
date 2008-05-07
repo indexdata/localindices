@@ -54,7 +54,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         hable.setName("some generated name");
         hable.setTitle("some generated title");
         hable.setScheduleString("* * * * *");
-        hable.setUrl("http://arXiv.org/oai2");
+        hable.setUrl("http://heinonline.org/HOL/OAI");
         hable.setMetadataPrefix("oai_dc");
         
         return hable;
