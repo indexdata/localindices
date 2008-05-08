@@ -52,6 +52,8 @@ public class JobScheduler {
                 // corresponding job is in the current list
                 if (ji != null) {
                     // and seetings has changed
+                    logger.log(Level.INFO, "job's lu: " + ji.getHarvestable().getLastUpdated()
+                            + "retrieved lu: " + href.getLastUpdated() );
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
                         logger.log(Level.INFO, Thread.currentThread().getName() + ": Parameters changed for job with id: " 
                                 + ji.getHarvestable().getId() + ", killing old harvesting thread.");
@@ -99,6 +101,16 @@ public class JobScheduler {
             if (ji.errorChanged()) {
                 reportJobStatus(ji);
             }
+            /*
+            switch(ji.getStatus()) {
+                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
+                case KILLED: //never happens
+                case RUNNING: //do nothing (update progress bar)
+                case WAITING:
+                case NEW:     // ask if time to run
+                case ERROR:   // report error if changed
+            }
+             */
         }
     }
     

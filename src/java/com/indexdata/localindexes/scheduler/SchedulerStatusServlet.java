@@ -12,7 +12,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 /**
- *
+ * A simple harvest scheduler status Web Service.
  * @author jakub
  */
 public class SchedulerStatusServlet extends HttpServlet {
@@ -33,6 +33,7 @@ public class SchedulerStatusServlet extends HttpServlet {
             out.println("<job id=\"" + hable.getId() + "\">");
             out.println("<name>" + hable.getName() + "</name>");
             out.println("<scheduleString>" + hable.getScheduleString() + "</scheduleString>");
+            out.println("<lastUpdated>" + hable.getLastUpdated() + "</lastUpdated>");
             out.println("<error>" + hable.getCurrentStatus() + "</error>");
             out.println("<status>" + ji.getStatus() + "</status>");
             out.println("</job>");
@@ -41,19 +42,9 @@ public class SchedulerStatusServlet extends HttpServlet {
     }
 
     /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-    }
-
-    /** 
      * Returns a short description of the servlet.
      */
     public String getServletInfo() {
-        return "Short description";
+        return "simple harvest scheduler status";
     }
-    // </editor-fold>
 }

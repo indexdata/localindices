@@ -62,12 +62,15 @@ public class HarvestableDAOFake implements HarvestableDAO {
 
     public Collection<HarvestableRefConverter> pollHarvestableRefList() {
         Collection<HarvestableRefConverter> hrefs = new ArrayList<HarvestableRefConverter>();
-        for(Harvestable hable : harvestables.values()) {
+        for (Harvestable hable : harvestables.values()) {
             try {
+                // update the date so it looks like the settings has been changed
+                if (hable.getId() == 2) {
+                    hable.setLastUpdated(new Date());
+                    harvestables.put(hable.getId(), hable);
+                }
                 HarvestableRefConverter href = new HarvestableRefConverter(hable);
                 href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
-                // update the dat
-                //if (href.getId() == 2)  
                 hrefs.add(href);
             } catch (URISyntaxException urie) {
                 logger.log(Level.SEVERE, "This will never happen.");
@@ -77,7 +80,12 @@ public class HarvestableDAOFake implements HarvestableDAO {
     }
 
     public Harvestable retrieveFromRef(HarvestableRefConverter href) {
-        return harvestables.get(href.getId());
+        try {
+            return (Harvestable) harvestables.get(href.getId()).clone();
+        } catch (CloneNotSupportedException cle) {
+            logger.log(Level.SEVERE, "This should never happen", cle);
+        }
+        return null;
     }
 
     public void updateHarvestable(Harvestable harvestable) {        
