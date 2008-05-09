@@ -24,9 +24,11 @@ public class SchedulerStatusServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        SchedulerThread st = (SchedulerThread) getServletContext().getAttribute("schedulerThread");
+        dispatchRequest(request, st);
+        
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        SchedulerThread st = (SchedulerThread) getServletContext().getAttribute("schedulerThread");
         out.println("<jobs>");
         for (JobInfo ji : st.getJobInfo()) {
             Harvestable hable = ji.getHarvestable();
@@ -40,11 +42,11 @@ public class SchedulerStatusServlet extends HttpServlet {
         }
         out.println("</jobs>");
     }
-
-    /** 
-     * Returns a short description of the servlet.
-     */
-    public String getServletInfo() {
-        return "simple harvest scheduler status";
+    
+    private void dispatchRequest(HttpServletRequest req, SchedulerThread st) {
+        if (req.getParameter("shutdown") != null)
+            st.kill();
+        else if (req.getParameter("kill_job") != null)
+            st.stopJob(Long.parseLong(req.getParameter("kill_job")));
     }
 }

@@ -6,6 +6,8 @@ http://www.indexdata.com
 Licensed under the GNU Public License, Version 2.0.
  */
 import ORG.oclc.oai.harvester2.verb.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Node;
@@ -48,37 +50,28 @@ public class OAIHarvestJob implements HarvestJob {
 
     public OAIHarvestJob(OaiPmhResource resource) {
         this(resource.getUrl(),
-                "2008-03-01",
-                "2008-05-05",
+                null,
+                null,
                 resource.getMetadataPrefix(),
                 resource.getOaiSetName());
     }
 
     public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
-
-        logger = Logger.getLogger(this.getClass().getCanonicalName());
-
-        this.baseURL = baseURL;
-        this.from = from;
-        this.until = until;
-        this.metadataPrefix = metadataPrefix;
-        this.setSpec = setSpec;
-
-        if (this.baseURL == null) {
+        if (baseURL == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
-        if (this.from == null) {
-            throw new IllegalArgumentException("from parameter cannot be null");
+        if (metadataPrefix == null) {
+            metadataPrefix = "oai_dc";
         }
-        if (this.until == null) {
-            throw new IllegalArgumentException("'until parameter cannot be null");
-        }
-
-        if (this.metadataPrefix == null) {
-            this.metadataPrefix = "oai_dc";
-        }
+        
+        this.baseURL = baseURL;
+        this.metadataPrefix = metadataPrefix;
+        this.from = from;
+        this.until = until;
+        this.setSpec = setSpec;
 
         status = HarvestStatus.NEW;
+        logger = Logger.getLogger(this.getClass().getCanonicalName());
     }
 
     public void kill() {
@@ -110,6 +103,14 @@ public class OAIHarvestJob implements HarvestJob {
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread started.");
         status = HarvestStatus.RUNNING;
         try {
+            //calculate harvesting period
+            if (until == null)
+                until = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            else
+                logger.log(Level.INFO, Thread.currentThread().getName() 
+                        + ": OAI harvest thread: something is wrong with the time marker, from: ."
+                        + from + " until: " + until);
+
             OutputStream out = storage.getOutputStream();
 
             if (resumptionToken != null) {
@@ -127,6 +128,11 @@ public class OAIHarvestJob implements HarvestJob {
 
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread finishes.");
         // clean-up when killed
+        // move the time marker
+        if (status != HarvestStatus.ERROR && status != HarvestStatus.KILLED) {
+                from = until;
+                until = null;
+        }
         if (status != HarvestStatus.ERROR) {
             status = HarvestStatus.FINISHED;
         }

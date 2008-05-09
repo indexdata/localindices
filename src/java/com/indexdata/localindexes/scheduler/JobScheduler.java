@@ -9,6 +9,7 @@ import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import com.indexdata.masterkey.harvest.oai.FileStorage;
+import com.indexdata.masterkey.harvest.oai.HarvestStatus;
 import com.indexdata.masterkey.harvest.oai.HarvestStorage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,24 +94,22 @@ public class JobScheduler {
      * Start, kill, report status of the running jobs.
      */
     public void checkJobs() {
-        CronLine currentCronLine = CronLine.currentCronLine();
         for (JobInstance ji : jobs.values()) {
-            if (ji.timeToRun(currentCronLine)) {
-                ji.startThread();
-            }
-            if (ji.errorChanged()) {
-                reportJobStatus(ji);
-            }
-            /*
             switch(ji.getStatus()) {
-                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
-                case KILLED: //never happens
-                case RUNNING: //do nothing (update progress bar)
-                case WAITING:
                 case NEW:     // ask if time to run
+                case WAITING:
+                    if (ji.timeToRun()) ji.startThread();
+                    break;
+                case RUNNING: //do nothing (update progress bar)
+                    break;
+                case KILLED: //never happens
+                    break;
+                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
+                    break;
                 case ERROR:   // report error if changed
+                    if (ji.errorChanged()) reportError(ji.getHarvestable(), ji.getError());
+                    break;
             }
-             */
         }
     }
     
@@ -125,12 +124,27 @@ public class JobScheduler {
         return jInfoList;
     }
     
+    public void stopAllJobs() {
+        for (JobInstance ji : jobs.values()) {
+            ji.killThread();
+        }
+    }
+    
+    public void stopJob(Long jobId) {
+        JobInstance ji = jobs.get(jobId);
+        ji.killThread();
+    }
+    
     /**
      * Reports job status back to the Web Service
      * @param ji running job instance
      */
-    private void reportJobStatus(JobInstance ji) {
+    private void reportError(Harvestable hable, String error) {
         // this gotta report back to the WS
-        logger.log(Level.INFO, "Job with id: " + ji.getHarvestable().getId() +" has changed error to " + ji.getError());
+        logger.log(Level.INFO, "Job with id " + hable.getId() + " has changed error to " + error);
+    }
+    
+    private void reportStatus(Harvestable hable, HarvestStatus status) {
+        logger.log(Level.SEVERE, "Job with id " + hable.getId() + " has changed status to " + status);
     }
 }

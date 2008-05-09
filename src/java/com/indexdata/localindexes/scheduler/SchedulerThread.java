@@ -52,6 +52,7 @@ public class SchedulerThread implements Runnable {
                 logger.log(Level.WARNING, Thread.currentThread().getName() + ": SchedulerThread was interrrupted. Exiting.");
             }
         }
+        scheduler.stopAllJobs();
         logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread exits.");
     }
 
@@ -62,6 +63,10 @@ public class SchedulerThread implements Runnable {
     
     public Collection<JobInfo> getJobInfo() {
         return scheduler.getJobInfo();
+    }
+    
+    public void stopJob (Long jobId) {
+        scheduler.stopJob(jobId);
     }
 
     private synchronized boolean keepRunning() {

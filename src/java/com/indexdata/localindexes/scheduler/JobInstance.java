@@ -2,7 +2,7 @@ package com.indexdata.localindexes.scheduler;
 
 import com.indexdata.localindexes.web.entity.*;
 import com.indexdata.masterkey.harvest.oai.*;
-
+import java.util.Date;
 
 /**
  * a JobInstance is one instance of a harvesting job.
@@ -39,36 +39,33 @@ public class JobInstance {
     }
 
     /**
-     *   Tell the harvesting thread to stop, if running
-     *   and the harvest job to clean up.
+     * Tell the harvesting thread to stop, the harvesting thread 
+     * may or may not clean-up the harvested data.
      */
     public void killThread() {
         harvestJob.kill();
     }
 
+    /**
+     * Start the harvesting thread for this job.
+     */
     public void startThread() {
         if (harvestingThread == null) {
             harvestingThread = new Thread(harvestJob);
             harvestingThread.start();
         }
-
     }
 
     /**
-     * Checks if the time has come to run this job
-     * @param curCl current time to check against
+     * Checks if the time has come to run the harvesting thread.
      * @return true/false
      */
-    public boolean timeToRun(CronLine curCl) {
-        if (harvestJob.getStatus().equals(HarvestStatus.WAITING) 
-                || harvestJob.getStatus().equals(HarvestStatus.NEW)) {
-            return curCl.matches(cronLine);
-        }
-        return false;
+    public boolean timeToRun() {
+        return CronLine.currentCronLine().matches(cronLine);
     }
 
     /**
-     * Checks if the error status has changed since last check
+     * Checks if the harvesting job error has changed since the last check.
      * @return true/false
      */
     public boolean errorChanged() {
@@ -82,10 +79,18 @@ public class JobInstance {
         return changed;
     }
     
+    /**
+     * Return last harvesting job error.
+     * @return harvesting job error
+     */
     public String getError() {
         return harvestError;
     }
     
+    /**
+     * Returns harvesting job status.
+     * @return harvesting job status
+     */
     public HarvestStatus getStatus() {
         return harvestJob.getStatus();
     }
