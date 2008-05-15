@@ -15,6 +15,8 @@ import org.w3c.dom.NodeList;
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
@@ -63,7 +65,7 @@ public class OAIHarvestJob implements HarvestJob {
         if (metadataPrefix == null) {
             metadataPrefix = "oai_dc";
         }
-        
+
         this.baseURL = baseURL;
         this.metadataPrefix = metadataPrefix;
         this.from = from;
@@ -102,14 +104,14 @@ public class OAIHarvestJob implements HarvestJob {
     public void run() {
         logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread started.");
         status = HarvestStatus.RUNNING;
+        String nextFrom = null;
         try {
-            //calculate harvesting period
-            if (until == null)
-                until = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            else
-                logger.log(Level.INFO, Thread.currentThread().getName() 
-                        + ": OAI harvest thread: something is wrong with the time marker, from: ."
-                        + from + " until: " + until);
+            if (until == null) {
+                nextFrom = today("yyyy-MM-dd");
+                until = yesterday("yyyy-MM-dd");
+            } else {
+                logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread: something is wrong with the time marker, from: ." + from + " until: " + until);
+            }
 
             OutputStream out = storage.getOutputStream();
 
@@ -130,8 +132,8 @@ public class OAIHarvestJob implements HarvestJob {
         // clean-up when killed
         // move the time marker
         if (status != HarvestStatus.ERROR && status != HarvestStatus.KILLED) {
-                from = until;
-                until = null;
+            from = nextFrom;
+            until = null;
         }
         if (status != HarvestStatus.ERROR) {
             status = HarvestStatus.FINISHED;
@@ -210,5 +212,19 @@ public class OAIHarvestJob implements HarvestJob {
             return true;
         }
         return false;
+    }
+
+    private String yesterday(String format) {
+        Calendar c = Calendar.getInstance();
+        DateFormat fmt = new SimpleDateFormat(format);
+        c.add(Calendar.DAY_OF_MONTH, -1); //back one
+
+        String formatted = fmt.format(c.getTime());
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": yesterday is " + formatted);
+        return formatted;
+    }
+
+    private String today(String format) {
+        return new SimpleDateFormat(format).format(new Date());
     }
 }
