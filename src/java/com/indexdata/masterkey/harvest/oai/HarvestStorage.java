@@ -7,8 +7,11 @@ package com.indexdata.masterkey.harvest.oai;
    Licensed under the GNU Public License, Version 2.0.
 */
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface HarvestStorage {
+    public void openOutput() throws IOException;
+    public void closeOutput() throws IOException;
     public OutputStream getOutputStream();    
 }

@@ -50,10 +50,14 @@ public class JobInstance {
      * Start the harvesting thread for this job.
      */
     public void startThread() {
-        if (harvestingThread == null) {
+        if (harvestingThread == null || !harvestingThread.isAlive()) {
             harvestingThread = new Thread(harvestJob);
             harvestingThread.start();
         }
+    }
+    
+    public void setStatusToWaiting() {
+        harvestJob.finishReceived();
     }
 
     /**

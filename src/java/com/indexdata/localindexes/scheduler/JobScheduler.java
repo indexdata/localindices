@@ -96,6 +96,12 @@ public class JobScheduler {
     public void checkJobs() {
         for (JobInstance ji : jobs.values()) {
             switch(ji.getStatus()) {
+                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
+                    ji.setStatusToWaiting();
+                    break;
+                case ERROR:   // report error if changed
+                    if (ji.errorChanged()) reportError(ji.getHarvestable(), ji.getError());
+                    break;
                 case NEW:     // ask if time to run
                 case WAITING:
                     if (ji.timeToRun()) ji.startThread();
@@ -103,11 +109,6 @@ public class JobScheduler {
                 case RUNNING: //do nothing (update progress bar)
                     break;
                 case KILLED: //never happens
-                    break;
-                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
-                    break;
-                case ERROR:   // report error if changed
-                    if (ji.errorChanged()) reportError(ji.getHarvestable(), ji.getError());
                     break;
             }
         }

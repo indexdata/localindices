@@ -114,7 +114,7 @@ public class OAIHarvestJob implements HarvestJob {
             } else {
                 logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread: something is wrong with the time marker, from: ." + from + " until: " + until);
             }
-
+            storage.openOutput();
             OutputStream out = storage.getOutputStream();
 
             if (resumptionToken != null) {
@@ -123,9 +123,7 @@ public class OAIHarvestJob implements HarvestJob {
             } else {
                 harvest(baseURL, from, until, metadataPrefix, setSpec, out);
             }
-            if (out != System.out) {
-                out.close();
-            }
+            storage.closeOutput();
         } catch (Exception e) {
             logger.log(Level.SEVERE, Thread.currentThread().getName(), e);
         }
