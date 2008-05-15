@@ -65,10 +65,12 @@ public class HarvestableDAOFake implements HarvestableDAO {
         for (Harvestable hable : harvestables.values()) {
             try {
                 // update the date so it looks like the settings has been changed
+                /*
                 if (hable.getId() == 2) {
                     hable.setLastUpdated(new Date());
                     harvestables.put(hable.getId(), hable);
                 }
+                */
                 HarvestableRefConverter href = new HarvestableRefConverter(hable);
                 href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
                 hrefs.add(href);

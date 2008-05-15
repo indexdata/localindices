@@ -77,8 +77,10 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void kill() {
-        status = HarvestStatus.KILLED;
-        onKillSendt();
+        if (status != HarvestStatus.FINISHED) {
+            status = HarvestStatus.KILLED;
+            onKillSendt();
+        }
     }
 
     public HarvestStatus getStatus() {
@@ -170,7 +172,7 @@ public class OAIHarvestJob implements HarvestJob {
             throws IOException, ParserConfigurationException, SAXException, TransformerException,
             NoSuchFieldException {
         out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
-        out.write("<harvest>\n".getBytes("UTF-8"));
+        out.write(("<harvest from=\"" + from + "\" until=\"" + until + "\">\n").getBytes("UTF-8"));
         //out.write(new Identify(baseURL).toString().getBytes("UTF-8"));
         //out.write("\n".getBytes("UTF-8"));
         //out.write(new ListMetadataFormats(baseURL).toString().getBytes("UTF-8"));
