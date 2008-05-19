@@ -20,11 +20,13 @@ public class JobInstance {
     private Thread harvestingThread;
     private HarvestJob harvestJob;
     private CronLine cronLine;
-    private String harvestError;
+    private String lastHarvestError;
+    private HarvestStatus lastHarvestStatus;
+    private Date lastHarvestStarted;
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindexes.scheduler");
     
     public boolean seen; // for checking what has been deleted
-
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
         // harvest job factory
         cronLine = new CronLine(hable.getScheduleString());
@@ -65,6 +67,7 @@ public class JobInstance {
         if (harvestingThread == null || !harvestingThread.isAlive()) {
             harvestingThread = new Thread(harvestJob);
             harvestingThread.start();
+            lastHarvestStarted = new Date();
         }
     }
     
@@ -86,12 +89,12 @@ public class JobInstance {
      */
     public boolean errorChanged() {
         boolean changed;
-        if (harvestError == null) {
+        if (lastHarvestError == null) {
             changed = false;
         } else {
-            changed = !harvestError.equals(harvestJob.getError());
+            changed = !lastHarvestError.equals(harvestJob.getError());
         }
-        harvestError = harvestJob.getError();
+        lastHarvestError = harvestJob.getError();
         return changed;
     }
     
@@ -100,9 +103,19 @@ public class JobInstance {
      * @return harvesting job error
      */
     public String getError() {
-        return harvestError;
+        return lastHarvestError;
     }
     
+    public boolean statusChanged() {
+        boolean changed;
+        if (lastHarvestStatus == null) {
+            changed = false;
+        } else {
+            changed = !(lastHarvestStatus == harvestJob.getStatus());
+        }
+        lastHarvestStatus = harvestJob.getStatus();
+        return changed; 
+    }
     /**
      * Returns harvesting job status.
      * @return harvesting job status
@@ -111,4 +124,7 @@ public class JobInstance {
         return harvestJob.getStatus();
     }
 
+    public Date getLastHarvestStarted() {
+        return lastHarvestStarted;
+    }
 }

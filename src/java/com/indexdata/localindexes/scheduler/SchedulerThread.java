@@ -2,6 +2,7 @@ package com.indexdata.localindexes.scheduler;
 
 import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
 import com.indexdata.localindexes.scheduler.dao.bean.HarvestableDAOFake;
+import com.indexdata.localindexes.scheduler.dao.bean.HarvestableDAOWS;
 import com.indexdata.masterkey.harvest.oai.ConsoleStorage;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -36,8 +37,8 @@ public class SchedulerThread implements Runnable {
     
     public SchedulerThread(String serviceBaseURL) {
         logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
-        //dao = new HarvestableDAOWS(serviceBaseURL, logger);
-        dao = new HarvestableDAOFake();
+        dao = new HarvestableDAOWS(serviceBaseURL, logger);
+        //dao = new HarvestableDAOFake();
         scheduler = new JobScheduler(dao, new ConsoleStorage(), logger);
     }
 

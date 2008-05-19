@@ -13,6 +13,7 @@ import com.indexdata.masterkey.harvest.oai.HarvestStatus;
 import com.indexdata.masterkey.harvest.oai.HarvestStorage;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -98,6 +99,7 @@ public class JobScheduler {
             switch(ji.getStatus()) {
                 case FINISHED: //update the lastHarvestStarted (and harvestedUntil) 
                                //and send received signal
+                    updateHarvestDate(ji.getHarvestable(), ji.getLastHarvestStarted());
                     ji.setStatusToWaiting();
                     break;
                 case ERROR:   // report error if changed
@@ -113,6 +115,8 @@ public class JobScheduler {
                 case KILLED: //zombie thread
                     break;
             }
+            if (ji.statusChanged())
+                reportStatus(ji.getHarvestable(), ji.getStatus());
         }
     }
     
@@ -149,5 +153,13 @@ public class JobScheduler {
     
     private void reportStatus(Harvestable hable, HarvestStatus status) {
         logger.log(Level.SEVERE, "Job with id " + hable.getId() + " has changed status to " + status);
+        hable.setCurrentStatus(status.name());
+        dao.updateHarvestable(hable);
+    }
+
+    private void updateHarvestDate(Harvestable harvestable, Date lastHarvestStarted) {
+        logger.log(Level.INFO, "Job with id " + harvestable.getId() + " has finished.");
+        harvestable.setLastHarvestStarted(lastHarvestStarted);
+        dao.updateHarvestable(harvestable);
     }
 }

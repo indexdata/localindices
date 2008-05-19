@@ -90,7 +90,14 @@ public class HarvestableDAOFake implements HarvestableDAO {
         return null;
     }
 
-    public void updateHarvestable(Harvestable harvestable) {        
+    public void updateHarvestable(Harvestable harvestable) { 
+        Harvestable hclone = null;
+        try {
+            hclone = (Harvestable) harvestable.clone();
+        } catch (CloneNotSupportedException cle) {
+            logger.log(Level.SEVERE, "This should never happen");                    
+        }
+        harvestables.put(hclone.getId(), hclone);
         logger.log(Level.INFO, "harvestable updated");
     }
 }
