@@ -9,6 +9,7 @@ import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import com.indexdata.localindexes.web.entity.WebCrawlResource;
 import com.indexdata.localindexes.web.entity.XmlBulkResource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -261,6 +262,7 @@ public class ResourceController {
         try {
             utx.begin();
             em.joinTransaction();
+            resource.setLastUpdated(new Date());
             resource = em.merge(resource);
             utx.commit();
             addSuccessMessage("Resource was successfully updated.");
