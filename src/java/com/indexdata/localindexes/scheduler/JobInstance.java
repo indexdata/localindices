@@ -2,7 +2,10 @@ package com.indexdata.localindexes.scheduler;
 
 import com.indexdata.localindexes.web.entity.*;
 import com.indexdata.masterkey.harvest.oai.*;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * a JobInstance is one instance of a harvesting job.
@@ -18,19 +21,28 @@ public class JobInstance {
     private HarvestJob harvestJob;
     private CronLine cronLine;
     private String harvestError;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindexes.scheduler");
     
     public boolean seen; // for checking what has been deleted
 
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
         // harvest job factory
+        cronLine = new CronLine(hable.getScheduleString());
         if (hable instanceof OaiPmhResource) {
+            if (cronLine.period() < CronLine.DAILY_PERIOD) {
+                Calendar cal = Calendar.getInstance();
+                int min = cal.get(Calendar.MINUTE);
+                int hr = cal.get(Calendar.HOUR_OF_DAY);
+                cronLine = new CronLine(min + " " + hr + " " + "* * *");
+                logger.log(Level.WARNING, 
+                        "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
+            }
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
             harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }
         harvestable = hable;
-        cronLine = new CronLine(hable.getScheduleString());
         seen = false;
     }
 

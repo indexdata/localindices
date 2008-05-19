@@ -22,6 +22,11 @@ import com.indexdata.localindexes.scheduler.exception.CronLineParseException;
 /* minimal change */
 
 public class CronLine {
+    public final static int DAILY_PERIOD = 24 * 60;
+    public final static int WEEKLY_PERIOD = 7 * 24 * 60;
+    public final static int MONTHLY_PERIOD = 31 * 24 * 60;
+    public final static int YEARLY_PERIOD = 31 * 24 * 60;
+    
     private String[] fields;
     private final static int nfields = 5;
 
@@ -53,7 +58,7 @@ public class CronLine {
     }
     
     public static CronLine currentCronLine() {
-        GregorianCalendar g = new GregorianCalendar(); // defaults to now()
+        Calendar g = new GregorianCalendar(); // defaults to now()
         int min = g.get(Calendar.MINUTE);
         int hr  = g.get(Calendar.HOUR_OF_DAY);
         int mday= g.get(Calendar.DAY_OF_MONTH);
@@ -72,6 +77,31 @@ public class CronLine {
             s = s + f + " ";
         }
         return s;
+    }
+    
+    /**
+     * Checks granularity of the cron line.
+     * @return granularity in minutes
+     */
+    public int period () {
+        for (int i = 0; i < fields.length; i++) {
+            // check wday before mday
+            if (i == 3) i = 5; else if (i == 5) i = 3;
+            if (fields[i].equals("*"))
+                return fieldPeriod(i);
+        }
+        return 1;
+    }
+
+    private static int fieldPeriod(int i) {
+        switch(i) {
+            case 1 : return 1;  //min
+            case 2 : return 60; //hr
+            case 3 : return 31 * 24 * 60; //mday
+            case 4 : return 12 * 31 * 24 * 60; //mon
+            case 5 : return 7 * 24 * 60; //wday
+        }
+        return 0;
     }
     
 } // class CronLine

@@ -96,7 +96,8 @@ public class JobScheduler {
     public void checkJobs() {
         for (JobInstance ji : jobs.values()) {
             switch(ji.getStatus()) {
-                case FINISHED: //update the lastHarvestStarted (harvestedUntil) and send received signal
+                case FINISHED: //update the lastHarvestStarted (and harvestedUntil) 
+                               //and send received signal
                     ji.setStatusToWaiting();
                     break;
                 case ERROR:   // report error if changed
@@ -104,11 +105,12 @@ public class JobScheduler {
                     break;
                 case NEW:     // ask if time to run
                 case WAITING:
+                    // should check harvested until?
                     if (ji.timeToRun()) ji.startThread();
                     break;
-                case RUNNING: //do nothing (update progress bar)
+                case RUNNING: //do nothing (update progress bar?)
                     break;
-                case KILLED: //never happens
+                case KILLED: //zombie thread
                     break;
             }
         }
