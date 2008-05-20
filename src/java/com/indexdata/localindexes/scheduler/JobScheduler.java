@@ -57,7 +57,7 @@ public class JobScheduler {
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
                         logger.log(Level.INFO, Thread.currentThread().getName() 
                                 + ": JOB#" + ji.getHarvestable().getId() 
-                                + " - parameters changed (lu " + ji.getHarvestable().getLastUpdated()
+                                + " parameters changed (LU " + href.getLastUpdated()
                                 + "), killing old harvesting thread.");
                         ji.killThread();
                         ji = null; // signal to create a new one
@@ -72,7 +72,7 @@ public class JobScheduler {
                         jobs.put(id, ji);
                         logger.log(Level.INFO, Thread.currentThread().getName()
                                 + ": JOB#" + ji.getHarvestable().getId()
-                                + "- created.");
+                                + " created.");
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, Thread.currentThread().getName() 
                                 + ": Cannot update the current job list with " + harv, e);
@@ -87,7 +87,7 @@ public class JobScheduler {
                 if (!ji.seen) {
                     logger.log(Level.INFO, Thread.currentThread().getName()
                             + ": JOB#" + ji.getHarvestable().getId() 
-                            + " - no longer in the DB. Deleting from list.");
+                            + " no longer in the DB. Deleting from list.");
                     ji.killThread();
                     it.remove();
                 }
@@ -151,18 +151,20 @@ public class JobScheduler {
      * @param ji running job instance
      */
     private void reportError(Harvestable hable, String error) {
-        // this gotta report back to the WS
-        logger.log(Level.INFO, "Job with id " + hable.getId() + " has changed error to " + error);
+        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                + ": JOB#" + hable.getId() + " - HARVEST ERROR - " + error);
     }
     
     private void reportStatus(Harvestable hable, HarvestStatus status) {
-        logger.log(Level.SEVERE, "Job with id " + hable.getId() + " has changed status to " + status);
+        logger.log(Level.INFO, Thread.currentThread().getName() 
+                + ": JOB#" + hable.getId() + " has changed status to " + status);
         hable.setCurrentStatus(status.name());
         dao.updateHarvestable(hable);
     }
 
     private void updateHarvestDate(Harvestable harvestable, Date lastHarvestStarted) {
-        logger.log(Level.INFO, "Job with id " + harvestable.getId() + " has finished.");
+        logger.log(Level.INFO, Thread.currentThread().getName() 
+                + ": JOB#" + harvestable.getId() + " has finished");
         harvestable.setLastHarvestStarted(lastHarvestStarted);
         dao.updateHarvestable(harvestable);
     }

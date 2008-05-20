@@ -90,7 +90,7 @@ public class JobInstance {
     public boolean errorChanged() {
         boolean changed;
         if (lastHarvestError == null) {
-            changed = false;
+            changed = true;
         } else {
             changed = !lastHarvestError.equals(harvestJob.getError());
         }
@@ -109,7 +109,7 @@ public class JobInstance {
     public boolean statusChanged() {
         boolean changed;
         if (lastHarvestStatus == null) {
-            changed = false;
+            changed = true;
         } else {
             changed = !(lastHarvestStatus == harvestJob.getStatus());
         }
