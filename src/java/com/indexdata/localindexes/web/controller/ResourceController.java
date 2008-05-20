@@ -221,6 +221,7 @@ public class ResourceController {
         try {
             utx.begin();
             eM.joinTransaction();
+            resource.setLastUpdated(new Date());
             eM.persist(resource);
             utx.commit();
             addSuccessMessage("Resource was successfully added.");
