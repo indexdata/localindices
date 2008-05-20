@@ -5,6 +5,9 @@
 
 package com.indexdata.localindexes.scheduler;
 
+import java.util.Calendar;
+import java.util.Formatter;
+import java.util.GregorianCalendar;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -30,7 +33,7 @@ public class CronLineTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() {        
     }
 
     @After
@@ -42,14 +45,14 @@ public class CronLineTest {
      */
     @Test
     public void testMatches() {
-        System.out.println("matches");
-        CronLine pattern = null;
-        CronLine instance = null;
-        boolean expResult = false;
-        boolean result = instance.matches(pattern);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        CronLine pattern = new CronLine("1 2 3 * *");
+        CronLine instance = new CronLine("* * * 1 2");
+        assertEquals(false, instance.matches(pattern));
+        assertEquals(false, pattern.matches(instance));
+        pattern = new CronLine("* * * 1 2");
+        instance = new CronLine("20 4 5 1 2");
+        assertEquals(false, pattern.matches(instance));
+        assertEquals(true, instance.matches(pattern));
     }
 
     /**
@@ -57,12 +60,15 @@ public class CronLineTest {
      */
     @Test
     public void testCurrentCronLine() {
-        System.out.println("currentCronLine");
-        CronLine expResult = null;
-        CronLine result = CronLine.currentCronLine();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        Calendar g = new GregorianCalendar(); // defaults to now()
+        int min = g.get(Calendar.MINUTE);
+        int hr  = g.get(Calendar.HOUR_OF_DAY);
+        int mday= g.get(Calendar.DAY_OF_MONTH);
+        int mon = g.get(Calendar.MONTH) + 1;  // JAN = 1
+        int wday= g.get(Calendar.DAY_OF_WEEK);
+        Formatter f = new Formatter();
+        f.format("%d %d %d %d %d", min, hr, mday, mon, wday);
+        assertEquals(f.toString(), CronLine.currentCronLine().toString());
     }
 
     /**
@@ -70,13 +76,43 @@ public class CronLineTest {
      */
     @Test
     public void testToString() {
-        System.out.println("toString");
-        CronLine instance = null;
-        String expResult = "";
+        String expResult = "1 2 3 4 5";
+        CronLine instance = new CronLine(expResult);
         String result = instance.toString();
         assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of shortestPeriod method, of class CronLine.
+     */
+    @Test
+    public void testShortestPeriod() {        
+        CronLine instance = new CronLine("* * * * *");
+        assertTrue(instance.shortestPeriod() < CronLine.DAILY_PERIOD);
+        
+        instance = new CronLine("0 * * * *");
+        assertTrue(instance.shortestPeriod() < CronLine.DAILY_PERIOD);
+        
+        instance = new CronLine("0 0 * * *");
+        assertEquals(CronLine.DAILY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 * * 1");
+        assertEquals(CronLine.WEEKLY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 * 1 1");
+        assertEquals(CronLine.WEEKLY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 1 * 1");
+        assertEquals(CronLine.WEEKLY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 1 * *");
+        assertEquals(CronLine.MONTHLY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 1 1 *");
+        assertEquals(CronLine.YEARLY_PERIOD, instance.shortestPeriod());
+        
+        instance = new CronLine("0 0 1 1 1");
+        assertEquals(CronLine.YEARLY_PERIOD, instance.shortestPeriod());
     }
 
 }

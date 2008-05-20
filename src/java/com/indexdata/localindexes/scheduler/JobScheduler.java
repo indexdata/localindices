@@ -54,11 +54,11 @@ public class JobScheduler {
                 // corresponding job is in the current list
                 if (ji != null) {
                     // and seetings has changed
-                    logger.log(Level.INFO, "job's lu: " + ji.getHarvestable().getLastUpdated()
-                            + "retrieved lu: " + href.getLastUpdated() );
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
-                        logger.log(Level.INFO, Thread.currentThread().getName() + ": Parameters changed for job with id: " 
-                                + ji.getHarvestable().getId() + ", killing old harvesting thread.");
+                        logger.log(Level.INFO, Thread.currentThread().getName() 
+                                + ": JOB#" + ji.getHarvestable().getId() 
+                                + " - parameters changed (lu " + ji.getHarvestable().getLastUpdated()
+                                + "), killing old harvesting thread.");
                         ji.killThread();
                         ji = null; // signal to create a new one
                         // should we remove it from the list?
@@ -70,9 +70,12 @@ public class JobScheduler {
                     try {
                         ji = new JobInstance(harv, new FileStorage(harv));
                         jobs.put(id, ji);
-                        logger.log(Level.INFO, Thread.currentThread().getName() + ": Created a new job with id: " + ji.getHarvestable().getId());
+                        logger.log(Level.INFO, Thread.currentThread().getName()
+                                + ": JOB#" + ji.getHarvestable().getId()
+                                + "- created.");
                     } catch (Exception e) {
-                        logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Cannot update the current job list with given entity.", e);
+                        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                                + ": Cannot update the current job list with " + harv, e);
                     }
                 }
                 ji.seen = true;
@@ -82,8 +85,9 @@ public class JobScheduler {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    logger.log(Level.INFO, Thread.currentThread().getName() + ": Job with id: " + ji.getHarvestable().getId() +
-                            " gone missing. Deleting");
+                    logger.log(Level.INFO, Thread.currentThread().getName()
+                            + ": JOB#" + ji.getHarvestable().getId() 
+                            + " - no longer in the DB. Deleting from list.");
                     ji.killThread();
                     it.remove();
                 }

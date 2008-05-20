@@ -31,7 +31,7 @@ public class JobInstance {
         // harvest job factory
         cronLine = new CronLine(hable.getScheduleString());
         if (hable instanceof OaiPmhResource) {
-            if (cronLine.period() < CronLine.DAILY_PERIOD) {
+            if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
                 Calendar cal = Calendar.getInstance();
                 int min = cal.get(Calendar.MINUTE);
                 int hr = cal.get(Calendar.HOUR_OF_DAY);
