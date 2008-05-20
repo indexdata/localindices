@@ -55,14 +55,32 @@ public class ResourceController {
         Any, January, Febraruary, March, April, May, June,
         July, August, September, November, October, December
     }
-
     private enum DayOfTheWeek {
 
         Any, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
     }
+    
+    private String min;
+    private String hour;
+    private String dayOfMonth;
     private String month;
     private String dayOfWeek;
-    private String dayOfMonth;
+
+    public String getHour() {
+        return hour;
+    }
+
+    public void setHour(String hour) {
+        this.hour = hour;
+    }
+
+    public String getMin() {
+        return min;
+    }
+
+    public void setMin(String min) {
+        this.min = min;
+    }
 
     public String getDayOfMonth() {
         return dayOfMonth;
@@ -89,22 +107,26 @@ public class ResourceController {
     }
 
     private String scheduleInputsToString() {
+        String min = this.min;
+        String hour = this.hour;
         String dayOfMonth = this.dayOfMonth.equals("0") ? "*" : this.dayOfMonth;
         String month = this.month.equals("0") ? "*" : this.month;
         String dayOfWeek = this.dayOfWeek.equals("0") ? "*" : this.dayOfWeek;
-        this.dayOfMonth = this.month = this.dayOfWeek = null;
+        this.min = this.hour = this.dayOfMonth = this.month = this.dayOfWeek = null;
         if (dayOfMonth != null && month != null && dayOfWeek != null) {
-            return "0" + " " + "0" + " " + dayOfMonth + " " + month + " " + dayOfWeek;
+            return min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
         } else {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule inputs.");
-            return null;
         }
+        return null;
     }
 
     private void scheduleStringToInputs(String scheduleString) {
         if (scheduleString != null) {
             String[] inputs = scheduleString.split(" +");
             if (inputs.length == 5) {
+                min = inputs[0];
+                hour = inputs[1];
                 dayOfMonth = inputs[2].equals("*") ? "0" : inputs[2];
                 month = inputs[3].equals("*") ? "0" : inputs[3];
                 dayOfWeek = inputs[4].equals("*") ? "0" : inputs[4];
@@ -113,6 +135,8 @@ public class ResourceController {
             }
         } else {
             this.dayOfMonth = this.month = this.dayOfWeek = null;
+            this.min = "0";
+            this.hour = "12";
         }
     }
 
@@ -142,6 +166,32 @@ public class ResourceController {
         return list;
     }
 
+    public List<SelectItem> getHours() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        for (int i = 0; i <= 24; i++) {
+            SelectItem selectItem = new SelectItem();
+            String key = String.valueOf(i);
+            Integer value = i;
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
+    
+    public List<SelectItem> getMins() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        for (int i = 0; i < 60; i++) {
+            SelectItem selectItem = new SelectItem();
+            String key = String.valueOf(i);
+            Integer value = i;
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
+    
     public List<SelectItem> getDaysOfMonth() {
         List<SelectItem> list = new ArrayList<SelectItem>();
         for (int i = 0; i < 31; i++) {

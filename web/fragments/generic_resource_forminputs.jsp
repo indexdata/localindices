@@ -16,19 +16,30 @@
         <h:outputText value="Maximum records:"/>
         <h:inputText value="#{resourceController.resource.maxDbSize}" />
         <h:outputText value="Harvest schedule:"/>
-        Harvest 
-        <h:selectOneMenu value="#{resourceController.dayOfMonth}">
+        <h:panelGrid columns="7">
+            Harvest
+            <h:selectOneMenu value="#{resourceController.dayOfMonth}">
                     <f:selectItems value="#{resourceController.daysOfMonth}" />
-        </h:selectOneMenu>
-        (day) of
-        <h:selectOneMenu value="#{resourceController.month}">
+            </h:selectOneMenu>
+            (day) of
+            <h:selectOneMenu value="#{resourceController.month}">
                     <f:selectItems value="#{resourceController.months}" />
-        </h:selectOneMenu>
-        (month) if it's
-        <h:selectOneMenu value="#{resourceController.dayOfWeek}">
+            </h:selectOneMenu>
+            (month) if it's
+            <h:selectOneMenu value="#{resourceController.dayOfWeek}">
                     <f:selectItems value="#{resourceController.daysOfWeek}" />
-        </h:selectOneMenu>
-        (day of the week).
+            </h:selectOneMenu>
+            (day of the week)
+            <h:column>Harvesting time:</h:column>
+            <h:selectOneMenu value="#{resourceController.hour}">
+                    <f:selectItems value="#{resourceController.hours}" />
+            </h:selectOneMenu>
+            (hour in 24 format)
+            <h:selectOneMenu value="#{resourceController.min}">
+                    <f:selectItems value="#{resourceController.mins}" />
+            </h:selectOneMenu>
+            (min)
+        </h:panelGrid>
         <h:outputText value="Harvester enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
     </h:panelGrid>
