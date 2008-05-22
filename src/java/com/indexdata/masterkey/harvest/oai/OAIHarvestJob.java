@@ -104,39 +104,45 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void run() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread started.");
-        status = HarvestStatus.RUNNING;
+        // where are we?
         String nextFrom = null;
+        if (until != null)
+            logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                    + " until param will be overwritten to yesterday.");
+        until = yesterday("yyyy-MM-dd");
+        nextFrom = today("yyyy-MM-dd");
+        
+        logger.log(Level.INFO, Thread.currentThread().getName() 
+                + ": OAI harvest thread started. Harvesting from: " + from + " until: " + until);
+        
+        status = HarvestStatus.RUNNING;
+        
         try {
-            if (until == null) {
-                nextFrom = today("yyyy-MM-dd");
-                until = yesterday("yyyy-MM-dd");
-            } else {
-                logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread: something is wrong with the time marker, from: ." + from + " until: " + until);
-            }
             storage.openOutput();
             OutputStream out = storage.getOutputStream();
-
+            
             if (resumptionToken != null) {
                 // this is actually never called since we do not store resumption tokens
                 harvest(baseURL, resumptionToken, out);
             } else {
                 harvest(baseURL, from, until, metadataPrefix, setSpec, out);
             }
+            
             storage.closeOutput();
         } catch (Exception e) {
             logger.log(Level.SEVERE, Thread.currentThread().getName(), e);
         }
-
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread finishes.");
-        // clean-up when killed
-        // move the time marker
+        // if there was an error do not move the time marker
+        // - we'll try havesting data next time
         if (status != HarvestStatus.ERROR && status != HarvestStatus.KILLED) {
             from = nextFrom;
             until = null;
-        }
-        if (status != HarvestStatus.ERROR) {
             status = HarvestStatus.FINISHED;
+            logger.log(Level.INFO, Thread.currentThread().getName() 
+                    + ": OAI harvest thread finishes OK. Next from: " + from);
+        } else {
+            logger.log(Level.INFO, Thread.currentThread().getName() 
+                    + ": OAI harvest thread killed/faced error - data may be inconsistent. Next from param: " + from);
         }
     }
 
@@ -220,7 +226,6 @@ public class OAIHarvestJob implements HarvestJob {
         c.add(Calendar.DAY_OF_MONTH, -1); //back one
 
         String formatted = fmt.format(c.getTime());
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": yesterday is " + formatted);
         return formatted;
     }
 

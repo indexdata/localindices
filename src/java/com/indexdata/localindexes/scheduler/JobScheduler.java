@@ -108,7 +108,7 @@ public class JobScheduler {
                     break;
                 case ERROR:   // report error if changed
                     if (ji.errorChanged()) reportError(ji.getHarvestable(), ji.getError());
-                    break;
+                    // do not break
                 case NEW:     // ask if time to run
                 case WAITING:
                     // should check harvested until?
@@ -130,6 +130,8 @@ public class JobScheduler {
             JobInfo jInfo = new JobInfo();
             jInfo.setHarvestable(ji.getHarvestable());
             jInfo.setStatus(ji.getStatus());
+            jInfo.setError(ji.getError());
+            jInfo.setHarvestPeriod("");
             jInfoList.add(jInfo);
         }
         return jInfoList;

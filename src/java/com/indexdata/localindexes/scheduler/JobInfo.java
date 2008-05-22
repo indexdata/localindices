@@ -15,6 +15,24 @@ import com.indexdata.masterkey.harvest.oai.HarvestStatus;
 public class JobInfo {
     private Harvestable harvestable;
     private HarvestStatus status;
+    private String error;
+    private String harvestPeriod;
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getHarvestPeriod() {
+        return harvestPeriod;
+    }
+
+    public void setHarvestPeriod(String harvestPeriod) {
+        this.harvestPeriod = harvestPeriod;
+    }
     
     public Harvestable getHarvestable() {
         return harvestable;

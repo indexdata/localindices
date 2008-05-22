@@ -36,8 +36,10 @@ public class SchedulerStatusServlet extends HttpServlet {
             out.println("<name>" + hable.getName() + "</name>");
             out.println("<scheduleString>" + hable.getScheduleString() + "</scheduleString>");
             out.println("<lastUpdated>" + hable.getLastUpdated() + "</lastUpdated>");
-            out.println("<error>" + hable.getCurrentStatus() + "</error>");
-            out.println("<status>" + ji.getStatus() + "</status>");
+            out.println("<lastHarvested>" + hable.getLastHarvestStarted() + "</lastHarvested>");
+            out.println("<reportedStatus>" + hable.getCurrentStatus() + "</reportedStatus>");
+            out.println("<latestStatus>" + ji.getStatus() + "</latestStatus>");
+            out.println("<error>" + ji.getError() + "</error>");
             out.println("</job>");
         }
         out.println("</jobs>");
