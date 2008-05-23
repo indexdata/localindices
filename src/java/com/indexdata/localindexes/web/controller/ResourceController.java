@@ -1,43 +1,31 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.localindexes.web.controller;
 
+import com.indexdata.localindexes.dao.HarvestableDAO;
+import com.indexdata.localindexes.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import com.indexdata.localindexes.web.entity.WebCrawlResource;
 import com.indexdata.localindexes.web.entity.XmlBulkResource;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Resource;
-import javax.faces.application.FacesMessage;
+
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
-import javax.persistence.*;
-import javax.transaction.UserTransaction;
 
 /**
- *
+ * The cotroller for the admin interface, implements all the buisness logic and
+ * controlls data access through DAO object
  * @author jakub
  */
 public class ResourceController {
-    /*@PersistenceContext(name="localindexes")
-    private EntityManager eM;*/
-
-    @PersistenceUnit(unitName = "localindexes")
-    private EntityManagerFactory emf;
-
-    private EntityManager getEntityManager() {
-        return emf.createEntityManager();
-    }
-    @Resource
-    private UserTransaction utx;
+    private static Logger logger = Logger.getLogger("com.indexdata.localindexes");
+    private HarvestableDAO dao = new HarvestablesDAOJPA();
     private Harvestable resource;
     private DataModel model;
 
@@ -223,13 +211,7 @@ public class ResourceController {
     }
 
     public int getItemCount() {
-        EntityManager em = getEntityManager();
-        try {
-            int count = ((Long) em.createQuery("select count(o) from Harvestable as o").getSingleResult()).intValue();
-            return count;
-        } finally {
-            em.close();
-        }
+        return dao.getHarvestableCount();
     }
 
     public String next() {
@@ -248,7 +230,7 @@ public class ResourceController {
     }
 
     //</editor-fold>
-
+    // <editor-fold defaultstate="collapsed" desc="DAO methods">
     /* add new resource */
     public String prepareOaiPmhResourceToAdd() {
         resource = new OaiPmhResource();
@@ -267,26 +249,9 @@ public class ResourceController {
 
     public String addResource() {
         resource.setScheduleString(scheduleInputsToString());
-        EntityManager eM = getEntityManager();
-        try {
-            utx.begin();
-            eM.joinTransaction();
-            resource.setLastUpdated(new Date());
-            eM.persist(resource);
-            utx.commit();
-            addSuccessMessage("Resource was successfully added.");
-        } catch (Exception e) {
-            addErrorMessage(e.getLocalizedMessage());
-            try {
-                utx.rollback();
-            } catch (Exception e2) {
-                addErrorMessage(e2.getLocalizedMessage());
-                return "failure";
-            }
-            return "failure";
-        } finally {
-            eM.close();
-        }
+        resource.setLastUpdated(new Date());
+        dao.createHarvestable(resource);
+        //return failure
         return "resource_added";
     }
 
@@ -294,7 +259,7 @@ public class ResourceController {
     public String prepareResourceToEdit() {
         resource = getResourceFromRequestParam();
         scheduleStringToInputs(resource.getScheduleString());
-        addSuccessMessage("Retrieved persisted resource of type " + resource.getClass().getName());
+        logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
         if (resource instanceof OaiPmhResource) {
             return "edit_oaipmh";
         } else if (resource instanceof WebCrawlResource) {
@@ -302,100 +267,40 @@ public class ResourceController {
         } else if (resource instanceof XmlBulkResource) {
             return "edit_xmlbulk";
         } else {
-            addErrorMessage("Unknonw resource type. No matching form defined.");
+            logger.log(Level.INFO, "Unknonw resource type. No matching form defined.");
             return "failure";
         }
     }
 
     public String saveResource() {
         resource.setScheduleString(scheduleInputsToString());
-        EntityManager em = getEntityManager();
-        try {
-            utx.begin();
-            em.joinTransaction();
-            resource.setLastUpdated(new Date());
-            resource = em.merge(resource);
-            utx.commit();
-            addSuccessMessage("Resource was successfully updated.");
-        } catch (Exception ex) {
-            try {
-                addErrorMessage(ex.getLocalizedMessage());
-                utx.rollback();
-            } catch (Exception e) {
-                addErrorMessage(e.getLocalizedMessage());
-            }
-        } finally {
-            em.close();
-        }
+        resource.setLastUpdated(new Date());
+        resource = dao.updateHarvestable(resource);
         return "resource_saved";
     }
 
     /* list resources */
     public DataModel getResources() {
-        EntityManager em = getEntityManager();
-        try {
-            Query q = em.createQuery("select object(o) from Harvestable as o");
-            q.setMaxResults(batchSize);
-            q.setFirstResult(firstItem);
-            model = new ListDataModel(q.getResultList());
-            return model;
-        } finally {
-            em.close();
-        }
+        return new ListDataModel((List) dao.retrieveHarvestables(firstItem, batchSize));
     }
 
     public String deleteResource() {
-        EntityManager em = getEntityManager();
-        try {
-            utx.begin();
-            em.joinTransaction();
-            Harvestable resource = getResourceFromRequestParam();
-            resource = em.merge(resource);
-            em.remove(resource);
-            utx.commit();
-            addSuccessMessage("Resource was successfully deleted.");
-        } catch (Exception ex) {
-            try {
-                addErrorMessage(ex.getLocalizedMessage());
-                utx.rollback();
-            } catch (Exception e) {
-                addErrorMessage(e.getLocalizedMessage());
-            }
-        } finally {
-            em.close();
-        }
+        dao.deleteHarvestable(resource);
         return "resource_list";
     }
+        //</editor-fold>
 
     /* objects from request */
     public Harvestable getResourceFromRequestParam() {
-        EntityManager em = getEntityManager();
-        try {
             Harvestable o = null;
             if (model != null) {
                 o = (Harvestable) model.getRowData();
-                o = em.merge(o);
+                //o = em.merge(o);
             } else {
                 String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
-                Integer id = new Integer(param);
-                o = em.find(Harvestable.class, id);
+                Long id = new Long(param);
+                o = dao.retrieveHarvestableById(id);
             }
             return o;
-        } finally {
-            em.close();
-        }
-    }
-
-    /* logging messages */
-    public static void addSuccessMessage(String msg) {
-        FacesMessage facesMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, msg, msg);
-        FacesContext fc = FacesContext.getCurrentInstance();
-        fc.addMessage("successInfo", facesMsg);
-    }
-
-    public static void addErrorMessage(String msg) {
-        FacesMessage facesMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, msg, msg);
-        FacesContext fc = FacesContext.getCurrentInstance();
-        fc.addMessage(null, facesMsg);
     }
 }

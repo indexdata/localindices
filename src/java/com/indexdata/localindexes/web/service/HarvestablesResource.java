@@ -6,7 +6,8 @@
  */
 package com.indexdata.localindexes.web.service;
 
-import java.util.Collection;
+import com.indexdata.localindexes.dao.HarvestableDAO;
+import com.indexdata.localindexes.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,96 +20,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
-import javax.annotation.Resource;
-import javax.transaction.UserTransaction;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-import javax.persistence.Query;
-import javax.persistence.PersistenceContext;
-
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
 import com.indexdata.localindexes.web.service.converter.HarvestablesConverter;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 
 /**
  *
  * @author jakub
  */
-//@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
 @Path("/harvestables/")
 public class HarvestablesResource {
-
-    /* *Persistence stuff*
-     * There are two ways of doing persistence:
-     * - container-managed transactions
-     * - bean-managed transactions (or application-managed tx)
-     * 
-     * CMT:
-     * requires JTA transaction-type (persistrence.xml)
-     * uses injected/looked-up EntityManager (through @PersistenceContext)
-     * uses injected/looked-up UserTransaction (through @Resource)
-     * EntityManger is nerver closed in the finally block
-     * 
-     * BMT:
-     * here we have two more options:
-     * -JTA transaction-type (UserTransaction API):
-     * -- injected EntityManagerFactory (through @PersistenceUnit)
-     * -- injected UserTransaction (throough @Resource)
-     * -- EM has to be closes when needed
-     * (through )
-     * -RESOURCE_LOCAL transaction-type (EntityTransaction API):
-     * -- EntityManagerFactory has to be created ( Persistence.createEntityManagerFactory(PU) )
-     *    - expensive - and EntityManager has to be managed through some 
-     *     thread-safe patterns like thread-local session.
-     * -- uses EntityTransaction, retrieved from EM by getTransaction
-     * -- EM has to be closed when needed
-     */
-
-    // JTA bean-managed transactions (em/utx injected)
-    // this how it should work
-//    @PersistenceUnit(unitName = "localindexes")
-//    private EntityManagerFactory emf;
-//
-//    private EntityManager getEntityManager() {
-//        return emf.createEntityManager();
-//    }
-//    @Resource
-//    private UserTransaction utx;
-//
-//    private UserTransaction getUserTransaction() {
-//        return this.utx;
-//    }
-
-    // container-managed transactions (em/utx looked-up)
-    // works for now
-    private EntityManager getEntityManager() {
-        EntityManager em = null;
-        try {
-            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
-        } catch (NamingException e) {
-            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return em;
-    }
-
-    private UserTransaction getUserTransaction() {
-        UserTransaction utx = null;
-        try {
-            utx = (UserTransaction) new InitialContext().lookup("java:comp/UserTransaction");
-        } catch (NamingException e) {
-            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return utx;
-    }
-
-    /* persistence stuff ends */
-    
+    private HarvestableDAO dao = new HarvestablesDAOJPA();
     @Context
     private UriInfo context;
 
@@ -139,7 +61,7 @@ public class HarvestablesResource {
             
             @QueryParam("max")
             @DefaultValue("10") int max) {
-        return new HarvestablesConverter(retrieveEntities(start, max), context.getAbsolutePath());
+        return new HarvestablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath());
     }
 
     /**
@@ -152,7 +74,7 @@ public class HarvestablesResource {
     @ConsumeMime({"application/xml", "application/json"})
     public Response post(HarvestableConverter data) {
         Harvestable entity = data.getEntity();
-        createEntity(entity);
+        dao.createHarvestable(entity);
         return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }
 
@@ -166,49 +88,5 @@ public class HarvestablesResource {
     public HarvestableResource getHarvestableResource(            
     @PathParam("id") Long id) {
         return new HarvestableResource(id, context);
-    }
-
-    /**
-     * Returns all the entities associated with this resource.
-     *
-     * @param start 
-     * @param max 
-     * @return a collection of Harvestable instances
-     */
-    protected Collection<Harvestable> retrieveEntities(int start, int max) {
-        EntityManager em = getEntityManager();
-        try {
-            Query q = em.createQuery("select object(o) from Harvestable as o");
-            q.setMaxResults(max);
-            q.setFirstResult(start);
-            return q.getResultList();
-        } finally {
-        //em.close();
-        }
-    }
-
-    /**
-     * Persist the given entity.
-     *
-     * @param entity the entity to persist
-     */
-    protected void createEntity(Harvestable entity) {
-        EntityManager em = getEntityManager();
-        UserTransaction utx = getUserTransaction();
-        try {
-            utx.begin();
-            em.joinTransaction();
-            em.persist(entity);
-            utx.commit();
-        } catch (Exception ex) {
-            Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, ex);
-            try {
-                utx.rollback();
-            } catch (Exception e) {
-                Logger.getLogger(HarvestablesResource.class.getName()).log(Level.SEVERE, null, e);
-            }
-        } finally {
-            //em.close();
-        }
     }
 }
