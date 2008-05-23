@@ -1,7 +1,9 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 1995-2008, Index Data
+ * All rights reserved.
+ * See the file LICENCE for details.
  */
+
 package com.indexdata.localindexes.scheduler;
 
 import com.indexdata.localindexes.web.entity.Harvestable;

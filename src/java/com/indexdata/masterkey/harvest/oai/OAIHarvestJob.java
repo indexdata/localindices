@@ -1,10 +1,11 @@
+/*
+ * Copyright (c) 1995-2008, Index Data
+ * All rights reserved.
+ * See the file LICENCE for details.
+ */
+
 package com.indexdata.masterkey.harvest.oai;
 
-/**
-Copyright 2008 Index Data ApS
-http://www.indexdata.com
-Licensed under the GNU Public License, Version 2.0.
- */
 import ORG.oclc.oai.harvester2.verb.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
