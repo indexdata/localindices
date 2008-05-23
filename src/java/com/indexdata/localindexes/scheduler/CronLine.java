@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 1995-2008, Index Data
  * All rights reserved.
- * See the file LICENCE for details.
+ * See the file LICENSE for details.
  */
 
 package com.indexdata.localindexes.scheduler;
@@ -23,8 +23,6 @@ import com.indexdata.localindexes.scheduler.exception.CronLineParseException;
  * 
  * @author heikki
  */
-
-/* minimal change */
 public class CronLine {
 
     public final static int DAILY_PERIOD = 24 * 60;
