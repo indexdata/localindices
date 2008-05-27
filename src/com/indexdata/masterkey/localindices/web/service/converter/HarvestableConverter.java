@@ -4,9 +4,9 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.service.converter;
+package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.localindexes.web.entity.*;
+import com.indexdata.masterkey.localindices.entity.*;
 import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;

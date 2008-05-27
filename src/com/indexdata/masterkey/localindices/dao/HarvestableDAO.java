@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.dao;
+package com.indexdata.masterkey.localindices.dao;
 
-import com.indexdata.localindexes.web.entity.Harvestable;
-import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
 import java.util.Collection;
 
 /**

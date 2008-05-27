@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.service.client;
+package com.indexdata.masterkey.localindices.web.service.client;
 
 import java.net.HttpURLConnection;
 import java.net.URI;

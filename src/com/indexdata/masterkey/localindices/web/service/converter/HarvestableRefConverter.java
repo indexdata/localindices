@@ -4,9 +4,9 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.service.converter;
+package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.localindexes.web.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;

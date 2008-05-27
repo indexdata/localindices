@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.entity;
+package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
@@ -15,18 +15,28 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author jakub
  */
 @Entity
-@XmlRootElement(name="xmlBulk")
-public class XmlBulkResource extends Harvestable implements Serializable {
+@XmlRootElement(name = "oaiPmh")
+public class OaiPmhResource extends Harvestable implements Serializable {
     private String url;
-    private String expectedSchema;
+    private String oaiSetName;
+    private String metadataPrefix;
+    private String schemaURI;
     private String normalizationFilter;
 
-    public String getExpectedSchema() {
-        return expectedSchema;
+    public String getUrl() {
+        return url;
     }
 
-    public void setExpectedSchema(String expectedSchema) {
-        this.expectedSchema = expectedSchema;
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getMetadataPrefix() {
+        return metadataPrefix;
+    }
+
+    public void setMetadataPrefix(String metadataPrefix) {
+        this.metadataPrefix = metadataPrefix;
     }
 
     public String getNormalizationFilter() {
@@ -37,14 +47,22 @@ public class XmlBulkResource extends Harvestable implements Serializable {
         this.normalizationFilter = normalizationFilter;
     }
 
-    public String getUrl() {
-        return url;
+    public String getOaiSetName() {
+        return oaiSetName;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setOaiSetName(String oaiSetName) {
+        this.oaiSetName = oaiSetName;
     }
-    
+
+    public String getSchemaURI() {
+        return schemaURI;
+    }
+
+    public void setSchemaURI(String schemaURI) {
+        this.schemaURI = schemaURI;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -55,10 +73,10 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof XmlBulkResource)) {
+        if (!(object instanceof OaiPmhResource)) {
             return false;
         }
-        XmlBulkResource other = (XmlBulkResource) object;
+        OaiPmhResource other = (OaiPmhResource) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -67,7 +85,6 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 
     @Override
     public String toString() {
-        return "com.indexdata.localindexes.web.entity.XmlBulkResource[id=" + id + "]";
+        return "com.indexdata.localindexes.web.entity.OaiPmhResource[id=" + id + "]";
     }
-
 }

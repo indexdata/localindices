@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.entity;
+package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
