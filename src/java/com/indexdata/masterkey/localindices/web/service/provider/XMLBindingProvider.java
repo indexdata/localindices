@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.service.provider;
+package com.indexdata.masterkey.localindices.web.service.provider;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -4,15 +4,15 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.localindexes.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 //import com.indexdata.localindexes.scheduler.dao.HarvestableDAOObsolete;
-import com.indexdata.localindexes.web.entity.Harvestable;
-import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
-import com.indexdata.masterkey.harvest.oai.FileStorage;
-import com.indexdata.masterkey.harvest.oai.HarvestStatus;
-import com.indexdata.masterkey.harvest.oai.HarvestStorage;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.harvest.oai.FileStorage;
+import com.indexdata.masterkey.localindices.harvest.oai.HarvestStatus;
+import com.indexdata.masterkey.localindices.harvest.oai.HarvestStorage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

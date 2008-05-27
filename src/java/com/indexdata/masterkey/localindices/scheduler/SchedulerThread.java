@@ -4,13 +4,11 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.localindexes.dao.HarvestableDAO;
-import com.indexdata.localindexes.dao.bean.HarvestablesDAOJPA;
-import com.indexdata.localindexes.scheduler.dao.bean.HarvestableDAOFake;
-import com.indexdata.localindexes.scheduler.dao.bean.HarvestableDAOWS;
-import com.indexdata.masterkey.harvest.oai.ConsoleStorage;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.harvest.oai.ConsoleStorage;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;

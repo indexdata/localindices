@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;

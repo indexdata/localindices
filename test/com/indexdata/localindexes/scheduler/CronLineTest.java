@@ -6,6 +6,7 @@
 
 package com.indexdata.localindexes.scheduler;
 
+import com.indexdata.masterkey.localindices.scheduler.CronLine;
 import java.util.Calendar;
 import java.util.Formatter;
 import java.util.GregorianCalendar;

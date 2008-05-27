@@ -4,9 +4,9 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.localindexes.web.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import java.io.*;
 import java.net.*;
 

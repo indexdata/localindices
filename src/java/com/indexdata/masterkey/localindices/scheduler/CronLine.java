@@ -4,12 +4,12 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
-import com.indexdata.localindexes.scheduler.exception.CronLineParseException;
+import com.indexdata.masterkey.localindices.scheduler.exception.CronLineParseException;
 
 /**
  * a CronLine is an internal representation of the time specification

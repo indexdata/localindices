@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.scheduler;
+package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.localindexes.web.entity.*;
-import com.indexdata.masterkey.harvest.oai.*;
+import com.indexdata.masterkey.localindices.entity.*;
+import com.indexdata.masterkey.localindices.harvest.oai.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;

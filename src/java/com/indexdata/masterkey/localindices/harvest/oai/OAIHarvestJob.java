@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.harvest.oai;
+package com.indexdata.masterkey.localindices.harvest.oai;
 
 import ORG.oclc.oai.harvester2.verb.*;
 import java.text.SimpleDateFormat;
@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import com.indexdata.localindexes.web.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;

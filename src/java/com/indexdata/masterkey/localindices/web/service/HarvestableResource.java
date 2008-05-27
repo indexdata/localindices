@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.localindexes.web.service;
+package com.indexdata.masterkey.localindices.web.service;
 
-import com.indexdata.localindexes.dao.HarvestableDAO;
-import com.indexdata.localindexes.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
@@ -15,7 +15,7 @@ import javax.ws.rs.ProduceMime;
 import javax.ws.rs.ConsumeMime;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriInfo;
-import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 
 /**
  *
