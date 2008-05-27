@@ -4,14 +4,14 @@
  * See the file LICENCE for details.
  */
 
-package com.indexdata.localindexes.web.controller;
+package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import com.indexdata.localindexes.dao.HarvestableDAO;
-import com.indexdata.localindexes.dao.bean.HarvestablesDAOJPA;
-import com.indexdata.localindexes.web.entity.Harvestable;
-import com.indexdata.localindexes.web.entity.OaiPmhResource;
-import com.indexdata.localindexes.web.entity.WebCrawlResource;
-import com.indexdata.localindexes.web.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 import java.util.ArrayList;
 import java.util.Date;
