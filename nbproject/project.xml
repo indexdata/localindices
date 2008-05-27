@@ -13,12 +13,12 @@
                     <file>${reference.oclc-harvester.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
-                    <file>${reference.oclc-harvester-1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
                 <library files="18">
                     <file>${libs.restlib.classpath}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library files="1">
+                    <file>${reference.localindices-dao.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>
@@ -32,7 +32,7 @@
         </data>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
-                <foreign-project>oclc-harvester</foreign-project>
+                <foreign-project>localindices-dao</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
@@ -40,7 +40,7 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>oclc-harvester-1</foreign-project>
+                <foreign-project>oclc-harvester</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

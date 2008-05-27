@@ -6,7 +6,7 @@
 
 package com.indexdata.localindexes.scheduler.dao.bean;
 
-import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
+import com.indexdata.localindexes.scheduler.dao.HarvestableDAOObsolete;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.entity.OaiPmhResource;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  *
  * @author jakub
  */
-public class HarvestableDAOFake implements HarvestableDAO {
+public class HarvestableDAOFake implements HarvestableDAOObsolete {
     private Map<Long, Harvestable> harvestables;
     private static Logger logger = Logger.getLogger("com.indexdata.localindexes.scheduler.dao.bean");
     

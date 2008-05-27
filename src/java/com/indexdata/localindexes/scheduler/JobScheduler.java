@@ -6,7 +6,8 @@
 
 package com.indexdata.localindexes.scheduler;
 
-import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
+import com.indexdata.localindexes.dao.HarvestableDAO;
+//import com.indexdata.localindexes.scheduler.dao.HarvestableDAOObsolete;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.converter.HarvestableRefConverter;
 import com.indexdata.masterkey.harvest.oai.FileStorage;

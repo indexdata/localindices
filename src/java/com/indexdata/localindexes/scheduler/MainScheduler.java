@@ -21,7 +21,7 @@ import javax.servlet.ServletContextListener;
 public class MainScheduler implements ServletContextListener {
     Thread th;
     SchedulerThread st;
-    private String serviceBaseURL = "http://localhost:8080/localindexes/resources/harvestables/";
+    private String serviceBaseURL = "http://localhost:8080/harvester/resources/harvestables/";
     //private String serviceBaseURL = "http://localhost:8136/localindexes/resources/harvestables/";
     
     public void contextInitialized(ServletContextEvent servletContextEvent) {

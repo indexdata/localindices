@@ -14,7 +14,7 @@ import java.util.Collection;
  *
  * @author jakub
  */
-public interface HarvestableDAO {
+public interface HarvestableDAOObsolete {
 
     /**
      * Retrieve list of all harvestables from the Web Service

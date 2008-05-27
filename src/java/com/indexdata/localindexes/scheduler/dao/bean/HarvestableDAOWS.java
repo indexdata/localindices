@@ -6,7 +6,7 @@
 
 package com.indexdata.localindexes.scheduler.dao.bean;
 
-import com.indexdata.localindexes.scheduler.dao.HarvestableDAO;
+import com.indexdata.localindexes.scheduler.dao.HarvestableDAOObsolete;
 import com.indexdata.localindexes.web.entity.Harvestable;
 import com.indexdata.localindexes.web.service.client.ResourceConnector;
 import com.indexdata.localindexes.web.service.converter.HarvestableConverter;
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  *
  * @author jakub
  */
-public class HarvestableDAOWS implements HarvestableDAO {
+public class HarvestableDAOWS implements HarvestableDAOObsolete {
 
     private String serviceBaseURL;
     private static Logger logger;

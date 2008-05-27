@@ -11,7 +11,21 @@
         <servlet-name>SchedulerStatusServlet</servlet-name>
         <url-pattern>/SchedulerStatusServlet</url-pattern>
     </servlet-mapping>
+        <servlet>
+        <servlet-name>ServletAdaptor</servlet-name>
+        <servlet-class>com.sun.ws.rest.impl.container.servlet.ServletAdaptor</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ServletAdaptor</servlet-name>
+        <url-pattern>/resources/*</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>SchedulerStatusServlet</welcome-file>
     </welcome-file-list>
+    <persistence-context-ref>
+        <description>Persistence context for the web services</description>
+        <persistence-context-ref-name>persistence/localindexes</persistence-context-ref-name>
+        <persistence-unit-name>localindexes</persistence-unit-name>
+    </persistence-context-ref>
 </web-app>
