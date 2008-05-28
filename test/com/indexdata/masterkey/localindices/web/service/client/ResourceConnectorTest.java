@@ -4,7 +4,7 @@
  * See the file LICENCE for details.
  */
 
-package com.indexdata.localindexes.web.service.client;
+package com.indexdata.masterkey.localindices.web.service.client;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
  * @author jakub
  */
 public class ResourceConnectorTest {
-    private static String baseURL = "http://localhost:8080/localindexes/resources/harvestables/";
+    private static String baseURL = "http://localhost:8080/localindices-harvester/resources/harvestables/";
     private static ResourceConnector<HarvestablesConverter> harvestablesConnector;
     private ResourceConnector<HarvestableConverter> harvestableConnector;
     private URL resourceURL;
@@ -44,8 +44,8 @@ public class ResourceConnectorTest {
         harvestablesConnector =
                 new ResourceConnector<HarvestablesConverter>(
                 new URL(baseURL),
-                "com.indexdata.localindexes.web.entity" +
-                ":com.indexdata.localindexes.web.service.converter");
+                "com.indexdata.masterkey.localindices.entity" +
+                ":com.indexdata.masterkey.localindices.web.service.converter");
         } catch (MalformedURLException male) {
             fail("Come on, at leat the URL has to be valid.");
         }
@@ -85,8 +85,8 @@ public class ResourceConnectorTest {
         harvestableConnector =
                 new ResourceConnector<HarvestableConverter>(
                 resourceURL,
-                "com.indexdata.localindexes.web.entity" +
-                ":com.indexdata.localindexes.web.service.converter");
+                "com.indexdata.masterkey.localindices.entity" +
+                ":com.indexdata.masterkey.localindices.web.service.converter");
     }
 
     @After

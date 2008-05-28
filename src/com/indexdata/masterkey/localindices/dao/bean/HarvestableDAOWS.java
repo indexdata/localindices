@@ -13,6 +13,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableCon
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,11 +25,10 @@ import java.util.logging.Logger;
 public class HarvestableDAOWS implements HarvestableDAO {
 
     private String serviceBaseURL;
-    private static Logger logger;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindexes");
 
-    public HarvestableDAOWS(String serviceBaseURL, Logger logger) {
+    public HarvestableDAOWS(String serviceBaseURL) {
         this.serviceBaseURL = serviceBaseURL;
-        this.logger = logger;
     }
 
     /**
@@ -40,8 +40,8 @@ public class HarvestableDAOWS implements HarvestableDAO {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
                     new URL(serviceBaseURL),
-                    "com.indexdata.localindexes.web.entity" +
-                    ":com.indexdata.localindexes.web.service.converter");
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
             HarvestablesConverter hc = harvestablesConnector.get();
             return hc.getReferences();
         } catch (Exception male) {
@@ -60,8 +60,8 @@ public class HarvestableDAOWS implements HarvestableDAO {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
                     href.getResourceUri().toURL(),
-                    "com.indexdata.localindexes.web.entity" +
-                    ":com.indexdata.localindexes.web.service.converter");
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
             return harvestableConnector.get().getEntity();
         } catch (Exception male) {
             logger.log(Level.SEVERE, "Cannot retreve harvestable from it's ref", male);
@@ -79,8 +79,8 @@ public class HarvestableDAOWS implements HarvestableDAO {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
                     new URL(serviceBaseURL + harvestable.getId() + "/"),
-                    "com.indexdata.localindexes.web.entity" +
-                    ":com.indexdata.localindexes.web.service.converter");
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
             HarvestableConverter hc = new HarvestableConverter();
             hc.setEntity(harvestable);
             harvestableConnector.put(hc);
@@ -91,11 +91,33 @@ public class HarvestableDAOWS implements HarvestableDAO {
     } // updateJob
 
     public void createHarvestable(Harvestable harvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+        HarvestableConverter harvestableContainer = new HarvestableConverter();
+        harvestableContainer.setEntity(harvestable);
+        harvestablesConnector.postAny(harvestableContainer);
+        } catch (Exception male) {
+            logger.log(Level.SEVERE, "Cannot create harvestable", male);
+        }
     }
 
     public Harvestable retrieveHarvestableById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Harvestable hable = null;
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                new ResourceConnector<HarvestableConverter>(
+                    new URL(serviceBaseURL + id + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            hable = harvestableConnector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.SEVERE, "Cannot retrieve harvestable with id " + id, male);
+        }
+        return hable;    
     }
 
     public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable) {
@@ -103,15 +125,29 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     public void deleteHarvestable(Harvestable harvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                new ResourceConnector<HarvestableConverter>(
+                    new URL(serviceBaseURL + harvestable.getId() + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            harvestableConnector.delete();
+        } catch (Exception male) {
+            logger.log(Level.SEVERE, "Cannot delete harvestable with id " + harvestable.getId(), male);
+        }
     }
 
     public Collection<Harvestable> retrieveHarvestables(int start, int max) {
-        throw new UnsupportedOperationException("Not supported yet.");
+       //TODO this cannot be more stupid
+       Collection<Harvestable> hables = new ArrayList<Harvestable>();
+        for (HarvestableRefConverter href : pollHarvestableRefList()) {
+            Harvestable hable = retrieveFromRef(href);
+            hables.add(hable);
+        }
+        return hables;    
     }
 
     public int getHarvestableCount() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return 100;
     }
-
 }
