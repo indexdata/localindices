@@ -7,7 +7,7 @@
 package com.indexdata.masterkey.localindices.harvest.oai;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -42,6 +42,12 @@ public class FileStorage implements HarvestStorage {
     
     public String getOutFileName() {
         return outFileName;
+    }
+
+    public void removeAll() throws IOException {
+        fos.close();
+        File f = new File(outFileName);
+        f.delete();
     }
 
 }

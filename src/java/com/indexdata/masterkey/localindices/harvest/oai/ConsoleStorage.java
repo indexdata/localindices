@@ -26,5 +26,7 @@ public class ConsoleStorage implements HarvestStorage {
     public void closeOutput() throws IOException {
         throw new UnsupportedOperationException("This stream does not need to be closed.");
     }
-    
+    public void removeAll() throws IOException {
+        System.out.println("Storage.Removeall: Please discard the previous output");
+    }
 }
