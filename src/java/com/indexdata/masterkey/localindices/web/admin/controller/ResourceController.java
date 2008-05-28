@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestableDAOWS;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
@@ -31,7 +32,7 @@ import javax.faces.model.SelectItem;
  */
 public class ResourceController {
     private static Logger logger = Logger.getLogger("com.indexdata.localindexes");
-    private HarvestableDAO dao = new HarvestablesDAOJPA();
+    private HarvestableDAO dao = new HarvestableDAOWS("http://localhost:8080/localindices-harvester/resources/harvestables/");
     private Harvestable resource;
     private DataModel model;
 
@@ -257,6 +258,7 @@ public class ResourceController {
         resource.setScheduleString(scheduleInputsToString());
         resource.setLastUpdated(new Date());
         dao.createHarvestable(resource);
+        resource = null;
         //return failure
         return "resource_added";
     }
@@ -282,6 +284,7 @@ public class ResourceController {
         resource.setScheduleString(scheduleInputsToString());
         resource.setLastUpdated(new Date());
         resource = dao.updateHarvestable(resource);
+        resource = null;
         return "resource_saved";
     }
 
@@ -291,7 +294,9 @@ public class ResourceController {
     }
 
     public String deleteResource() {
+        resource = getResourceFromRequestParam();
         dao.deleteHarvestable(resource);
+        resource = null;
         return "resource_list";
     }
         //</editor-fold>
