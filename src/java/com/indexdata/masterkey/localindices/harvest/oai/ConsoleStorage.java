@@ -29,4 +29,8 @@ public class ConsoleStorage implements HarvestStorage {
     public void removeAll() throws IOException {
         System.out.println("Storage.Removeall: Please discard the previous output");
     }
+
+    public void closeAndDelete() throws IOException {
+        System.out.println("Storage.Removeall: Please discard the previous output");
+    }
 }

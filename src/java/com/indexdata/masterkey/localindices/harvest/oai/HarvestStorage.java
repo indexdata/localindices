@@ -21,4 +21,5 @@ public interface HarvestStorage {
     public void closeOutput() throws IOException;
     public OutputStream getOutputStream();    
     public void removeAll() throws IOException;
+    public void closeAndDelete() throws IOException;
 }
