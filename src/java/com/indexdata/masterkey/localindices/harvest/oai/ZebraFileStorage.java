@@ -24,7 +24,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
 import java.util.logging.Level;
@@ -97,24 +99,17 @@ public class ZebraFileStorage implements HarvestStorage {
     } // check JobDir
 
 
-    private String timeStamp() {
-        Calendar g = new GregorianCalendar(); // defaults to now()
 
-        int sec = g.get(Calendar.SECOND);
-        int min = g.get(Calendar.MINUTE);
-        int hour = g.get(Calendar.HOUR_OF_DAY);
-        int mday = g.get(Calendar.DAY_OF_MONTH);
-        int mon = g.get(Calendar.MONTH) + 1;  // JAN = 1
-
-        int year = g.get(Calendar.YEAR);
-        Formatter f = new Formatter();
-        f.format("%04d%02d%02d-%02d%02d%02d", year, mon, mday, hour, min, sec);
-        return f.toString();
-    }
-
+    /** Open a new putput file in the incoming directory
+     * Checks that the directory exists, creates if necessary
+     * 
+     * @throws java.io.IOException
+     */
     public void openOutput() throws IOException {
         checkIncomingDir();
-        currentFileName = "/" + namePrefix + "-" + timeStamp();
+        String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss" )
+                .format( new Date() );
+        currentFileName = "/" + namePrefix + "-" + timeStamp;
         outFileName = incomingDir + "/" + currentFileName;
         fos = new FileOutputStream(outFileName, true);
     }
@@ -155,6 +150,9 @@ public class ZebraFileStorage implements HarvestStorage {
      * @throws java.io.IOException
      */
     public void removeAll() throws IOException {
+        /**@TODO Code this */
+        logger.log(Level.FINE, "ZebraFileStorage: removeAll '" + 
+                basePath + "'");
     }
 
     /** Close the output and remove the current file     
