@@ -2,6 +2,8 @@
  * Copyright (c) 1995-2008, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
+ * 
+ * 
  */
 
 package com.indexdata.masterkey.localindices.harvest.oai;
@@ -14,21 +16,23 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
+
 /**
  *
- * @author jakub
+ * @author Jakub and Heikki
  */
-public class FileStorage implements HarvestStorage {
+public class ZebraFileStorage implements HarvestStorage {
     private String outFileName;
     private String baseName;
     private OutputStream fos;
     
-    public FileStorage(Harvestable harvestable) {
+    public ZebraFileStorage(Harvestable harvestable) {
         this(  harvestable.getId() + "." + harvestable.getName() );
     }
     
-    public FileStorage(String outFileName) {
+    public ZebraFileStorage(String outFileName) {
         this.outFileName = outFileName;
+        // FIXME - get the path to the file storage from somewhere
         baseName=outFileName; // just in case someone asks for it before opening
     }
     
@@ -42,7 +46,6 @@ public class FileStorage implements HarvestStorage {
         int year = g.get(Calendar.YEAR);
         Formatter f = new Formatter();
         f.format("%04d%02d%02d-%02d%02d%02d", year,mon,mday, hour, min, sec);
-        System.out.println("TS=" + f.toString() );
         return f.toString();
     }
             
