@@ -7,6 +7,8 @@
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestableDAOWS;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -24,6 +26,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
+import javax.servlet.ServletContext;
 
 /**
  * The cotroller for the admin interface, implements all the buisness logic and
@@ -32,9 +35,17 @@ import javax.faces.model.SelectItem;
  */
 public class ResourceController {
     private static Logger logger = Logger.getLogger("com.indexdata.localindexes");
-    private HarvestableDAO dao = new HarvestableDAOWS("http://localhost:8080/localindices-harvester/resources/harvestables/");
+    private HarvestableDAO dao;
     private Harvestable resource;
     private DataModel model;
+    
+    public ResourceController() {
+        try {
+            dao = HarvestableDAOFactory.getHarvestableDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
+        } catch (HarvestableDAOException ex) {
+            logger.log(Level.SEVERE, "Exception when retrieving DAO", ex);
+        }
+    }
 
     public Harvestable getResource() {
         return resource;
