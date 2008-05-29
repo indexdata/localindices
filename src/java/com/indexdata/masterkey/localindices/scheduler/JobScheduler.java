@@ -108,11 +108,12 @@ public class JobScheduler {
             switch(ji.getStatus()) {
                 case FINISHED: //update the lastHarvestStarted (and harvestedUntil) 
                                //and send received signal
-                    updateHarvestDate(ji.getHarvestable(), ji.getLastHarvestStarted());
                     ji.setStatusToWaiting();
+                    persistFinished(ji);
+                    //persist from and until
                     break;
                 case ERROR:   // report error if changed
-                    if (ji.errorChanged()) reportError(ji.getHarvestable(), ji.getError());
+                    if (ji.errorChanged()) reportError(ji.getHarvestable());
                     // do not break
                 case NEW:     // ask if time to run
                 case WAITING:
@@ -157,9 +158,10 @@ public class JobScheduler {
      * Reports job status back to the Web Service
      * @param ji running job instance
      */
-    private void reportError(Harvestable hable, String error) {
+    private void reportError(Harvestable hable) {
         logger.log(Level.SEVERE, Thread.currentThread().getName() 
-                + ": JOB#" + hable.getId() + " - HARVEST ERROR - " + error);
+                + ": JOB#" + hable.getId() + " - HARVEST ERROR - " + hable.getError());
+        dao.updateHarvestable(hable);
     }
     
     private void reportStatus(Harvestable hable, HarvestStatus status) {
@@ -169,10 +171,10 @@ public class JobScheduler {
         dao.updateHarvestable(hable);
     }
 
-    private void updateHarvestDate(Harvestable harvestable, Date lastHarvestStarted) {
+    private void persistFinished(JobInstance ji) {
         logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": JOB#" + harvestable.getId() + " has finished");
-        harvestable.setLastHarvestStarted(lastHarvestStarted);
-        dao.updateHarvestable(harvestable);
+                + ": JOB#" + ji.getHarvestable().getId() + " has finished");
+        ji.getHarvestable().setLastHarvestStarted(ji.getLastHarvestStarted());
+        dao.updateHarvestable(ji.getHarvestable());
     }
 }
