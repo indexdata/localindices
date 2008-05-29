@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.harvest.oai;
+package com.indexdata.masterkey.localindices.harvest.oai;
 
-import com.indexdata.localindexes.web.entity.Harvestable;
-import java.io.FileNotFoundException;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +21,7 @@ public class FileStorage implements HarvestStorage {
     private OutputStream fos;
     
     public FileStorage(Harvestable harvestable) {
-        this(harvestable.getName() + harvestable.getId());
+        this(harvestable.getId() + "-" + harvestable.getName());
     }
     
     public FileStorage(String outFileName) {
@@ -44,4 +44,14 @@ public class FileStorage implements HarvestStorage {
         return outFileName;
     }
 
+    public void removeAll() throws IOException {
+        this.closeAndDelete();
+    }
+
+    
+    public void closeAndDelete() throws IOException {
+        fos.close();
+        File f = new File(outFileName);
+        f.delete();
+    }
 }
