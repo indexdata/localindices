@@ -71,7 +71,9 @@ public class JobScheduler {
                 if (ji == null) {
                     Harvestable harv = dao.retrieveFromRef(href);
                     try {
-                        ji = new JobInstance(harv, new FileStorage(harv));
+                        //ji = new JobInstance(harv, new FileStorage(harv));
+                        ji = new JobInstance(harv, 
+                                new ZebraFileStorage("/tmp/harvested",harv,logger));
                         jobs.put(id, ji);
                         logger.log(Level.INFO, Thread.currentThread().getName()
                                 + ": JOB#" + ji.getHarvestable().getId()
