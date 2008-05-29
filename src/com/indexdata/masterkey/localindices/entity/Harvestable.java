@@ -48,6 +48,15 @@ public abstract class Harvestable implements Serializable, Cloneable {
     protected String currentStatus;
     protected Integer recordsHarvested;
     // boolean immediately?
+    protected String error;
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
 
     public String getCurrentStatus() {
         return currentStatus;

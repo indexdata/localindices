@@ -7,7 +7,10 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -22,6 +25,28 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     private String metadataPrefix;
     private String schemaURI;
     private String normalizationFilter;
+    //add?
+    @Temporal(TemporalType.DATE)
+    private Date fromDate;
+    @Temporal(TemporalType.DATE)
+    private Date untilDate;
+
+    public Date getFromDate() {
+        return fromDate;
+    }
+
+    public void setFromDate(Date fromDate) {
+        this.fromDate = fromDate;
+    }
+
+    public Date getUntilDate() {
+        return untilDate;
+    }
+
+    public void setUntilDate(Date untilDate) {
+        this.untilDate = untilDate;
+    }
+    //??? resumptionToken
 
     public String getUrl() {
         return url;

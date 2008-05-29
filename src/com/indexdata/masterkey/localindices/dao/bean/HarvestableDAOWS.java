@@ -140,11 +140,14 @@ public class HarvestableDAOWS implements HarvestableDAO {
     public Collection<Harvestable> retrieveHarvestables(int start, int max) {
        //TODO this cannot be more stupid
        Collection<Harvestable> hables = new ArrayList<Harvestable>();
-        for (HarvestableRefConverter href : pollHarvestableRefList()) {
-            Harvestable hable = retrieveFromRef(href);
-            hables.add(hable);
-        }
-        return hables;    
+       Collection<HarvestableRefConverter> hrefs = pollHarvestableRefList();
+       if (hrefs != null) {
+            for (HarvestableRefConverter href : hrefs) {
+                Harvestable hable = retrieveFromRef(href);
+                hables.add(hable);
+            }
+       }
+       return hables;    
     }
 
     public int getHarvestableCount() {
