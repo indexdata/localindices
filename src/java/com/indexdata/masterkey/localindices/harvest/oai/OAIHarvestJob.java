@@ -27,18 +27,21 @@ import org.xml.sax.SAXException;
  * @author jakub
  */
 public class OAIHarvestJob implements HarvestJob {
-
-    private String baseURL;
+    private OaiPmhResource resource;
+    /*private String baseURL;
     private String from;
     private String until;
     private String metadataPrefix;
     private String setSpec;
     private String resumptionToken;
+    private String error;
+     */
+    //get rid of this field
     private HarvestStatus status;
     private HarvestStorage storage;
     private static Logger logger;
     private boolean die = false;
-    private String error;
+    private final static String DATE_FORMAT = "yyyy-MM-dd";
 
     private synchronized boolean isKillSendt() {
         if (die) {
@@ -52,29 +55,20 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public OAIHarvestJob(OaiPmhResource resource) {
-        this(resource.getUrl(),
-                null,
-                null,
-                resource.getMetadataPrefix(),
-                resource.getOaiSetName());
-    }
-
-    public OAIHarvestJob(String baseURL, String from, String until, String metadataPrefix, String setSpec) {
-        if (baseURL == null) {
+        logger = Logger.getLogger(this.getClass().getCanonicalName());        
+        if (resource.getUrl() == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
-        if (metadataPrefix == null) {
-            metadataPrefix = "oai_dc";
+        if (resource.getMetadataPrefix() == null) {
+            resource.setMetadataPrefix("oai_dc");
         }
-
-        this.baseURL = baseURL;
-        this.metadataPrefix = metadataPrefix;
-        this.from = from;
-        this.until = until;
-        this.setSpec = setSpec;
-
-        status = HarvestStatus.NEW;
-        logger = Logger.getLogger(this.getClass().getCanonicalName());
+        this.resource = resource;        
+        String persistedStatus = resource.getCurrentStatus();
+        if (persistedStatus == null
+             || persistedStatus.equals("RUNNING"))
+            this.status = HarvestStatus.NEW;
+        else
+            this.status = HarvestStatus.valueOf(persistedStatus);       
     }
 
     public void kill() {
@@ -97,7 +91,7 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public String getError() {
-        return error;
+        return resource.getError();
     }
 
     public void setStorage(HarvestStorage storage) {
@@ -106,44 +100,62 @@ public class OAIHarvestJob implements HarvestJob {
 
     public void run() {
         // where are we?
-        String nextFrom = null;
-        if (until != null)
+        Date nextFrom = null;
+        if (resource.getUntilDate() != null)
             logger.log(Level.SEVERE, Thread.currentThread().getName() 
                     + " until param will be overwritten to yesterday.");
-        until = yesterday("yyyy-MM-dd");
-        nextFrom = today("yyyy-MM-dd");
+        resource.setUntilDate(yesterday());
+        nextFrom = new Date();
         
         logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": OAI harvest thread started. Harvesting from: " + from + " until: " + until);
+                + ": OAI harvest thread started. Harvesting from: " 
+                + resource.getFromDate() + " until: " + resource.getUntilDate());
         
-        status = HarvestStatus.RUNNING;
-        
+        status = HarvestStatus.RUNNING; 
         try {
             storage.openOutput();
             OutputStream out = storage.getOutputStream();
             
-            if (resumptionToken != null) {
+            //if (resource.getResumptionToken() != null) {
                 // this is actually never called since we do not store resumption tokens
-                harvest(baseURL, resumptionToken, out);
-            } else {
-                harvest(baseURL, from, until, metadataPrefix, setSpec, out);
-            }
+            //    harvest(baseURL, resumptionToken, out);
+            //} else {
+                harvest(resource.getUrl(), 
+                        formatDate(resource.getFromDate()), 
+                        formatDate(resource.getUntilDate()), 
+                        resource.getMetadataPrefix(), 
+                        resource.getOaiSetName(),
+                        out);
+            //}
             
-            storage.closeOutput();
         } catch (Exception e) {
+            status = HarvestStatus.ERROR;
             logger.log(Level.SEVERE, Thread.currentThread().getName(), e);
         }
         // if there was an error do not move the time marker
         // - we'll try havesting data next time
         if (status != HarvestStatus.ERROR && status != HarvestStatus.KILLED) {
-            from = nextFrom;
-            until = null;
+            //TODO persist until and from
+            resource.setFromDate(nextFrom);
+            resource.setUntilDate(null);
             status = HarvestStatus.FINISHED;
             logger.log(Level.INFO, Thread.currentThread().getName() 
-                    + ": OAI harvest thread finishes OK. Next from: " + from);
+                    + ": OAI harvest thread finishes OK. Next from: " 
+                    + resource.getFromDate());
+            try {
+                storage.closeOutput();
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Storage commit failed.");
+            }
         } else {
             logger.log(Level.INFO, Thread.currentThread().getName() 
-                    + ": OAI harvest thread killed/faced error - data may be inconsistent. Next from param: " + from);
+                    + ": OAI harvest thread killed/faced error " +
+                    "- rolling back. Next from param: " + resource.getFromDate());
+            try {
+                storage.closeAndDelete();
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Storage rollback failed.");
+            }            
         }
     }
 
@@ -210,27 +222,26 @@ public class OAIHarvestJob implements HarvestJob {
         if (errors != null && errors.getLength() > 0) {
             status = HarvestStatus.ERROR;
             int length = errors.getLength();
-            error = null;
+            String error = null;
             for (int i = 0; i < length; ++i) {
                 Node item = errors.item(i);
                 error += item.getTextContent();
             }
+            resource.setError(error);
             logger.log(Level.SEVERE, Thread.currentThread().getName() + ": OAI harvest error: " + error);
             return true;
         }
         return false;
     }
 
-    private String yesterday(String format) {
+    private Date yesterday() {
         Calendar c = Calendar.getInstance();
-        DateFormat fmt = new SimpleDateFormat(format);
         c.add(Calendar.DAY_OF_MONTH, -1); //back one
-
-        String formatted = fmt.format(c.getTime());
-        return formatted;
+        return c.getTime();
     }
-
-    private String today(String format) {
-        return new SimpleDateFormat(format).format(new Date());
+    
+    private String formatDate(Date date) {
+        if (date == null) return null;
+        return new SimpleDateFormat(DATE_FORMAT).format(date);
     }
 }
