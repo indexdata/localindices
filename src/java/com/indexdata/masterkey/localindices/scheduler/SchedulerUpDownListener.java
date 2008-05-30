@@ -11,14 +11,13 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
- * This is the main scheduler for the OAI harvester. 
- * Basically, it just starts a thread when the object is created, 
- * which should happen automagically when ever the app server is (re)started.
- * It also kills it when the server is going down.
+ * Context listener for the scheduler app.
+ * Starts the scheduling thread when the the app is deployed,
+ * and kills it when the server is going down.
  * 
  * @author heikki
  */
-public class MainScheduler implements ServletContextListener {
+public class SchedulerUpDownListener implements ServletContextListener {
     Thread th;
     SchedulerThread st;
     private String serviceBaseURL = "http://localhost:8080/harvester/resources/harvestables/";
