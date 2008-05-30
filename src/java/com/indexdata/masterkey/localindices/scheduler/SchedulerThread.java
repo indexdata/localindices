@@ -53,11 +53,12 @@ public class SchedulerThread implements Runnable {
         keepRunning = true;
         while (keepRunning()) {
             try {
-                Thread.sleep(30 * 1000);
+                Thread.sleep(10 * 1000);
                 logger.log(Level.INFO, Thread.currentThread().getName() + 
                         ": checking and updating current job list..");
                 scheduler.checkJobs();
                 scheduler.updateJobs();
+                scheduler.checkJobs();
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, Thread.currentThread().getName() + 
                         ": SchedulerThread was interrrupted. Exiting.");

@@ -27,6 +27,7 @@ public class JobInstance {
     private Thread harvestingThread;
     private HarvestJob harvestJob;
     private CronLine cronLine;
+    private CronLine lastCronLine;
     private String lastHarvestError;
     private HarvestStatus lastHarvestStatus;
     private Date lastHarvestStarted;
@@ -97,7 +98,11 @@ public class JobInstance {
      * @return true/false
      */
     public boolean timeToRun() {
-        return CronLine.currentCronLine().matches(cronLine);
+        CronLine curCron = CronLine.currentCronLine();
+        if ( (lastCronLine != null ) && lastCronLine.matches(curCron))
+            return false;
+        lastCronLine=curCron;
+        return curCron.matches(cronLine);
     }
 
     /**
