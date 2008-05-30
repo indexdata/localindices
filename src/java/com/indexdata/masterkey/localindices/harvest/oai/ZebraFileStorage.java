@@ -78,8 +78,9 @@ public class ZebraFileStorage implements HarvestStorage {
     private void checkIncomingDir() throws IOException {
         File f = new File(incomingDir);
         if (f.exists()) {  // old uncommitted stuff, roll back
-            logger.log(Level.INFO,"Rolling back old incoming directory '"+
-                    f.getPath()+"'");
+
+            logger.log(Level.INFO, "Rolling back old incoming directory '" +
+                    f.getPath() + "'");
             for (File ff : f.listFiles()) {
                 if (!ff.delete()) {
                     throw new IOException("Could not delete old file '" +
@@ -99,20 +100,19 @@ public class ZebraFileStorage implements HarvestStorage {
     } // check JobDir
 
 
-
     /** Open a new putput file in the incoming directory
      * Checks that the directory exists, creates if necessary
      * 
      * @throws java.io.IOException
      */
-    public void openOutput() throws IOException {
+    public void begin() throws IOException {
         checkIncomingDir();
-        String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss" )
-                .format( new Date() );
+        String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
         currentFileName = "/" + namePrefix + "-" + timeStamp;
         outFileName = incomingDir + "/" + currentFileName;
         fos = new FileOutputStream(outFileName, true);
     }
+
 
     /** Closes and commits the output file 
      * Makes sure the committed directory exists
@@ -121,13 +121,13 @@ public class ZebraFileStorage implements HarvestStorage {
      * 
      * @throws java.io.IOException
      */
-    public void closeOutput() throws IOException {
+    public void commit() throws IOException {
         fos.close();
         File fc = new File(committedDir);
         if (!fc.exists()) {
             if (!fc.mkdirs()) {
                 throw new IOException("Could not create commit-dir '" +
-                    fc.getPath() + "'");
+                        fc.getPath() + "'");
             }
         }
         File fi = new File(incomingDir + "/" + currentFileName);
@@ -136,43 +136,69 @@ public class ZebraFileStorage implements HarvestStorage {
                     fi.getPath() + "'");
         }
         fi = new File(incomingDir);
-        if (!fi.delete() ) {
+        if (!fi.delete()) {
             throw new IOException("Could not delete incoming dir'" +
                     fi.getPath() + "'");
         }
         logger.log(Level.FINE, "ZebraFileStorage: Committed '" +
                 fc.getPath() + "'");
-    } // closeOutput
+    } // commit
 
+    /** Recursively deletes the given directory
+     * 
+     * @param f - the directory (or file) to be deleted
+     * @throws java.io.IOException
+     */
+    private void deleteDir(File f) throws IOException {
+        if ( ! f.exists() )
+            return;
+        logger.log(Level.INFO,"Recursing into '" + f.getCanonicalPath() + "'");
+        for (File ff : f.listFiles()) {
+            if (ff.isDirectory()) {
+                deleteDir(ff);
+            }
+            if (!ff.delete()) {
+                throw new IOException("Could not delete '" +
+                        ff.getPath() + "'");
+            }
+        }
+        if (!f.delete()) {
+            throw new IOException("Could not delete '" +
+                    f.getPath() + "'");
+        }
+
+    } // deleteDir
 
     /** Remove all that we have on this job
      * 
      * @throws java.io.IOException
      */
-    public void removeAll() throws IOException {
-        /**@TODO Code this */
-        logger.log(Level.FINE, "ZebraFileStorage: removeAll '" + 
+    public void purge() throws IOException {
+        logger.log(Level.INFO, "ZebraFileStorage: removeAll '" +
                 basePath + "'");
+        deleteDir( new File(committedDir)) ;
+        deleteDir( new File(incomingDir)) ;
     }
+
 
     /** Close the output and remove the current file     
      * 
      * @throws java.io.IOException
      */
-    public void closeAndDelete() throws IOException {
+    public void rollback() throws IOException {
         fos.close();
         File f = new File(outFileName);
-        if ( ! f.delete() ) {
+        if (!f.delete()) {
             throw new IOException("Could not delete harvested file '" +
                     f.getPath() + "'");
         }
         f = new File(incomingDir);
-        if (!f.delete() ) {
+        if (!f.delete()) {
             throw new IOException("Could not delete incoming dir'" +
                     f.getPath() + "'");
         }
-    } // closeAndDelete
-    
+    } // rollback
+
     public OutputStream getOutputStream() {
         return fos;
     }
@@ -180,5 +206,4 @@ public class ZebraFileStorage implements HarvestStorage {
     public String getOutFileName() {
         return outFileName;
     }
-
 } // ZebraFileStorage

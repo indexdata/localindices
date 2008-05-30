@@ -28,11 +28,11 @@ public class FileStorage implements HarvestStorage {
         this.outFileName = outFileName;
     }
     
-    public void openOutput() throws IOException {
+    public void begin() throws IOException {
         fos = new FileOutputStream(outFileName, true);
     }
     
-    public void closeOutput() throws IOException {
+    public void commit() throws IOException {
         fos.close();
     }
 
@@ -44,12 +44,12 @@ public class FileStorage implements HarvestStorage {
         return outFileName;
     }
 
-    public void removeAll() throws IOException {
-        this.closeAndDelete();
+    public void purge() throws IOException {
+        this.rollback();
     }
 
     
-    public void closeAndDelete() throws IOException {
+    public void rollback() throws IOException {
         fos.close();
         File f = new File(outFileName);
         f.delete();

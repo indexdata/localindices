@@ -17,9 +17,38 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public interface HarvestStorage {
-    public void openOutput() throws IOException;
-    public void closeOutput() throws IOException;
+    
+    /** 
+     * Open the storage
+     * @throws java.io.IOException
+     */
+    public void begin() throws IOException;
+    
+    /**
+     * Commits the current harvest
+     * Closes storage, etc
+     * @throws java.io.IOException
+     */
+    public void commit() throws IOException;
+    
+    /**
+     * Rolls back the current harvest, but keeps the older ones
+     * Closes the storage, etc
+     * @throws java.io.IOException
+     */
+            
+    public void rollback() throws IOException;
+    
+    /**
+     * Purges all stuff we have for this storage
+     * Deletes files, directories, etc. Tells zebra to forget it, or what ever
+     * @throws java.io.IOException
+     */
+    public void purge() throws IOException;
+    
+    /** 
+     * 
+     * @return the output stream for writing to it
+     */
     public OutputStream getOutputStream();    
-    public void removeAll() throws IOException;
-    public void closeAndDelete() throws IOException;
 }

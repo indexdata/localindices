@@ -15,9 +15,18 @@ package com.indexdata.masterkey.localindices.harvest.oai;
 
 public interface HarvestJob extends Runnable {
     
+    /** Stop the current job
+     * Rolls back the current harvest, deleting those files received so far
+     * Leaves the older harvests in place
+     * 
+     */
     public void kill();
+        
     public HarvestStatus getStatus();
+    
     public void setStorage(HarvestStorage storage);
+    public HarvestStorage getStorage();
+    
     public void finishReceived();
     public String getError();
     

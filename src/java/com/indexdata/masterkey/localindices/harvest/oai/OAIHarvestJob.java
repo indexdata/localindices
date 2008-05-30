@@ -97,7 +97,11 @@ public class OAIHarvestJob implements HarvestJob {
     public void setStorage(HarvestStorage storage) {
         this.storage = storage;
     }
-
+    
+    public HarvestStorage getStorage() {
+        return storage;
+    }
+    
     public void run() {
         // where are we?
         Date nextFrom = null;
@@ -113,7 +117,7 @@ public class OAIHarvestJob implements HarvestJob {
         
         status = HarvestStatus.RUNNING; 
         try {
-            storage.openOutput();
+            storage.begin();
             OutputStream out = storage.getOutputStream();
             
             //if (resource.getResumptionToken() != null) {
@@ -143,7 +147,7 @@ public class OAIHarvestJob implements HarvestJob {
                     + ": OAI harvest thread finishes OK. Next from: " 
                     + resource.getFromDate());
             try {
-                storage.closeOutput();
+                storage.commit();
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Storage commit failed.");
             }
@@ -152,7 +156,7 @@ public class OAIHarvestJob implements HarvestJob {
                     + ": OAI harvest thread killed/faced error " +
                     "- rolling back. Next from param: " + resource.getFromDate());
             try {
-                storage.closeAndDelete();
+                storage.rollback();
             } catch (IOException ioe) {
                 logger.log(Level.SEVERE, "Storage rollback failed.");
             }            
@@ -244,4 +248,6 @@ public class OAIHarvestJob implements HarvestJob {
         if (date == null) return null;
         return new SimpleDateFormat(DATE_FORMAT).format(date);
     }
+
+
 }

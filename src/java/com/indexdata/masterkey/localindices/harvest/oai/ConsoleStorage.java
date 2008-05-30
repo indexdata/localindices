@@ -19,18 +19,18 @@ public class ConsoleStorage implements HarvestStorage {
         return System.out;
     }
 
-    public void openOutput() throws IOException {
+    public void begin() throws IOException {
         throw new UnsupportedOperationException("This stream does not need to opened.");
     }
 
-    public void closeOutput() throws IOException {
+    public void commit() throws IOException {
         throw new UnsupportedOperationException("This stream does not need to be closed.");
     }
-    public void removeAll() throws IOException {
+    public void purge() throws IOException {
         System.out.println("Storage.Removeall: Please discard the previous output");
     }
 
-    public void closeAndDelete() throws IOException {
+    public void rollback() throws IOException {
         System.out.println("Storage.Removeall: Please discard the previous output");
     }
 }

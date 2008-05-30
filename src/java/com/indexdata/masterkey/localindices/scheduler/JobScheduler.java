@@ -93,7 +93,8 @@ public class JobScheduler {
                     logger.log(Level.INFO, Thread.currentThread().getName()
                             + ": JOB#" + ji.getHarvestable().getId() 
                             + " no longer in the DB. Deleting from list.");
-                    ji.killThread();
+                    //ji.killThread();
+                    ji.purge();
                     it.remove();
                 }
             }

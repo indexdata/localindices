@@ -3,7 +3,6 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
@@ -33,12 +32,13 @@ import java.util.logging.Logger;
  * 
  * @author heikki
  */
-public class SchedulerThread implements Runnable {    
+public class SchedulerThread implements Runnable {
+
     private boolean keepRunning;
     private static Logger logger;
     private JobScheduler scheduler;
     private HarvestableDAO dao;
-    
+
     public SchedulerThread(String serviceBaseURL) {
         logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
         dao = new HarvestablesDAOJPA();
@@ -52,7 +52,10 @@ public class SchedulerThread implements Runnable {
         keepRunning = true;
         while (keepRunning()) {
             try {
-                mainLoop();
+                logger.log(Level.INFO, Thread.currentThread().getName() + ": checking current job list..");
+                scheduler.checkJobs();
+                logger.log(Level.INFO, Thread.currentThread().getName() + ": updating current job list..");
+                scheduler.updateJobs();
                 Thread.sleep(30 * 1000);
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, Thread.currentThread().getName() + ": SchedulerThread was interrrupted. Exiting.");
@@ -66,12 +69,12 @@ public class SchedulerThread implements Runnable {
         logger.log(Level.INFO, Thread.currentThread().getName() + ": SchedulerThread was kindly asked to stop.");
         keepRunning = false;
     }
-    
+
     public Collection<JobInfo> getJobInfo() {
         return scheduler.getJobInfo();
     }
-    
-    public void stopJob (Long jobId) {
+
+    public void stopJob(Long jobId) {
         scheduler.stopJob(jobId);
     }
 
@@ -87,12 +90,6 @@ public class SchedulerThread implements Runnable {
      * Check if status changed in any running threads
      * Check if time to start new threads
      */
-    private void mainLoop() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": updating current job list..");
-        scheduler.updateJobs();
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": checking current job list..");
-        scheduler.checkJobs();
-    } // mainLoop
     
 } // class SchedulerThread
 

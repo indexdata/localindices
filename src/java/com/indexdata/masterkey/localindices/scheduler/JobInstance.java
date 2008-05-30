@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.entity.*;
 import com.indexdata.masterkey.localindices.harvest.oai.*;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
@@ -64,6 +65,14 @@ public class JobInstance {
      */
     public void killThread() {
         harvestJob.kill();
+    }
+    public void purge() {
+        harvestJob.kill();
+        try {
+            harvestJob.getStorage().purge();
+        } catch (IOException ex) {
+            Logger.getLogger(JobInstance.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
