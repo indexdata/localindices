@@ -161,20 +161,20 @@ public class JobScheduler {
      */
     private void reportError(Harvestable hable) {
         logger.log(Level.SEVERE, Thread.currentThread().getName() 
-                + ": JOB#" + hable.getId() + " - HARVEST ERROR - " + hable.getError());
+                + ": JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
         dao.updateHarvestable(hable);
     }
     
     private void reportStatus(Harvestable hable, HarvestStatus status) {
         logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": JOB#" + hable.getId() + " has changed status to " + status);
+                + ": JOB#" + hable.getId() + " status updated to " + status);
         hable.setCurrentStatus(status.name());
         dao.updateHarvestable(hable);
     }
 
     private void persistFinished(JobInstance ji) {
         logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": JOB#" + ji.getHarvestable().getId() + " has finished");
+                + ": JOB#" + ji.getHarvestable().getId() + " has finished. persisted.");
         ji.getHarvestable().setLastHarvestStarted(ji.getLastHarvestStarted());
         dao.updateHarvestable(ji.getHarvestable());
     }
