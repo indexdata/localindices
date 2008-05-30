@@ -183,8 +183,6 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
                 Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-            System.out.println(em.getFlushMode());
-            //em.flush();
             //em.close();
         }
         return hables;
