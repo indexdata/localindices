@@ -125,6 +125,7 @@ public class OAIHarvestJob implements HarvestJob {
             
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
+            resource.setError(e.getMessage());
             logger.log(Level.SEVERE, Thread.currentThread().getName(), e);
         }
         // if there was an error do not move the time marker
