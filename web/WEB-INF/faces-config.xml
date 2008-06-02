@@ -12,6 +12,30 @@
         <managed-bean-scope>session</managed-bean-scope>
     </managed-bean>
     <navigation-rule>
+        <navigation-case>
+            <from-outcome>failure</from-outcome>
+            <to-view-id>/error.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>list_resources</from-outcome>
+            <to-view-id>/list_resources.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>resource_added</from-outcome>
+            <to-view-id>/list_resources.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>resource_saved</from-outcome>
+            <to-view-id>/list_resources.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
         <from-view-id>/list_resources.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_oaipmh</from-outcome>
@@ -36,72 +60,6 @@
         <navigation-case>
             <from-outcome>edit_webcrawl</from-outcome>
             <to-view-id>/edit_webcrawl.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/add_webcrawl.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_added</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/add_xmlbulk.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_added</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/add_oaipmh.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_added</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/edit_oaipmh.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_saved</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/edit_xmlbulk.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_saved</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <from-view-id>/edit_webcrawl.jsp</from-view-id>
-        <navigation-case>
-            <from-outcome>resource_saved</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>failure</from-outcome>
-            <to-view-id>/error.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>

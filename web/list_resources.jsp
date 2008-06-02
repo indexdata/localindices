@@ -16,7 +16,7 @@
     <body>
         <f:view>
             <h:form>
-                <a href="faces/list_resources.jsp">Resource List</a>
+                <h:commandLink value="Resource List" action="list_resources" />
                 <h:outputText value=" | Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
                 <h:outputText value=" | "/>

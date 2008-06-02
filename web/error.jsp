@@ -15,7 +15,7 @@
     </head>
     <body>
         <f:view>
-            <a href="faces/list_resources.jsp">Resource List</a>
+            <h:commandLink value="Resource List" action="list_resources" />
             <h1><h:outputText value="Error has occured." /></h1>
         </f:view>
     </body>

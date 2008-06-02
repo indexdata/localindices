@@ -15,8 +15,8 @@
     </head>
     <body>
         <f:view>
-            <a href="faces/list_resources.jsp">Resource List</a>
             <h:form>
+                <h:commandLink value="Resource List" action="list_resources" />
                 <h3>New OAI-PMH resource: </h3>
                 <%@ include file="fragments/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/oaipmh_forminputs.jsp" %>

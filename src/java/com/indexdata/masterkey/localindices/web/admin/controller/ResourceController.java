@@ -9,8 +9,6 @@ package com.indexdata.masterkey.localindices.web.admin.controller;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestableDAOWS;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
