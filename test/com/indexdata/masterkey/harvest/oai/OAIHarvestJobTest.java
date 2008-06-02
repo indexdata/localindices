@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.harvest.oai;
 
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.oai.ConsoleStorage;
 import com.indexdata.masterkey.localindices.harvest.oai.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.oai.HarvestJob;
@@ -54,11 +55,13 @@ public class OAIHarvestJobTest {
     public void testRun() {
             //HarvestStorage storage = new FileStorage("data.harvest");
             HarvestStorage storage = new ConsoleStorage();
-
+            OaiPmhResource resource = new OaiPmhResource();
+            resource.setUrl(baseURL);
+            resource.setMetadataPrefix(metadataPrefix);
+            resource.setOaiSetName(setSpec);
+            
             HarvestJob oaijob 
-                = new OAIHarvestJob(baseURL,
-                                    from, until,
-                                    metadataPrefix, setSpec); 
+                = new OAIHarvestJob(resource); 
 
             oaijob.setStorage(storage);
             oaijob.run();

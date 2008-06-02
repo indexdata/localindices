@@ -28,15 +28,6 @@ import org.xml.sax.SAXException;
  */
 public class OAIHarvestJob implements HarvestJob {
     private OaiPmhResource resource;
-    /*private String baseURL;
-    private String from;
-    private String until;
-    private String metadataPrefix;
-    private String setSpec;
-    private String resumptionToken;
-    private String error;
-     */
-    //get rid of this field
     private HarvestStatus status;
     private HarvestStorage storage;
     private static Logger logger;
@@ -226,7 +217,7 @@ public class OAIHarvestJob implements HarvestJob {
         if (errors != null && errors.getLength() > 0) {
             status = HarvestStatus.ERROR;
             int length = errors.getLength();
-            String error = null;
+            String error = "";
             for (int i = 0; i < length; ++i) {
                 Node item = errors.item(i);
                 error += item.getTextContent();
