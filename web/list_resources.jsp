@@ -36,6 +36,12 @@
                 <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="first_in_row,number,number,number,action">
                     <h:column>
                         <f:facet name="header">
+                            <h:outputText value="ID: " />
+                        </f:facet> 
+                        <h:outputText value="#{item.id}"></h:outputText>
+                    </h:column>                
+                    <h:column>
+                        <f:facet name="header">
                             <h:outputText value="Name: " />
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
@@ -48,19 +54,25 @@
                     </h:column>                
                     <h:column>
                         <f:facet name="header">
+                            <h:outputText value="Status: " />
+                        </f:facet> 
+                        <h:outputText value="#{item.currentStatus}"></h:outputText>
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">
+                            <h:outputText value="Error msg: " />
+                        </f:facet> 
+                        <h:outputText value="#{item.error}"></h:outputText>
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">
                             <h:outputText value="Last harvested at: " />
                         </f:facet> 
                         <h:outputText value="#{item.lastHarvestStarted}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status info: " />
-                        </f:facet> 
-                        <h:outputText value="#{item.currentStatus}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Last edited: " />
+                            <h:outputText value="Last edited at: " />
                         </f:facet> 
                         <h:outputText value="#{item.lastUpdated}"></h:outputText>
                     </h:column>
