@@ -1,0 +1,56 @@
+TODO list
+
+Harvester:
+
+* - DONE - Harvest until yesterday and start a new harvest day after 
+  (right now it's the same day)
+
+* When comparing the harvest date, check against the one from the admin.
+  That is the only one we can trust!
+
+* Always use short date formats (YYYY-MM-DD) in oai requests
+
+* How to handle duplicates (is there a need to handle them?) 
+    - if record gets updated do we need to find and remove the old one? 
+    - Do the records have unique IDs?  
+
+* Indexing to zebra 
+    - through files on the filesystem 
+    - or SRU extended update
+    - or some other way
+
+* Zebra configuration
+    - Zebra start/stop (who controls Zebra?)
+    - Database name
+       - from users or (more likely) generated from the oai url+setname
+       - Needs to be known to the admin part, so it can search it
+    - Zebra port number etc?
+
+* Harvester configuration 
+    - Where to keep the config, how to edit it (at install time). (web.xml?)
+    - Settings 
+       - Our own base URL.
+       - Location of the admin WS
+       - How often to check harvest job status
+       - How often to poll the admin WS (if at all)
+       - How often to check the jobs to be started (hard-code to 1 minute!)
+
+* Harvester reporting itself to teh admin
+    - After installing, the harvester should tell the admin that
+       - it is available
+       - its address
+       - its Z-address for searching (or is this by job)
+       
+* Error handling in the harvester, passing errors up to the admin
+    - Hard errors that terminate the job
+    - Soft errors that result in skipping some records
+    - Temporary errors that make the harvester wait and retry in a while
+    - Reporting progress to the admin
+    - Reporting number of soft errors to the admin
+      (especially relevant if all (or most) of the records end as soft errors)
+
+* Cleaning up when the job gets killed/removed
+
+* Stop polling
+    - Listen for notifies from the admin 
+

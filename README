@@ -1,0 +1,44 @@
+--- GIT
+
+To get the master project:
+  git clone ssh://git.indexdata.com/home/git/private/masterkey2
+(but you already did that, since you are reading this ;-)
+
+Next you must fetch all the submodules. 
+  ./fetchmodules.sh
+
+Or do it manually:
+  git submodule init
+  git submodule update
+  for each submodule:
+    cd submodule
+    git checkout master
+
+It is very important to switch to master BEFORE editing anything! Otherwise, you will work on an unknown branch and will have to merge changes back.
+
+After editing a submodule in the submodule directory:
+  git commit -a
+  git push
+  cd ..
+  git commit -a   # do NOT make a git add!
+  git push
+
+
+After editing main project
+  git commit -a  
+  git push
+
+
+--- COMPILING
+
+Right now it only works with netbeans. In netbeans go to File > Project Group... > New Group.. and select _Folder of projects_ then browse to the directory you've checked out masterkey2. All the projects should be loaded and you'll see if you have any import conflicts or such. If you have an javaee.jar import problem locate the file in the Glassfish/lib directory.
+
+--- RUNNING
+
+Make sure you have mysql installed, and configured and running. Then create an empty database (using mysql console):
+
+    create database localidxadm;
+    grant all privileges on localidxadm.* to 'localidxadm'@'localhost' 
+                identified by 'localidxadmpass';
+
+Select localindices-harvester as the main project and press F6 (this step is required because only this project have a DataSource definition required in glassfish and has to be loaded first). It should be also possible to deploy admin now. For admin configuration look in the web.xml.
