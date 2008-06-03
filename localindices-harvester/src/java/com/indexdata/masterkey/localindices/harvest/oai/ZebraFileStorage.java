@@ -2,7 +2,21 @@
  * Copyright (c) 1995-2008, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
- * 
+ */
+
+package com.indexdata.masterkey.localindices.harvest.oai;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
  * This class stores the harvested resources onto the file system and indexes them with Zebra
  * 
  * Directory structure
@@ -16,24 +30,6 @@
  * The jobs are harvested into the incoming directory, and when committed, are moved
  * to the committed directory.
  * 
- */
-package com.indexdata.masterkey.localindices.harvest.oai;
-
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Formatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-/**
- *
  * @author Heikki
  */
 public class ZebraFileStorage implements HarvestStorage {
@@ -69,10 +65,12 @@ public class ZebraFileStorage implements HarvestStorage {
                 "c='" + committedDir + "'");
     }
 
-    /** Check if the incoming directory exists, and if not, create it.
+    /** 
+     * Check if the incoming directory exists, and if not, create it.
      * Actually, delete the old one if it exists, and create a new one.
      * That way, we roll back what ever old cruft we may have had in the
      * incoming directory
+     * 
      * @throws java.io.IOException
      */
     private void checkIncomingDir() throws IOException {
@@ -100,7 +98,8 @@ public class ZebraFileStorage implements HarvestStorage {
     } // check JobDir
 
 
-    /** Open a new putput file in the incoming directory
+    /** 
+     * Open a new putput file in the incoming directory
      * Checks that the directory exists, creates if necessary
      * 
      * @throws java.io.IOException
@@ -114,7 +113,8 @@ public class ZebraFileStorage implements HarvestStorage {
     }
 
 
-    /** Closes and commits the output file 
+    /** 
+     * Closes and commits the output file 
      * Makes sure the committed directory exists
      * Moves the harvested file into the committed dir
      * Removes the direcotry from incoming
@@ -144,9 +144,10 @@ public class ZebraFileStorage implements HarvestStorage {
                 fc.getPath() + "'");
     } // commit
 
-    /** Recursively deletes the given directory
+    /** 
+     * Recursively deletes the given directory
      * 
-     * @param f - the directory (or file) to be deleted
+     * @param f the directory (or file) to be deleted
      * @throws java.io.IOException
      */
     private void deleteDir(File f) throws IOException {
@@ -181,7 +182,8 @@ public class ZebraFileStorage implements HarvestStorage {
     }
 
 
-    /** Close the output and remove the current file     
+    /** 
+     * Close the output and remove the current file     
      * 
      * @throws java.io.IOException
      */
