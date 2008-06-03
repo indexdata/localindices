@@ -9,7 +9,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 
 /**
- *
+ * Returns an instance of a HarvestStorage object.
  * @author jakub
  */
 public class HarvestStorageFactory {
@@ -17,6 +17,6 @@ public class HarvestStorageFactory {
         
     }
     public static HarvestStorage getSotrage(Harvestable harvestable) {
-        return null;
+        return new ZebraFileStorage("/tmp/harvested", harvestable);
     }
 }

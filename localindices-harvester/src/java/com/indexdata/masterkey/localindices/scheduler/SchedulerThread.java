@@ -3,48 +3,27 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
+
 package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * The SchedulerThread does the actual scheduling of harvester threads
- * Simple pseudocode:
- *    * Get a list of active jobs from the WS, and update the joblist
- *    * For each job in joblist
- *       * If time to run it (and not already running), start it
- *       * If running, poll for status, and pass on to the WS
- *    * Sleep a while
- *  
- * Missing:
- *    - use the HarvestableRef everywhere!
- *    - Some sort of logging
- *    - Poll the job list from Jakub's WS
- *    - Make use of Marc's harvesting classes
- *    - Create background threads
- *    - Get cron lines from the Harvestables
- *    - Compare current time to cron line
+ * The scheduler thread runs the actuall JobScheduler. It controls 
+ * the sleep timeout and waits for kill signals. The instantiated object is
+ * placed in the appplication context and can be retrieved across the application.
  * 
- * @author heikki
+ * @author jakub
  */
 public class SchedulerThread implements Runnable {
-
     private boolean keepRunning;
-    private static Logger logger;
     private JobScheduler scheduler;
-    private HarvestableDAO dao;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
-    public SchedulerThread(String serviceBaseURL) {
-        logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
-        dao = new HarvestablesDAOJPA();
-        //dao = new HarvestableDAOWS(serviceBaseURL, logger);
-        //dao = new HarvestableDAOFake();
-        scheduler = new JobScheduler(dao, new ConsoleStorage(), logger);
+    public SchedulerThread() {
+        scheduler = new JobScheduler();
     }
 
     public void run() {
@@ -85,16 +64,6 @@ public class SchedulerThread implements Runnable {
 
     private synchronized boolean keepRunning() {
         return keepRunning;
-    }
-
-    /**
-     * The "main" loop:
-     * If time to poll the WS
-     *   Get a new job list from the WS
-     *   Update the current joblist
-     * Check if status changed in any running threads
-     * Check if time to start new threads
-     */
-    
-} // class SchedulerThread
+    }   
+}
 

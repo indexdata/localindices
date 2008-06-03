@@ -7,7 +7,7 @@
 package com.indexdata.masterkey.localindices.scheduler.exception;
 
 /**
- *
+ * Thrown if a specified string is a malformed Cron line.
  * @author jakub
  */
 public class CronLineParseException extends IllegalArgumentException {

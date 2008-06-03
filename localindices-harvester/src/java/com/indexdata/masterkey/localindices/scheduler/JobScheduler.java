@@ -7,16 +7,13 @@
 package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-//import com.indexdata.localindexes.scheduler.dao.HarvestableDAOObsolete;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
-import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ZebraFileStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -24,23 +21,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * JobScheduler schedules the job kept in the memory-based collection,
+ * keeps them in touch with the persistent storage and reacts on status and error
+ * changes.
  * @author jakub
  */
 public class JobScheduler {
     private HarvestableDAO dao;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
-    private static Logger logger;
-    private HarvestStorage storage;
-
-    public JobScheduler(HarvestableDAO dao, HarvestStorage storage, Logger aLogger) {
-        this.dao = dao;
-        this.storage = storage;
-        logger = aLogger;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+    
+    public JobScheduler() {
+        dao = new HarvestablesDAOJPA();
     }
     
     /**
-     * Update the current job list (jobs) based on a polled harvestableRef list (refs)
+     * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
         Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList();
@@ -62,7 +58,7 @@ public class JobScheduler {
                                 + ": JOB#" + ji.getHarvestable().getId() 
                                 + " parameters changed (LU " + href.getLastUpdated()
                                 + "), killing old harvesting thread.");
-                        ji.killThread();
+                        ji.stop();
                         ji = null; // signal to create a new one
                         // should we remove it from the list?
                     }
@@ -71,9 +67,7 @@ public class JobScheduler {
                 if (ji == null) {
                     Harvestable harv = dao.retrieveFromRef(href);
                     try {
-                        //ji = new JobInstance(harv, new FileStorage(harv));
-                        ji = new JobInstance(harv, 
-                                new ZebraFileStorage("/tmp/harvested",harv,logger));
+                        ji = new JobInstance(harv, HarvestStorageFactory.getSotrage(harv));
                         jobs.put(id, ji);
                         logger.log(Level.INFO, Thread.currentThread().getName()
                                 + ": JOB#" + ji.getHarvestable().getId()
@@ -93,16 +87,16 @@ public class JobScheduler {
                     logger.log(Level.INFO, Thread.currentThread().getName()
                             + ": JOB#" + ji.getHarvestable().getId() 
                             + " no longer in the DB. Deleting from list.");
-                    //ji.killThread();
-                    ji.purge();
+                    //ji.stop();
+                    ji.destroy();
                     it.remove();
                 }
             }
         }
-    } // updateJobs
+    }
     
     /**
-     * Start, kill, report status of the running jobs.
+     * Start, report status and error of the scheduled jobs.
      */
     public void checkJobs() {
         for (JobInstance ji : jobs.values()) {
@@ -119,7 +113,7 @@ public class JobScheduler {
                 case NEW:     // ask if time to run
                 case WAITING:
                     // should check harvested until?
-                    if (ji.timeToRun()) ji.startThread();
+                    if (ji.timeToRun()) ji.start();
                     break;
                 case RUNNING: //do nothing (update progress bar?)
                     break;
@@ -131,6 +125,10 @@ public class JobScheduler {
         }
     }
     
+    /**
+     * Return a collection of status and config information on the scheduled jobs.
+     * @return collection of JobInfo objects
+     */
     public Collection<JobInfo> getJobInfo() {
         Collection<JobInfo> jInfoList = new ArrayList<JobInfo>();
         for (JobInstance ji : jobs.values()) {
@@ -144,21 +142,24 @@ public class JobScheduler {
         return jInfoList;
     }
     
+    /**
+     * Brutally stop all jobs.
+     */
     public void stopAllJobs() {
         for (JobInstance ji : jobs.values()) {
-            ji.killThread();
+            ji.stop();
         }
     }
     
+    /**
+     * Stop the job with given id.
+     * @param jobId
+     */
     public void stopJob(Long jobId) {
         JobInstance ji = jobs.get(jobId);
-        ji.killThread();
+        ji.stop();
     }
     
-    /**
-     * Reports job status back to the Web Service
-     * @param ji running job instance
-     */
     private void reportError(Harvestable hable) {
         logger.log(Level.SEVERE, Thread.currentThread().getName() 
                 + ": JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());

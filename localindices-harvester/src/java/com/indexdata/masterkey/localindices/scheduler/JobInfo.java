@@ -10,7 +10,8 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 
 /**
- *
+ * Encapsulates some of the important status and config information of the
+ * scheduled job. Used by the status servlet.
  * @author jakub
  */
 public class JobInfo {

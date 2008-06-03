@@ -33,26 +33,17 @@ import java.util.logging.Logger;
  * @author Heikki
  */
 public class ZebraFileStorage implements HarvestStorage {
-
     private String basePath;   // where the data is to be stored
-
     private String incomingDir;  // dir (under basePath) for this job
-
     private String committedDir; // dir for committed harvests
-
     private String namePrefix; // file name prefix (in jobDir)
-
     private String currentFileName; // the file name, no path
-
     private String outFileName;// Actual complete file we are writing in
     private OutputStream fos;  // the "file handle"
 
-    private static Logger logger;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
-    public ZebraFileStorage(String storageDir,
-            Harvestable harvestable,
-            Logger alogger) {
-        logger = alogger;
+    public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         basePath = storageDir;
         incomingDir = basePath + "/incoming" + "/job" + harvestable.getId();
         committedDir = basePath + "/committed" + "/job" + harvestable.getId();

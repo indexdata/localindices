@@ -16,9 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * a JobInstance is one instance of a harvesting job.
- * It owns the actual harvesting thread, and has some status info,
- * as well as the parameters required to create the harvesting object.
+ * A JobInstance is one instance of a harvesting job managed by the scheduler.
+ * It owns the actual harvesting thread, harvesting object. It also knows when
+ * start the harvesting thread and is aware of staus and error changes.
  * 
  * @author heikki
  */
@@ -32,8 +32,7 @@ public class JobInstance {
     private String lastHarvestError;
     private HarvestStatus lastHarvestStatus;
     private Date lastHarvestStarted;
-
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindexes.scheduler");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     
     public boolean seen; // for checking what has been deleted
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
@@ -65,25 +64,9 @@ public class JobInstance {
     }
 
     /**
-     * Tell the harvesting thread to stop, the harvesting thread 
-     * may or may not clean-up the harvested data.
-     */
-    public void killThread() {
-        harvestJob.kill();
-    }
-    public void purge() {
-        harvestJob.kill();
-        try {
-            harvestJob.getStorage().purge();
-        } catch (IOException ex) {
-            Logger.getLogger(JobInstance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
      * Start the harvesting thread for this job.
      */
-    public void startThread() {
+    public void start() {
         if (harvestingThread == null || !harvestingThread.isAlive()) {
             harvestingThread = new Thread(harvestJob);
             harvestingThread.start();
@@ -91,6 +74,30 @@ public class JobInstance {
         }
     }
     
+    /**
+     * Tell the harvesting thread to stop, the harvesting thread should rollback
+     * the data harvested so far.
+     */
+    public void stop() {
+        harvestJob.kill();
+    }
+    
+    /**
+     * Completely remove the harvesting job: 
+     * tell the thread to stop and destroy the data.
+     */
+    public void destroy() {
+        harvestJob.kill();
+        try {
+            harvestJob.getStorage().purge();
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Inform the job that the harvested data was picked up and it may go to sleep.
+     */
     public void setStatusToWaiting() {
         harvestJob.finishReceived();
     }
@@ -123,13 +130,17 @@ public class JobInstance {
     }
     
     /**
-     * Return last harvesting job error.
-     * @return harvesting job error
+     * Return the last harvesting error.
+     * @return harvesting error
      */
     public String getError() {
         return lastHarvestError;
     }
     
+    /**
+     * Check if the harvest status has changed since the last check.
+     * @return
+     */
     public boolean statusChanged() {
         boolean changed;
         if (lastHarvestStatus == null) {
@@ -140,14 +151,19 @@ public class JobInstance {
         lastHarvestStatus = harvestJob.getStatus();
         return changed; 
     }
+    
     /**
-     * Returns harvesting job status.
-     * @return harvesting job status
+     * Return last harvesting status.
+     * @return harvesting status
      */
     public HarvestStatus getStatus() {
         return harvestJob.getStatus();
     }
-
+    
+    /**
+     * Check when was the job started.
+     * @return harvest start date
+     */
     public Date getLastHarvestStarted() {
         return lastHarvestStarted;
     }

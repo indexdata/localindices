@@ -12,14 +12,10 @@ import java.util.Formatter;
 import com.indexdata.masterkey.localindices.scheduler.exception.CronLineParseException;
 
 /**
- * a CronLine is an internal representation of the time specification
+ * A CronLine is an internal representation of the time specification
  * as used by cron. It consists of 5 fields: min, hr, mday, month, wday.
  * Each of these is a simple numerical String (but that can be changed later,
  * if we ever want to implement advanced features like 14,45 or 2/5).
- * 
- * A cronline knows how to match itself against another cron line - normally 
- * containing a fully specified version of the current time. There is also
- * a method for getting such a string from the system time.
  * 
  * @author heikki
  */
@@ -51,7 +47,12 @@ public class CronLine {
         }
     } // Cronline constructor
 
-
+    /**
+     * Matches this cron line againts the parameter and returns true if the param
+     * is more general (contains wildcards) or equal.
+     * @param pattern pattern to match against
+     * @return true/false
+     */
     public boolean matches(CronLine pattern) {
         boolean m = true;
         for (int i = 0; i < fields.length; i++) {
@@ -64,6 +65,10 @@ public class CronLine {
         return m;
     }
 
+    /**
+     * Return a cron line that corresponds to current date and time.
+     * @return and instance of CronLine
+     */
     public static CronLine currentCronLine() {
         Calendar g = new GregorianCalendar(); // defaults to now()
 
@@ -93,8 +98,8 @@ public class CronLine {
     }
 
     /**
-     * Checks granularity of the cron line.
-     * @return granularity in minutes
+     * Checks the shortest period of the cron line.
+     * @return period in minutes
      */
     public int shortestPeriod() {
         int period = 0;

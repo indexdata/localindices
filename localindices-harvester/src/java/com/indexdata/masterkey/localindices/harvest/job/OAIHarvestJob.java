@@ -34,7 +34,7 @@ public class OAIHarvestJob implements HarvestJob {
     private OaiPmhResource resource;
     private HarvestStatus status;
     private HarvestStorage storage;
-    private static Logger logger;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private boolean die = false;
     private final static String DATE_FORMAT = "yyyy-MM-dd";
 
@@ -50,7 +50,6 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public OAIHarvestJob(OaiPmhResource resource) {
-        logger = Logger.getLogger(this.getClass().getCanonicalName());        
         if (resource.getUrl() == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }

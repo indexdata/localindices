@@ -24,7 +24,10 @@ public class SchedulerStatusServlet extends HttpServlet {
      * Handles the HTTP <code>GET</code> method.
      * @param request servlet request
      * @param response servlet response
+     * @throws ServletException
+     * @throws IOException 
      */
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         SchedulerThread st = (SchedulerThread) getServletContext().getAttribute("schedulerThread");

@@ -25,7 +25,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableCon
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 
 /**
- *
+ * RESTful WS (resource) that maps to the Harvestables collection.
  * @author jakub
  */
 @Path("/harvestables/")
@@ -39,7 +39,7 @@ public class HarvestablesResource {
     }
 
     /**
-     * Constructor used for instantiating an instance of dynamic resource.
+     * Constructor used for instantiating an instance of the Harvestables resource.
      *
      * @param context HttpContext inherited from the parent resource
      */
@@ -50,6 +50,8 @@ public class HarvestablesResource {
     /**
      * Get method for retrieving a collection of Harvestable instance in XML format.
      *
+     * @param start optional start item argument
+     * @param max optional max results argument
      * @return an instance of HarvestablesConverter
      */
     @GET
@@ -68,7 +70,7 @@ public class HarvestablesResource {
      * Post method for creating an instance of Harvestable using XML as the input format.
      *
      * @param data an HarvestableConverter entity that is deserialized from an XML stream
-     * @return an instance of HarvestableConverter
+     * @return Http 201 response code.
      */
     @POST
     @ConsumeMime({"application/xml", "application/json"})
@@ -79,10 +81,10 @@ public class HarvestablesResource {
     }
 
     /**
-     * Returns a dynamic instance of HarvestableResource used for entity navigation.
+     * Entry point to the Harvestable WS.
      *
      * @param id resource id
-     * @return an instance of HarvestableResource
+     * @return an instance of HarvestableResource (WS)
      */
     @Path("{id}/")
     public HarvestableResource getHarvestableResource(            

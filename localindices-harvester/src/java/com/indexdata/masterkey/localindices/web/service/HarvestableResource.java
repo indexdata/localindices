@@ -18,7 +18,7 @@ import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 
 /**
- *
+ * REST Web service (reource) that maps to a Harvestable entity.
  * @author jakub
  */
 public class HarvestableResource {
@@ -31,8 +31,9 @@ public class HarvestableResource {
     }
 
     /**
-     * Constructor used for instantiating an instance of dynamic resource.
+     * Constructor used for instantiating an instance of the entity refernced by id.
      *
+     * @param id identifier for refernced the entity
      * @param context HttpContext inherited from the parent resource
      */
     public HarvestableResource(Long id, UriInfo context) {
@@ -41,9 +42,8 @@ public class HarvestableResource {
     }
 
     /**
-     * Get method for retrieving an instance of Harvestable in XML format, identified by id.
+     * Get method for retrieving an instance of refernced Harvestable in XML format.
      *
-     * @param id identifier for the entity
      * @return an instance of HarvestableConverter
      */
     @GET
@@ -53,10 +53,9 @@ public class HarvestableResource {
     }
 
     /**
-     * Put method for updating an instance of Harvestable identified by id, using XML as the input format.
+     * Put method for updating an instance of refernced Harvestable, using XML as the input format.
      *
-     * @param id identifier for the entity
-     * @param data an HarvestableConverter entity that is deserialized from a XML stream
+     * @param data an HarvestableConverter entity that is deserialized from an XML stream
      */
     @PUT
     @ConsumeMime({"application/xml", "application/json"})
@@ -65,9 +64,8 @@ public class HarvestableResource {
     }
 
     /**
-     * Delete method for deleting an instance of Harvestable identified by id.
+     * Delete method for deleting an instance of referenced Harvestable.
      *
-     * @param id identifier for the entity
      */
     @DELETE
     public void delete() {
