@@ -10,27 +10,28 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Simple console storage for harvested records
+ * Simple console storage that prints out the harvested data.
  * @author jakub
  */
 public class ConsoleStorage implements HarvestStorage {
 
-    public OutputStream getOutputStream() {
-        return System.out;
-    }
-
     public void begin() throws IOException {
-        throw new UnsupportedOperationException("This stream does not need to opened.");
+        System.out.println("--- Storage write begun ---");
     }
 
     public void commit() throws IOException {
-        throw new UnsupportedOperationException("This stream does not need to be closed.");
+        System.out.println("--- Storage write commited ---");
     }
-    public void purge() throws IOException {
-        System.out.println("Storage.Removeall: Please discard the previous output");
-    }
-
+    
     public void rollback() throws IOException {
-        System.out.println("Storage.Removeall: Please discard the previous output");
+        System.out.println("--- Storage write rolled back, last write discarded ---");    
+    }
+        
+    public void purge() throws IOException {
+        System.out.println("--- Storage write purged, all previous write discarded ---");    
+    }
+    
+    public OutputStream getOutputStream() {
+        return System.out;
     }
 }

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- *
+ * Simple, single file storage.
  * @author jakub
  */
 public class FileStorage implements HarvestStorage {
@@ -35,23 +35,22 @@ public class FileStorage implements HarvestStorage {
     public void commit() throws IOException {
         fos.close();
     }
+    
+    public void rollback() throws IOException {
+        fos.close();
+        File f = new File(outFileName);
+        f.delete();
+    }
 
+    public void purge() throws IOException {
+        this.rollback();
+    }
+    
     public OutputStream getOutputStream() {
         return fos;
     }
     
     public String getOutFileName() {
         return outFileName;
-    }
-
-    public void purge() throws IOException {
-        this.rollback();
-    }
-
-    
-    public void rollback() throws IOException {
-        fos.close();
-        File f = new File(outFileName);
-        f.delete();
     }
 }

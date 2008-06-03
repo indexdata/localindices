@@ -6,48 +6,41 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-
-/**
-   Copyright 2008 Index Data ApS
-   http://www.indexdata.com
-   Licensed under the GNU Public License, Version 2.0.
-*/
-
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Harvest storage API.
+ * @author jakub
+ */
 public interface HarvestStorage {
     
     /** 
-     * Open the storage
+     * Opens the storage and prepares output stream for writes.
      * @throws java.io.IOException
      */
     public void begin() throws IOException;
     
     /**
-     * Commits the current harvest
-     * Closes storage, etc
+     * Commits the current harvest and closes output stream.
      * @throws java.io.IOException
      */
     public void commit() throws IOException;
     
     /**
-     * Rolls back the current harvest, but keeps the older ones
-     * Closes the storage, etc
+     * Rolls back the current write and closes the output stream.
      * @throws java.io.IOException
-     */
-            
+     */      
     public void rollback() throws IOException;
     
     /**
-     * Purges all stuff we have for this storage
-     * Deletes files, directories, etc. Tells zebra to forget it, or what ever
+     * Purges all data written so far (drops the whole storage).
      * @throws java.io.IOException
      */
     public void purge() throws IOException;
     
     /** 
-     * 
+     * Returns an output stream that allows for writing data to the storage.
      * @return the output stream for writing to it
      */
     public OutputStream getOutputStream();    

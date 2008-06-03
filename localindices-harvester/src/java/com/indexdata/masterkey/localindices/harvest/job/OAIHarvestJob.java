@@ -159,30 +159,6 @@ public class OAIHarvestJob implements HarvestJob {
         }
     }
 
-    private void harvest(String baseURL, String resumptionToken,
-            OutputStream out)
-            throws IOException, ParserConfigurationException, SAXException, TransformerException,
-            NoSuchFieldException {
-        ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
-        while (listRecords != null && !isKillSendt()) {
-            NodeList errors = listRecords.getErrors();
-            if (checkError(errors)) {
-                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
-                break;
-            }
-            out.write(listRecords.toString().getBytes("UTF-8"));
-            out.write("\n".getBytes("UTF-8"));
-            resumptionToken = listRecords.getResumptionToken();
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": next resumptionToken: " + resumptionToken);
-            if (resumptionToken == null || resumptionToken.length() == 0) {
-                listRecords = null;
-            } else {
-                listRecords = new ListRecords(baseURL, resumptionToken);
-            }
-        }
-        out.write("</harvest>\n".getBytes("UTF-8"));
-    }
-
     private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec,
             OutputStream out)
@@ -212,6 +188,30 @@ public class OAIHarvestJob implements HarvestJob {
                 listRecords = null;
             } else {
                 logger.log(Level.INFO, Thread.currentThread().getName() + ": Records stored, next resumptionToken is " + resumptionToken);
+                listRecords = new ListRecords(baseURL, resumptionToken);
+            }
+        }
+        out.write("</harvest>\n".getBytes("UTF-8"));
+    }
+    
+    private void harvest(String baseURL, String resumptionToken,
+            OutputStream out)
+            throws IOException, ParserConfigurationException, SAXException, TransformerException,
+            NoSuchFieldException {
+        ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
+        while (listRecords != null && !isKillSendt()) {
+            NodeList errors = listRecords.getErrors();
+            if (checkError(errors)) {
+                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                break;
+            }
+            out.write(listRecords.toString().getBytes("UTF-8"));
+            out.write("\n".getBytes("UTF-8"));
+            resumptionToken = listRecords.getResumptionToken();
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": next resumptionToken: " + resumptionToken);
+            if (resumptionToken == null || resumptionToken.length() == 0) {
+                listRecords = null;
+            } else {
                 listRecords = new ListRecords(baseURL, resumptionToken);
             }
         }
