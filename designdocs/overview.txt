@@ -1,0 +1,64 @@
+A quick overview of the OAI harvesting thing
+
+We have four main components
+   - Web interface for the user to control things
+   - Web service access for the same control information
+   - Scheduler for running multiple harvesters
+   - Harvester class for harvesting one resource
+Each of these talks with the one above and below it, but not to the ones
+further away
+
+Jakub is responsible for the web interface and the web service.
+Heikki is responsible for the scheduler
+Marc is responsible for the harvester class
+
+
+Jakub's ws
+
+It has a database, since it works with rather persistent jobs. Being a web
+service, all its actions are transient by nature, they don't linger for too
+long. It also offers what ever database services Heikki's scheduler needs, 
+so it does not need a database of its own (and we don't get two databases out
+of sync).
+
+To begin with, Heikki's process scheduler will poll the ws every minute (or
+ten) for a list of jobs. In the next version, we can simplify the poll to a
+single bit, telling if anything has changed, and a full poll is warranted, 
+and/or make some sort of listener that the ws can tickle to trigger a poll.
+
+
+
+Marc's harvester
+
+This is a class that can handle one harvesting job. It should be able to store
+its state somewhere, and when created, to see if there exists state it can
+resume from.
+
+The parameters for the harvester will include a way to store the results. Most
+likely an object that does the storing in what ever way.
+
+The harverster class has a 'run' method that does the actual harvesting. That can
+be called from a command-line test program (which Marc will write for his own
+testing purposes), or from Heikki's process scheduler. That one will do all
+the harvesting it can, and exit when it is done. It stores its results in the
+object, which has methods for querying those. (Those methods need to be aware
+that they will be called from other threads, and take the necessary precautions).
+
+
+
+Heikki's process scheduler
+
+This is a process that runs continuously.   It keeps a list of jobs in its
+memory, updating it by polling Jakub's ws, and creates a number of working
+threads which all invoke Marc's harvester. It lives inside the application 
+server (tomcat, glassfish, what have we).
+
+The scheduler does not keep any persistent data, what it needs of persistence,
+it asks the ws to handle. That way we don't risk getting out of sync, and keep
+the things simpler.
+
+Likewise, teh scheduler has no idea about harvesting as such, it uses Marc's 
+harvester class for that (and later, other kinds of harvesters too).
+
+
+
