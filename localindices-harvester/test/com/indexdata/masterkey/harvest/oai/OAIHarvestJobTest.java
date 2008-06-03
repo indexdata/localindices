@@ -7,10 +7,10 @@
 package com.indexdata.masterkey.harvest.oai;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.harvest.oai.ConsoleStorage;
-import com.indexdata.masterkey.localindices.harvest.oai.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.oai.HarvestJob;
-import com.indexdata.masterkey.localindices.harvest.oai.OAIHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

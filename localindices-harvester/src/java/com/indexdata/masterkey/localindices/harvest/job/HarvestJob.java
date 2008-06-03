@@ -4,7 +4,9 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.harvest.oai;
+package com.indexdata.masterkey.localindices.harvest.job;
+
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
 
 /**

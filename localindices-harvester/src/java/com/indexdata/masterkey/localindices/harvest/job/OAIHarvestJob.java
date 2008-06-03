@@ -4,8 +4,9 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.harvest.oai;
+package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import ORG.oclc.oai.harvester2.verb.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,14 +17,17 @@ import org.w3c.dom.NodeList;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
 
 /**
- * This class was rewritten and now follows OCLC's RawWrite.java
+ * This class is an implementation of the OAI-PMH protocol and may be used
+ * by the scheduler through the HarvestJob interface. This class updates some of
+ * the Harvestable's properties excluding the STATUS, the status has to be handled
+ * on the higher level.
+ * 
  * @author jakub
  */
 public class OAIHarvestJob implements HarvestJob {

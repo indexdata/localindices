@@ -6,8 +6,9 @@
 
 package com.indexdata.masterkey.localindices.scheduler;
 
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.entity.*;
-import com.indexdata.masterkey.localindices.harvest.oai.*;
+import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;

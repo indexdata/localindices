@@ -7,7 +7,7 @@
 package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.oai.HarvestStatus;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 
 /**
  *

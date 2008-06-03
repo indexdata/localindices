@@ -7,7 +7,7 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
-import com.indexdata.masterkey.localindices.harvest.oai.ConsoleStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
