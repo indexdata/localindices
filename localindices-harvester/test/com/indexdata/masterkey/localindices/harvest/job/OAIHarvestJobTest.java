@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.harvest.oai;
+package com.indexdata.masterkey.localindices.harvest.job;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
