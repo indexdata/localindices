@@ -16,7 +16,7 @@ public class HarvestStorageFactory {
     public HarvestStorageFactory() {
         
     }
-    public static HarvestStorage getSotrage(Harvestable harvestable) {
-        return new ZebraFileStorage("/tmp/harvested", harvestable);
+    public static HarvestStorage getSotrage(String storageDir, Harvestable harvestable) {
+        return new ZebraFileStorage(storageDir, harvestable);
     }
 }

@@ -6,6 +6,12 @@
 
 package com.indexdata.masterkey.localindices.scheduler;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
@@ -28,11 +34,15 @@ public class SchedulerUpDownListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "SchedulerUpDownListener: harvester context is initialized...");
         ServletContext servletContext = servletContextEvent.getServletContext();
-        st = new SchedulerThread();
+        
+        copyRequiredResources(servletContext);
+        
+        st = new SchedulerThread(getInitParamsAsMap(servletContext));
         th = new Thread(st);
         th.start();
         servletContext.setAttribute("schedulerThread", st);
-        logger.log(Level.INFO, "SchedulerUpDownListener: scheduling thread created, started and placed in the context.");
+        
+        logger.log(Level.INFO, "SchedulerUpDownListener: scheduling thread created, started and placed in the context.");        
     }
 
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
@@ -43,6 +53,37 @@ public class SchedulerUpDownListener implements ServletContextListener {
             th.interrupt();
         }
         logger.log(Level.INFO, "SchedulerUpDownListener: application context destroyed.");
-    } 
+    }
+
+    private void copyRequiredResources(ServletContext servletContext) {
+        String source = "/WEB-INF/zebra.cfg";
+        String dest = servletContext.getInitParameter("HARVEST_DIR") + "/zebra.cfg";
+        try {
+            copyResource(servletContext, source, dest);
+        } catch (IOException ioe) {
+            logger.log(Level.WARNING, "Cannot copy required resource " + source + " to " + dest);
+        }
+    }
+    
+    private void copyResource(ServletContext ctx, String relPath, String absPath) throws IOException {
+        InputStream is = ctx.getResourceAsStream(relPath);
+        FileOutputStream os = new FileOutputStream(absPath);
+        byte[] buf = new byte[4096];
+        for (int len = -1; (len = is.read(buf)) != -1;) {
+            os.write(buf, 0, len);
+        }
+        os.flush();
+        os.close();
+    }
+
+    private Map<String, String> getInitParamsAsMap(ServletContext ctx) {
+        Map<String, String> paramMap = new HashMap<String, String>();
+        Enumeration paramNames = ctx.getInitParameterNames();
+        while (paramNames.hasMoreElements()) {
+            String paramName =  (String) paramNames.nextElement();
+            paramMap.put(paramName, ctx.getInitParameter(paramName));
+        }
+        return paramMap;
+    }
 }
 

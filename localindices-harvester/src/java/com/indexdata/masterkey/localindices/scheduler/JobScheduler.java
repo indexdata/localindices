@@ -30,9 +30,11 @@ public class JobScheduler {
     private HarvestableDAO dao;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+    private Map<String, String> config;
     
-    public JobScheduler() {
+    public JobScheduler(Map<String, String> config) {
         dao = new HarvestablesDAOJPA();
+        this.config = config;        
     }
     
     /**
@@ -67,7 +69,7 @@ public class JobScheduler {
                 if (ji == null) {
                     Harvestable harv = dao.retrieveFromRef(href);
                     try {
-                        ji = new JobInstance(harv, HarvestStorageFactory.getSotrage(harv));
+                        ji = new JobInstance(harv, HarvestStorageFactory.getSotrage(config.get("HARVEST_DIR"), harv));
                         jobs.put(id, ji);
                         logger.log(Level.INFO, Thread.currentThread().getName()
                                 + ": JOB#" + ji.getHarvestable().getId()

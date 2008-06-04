@@ -25,11 +25,12 @@ public class ZebraFileStorage extends MultiFileStorage {
     
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private String databaseName;
-    private String config = "/usr/share/idzebra-2.0-examples/oai-pmh/conf/zebra.cfg";
+    private String config;
     
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         super(storageDir, harvestable);
         databaseName = harvestable.getName();
+        config = storageDir + "/zebra.cfg";
         // fix that - probaly a open function required
         try {
             create();

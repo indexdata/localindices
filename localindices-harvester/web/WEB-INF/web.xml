@@ -3,6 +3,10 @@
      <listener>
         <listener-class>com.indexdata.masterkey.localindices.scheduler.SchedulerUpDownListener</listener-class>
     </listener>
+    <context-param>
+        <param-name>HARVEST_DIR</param-name>
+        <param-value>/tmp/harvested</param-value>
+    </context-param>
     <servlet>
         <servlet-name>SchedulerStatusServlet</servlet-name>
         <servlet-class>com.indexdata.masterkey.localindices.scheduler.SchedulerStatusServlet</servlet-class>

@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.scheduler;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,8 +23,8 @@ public class SchedulerThread implements Runnable {
     private JobScheduler scheduler;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
-    public SchedulerThread() {
-        scheduler = new JobScheduler();
+    public SchedulerThread(Map<String, String> config) {
+        scheduler = new JobScheduler(config);
     }
 
     public void run() {
