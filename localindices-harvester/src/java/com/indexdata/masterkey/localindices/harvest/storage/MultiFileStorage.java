@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  * 
  * @author Heikki
  */
-public class ZebraFileStorage implements HarvestStorage {
+public class MultiFileStorage implements HarvestStorage {
     protected String basePath;   // where the data is to be stored
     protected String incomingDir;  // dir (under basePath) for this job
     protected String committedDir; // dir for committed harvests
@@ -45,7 +45,7 @@ public class ZebraFileStorage implements HarvestStorage {
 
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
-    public ZebraFileStorage(String storageDir, Harvestable harvestable) {
+    public MultiFileStorage(String storageDir, Harvestable harvestable) {
         basePath = storageDir;
         incomingDir = basePath + "/incoming" + "/job" + harvestable.getId();
         committedDir = basePath + "/committed" + "/job" + harvestable.getId();
@@ -213,4 +213,4 @@ public class ZebraFileStorage implements HarvestStorage {
         }
         logger.log(Level.INFO, "Zebra indexer has finshed.");
     }
-} // ZebraFileStorage
+} // MultiFileStorage

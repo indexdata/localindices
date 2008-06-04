@@ -16,15 +16,15 @@ import java.io.OutputStream;
  * Simple, single file storage.
  * @author jakub
  */
-public class FileStorage implements HarvestStorage {
+public class SingleFileStorage implements HarvestStorage {
     private String outFileName;
     private OutputStream fos;
     
-    public FileStorage(Harvestable harvestable) {
+    public SingleFileStorage(Harvestable harvestable) {
         this(harvestable.getId() + "-" + harvestable.getName());
     }
     
-    public FileStorage(String outFileName) {
+    public SingleFileStorage(String outFileName) {
         this.outFileName = outFileName;
     }
     
