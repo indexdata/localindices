@@ -21,14 +21,22 @@ import java.util.logging.Logger;
 public class ZebraFileStorage extends MultiFileStorage {
     
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+    private String databaseName;
     
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         super(storageDir, harvestable);
+        databaseName=harvestable.getName();
+        /* TODO: Remove spaces etc */
     }
     
     public void commit() throws IOException {
         super.commit();
         execZebra();
+    }
+    
+    public void purge() throws IOException {
+        super.purge();
+        /* Remove zebras database */
     }
     
     private void execZebra() throws IOException {
