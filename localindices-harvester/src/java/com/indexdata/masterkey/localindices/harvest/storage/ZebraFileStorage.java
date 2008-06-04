@@ -15,7 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * This storage uses the MultiFileStorage harvested files 
+ * and calls zebraidx process on them to do the indexing.
+ * 
  * @author jakub
  */
 public class ZebraFileStorage extends MultiFileStorage {
@@ -25,15 +27,17 @@ public class ZebraFileStorage extends MultiFileStorage {
     
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         super(storageDir, harvestable);
-        databaseName=harvestable.getName();
+        databaseName = harvestable.getName();
         /* TODO: Remove spaces etc */
     }
     
+    @Override
     public void commit() throws IOException {
         super.commit();
         execZebra();
     }
     
+    @Override
     public void purge() throws IOException {
         super.purge();
         /* Remove zebras database */
