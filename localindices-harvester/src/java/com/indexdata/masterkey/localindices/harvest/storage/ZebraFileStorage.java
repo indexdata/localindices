@@ -28,35 +28,55 @@ public class ZebraFileStorage extends MultiFileStorage {
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         super(storageDir, harvestable);
         databaseName = harvestable.getName();
-        /* TODO: Remove spaces etc */
+        // fix that - probaly a open function required
+        try {
+            create();
+        } catch (IOException ioe) {
+            logger.log(Level.INFO, "cannot create db.");
+        }
     }
     
     @Override
     public void commit() throws IOException {
         super.commit();
-        execZebra();
+        update();
     }
     
     @Override
     public void purge() throws IOException {
         super.purge();
-        /* Remove zebras database */
+        drop();
+    }
+
+    private void create() throws IOException {
+        logger.log(Level.INFO, "Zebra: Creating db: " + databaseName + "...");
+        String[] createCmd = {"zebraidx", "create", databaseName};
+        execCmd(createCmd);
+        logger.log(Level.INFO, "Zebra: db created.");    
     }
     
-    private void execZebra() throws IOException {
-        
-        logger.log(Level.INFO, "Zebra indexer started.");
-
-        String[] zebraCmd = {"ls", committedDir};
-        Process zebraProc = Runtime.getRuntime().exec(zebraCmd);
-        
-        InputStream is = zebraProc.getInputStream();
+    private void update() throws IOException {        
+        logger.log(Level.INFO, "Zebra: updating with records from " + committedDir);
+        String[] indexCmd = {"zebraidx", "update", committedDir};
+        execCmd(indexCmd);
+        logger.log(Level.INFO, "Zebra: update complete.");
+    }
+    
+    private void drop() throws IOException {
+        logger.log(Level.INFO, "Zebra: droping the db: " + databaseName);
+        String[] dropCmd = {"zebraidx", "drop", databaseName};
+        execCmd(dropCmd);
+        logger.log(Level.INFO, "Zebra: db dropped.");
+    }
+    
+    private void execCmd(String[] cmd) throws IOException {
+        Process proc = Runtime.getRuntime().exec(cmd);    
+        InputStream is = proc.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader br = new BufferedReader(isr);
         String line;
         while ((line = br.readLine()) != null) {
             logger.log(Level.INFO, line);
         }
-        logger.log(Level.INFO, "Zebra indexer has finshed.");
     }
 }
