@@ -7,9 +7,12 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,12 +36,11 @@ import java.util.logging.Logger;
  * @author Heikki
  */
 public class ZebraFileStorage implements HarvestStorage {
-    private String basePath;   // where the data is to be stored
-    private String incomingDir;  // dir (under basePath) for this job
-    private String committedDir; // dir for committed harvests
+    protected String basePath;   // where the data is to be stored
+    protected String incomingDir;  // dir (under basePath) for this job
+    protected String committedDir; // dir for committed harvests
+    protected String currentFileName; // the file name, no path
     private String namePrefix; // file name prefix (in jobDir)
-    private String currentFileName; // the file name, no path
-    private String outFileName;// Actual complete file we are writing in
     private OutputStream fos;  // the "file handle"
 
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
@@ -48,9 +50,7 @@ public class ZebraFileStorage implements HarvestStorage {
         incomingDir = basePath + "/incoming" + "/job" + harvestable.getId();
         committedDir = basePath + "/committed" + "/job" + harvestable.getId();
         namePrefix = harvestable.getId().toString();
-        outFileName = ""; // not opened yet
 
-        fos = null;
         logger.log(Level.FINER, "ZebraFileStorage: " +
                 "i='" + incomingDir + "' " +
                 "c='" + committedDir + "'");
@@ -99,8 +99,7 @@ public class ZebraFileStorage implements HarvestStorage {
         checkIncomingDir();
         String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
         currentFileName = "/" + namePrefix + "-" + timeStamp;
-        outFileName = incomingDir + "/" + currentFileName;
-        fos = new FileOutputStream(outFileName, true);
+        fos = new FileOutputStream(incomingDir + "/" + currentFileName, true);
     }
 
 
@@ -133,6 +132,8 @@ public class ZebraFileStorage implements HarvestStorage {
         }
         logger.log(Level.FINE, "ZebraFileStorage: Committed '" +
                 fc.getPath() + "'");
+        
+         execZebra();
     } // commit
 
     /** 
@@ -158,7 +159,6 @@ public class ZebraFileStorage implements HarvestStorage {
             throw new IOException("Could not delete '" +
                     f.getPath() + "'");
         }
-
     } // deleteDir
 
     /** Remove all that we have on this job
@@ -180,7 +180,7 @@ public class ZebraFileStorage implements HarvestStorage {
      */
     public void rollback() throws IOException {
         fos.close();
-        File f = new File(outFileName);
+        File f = new File(incomingDir + "/" + currentFileName);
         if (!f.delete()) {
             throw new IOException("Could not delete harvested file '" +
                     f.getPath() + "'");
@@ -197,6 +197,20 @@ public class ZebraFileStorage implements HarvestStorage {
     }
 
     public String getOutFileName() {
-        return outFileName;
+        return incomingDir + "/" + currentFileName;
+    }
+    
+    private void execZebra() throws IOException {
+        String[] zebraCmd = {"ls", committedDir};
+        Process zebraProc = Runtime.getRuntime().exec(zebraCmd);
+        
+        InputStream is = zebraProc.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
+        while ((line = br.readLine()) != null) {
+            logger.log(Level.INFO, line);
+        }
+        logger.log(Level.INFO, "Zebra indexer has finshed.");
     }
 } // ZebraFileStorage
