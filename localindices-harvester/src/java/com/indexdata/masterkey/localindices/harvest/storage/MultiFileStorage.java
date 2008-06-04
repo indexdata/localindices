@@ -7,12 +7,9 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -133,7 +130,6 @@ public class MultiFileStorage implements HarvestStorage {
         logger.log(Level.FINE, "ZebraFileStorage: Committed '" +
                 fc.getPath() + "'");
         
-         execZebra();
     } // commit
 
     /** 
@@ -200,17 +196,4 @@ public class MultiFileStorage implements HarvestStorage {
         return incomingDir + "/" + currentFileName;
     }
     
-    private void execZebra() throws IOException {
-        String[] zebraCmd = {"ls", committedDir};
-        Process zebraProc = Runtime.getRuntime().exec(zebraCmd);
-        
-        InputStream is = zebraProc.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        String line;
-        while ((line = br.readLine()) != null) {
-            logger.log(Level.INFO, line);
-        }
-        logger.log(Level.INFO, "Zebra indexer has finshed.");
-    }
 } // MultiFileStorage
