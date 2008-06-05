@@ -29,13 +29,18 @@ import javax.servlet.ServletContextListener;
 public class SchedulerUpDownListener implements ServletContextListener {
     private Thread th;
     private SchedulerThread st;
+    
+    private Thread zsrvT;
+    private ZebraServer zsrv;
+    
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "SchedulerUpDownListener: harvester context is initialized...");
         ServletContext servletContext = servletContextEvent.getServletContext();
         
-        copyRequiredResources(servletContext);
+        copyZebraConf(servletContext);
+        startZebraSrv(servletContext);
         
         st = new SchedulerThread(getInitParamsAsMap(servletContext));
         th = new Thread(st);
@@ -52,10 +57,14 @@ public class SchedulerUpDownListener implements ServletContextListener {
             logger.log(Level.INFO, "SchedulerUpDownListener: waking the scheduling thread up so it can close down...");
             th.interrupt();
         }
+        if (zsrvT != null) {
+            logger.log(Level.INFO, "SchedulerUpDownListener: shuting down zserv...");
+            zsrvT.interrupt();
+        }
         logger.log(Level.INFO, "SchedulerUpDownListener: application context destroyed.");
     }
 
-    private void copyRequiredResources(ServletContext servletContext) {
+    private void copyZebraConf(ServletContext servletContext) {
         String source = "/WEB-INF/zebra.cfg";
         String dest = servletContext.getInitParameter("HARVEST_DIR") + "/zebra.cfg";
         try {
@@ -84,6 +93,14 @@ public class SchedulerUpDownListener implements ServletContextListener {
             paramMap.put(paramName, ctx.getInitParameter(paramName));
         }
         return paramMap;
+    }
+
+    private void startZebraSrv(ServletContext ctx) {
+        int portNum = Integer.parseInt(ctx.getInitParameter("ZEBRASRV_PORT"));
+        logger.log(Level.INFO, "Starting zebrasrv at port " + portNum);
+        zsrv = new ZebraServer(ctx.getInitParameter("HARVEST_DIR"), portNum);
+        zsrvT = new Thread(zsrv);
+        zsrvT.start();
     }
 }
 

@@ -7,11 +7,8 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import java.io.BufferedReader;
+import com.indexdata.masterkey.localindices.util.*;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,7 +52,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         logger.log(Level.INFO, "Zebra: Creating db: " + databaseName + "...");
         //String[] createCmd = {"zebraidx", "create", databaseName};
         String[] createCmd = {"zebraidx", "-c", config, "init"};
-        execCmd(createCmd);
+        ProcessUtils.exec(createCmd);
         logger.log(Level.INFO, "Zebra: db created.");    
     }
     
@@ -63,12 +60,12 @@ public class ZebraFileStorage extends MultiFileStorage {
         logger.log(Level.INFO, "Zebra: updating with records from " + committedDir);
         String[] indexCmd = {"zebraidx", "-c", config, "-d" , databaseName,
                             "update", committedDir};
-        execCmd(indexCmd);
+        ProcessUtils.exec(indexCmd);
         
         logger.log(Level.INFO, "Zebra: update complete.");
         
         String[] commitCmd = {"zebraidx", "-c", config, "commit"};
-        execCmd(commitCmd);
+        ProcessUtils.exec(commitCmd);
         
         logger.log(Level.INFO, "Zebra: data committed.");
     }
@@ -76,19 +73,8 @@ public class ZebraFileStorage extends MultiFileStorage {
     private void drop() throws IOException {
         logger.log(Level.INFO, "Zebra: droping the db: " + databaseName);
         String[] dropCmd = {"zebraidx", "-c", config, "drop", databaseName};
-        execCmd(dropCmd);
+        ProcessUtils.exec(dropCmd);
         logger.log(Level.INFO, "Zebra: db dropped.");
     }
     
-    private void execCmd(String[] cmd) throws IOException {
-        Process proc = Runtime.getRuntime().exec(cmd);    
-        //InputStream is = proc.getInputStream();
-        InputStream is = proc.getErrorStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        String line;
-        while ((line = br.readLine()) != null) {
-            logger.log(Level.INFO, line);
-        }
-    }
 }

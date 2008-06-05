@@ -7,6 +7,14 @@
         <param-name>HARVEST_DIR</param-name>
         <param-value>/tmp/harvested</param-value>
     </context-param>
+    <context-param>
+        <param-name>STORAGE_TYPE</param-name>
+        <param-value>zebra</param-value>
+    </context-param>
+    <context-param>
+        <param-name>ZEBRASRV_PORT</param-name>
+        <param-value>9999</param-value>
+    </context-param>
     <servlet>
         <servlet-name>SchedulerStatusServlet</servlet-name>
         <servlet-class>com.indexdata.masterkey.localindices.scheduler.SchedulerStatusServlet</servlet-class>
