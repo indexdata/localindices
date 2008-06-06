@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.scheduler;
 
+import com.indexdata.masterkey.localindices.util.TextUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,11 +78,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     private void copyResource(ServletContext ctx, String relPath, String absPath) throws IOException {
         InputStream is = ctx.getResourceAsStream(relPath);
         FileOutputStream os = new FileOutputStream(absPath);
-        byte[] buf = new byte[4096];
-        for (int len = -1; (len = is.read(buf)) != -1;) {
-            os.write(buf, 0, len);
-        }
-        os.flush();
+        TextUtils.copyStreamWithReplace(is, os, "HARVEST_DIR", ctx.getInitParameter("HARVEST_DIR"));
         os.close();
     }
 

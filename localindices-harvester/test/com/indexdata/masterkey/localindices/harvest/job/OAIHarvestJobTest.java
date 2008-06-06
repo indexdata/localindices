@@ -59,23 +59,12 @@ public class OAIHarvestJobTest {
             resource.setUrl(baseURL);
             resource.setMetadataPrefix(metadataPrefix);
             resource.setOaiSetName(setSpec);
-            
+            /*
             HarvestJob oaijob 
                 = new OAIHarvestJob(resource); 
 
             oaijob.setStorage(storage);
             oaijob.run();
+             */
     }
-
-    /**
-     * Test of setStorage method, of class OAIHarvestJob.
-     */
-    @Test
-    public void testSetStorage() {
-        System.out.println("setStorage");
-        HarvestStorage storage = null;
-        OAIHarvestJob instance = null;
-        instance.setStorage(storage);
-    }
-
 }
