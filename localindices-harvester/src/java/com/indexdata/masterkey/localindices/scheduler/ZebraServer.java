@@ -31,11 +31,9 @@ public class ZebraServer implements Runnable {
     public void run() {
         try {
             String[] cmd = {"zebrasrv", "-c", config, "@:" + portNum};
-            ProcessUtils.execAndWait(cmd);
+            ProcessUtils.execAndWait(cmd, logger);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "ZebraServer: failure in zebrasrv process.", ex);
-        } catch (InterruptedException ie) {
-            logger.log(Level.SEVERE, "ZebraServer: terminating...", ie);
         }
     }
 }

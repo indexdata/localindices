@@ -29,11 +29,13 @@ public class ZebraFileStorage extends MultiFileStorage {
         databaseName = harvestable.getName();
         config = storageDir + "/zebra.cfg";
         // fix that - probaly a open function required
+        /*
         try {
             create();
         } catch (IOException ioe) {
             logger.log(Level.INFO, "cannot create db.");
         }
+        */
     }
     
     @Override
@@ -52,7 +54,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         logger.log(Level.INFO, "Zebra: Creating db: " + databaseName + "...");
         //String[] createCmd = {"zebraidx", "create", databaseName};
         String[] createCmd = {"zebraidx", "-c", config, "init"};
-        ProcessUtils.exec(createCmd);
+        ProcessUtils.logError(ProcessUtils.execAndReturn(createCmd), logger);
         logger.log(Level.INFO, "Zebra: db created.");    
     }
     
@@ -60,12 +62,12 @@ public class ZebraFileStorage extends MultiFileStorage {
         logger.log(Level.INFO, "Zebra: updating with records from " + committedDir);
         String[] indexCmd = {"zebraidx", "-c", config, "-d" , databaseName,
                             "update", committedDir};
-        ProcessUtils.exec(indexCmd);
+        ProcessUtils.logError(ProcessUtils.execAndReturn(indexCmd), logger);
         
         logger.log(Level.INFO, "Zebra: update complete.");
         
         String[] commitCmd = {"zebraidx", "-c", config, "commit"};
-        ProcessUtils.exec(commitCmd);
+        ProcessUtils.logError(ProcessUtils.execAndReturn(commitCmd), logger);
         
         logger.log(Level.INFO, "Zebra: data committed.");
     }
@@ -73,7 +75,7 @@ public class ZebraFileStorage extends MultiFileStorage {
     private void drop() throws IOException {
         logger.log(Level.INFO, "Zebra: droping the db: " + databaseName);
         String[] dropCmd = {"zebraidx", "-c", config, "drop", databaseName};
-        ProcessUtils.exec(dropCmd);
+        ProcessUtils.logError(ProcessUtils.execAndReturn(dropCmd), logger);
         logger.log(Level.INFO, "Zebra: db dropped.");
     }
     
