@@ -62,12 +62,12 @@ public class ZebraFileStorage extends MultiFileStorage {
         logger.log(Level.INFO, "Zebra: updating with records from " + committedDir);
         String[] indexCmd = {"zebraidx", "-c", config, "-d" , databaseName,
                             "update", committedDir};
-        ProcessUtils.logError(ProcessUtils.execAndReturn(indexCmd), logger);
+        ProcessUtils.execAndWait(indexCmd, logger);
         
         logger.log(Level.INFO, "Zebra: update complete.");
         
         String[] commitCmd = {"zebraidx", "-c", config, "commit"};
-        ProcessUtils.logError(ProcessUtils.execAndReturn(commitCmd), logger);
+        ProcessUtils.execAndWait(commitCmd, logger);
         
         logger.log(Level.INFO, "Zebra: data committed.");
     }
@@ -75,10 +75,10 @@ public class ZebraFileStorage extends MultiFileStorage {
     private void drop() throws IOException {
         logger.log(Level.INFO, "Zebra: dropping the db: " + databaseName);
         String[] dropCmd = {"zebraidx", "-c", config, "drop", databaseName};
-        ProcessUtils.logError(ProcessUtils.execAndReturn(dropCmd), logger);
+        ProcessUtils.execAndWait(dropCmd, logger);
         logger.log(Level.INFO, "Zebra: db dropped.");
         String[] commitCmd = {"zebraidx", "-c", config, "commit"};
-        ProcessUtils.logError(ProcessUtils.execAndReturn(commitCmd), logger);        
+        ProcessUtils.execAndWait(commitCmd, logger);        
         logger.log(Level.INFO, "Zebra: data committed.");
     }
     
