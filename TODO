@@ -5,26 +5,21 @@ Harvester:
 * - DONE - Harvest until yesterday and start a new harvest day after 
   (right now it's the same day)
 
-* When comparing the harvest date, check against the one from the admin.
-  That is the only one we can trust!
-
 * Always use short date formats (YYYY-MM-DD) in oai requests
 
 * How to handle duplicates (is there a need to handle them?) 
     - if record gets updated do we need to find and remove the old one? 
     - Do the records have unique IDs?  
 
-* Indexing to zebra 
+* Indexing to zebra. STARTED
     - through files on the filesystem 
-    - or SRU extended update
-    - or some other way
 
 * Zebra configuration
-    - Zebra start/stop (who controls Zebra?)
+    - Zebra start/stop (who controls Zebra?). We do, from inside Java.
     - Database name
        - from users or (more likely) generated from the oai url+setname
        - Needs to be known to the admin part, so it can search it
-    - Zebra port number etc?
+    - Zebra port number etc? Hard coded/config
 
 * Harvester configuration 
     - Where to keep the config, how to edit it (at install time). (web.xml?)
@@ -32,10 +27,8 @@ Harvester:
        - Our own base URL.
        - Location of the admin WS
        - How often to check harvest job status
-       - How often to poll the admin WS (if at all)
-       - How often to check the jobs to be started (hard-code to 1 minute!)
 
-* Harvester reporting itself to teh admin
+* Harvester reporting itself to the admin
     - After installing, the harvester should tell the admin that
        - it is available
        - its address
@@ -51,6 +44,4 @@ Harvester:
 
 * Cleaning up when the job gets killed/removed
 
-* Stop polling
-    - Listen for notifies from the admin 
 

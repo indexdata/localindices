@@ -192,6 +192,7 @@ public class MultiFileStorage implements HarvestStorage {
         return fos;
     }
 
+    /* Probably useless. Remove some day! */
     public String getOutFileName() {
         return incomingDir + "/" + currentFileName;
     }

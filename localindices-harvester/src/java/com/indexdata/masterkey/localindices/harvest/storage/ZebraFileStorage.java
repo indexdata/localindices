@@ -73,10 +73,13 @@ public class ZebraFileStorage extends MultiFileStorage {
     }
     
     private void drop() throws IOException {
-        logger.log(Level.INFO, "Zebra: droping the db: " + databaseName);
+        logger.log(Level.INFO, "Zebra: dropping the db: " + databaseName);
         String[] dropCmd = {"zebraidx", "-c", config, "drop", databaseName};
         ProcessUtils.logError(ProcessUtils.execAndReturn(dropCmd), logger);
         logger.log(Level.INFO, "Zebra: db dropped.");
+        String[] commitCmd = {"zebraidx", "-c", config, "commit"};
+        ProcessUtils.logError(ProcessUtils.execAndReturn(commitCmd), logger);        
+        logger.log(Level.INFO, "Zebra: data committed.");
     }
     
 }
