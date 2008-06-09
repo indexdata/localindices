@@ -26,7 +26,7 @@ public class ZebraFileStorage extends MultiFileStorage {
     
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
         super(storageDir, harvestable);
-        databaseName = harvestable.getName();
+        databaseName = "job" + harvestable.getId();
         config = storageDir + "/zebra.cfg";
         // fix that - probaly a open function required
         /*

@@ -39,7 +39,7 @@ public class SearchablesConverter {
     public SearchablesConverter(Collection<Harvestable> entities, URI uri) {
         this.zurls = new ArrayList<String>();
         for (Harvestable entity : entities) {
-            zurls.add("localhost:9999/" + entity.getName());
+            zurls.add("localhost:9999/job" + entity.getId());
         }
         this.uri = uri;
     }

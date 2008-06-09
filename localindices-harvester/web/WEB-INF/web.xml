@@ -12,6 +12,10 @@
         <param-value>zebra</param-value>
     </context-param>
     <context-param>
+        <param-name>ZEBRASRV_URL</param-name>
+        <param-value>coffee.indexdata.dk</param-value>
+    </context-param>
+    <context-param>
         <param-name>ZEBRASRV_PORT</param-name>
         <param-value>9999</param-value>
     </context-param>
