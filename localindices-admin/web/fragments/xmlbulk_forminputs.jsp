@@ -8,10 +8,10 @@
     <h5>XML bulk specific information:</h5>
     <h:panelGrid columns="2">
         <h:outputText value="URL:"/>
-        <h:inputText value="#{resourceController.resource.url}"/>
+        <h:inputText value="#{resourceController.resource.url}" disabled="#{resourceController.lastOutcome == 'update'}"/>
         <h:outputText value="Expected Schema:"/>
-        <h:inputText value="#{resourceController.resource.expectedSchema}" />
+        <h:inputText value="#{resourceController.resource.expectedSchema}" disabled="#{resourceController.lastOutcome == 'update'}"/>
         <h:outputText value="Normalization Filter:"/>
-        <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
+        <h:inputText value="#{resourceController.resource.normalizationFilter}" disabled="#{resourceController.lastOutcome == 'update'}"/>
     </h:panelGrid>
 </f:subview>

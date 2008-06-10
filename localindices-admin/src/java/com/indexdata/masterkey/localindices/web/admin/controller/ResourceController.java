@@ -36,6 +36,15 @@ public class ResourceController {
     private HarvestableDAO dao;
     private Harvestable resource;
     private DataModel model;
+    private String lastOutcome = "update";
+
+    public String getLastOutcome() {
+        return lastOutcome;
+    }
+
+    public void setLastOutcome(String lastOutcome) {
+        this.lastOutcome = lastOutcome;
+    }
     
     public ResourceController() {
         try {
@@ -250,16 +259,19 @@ public class ResourceController {
     /* add new resource */
     public String prepareOaiPmhResourceToAdd() {
         resource = new OaiPmhResource();
+        lastOutcome = "new";
         return "new_oaipmh";
     }
 
     public String prepareWebCrawlResourceToAdd() {
         resource = new WebCrawlResource();
+        lastOutcome = "new";
         return "new_webcrawl";
     }
 
     public String prepareXmlBulkResourceToAdd() {
         resource = new XmlBulkResource();
+        lastOutcome = "new";
         return "new_xmlbulk";
     }
 
@@ -277,6 +289,7 @@ public class ResourceController {
         resource = getResourceFromRequestParam();
         scheduleStringToInputs(resource.getScheduleString());
         logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
+        lastOutcome = "update";
         if (resource instanceof OaiPmhResource) {
             return "edit_oaipmh";
         } else if (resource instanceof WebCrawlResource) {
@@ -308,7 +321,7 @@ public class ResourceController {
         resource = null;
         return "resource_list";
     }
-        //</editor-fold>
+    //</editor-fold>
 
     /* objects from request */
     public Harvestable getResourceFromRequestParam() {
