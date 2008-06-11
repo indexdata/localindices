@@ -30,6 +30,15 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     private Date fromDate;
     @Temporal(TemporalType.DATE)
     private Date untilDate;
+    private String dateFormat;
+
+    public String getDateFormat() {
+        return dateFormat;
+    }
+
+    public void setDateFormat(String dateFormat) {
+        this.dateFormat = dateFormat;
+    }
 
     public Date getFromDate() {
         return fromDate;

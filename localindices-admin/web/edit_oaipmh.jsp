@@ -21,6 +21,7 @@
                 <%@ include file="fragments/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/oaipmh_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
+                <h:commandButton value="Save and Purge" action="#{resourceController.saveAndPurge}"/>
             </h:form>
         </f:view>
     </body>

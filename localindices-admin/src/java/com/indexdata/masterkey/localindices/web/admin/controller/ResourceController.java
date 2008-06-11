@@ -36,14 +36,16 @@ public class ResourceController {
     private HarvestableDAO dao;
     private Harvestable resource;
     private DataModel model;
-    private String lastOutcome = "update";
+    private Boolean longDate;
+    private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+    private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
 
-    public String getLastOutcome() {
-        return lastOutcome;
+    public Boolean getLongDate() {
+        return longDate;
     }
 
-    public void setLastOutcome(String lastOutcome) {
-        this.lastOutcome = lastOutcome;
+    public void setLongDate(Boolean longDate) {
+        this.longDate = longDate;
     }
     
     public ResourceController() {
@@ -259,25 +261,21 @@ public class ResourceController {
     /* add new resource */
     public String prepareOaiPmhResourceToAdd() {
         resource = new OaiPmhResource();
-        lastOutcome = "new";
         return "new_oaipmh";
     }
 
     public String prepareWebCrawlResourceToAdd() {
         resource = new WebCrawlResource();
-        lastOutcome = "new";
         return "new_webcrawl";
     }
 
     public String prepareXmlBulkResourceToAdd() {
         resource = new XmlBulkResource();
-        lastOutcome = "new";
         return "new_xmlbulk";
     }
 
     public String addResource() {
-        resource.setScheduleString(scheduleInputsToString());
-        resource.setLastUpdated(new Date());
+        prePersist();
         dao.createHarvestable(resource);
         resource = null;
         //return failure
@@ -289,7 +287,6 @@ public class ResourceController {
         resource = getResourceFromRequestParam();
         scheduleStringToInputs(resource.getScheduleString());
         logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
-        lastOutcome = "update";
         if (resource instanceof OaiPmhResource) {
             return "edit_oaipmh";
         } else if (resource instanceof WebCrawlResource) {
@@ -297,14 +294,13 @@ public class ResourceController {
         } else if (resource instanceof XmlBulkResource) {
             return "edit_xmlbulk";
         } else {
-            logger.log(Level.INFO, "Unknonw resource type. No matching form defined.");
+            logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
             return "failure";
         }
     }
 
     public String saveResource() {
-        resource.setScheduleString(scheduleInputsToString());
-        resource.setLastUpdated(new Date());
+        prePersist();
         resource = dao.updateHarvestable(resource);
         resource = null;
         return "resource_saved";
@@ -320,6 +316,35 @@ public class ResourceController {
         dao.deleteHarvestable(resource);
         resource = null;
         return "resource_list";
+    }
+    
+    public String saveAndPurge() {
+        dao.deleteHarvestable(resource);
+        prePersist();
+        resource.setId(null);
+        dao.createHarvestable(resource);
+        resource = null;
+        return "resource_saved";
+    }
+    
+    private void prePersist() {
+        resource.setScheduleString(scheduleInputsToString());
+        if (resource instanceof OaiPmhResource) {
+            if (longDate) 
+                ((OaiPmhResource) resource).setDateFormat(LONG_DATE_FORMAT);
+            else
+                ((OaiPmhResource) resource).setDateFormat(SHORT_DATE_FORMAT);
+        }
+        resource.setLastUpdated(new Date());
+    }
+    private void postDePersist() {
+        scheduleStringToInputs(resource.getScheduleString());
+        if (resource instanceof OaiPmhResource) {
+            if (((OaiPmhResource) resource).getDateFormat().equals(LONG_DATE_FORMAT))
+                    longDate = true;
+            else
+                longDate = false;
+        }
     }
     //</editor-fold>
 

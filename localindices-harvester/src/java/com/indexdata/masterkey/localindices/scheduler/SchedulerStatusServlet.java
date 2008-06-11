@@ -54,6 +54,7 @@ public class SchedulerStatusServlet extends HttpServlet {
                 out.println("<setName>" + oaiHable.getOaiSetName() + "</setName>");
                 out.println("<fromDate>" + oaiHable.getFromDate() + "</fromDate>");
                 out.println("<untilDate>" + oaiHable.getUntilDate() + "</untilDate>");
+                out.println("<dateFormat>" + oaiHable.getDateFormat() + "</dateFormat>");
                 out.println("</typeSpecific>");
             }                
             out.println("</job>");

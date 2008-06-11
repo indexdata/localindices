@@ -36,7 +36,8 @@ public class OAIHarvestJob implements HarvestJob {
     private HarvestStorage storage;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private boolean die = false;
-    private final static String DATE_FORMAT = "yyyy-MM-dd";
+    private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    private String currentDateFormat;
 
     private synchronized boolean isKillSendt() {
         if (die) {
@@ -55,6 +56,11 @@ public class OAIHarvestJob implements HarvestJob {
         }
         if (resource.getMetadataPrefix() == null) {
             resource.setMetadataPrefix("oai_dc");
+        }
+        if (resource.getDateFormat() != null) {
+            currentDateFormat = resource.getDateFormat();
+        } else {
+            currentDateFormat = DEFAULT_DATE_FORMAT;
         }
         this.resource = resource;        
         String persistedStatus = resource.getCurrentStatus();
@@ -241,7 +247,7 @@ public class OAIHarvestJob implements HarvestJob {
     
     private String formatDate(Date date) {
         if (date == null) return null;
-        return new SimpleDateFormat(DATE_FORMAT).format(date);
+        return new SimpleDateFormat(currentDateFormat).format(date);
     }
 
 

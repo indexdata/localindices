@@ -24,7 +24,7 @@ import javax.transaction.UserTransaction;
  * Java Persistence API implementation of the DAO
  * @author jakub
  */
-//@PersistenceContext(name = "persistence/localindexes", unitName = "localindexes")
+//@PersistenceContext(name = "persistence/localindicesPU", unitName = "localindicesPU")
 public class HarvestablesDAOJPA implements HarvestableDAO {
     
     /* *Persistence stuff*
@@ -54,7 +54,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
      */
 
     // JTA bean-managed transactions (emf/utx injected)
-//    @PersistenceUnit(unitName = "localindexes")
+//    @PersistenceUnit(unitName = "localindicesPU")
 //    private EntityManagerFactory emf;
 //
 //    private EntityManager getEntityManager() {
@@ -71,7 +71,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     private EntityManager getEntityManager() {
         EntityManager em = null;
         try {
-            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindexes");
+            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindicesPU");
         } catch (NamingException e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, e);
         }

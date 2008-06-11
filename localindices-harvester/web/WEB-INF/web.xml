@@ -41,7 +41,7 @@
     </welcome-file-list>
     <persistence-context-ref>
         <description>Persistence context for the web services</description>
-        <persistence-context-ref-name>persistence/localindexes</persistence-context-ref-name>
-        <persistence-unit-name>localindexes</persistence-unit-name>
+        <persistence-context-ref-name>persistence/localindicesPU</persistence-context-ref-name>
+        <persistence-unit-name>localindicesPU</persistence-unit-name>
     </persistence-context-ref>
 </web-app>
