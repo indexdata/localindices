@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class HarvestableDAOWS implements HarvestableDAO {
 
     private String serviceBaseURL;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindexes");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.dao");
 
     public HarvestableDAOWS(String serviceBaseURL) {
         this.serviceBaseURL = serviceBaseURL;

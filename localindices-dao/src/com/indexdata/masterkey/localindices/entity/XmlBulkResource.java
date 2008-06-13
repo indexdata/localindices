@@ -44,13 +44,6 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
-    
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
 
     @Override
     public boolean equals(Object object) {
@@ -63,11 +56,6 @@ public class XmlBulkResource extends Harvestable implements Serializable {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.indexdata.localindexes.web.entity.XmlBulkResource[id=" + id + "]";
     }
 
 }

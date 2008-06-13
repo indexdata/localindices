@@ -32,7 +32,7 @@ import javax.servlet.ServletContext;
  * @author jakub
  */
 public class ResourceController {
-    private static Logger logger = Logger.getLogger("com.indexdata.localindexes");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.web.admin");
     private HarvestableDAO dao;
     private Harvestable resource;
     private DataModel model;

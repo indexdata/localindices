@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  */
 public class HarvestableDAOFake implements HarvestableDAO {
     private Map<Long, Harvestable> harvestables;
-    private static Logger logger = Logger.getLogger("com.indexdata.localindexes.scheduler.dao.bean");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.dao");
     
     public HarvestableDAOFake() {
         harvestables = new HashMap<Long, Harvestable>();
