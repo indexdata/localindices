@@ -7,74 +7,47 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.torus.Layer;
+import com.indexdata.torus.Record;
+import com.indexdata.torus.Records;
 import java.net.URI;
 import java.util.Collection;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlAttribute;
 import java.util.ArrayList;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**
- *
+ * Converter to TORUS records of type searchable.
  * @author jakub
  */
-
-@XmlRootElement(name = "searchables")
-public class SearchablesConverter {
-    private Collection<String> zurls;
-    private URI uri;
-    
-    /** Creates a new instance of HarvestablesConverter */
+@XmlRootElement(name="records")
+public class SearchablesConverter extends Records {
+    /**
+     * Meant to be used only by JAXB.
+     */
     public SearchablesConverter() {
     }
 
     /**
-     * Creates a new instance of HarvestablesConverter.
+     * Creates a new instance of SearchablesConverter.
      *
      * @param entities associated entities
      * @param uri associated uri
      */
     public SearchablesConverter(Collection<Harvestable> entities, URI uri) {
-        this.zurls = new ArrayList<String>();
-        for (Harvestable entity : entities) {
-            zurls.add("localhost:9999/job" + entity.getId());
+        Collection<Record> records = new ArrayList<Record>();
+        for (Harvestable entity : entities) {            
+            Record record = new Record("searchable");
+            Collection<Layer> layers = new ArrayList<Layer>();
+            SearchableTypeLayer layer = new SearchableTypeLayer();
+            layer.seLayertName("final");
+            layer.setName(entity.getName());
+            layer.setZurl("ocalhost:9999/job" + entity.getId());
+            layers.add(layer);
+            record.setLayers(layers);
+            records.add(record);
         }
-        this.uri = uri;
+        super.setRecords(records);
+        super.setUri(uri);
     }
-
-    /**
-     * Returns a collection of HarvestableRefConverter.
-     *
-     * @return a collection of HarvestableRefConverter
-     */
-    @XmlElement(name = "zurl")
-    public Collection<String> getZurls() {
-        return zurls;
-    }
-
-    /**
-     * Sets a collection of HarvestableRefConverter.
-     *
-     * @param references a collection of HarvestableRefConverter to set
-     */
-    public void setZurls(Collection<String> zurls) {
-        this.zurls = zurls;
-    }
-
-    /**
-     * Returns the URI associated with this converter.
-     *
-     * @return the uri
-     */
-    @XmlAttribute(name = "uri")
-    public URI getResourceUri() {
-        return uri;
-    }
-
-    public void setResourceUri(URI uri) {
-        this.uri = uri;
-    }
-    
 }
