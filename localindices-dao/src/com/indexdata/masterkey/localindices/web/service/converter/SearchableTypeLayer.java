@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SearchableTypeLayer extends Layer {
     private String name;
     private String zurl;
-    
+   
     public String getName() {
         return name;
     }

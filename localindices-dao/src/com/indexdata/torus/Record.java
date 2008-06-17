@@ -30,27 +30,27 @@ public class Record {
     }
     
     @XmlAttribute
-    public String getType() {
+    final public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    final public void setType(String type) {
         this.type = type;
     }
     @XmlAttribute
-    public URI getUri() {
+    final public URI getUri() {
         return uri;
     }
 
-    public void setUri(URI uri) {
+    final public void setUri(URI uri) {
         this.uri = uri;
     }
     @XmlElement(name="layer")
-    public Collection<Layer> getLayers() {
+    final public Collection<Layer> getLayers() {
         return layers;
     }
 
-    public void setLayers(Collection<Layer> layers) {
+    final public void setLayers(Collection<Layer> layers) {
         this.layers = layers;
     }
 }

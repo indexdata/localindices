@@ -20,20 +20,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Records {
     private Collection<Record> records;
     private URI uri;
+    
     @XmlElement(name="record")
-    public Collection<Record> getRecords() {
+    final public Collection<Record> getRecords() {
         return records;
     }
 
-    public void setRecords(Collection<Record> records) {
+    final public void setRecords(Collection<Record> records) {
         this.records = records;
     }
+    
     @XmlAttribute
-    public URI getUri() {
+    final public URI getUri() {
         return uri;
     }
 
-    public void setUri(URI uri) {
+    final public void setUri(URI uri) {
         this.uri = uri;
     }
     
