@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SearchableTypeLayer extends Layer {
     private String name;
     private String zurl;
+    private String transformStlylesheet;
    
     public String getName() {
         return name;
@@ -32,5 +33,13 @@ public class SearchableTypeLayer extends Layer {
 
     public void setZurl(String zurl) {
         this.zurl = zurl;
-    }        
+    }
+
+    public String getTransformStlylesheet() {
+        return transformStlylesheet;
+    }
+
+    public void setTransformStlylesheet(String transformStlylesheet) {
+        this.transformStlylesheet = transformStlylesheet;
+    }
 }
