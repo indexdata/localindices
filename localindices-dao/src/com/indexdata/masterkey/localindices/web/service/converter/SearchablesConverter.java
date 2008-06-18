@@ -12,6 +12,7 @@ import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.ArrayList;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -34,15 +35,15 @@ public class SearchablesConverter extends Records {
      * @param entities associated entities
      * @param uri associated uri
      */
-    public SearchablesConverter(Collection<Harvestable> entities, URI uri) {
+    public SearchablesConverter(Collection<Harvestable> entities, URI uri, String zurlBase) {
         Collection<Record> records = new ArrayList<Record>();
         for (Harvestable entity : entities) {            
             Record record = new Record("searchable");
-            Collection<Layer> layers = new ArrayList<Layer>();
+            List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
             layer.seLayertName("final");
             layer.setName(entity.getName());
-            layer.setZurl("ocalhost:9999/job" + entity.getId());
+            layer.setZurl(zurlBase + "/job" + entity.getId());
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);

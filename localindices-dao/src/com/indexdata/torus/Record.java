@@ -7,7 +7,7 @@
 package com.indexdata.torus;
 
 import java.net.URI;
-import java.util.Collection;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Record {
     private String type;
     private URI uri;
-    private Collection<Layer> layers;
+    private List<Layer> layers;
 
     public Record() {
     }
@@ -46,11 +46,11 @@ public class Record {
         this.uri = uri;
     }
     @XmlElement(name="layer")
-    final public Collection<Layer> getLayers() {
+    final public List<Layer> getLayers() {
         return layers;
     }
 
-    final public void setLayers(Collection<Layer> layers) {
+    final public void setLayers(List<Layer> layers) {
         this.layers = layers;
     }
 }

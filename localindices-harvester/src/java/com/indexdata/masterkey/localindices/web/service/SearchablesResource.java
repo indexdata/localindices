@@ -24,6 +24,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
+import javax.servlet.ServletContext;
 
 /**
  * RESTful WS (resource) that maps to the Searchables collection.
@@ -34,6 +35,8 @@ public class SearchablesResource {
     private HarvestableDAO dao = new HarvestablesDAOJPA();
     @Context
     private UriInfo context;
+    @Context
+    ServletContext servletContext;
 
     /** Creates a new instance of HarvestablesResource */
     public SearchablesResource() {
@@ -64,6 +67,10 @@ public class SearchablesResource {
             
             @QueryParam("max")
             @DefaultValue("10") int max) {
-        return new SearchablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath());
+        String zurlBase = servletContext.getInitParameter("ZEBRASRV_URL");
+        String zurlPort = servletContext.getInitParameter("ZEBRASRV_PORT");
+        return new SearchablesConverter(dao.retrieveHarvestables(start, max), 
+                context.getAbsolutePath(),
+                zurlBase + ":" + zurlPort);
     }
 }

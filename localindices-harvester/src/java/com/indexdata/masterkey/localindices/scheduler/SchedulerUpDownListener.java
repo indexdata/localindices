@@ -24,7 +24,7 @@ import javax.servlet.ServletContextListener;
  * and kills it when the server is going down. Places the schedulerThread 
  * in application context.
  * 
- * @author heikki
+ * @author jakub
  */
 public class SchedulerUpDownListener implements ServletContextListener {
 
@@ -77,7 +77,6 @@ public class SchedulerUpDownListener implements ServletContextListener {
             logger.log(Level.WARNING, "Cannot copy required resource " + source + " to " + dest);
         }
     }
-
 
     private void copyDomXmlConf(ServletContext ctx) {
         String source = "/WEB-INF/dom-conf.xml";
