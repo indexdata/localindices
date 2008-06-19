@@ -16,6 +16,11 @@
   <retrieve name="oai">
   </retrieve>
   
+  <retrieve name="index">
+    <xslt stylesheet="conf/oai2index.xsl"/>
+  </retrieve>
+
+  
   <retrieve name="dc">
     <xslt stylesheet="conf/oai2dc.xsl"/>
   </retrieve>

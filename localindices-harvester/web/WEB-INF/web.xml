@@ -5,7 +5,7 @@
     </listener>
     <context-param>
         <param-name>HARVEST_DIR</param-name>
-        <param-value>/tmp/harvested</param-value>
+        <param-value>/var/cache/harvested</param-value>
     </context-param>
     <context-param>
         <param-name>STORAGE_TYPE</param-name>
