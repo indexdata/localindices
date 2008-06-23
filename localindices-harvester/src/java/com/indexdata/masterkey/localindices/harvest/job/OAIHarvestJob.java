@@ -62,13 +62,13 @@ public class OAIHarvestJob implements HarvestJob {
         } else {
             currentDateFormat = DEFAULT_DATE_FORMAT;
         }
-        this.resource = resource;        
+        this.resource = resource;     
         String persistedStatus = resource.getCurrentStatus();
-        if (persistedStatus == null
-             || persistedStatus.equals("RUNNING"))
+        if (persistedStatus == null)
             this.status = HarvestStatus.NEW;
         else
-            this.status = HarvestStatus.valueOf(persistedStatus);       
+            this.status = HarvestStatus.WAITING;
+        this.resource.setError(null);
     }
 
     public void kill() {
