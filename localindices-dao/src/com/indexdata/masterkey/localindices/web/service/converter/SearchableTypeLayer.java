@@ -18,6 +18,15 @@ public class SearchableTypeLayer extends Layer {
     private String name;
     private String zurl;
     private String transformStlylesheet;
+    private String elementSet;
+
+    public void setElementSet(String elementSet) {
+        this.elementSet = elementSet;
+    }
+
+    public String getElementSet() {
+        return elementSet;
+    }
    
     public String getName() {
         return name;
