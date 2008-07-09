@@ -7,7 +7,7 @@
 
   <input syntax="xml">
     <xmlreader level="3"/>
-    <xslt stylesheet="dcaddmeta.xsl"/>
+    <!--<xslt stylesheet="dcaddmeta.xsl"/>-->
   </input>
 
   <extract name="index">
