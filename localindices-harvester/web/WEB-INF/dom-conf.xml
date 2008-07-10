@@ -7,6 +7,7 @@
 
   <input syntax="xml">
     <xmlreader level="3"/>
+    <!--<xslt stylesheet="dcaddmeta.xsl"/>-->
   </input>
 
   <extract name="index">
@@ -19,10 +20,18 @@
   <retrieve name="index">
     <xslt stylesheet="conf/oai2index.xsl"/>
   </retrieve>
-
   
   <retrieve name="dc">
     <xslt stylesheet="conf/oai2dc.xsl"/>
+  </retrieve>
+  
+  <retrieve name="snippet">
+    <process-meta/>
+  </retrieve>
+  
+  <retrieve name="dcsnippet">
+    <xslt stylesheet="dcaddmeta.xsl"/>
+    <process-meta/>
   </retrieve>
  
   <retrieve name="zebra">

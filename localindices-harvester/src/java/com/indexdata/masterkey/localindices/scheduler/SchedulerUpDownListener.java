@@ -40,6 +40,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
         copyZebraConf(servletContext);
         copyDomXmlConf(servletContext);
+        copyXsltStylesheets(servletContext);
         startZebraSrv(servletContext);
 
         st = new SchedulerThread(getInitParamsAsMap(servletContext));
@@ -62,6 +63,20 @@ public class SchedulerUpDownListener implements ServletContextListener {
             zsrvT.interrupt();
         }
         logger.log(Level.INFO, "SchedulerUpDownListener: application context destroyed.");
+    }
+
+    private void copyXsltStylesheets(ServletContext ctx) {
+        String source = "/WEB-INF/dcaddmeta.xsl";
+        String dest = ctx.getInitParameter("HARVEST_DIR") + "/dcaddmeta.xsl";
+        try {
+            InputStream is = ctx.getResourceAsStream(source);
+            FileOutputStream os = new FileOutputStream(dest);
+            TextUtils.copyStream(is,os);
+            os.close();
+            is.close();
+        } catch (IOException ioe) {
+            logger.log(Level.WARNING, "Cannot copy required resource " + source + " to " + dest);
+        }    
     }
 
     private void copyZebraConf(ServletContext ctx) {
