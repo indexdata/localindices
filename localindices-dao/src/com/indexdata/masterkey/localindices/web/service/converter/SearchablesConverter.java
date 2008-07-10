@@ -44,7 +44,7 @@ public class SearchablesConverter extends Records {
             layer.seLayertName("final");
             layer.setName(entity.getName());
             layer.setZurl(zurlBase + "/job" + entity.getId());
-            layer.setTransform("oai_dc.xsl");
+            layer.setTransform("dc_snippet.xsl");
             layer.setElementSet("dcsnippet");
             layers.add(layer);
             record.setLayers(layers);
