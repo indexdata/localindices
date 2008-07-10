@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import com.indexdata.torus.Layer;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -17,8 +18,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SearchableTypeLayer extends Layer {
     private String name;
     private String zurl;
-    private String transformStlylesheet;
-   
+    private String transform;
+
+    public String getTransform() {
+        return transform;
+    }
+
+    public void setTransform(String transform) {
+        this.transform = transform;
+    }
+    
+    @XmlElement(name="displayName")
     public String getName() {
         return name;
     }
@@ -35,11 +45,4 @@ public class SearchableTypeLayer extends Layer {
         this.zurl = zurl;
     }
 
-    public String getTransformStlylesheet() {
-        return transformStlylesheet;
-    }
-
-    public void setTransformStlylesheet(String transformStlylesheet) {
-        this.transformStlylesheet = transformStlylesheet;
-    }
 }
