@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dom>
+ <extract name="index">
+   <xslt stylesheet="MARC21slim2INDEX.xsl"/>
+ </extract>
+ <retrieve name="F"><!-- full MARCXML -->
+   <xslt stylesheet="identity.xsl" />
+ </retrieve>
+ <retrieve name="dc">
+  <xslt stylesheet="MARC21slim2SRWDC.xsl"/>
+ </retrieve>
+ <retrieve name="index">
+   <xslt stylesheet="MARC21slim2INDEX.xsl"/>
+ </retrieve>
+ <input syntax="xml">
+   <marc inputcharset="marc-8"/>
+ </input>
+</dom>

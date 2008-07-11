@@ -23,11 +23,17 @@ public class ZebraFileStorage extends MultiFileStorage {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private String databaseName;
     private String config;
+    private String domConf;
     
     public ZebraFileStorage(String storageDir, Harvestable harvestable) {
+        this(storageDir, harvestable, "dom-conf.xml");
+    }
+    
+    public ZebraFileStorage(String storageDir, Harvestable harvestable, String domConf) {
         super(storageDir, harvestable);
         databaseName = "job" + harvestable.getId();
         config = storageDir + "/zebra.cfg";
+        this.domConf = storageDir + "/" + domConf;
         // fix that - probaly a open function required
         /*
         try {
@@ -53,20 +59,20 @@ public class ZebraFileStorage extends MultiFileStorage {
     private void create() throws IOException {
         logger.log(Level.INFO, "Zebra: Creating db: " + databaseName + "...");
         //String[] createCmd = {"zebraidx", "create", databaseName};
-        String[] createCmd = {"zebraidx", "-c", config, "init"};
+        String[] createCmd = {"zebraidx", "-c", config, "-t", domConf, "init"};
         ProcessUtils.logError(ProcessUtils.execAndReturn(createCmd), logger);
         logger.log(Level.INFO, "Zebra: db created.");    
     }
     
     private void update() throws IOException {        
         logger.log(Level.INFO, "Zebra: updating with records from " + committedDir);
-        String[] indexCmd = {"zebraidx", "-c", config, "-d" , databaseName,
+        String[] indexCmd = {"zebraidx", "-c", config, "-t", domConf, "-d" , databaseName,
                             "update", committedDir};
         ProcessUtils.execAndWait(indexCmd, logger);
         
         logger.log(Level.INFO, "Zebra: update complete.");
         
-        String[] commitCmd = {"zebraidx", "-c", config, "commit"};
+        String[] commitCmd = {"zebraidx", "-c", config, "-t", domConf, "commit"};
         ProcessUtils.execAndWait(commitCmd, logger);
         
         logger.log(Level.INFO, "Zebra: data committed.");
@@ -74,10 +80,10 @@ public class ZebraFileStorage extends MultiFileStorage {
     
     private void drop() throws IOException {
         logger.log(Level.INFO, "Zebra: dropping the db: " + databaseName);
-        String[] dropCmd = {"zebraidx", "-c", config, "drop", databaseName};
+        String[] dropCmd = {"zebraidx", "-c", config, "-t", domConf, "drop", databaseName};
         ProcessUtils.execAndWait(dropCmd, logger);
         logger.log(Level.INFO, "Zebra: db dropped.");
-        String[] commitCmd = {"zebraidx", "-c", config, "commit"};
+        String[] commitCmd = {"zebraidx", "-c", config, "-t", domConf, "commit"};
         ProcessUtils.execAndWait(commitCmd, logger);        
         logger.log(Level.INFO, "Zebra: data committed.");
     }

@@ -11,18 +11,18 @@
   </input>
 
   <extract name="index">
-    <xslt stylesheet="conf/oai2index.xsl"/>
+    <xslt stylesheet="stylesheets/oai2index.xsl"/>
   </extract>
 
   <retrieve name="oai">
   </retrieve>
   
   <retrieve name="index">
-    <xslt stylesheet="conf/oai2index.xsl"/>
+    <xslt stylesheet="stylesheets/oai2index.xsl"/>
   </retrieve>
   
   <retrieve name="dc">
-    <xslt stylesheet="conf/oai2dc.xsl"/>
+    <xslt stylesheet="stylesheets/oai2dc.xsl"/>
   </retrieve>
   
   <retrieve name="snippet">
@@ -30,12 +30,12 @@
   </retrieve>
   
   <retrieve name="dcsnippet">
-    <xslt stylesheet="dcaddmeta.xsl"/>
+    <xslt stylesheet="stylesheets/dcaddmeta.xsl"/>
     <process-meta/>
   </retrieve>
  
   <retrieve name="zebra">
-    <xslt stylesheet="conf/oai2zebra.xsl"/>
+    <xslt stylesheet="stylesheets/oai2zebra.xsl"/>
   </retrieve>
  
  </dom>
