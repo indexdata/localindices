@@ -29,12 +29,13 @@ public class BullkHarvestJob implements HarvestJob {
     
     public BullkHarvestJob(XmlBulkResource resource) {
         this.resource = resource;
-        
+        this.status = HarvestStatus.NEW;
     }
     
     public void kill() {
         try {
             storage.purge();
+            status = HarvestStatus.KILLED;
         } catch (IOException ioe) {
             logger.log(Level.SEVERE, "", ioe);
         }
@@ -62,11 +63,14 @@ public class BullkHarvestJob implements HarvestJob {
 
     public void run() {
         try {
+            status = HarvestStatus.RUNNING;
             URL url = new URL(resource.getUrl());
             download(url);
         } catch (Exception e) {
+            status = HarvestStatus.ERROR;
             logger.log(Level.SEVERE, "Exception during bulk download", e);
         }
+        status = HarvestStatus.FINISHED;
     }
     
     private void download (URL url) throws Exception {
