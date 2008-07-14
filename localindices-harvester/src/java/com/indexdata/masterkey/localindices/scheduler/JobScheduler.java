@@ -69,7 +69,7 @@ public class JobScheduler {
                 if (ji == null) {
                     Harvestable harv = dao.retrieveFromRef(href);
                     try {
-                        ji = new JobInstance(harv, HarvestStorageFactory.getSotrage(config.get("HARVEST_DIR"), harv));
+                        ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
                         jobs.put(id, ji);
                         logger.log(Level.INFO, Thread.currentThread().getName()
                                 + ": JOB#" + ji.getHarvestable().getId()

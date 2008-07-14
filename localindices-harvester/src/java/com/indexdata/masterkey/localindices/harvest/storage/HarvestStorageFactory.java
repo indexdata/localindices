@@ -17,7 +17,7 @@ public class HarvestStorageFactory {
     public HarvestStorageFactory() {
         
     }
-    public static HarvestStorage getSotrage(String storageDir, Harvestable harvestable) {
+    public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         if (harvestable instanceof OaiPmhResource)
             return new ZebraFileStorage(storageDir, harvestable);
         else
