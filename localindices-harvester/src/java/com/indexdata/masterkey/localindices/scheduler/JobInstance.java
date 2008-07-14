@@ -49,6 +49,9 @@ public class JobInstance {
             }
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
             harvestJob.setStorage(storage);
+        } else if (hable instanceof XmlBulkResource) {
+            harvestJob = new BullkHarvestJob((XmlBulkResource) hable);
+            harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }
