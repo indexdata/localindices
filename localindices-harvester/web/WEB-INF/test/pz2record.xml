@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pz:record xmlns:pz="http://www.indexdata.com/pazpar2/1.0" xmlns:marc="http://www.loc.gov/MARC21/slim" mergekey="title Adapting to Web standards : author  medium electronic resource">
+  <pz:metadata type="id">15173151</pz:metadata>
+  <pz:metadata type="lccn">  2008270541</pz:metadata>
+  <pz:metadata type="isbn">0321501829 (pbk.)</pz:metadata>
+  <pz:metadata type="isbn">9780321501820 (pbk.)</pz:metadata>
+  <pz:metadata type="date">c2008.</pz:metadata>
+  <pz:metadata type="title">Adapting to Web standards :</pz:metadata>
+  <pz:metadata type="title-remainder">CSS and Ajax for big sites /</pz:metadata>
+  <pz:metadata type="title-responsibility">Christopher Schmitt ... [et al.].</pz:metadata>
+  <pz:metadata type="title-dates"/>
+  <pz:metadata type="title-medium"/>
+  <pz:metadata type="title-number-section"/>
+  <pz:metadata type="publication-place">Berkeley, Calif. :</pz:metadata>
+  <pz:metadata type="publication-name">New Riders,</pz:metadata>
+  <pz:metadata type="publication-date">c2008.</pz:metadata>
+  <pz:metadata type="physical-extent">ix, 280 p. :</pz:metadata>
+  <pz:metadata type="physical-format">col. ill.</pz:metadata>
+  <pz:metadata type="physical-dimensions">23 cm.</pz:metadata>
+  <pz:metadata type="physical-accomp"/>
+  <pz:metadata type="physical-unittype"/>
+  <pz:metadata type="physical-unitsize"/>
+  <pz:metadata type="physical-specified"/>
+  <pz:metadata type="series-title">Voices that matter</pz:metadata>
+  <pz:metadata type="description">Includes index.</pz:metadata>
+  <pz:metadata type="subject">Cascading style sheets.</pz:metadata>
+  <pz:metadata type="subject-long">Cascading style sheets.</pz:metadata>
+  <pz:metadata type="subject">Web sites</pz:metadata>
+  <pz:metadata type="subject-long">Web sites, Design, Handbooks, manuals, etc.</pz:metadata>
+  <pz:metadata type="subject">Web site development</pz:metadata>
+  <pz:metadata type="subject-long">Web site development, Handbooks, manuals, etc.</pz:metadata>
+  <pz:metadata type="subject">Ajax (Web site development technology)</pz:metadata>
+  <pz:metadata type="subject-long">Ajax (Web site development technology)</pz:metadata>
+  <pz:metadata type="electronic-url">http://www.loc.gov/catdir/toc/fy0803/2008270541.html</pz:metadata>
+  <pz:metadata type="electronic-text"/>
+  <pz:metadata type="electronic-note"/>
+  <pz:metadata type="medium">electronic resource</pz:metadata>
+</pz:record>

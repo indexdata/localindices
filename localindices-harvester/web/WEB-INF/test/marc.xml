@@ -1,0 +1,92 @@
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>01192cam a22003137a 4500</leader>
+  <controlfield tag="001">15173151</controlfield>
+  <controlfield tag="005">20080421133229.0</controlfield>
+  <controlfield tag="008">080207s2008    caua          001 0 eng d</controlfield>
+  <datafield tag="906" ind1=" " ind2=" ">
+    <subfield code="a">7</subfield>
+    <subfield code="b">cbc</subfield>
+    <subfield code="c">copycat</subfield>
+    <subfield code="d">2</subfield>
+    <subfield code="e">ncip</subfield>
+    <subfield code="f">20</subfield>
+    <subfield code="g">y-gencatlg</subfield>
+  </datafield>
+  <datafield tag="925" ind1="0" ind2=" ">
+    <subfield code="a">acquire</subfield>
+    <subfield code="b">2 shelf copies</subfield>
+    <subfield code="x">policy default</subfield>
+  </datafield>
+  <datafield tag="955" ind1=" " ind2=" ">
+    <subfield code="a">pv03 2008-02-07 z-processor to ASCD</subfield>
+    <subfield code="i">jx13 2008-02-29</subfield>
+    <subfield code="e">jx13 2008-02-29 to Dewey</subfield>
+  </datafield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">  2008270541</subfield>
+  </datafield>
+  <datafield tag="020" ind1=" " ind2=" ">
+    <subfield code="a">0321501829 (pbk.)</subfield>
+  </datafield>
+  <datafield tag="020" ind1=" " ind2=" ">
+    <subfield code="a">9780321501820 (pbk.)</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)ocn190862133</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">GK6</subfield>
+    <subfield code="c">GK6</subfield>
+    <subfield code="d">DLC</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+    <subfield code="a">lccopycat</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2="0">
+    <subfield code="a">TK5105.888</subfield>
+    <subfield code="b">A3235 2008</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="a">Adapting to Web standards :</subfield>
+    <subfield code="b">CSS and Ajax for big sites /</subfield>
+    <subfield code="c">Christopher Schmitt ... [et al.].</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Berkeley, Calif. :</subfield>
+    <subfield code="b">New Riders,</subfield>
+    <subfield code="c">c2008.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">ix, 280 p. :</subfield>
+    <subfield code="b">col. ill.</subfield>
+    <subfield code="c">23 cm.</subfield>
+  </datafield>
+  <datafield tag="440" ind1=" " ind2="0">
+    <subfield code="a">Voices that matter</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Includes index.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Cascading style sheets.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Web sites</subfield>
+    <subfield code="x">Design</subfield>
+    <subfield code="v">Handbooks, manuals, etc.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Web site development</subfield>
+    <subfield code="v">Handbooks, manuals, etc.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Ajax (Web site development technology)</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+    <subfield code="a">Schmitt, Christopher.</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+    <subfield code="3">Table of contents</subfield>
+    <subfield code="u">http://www.loc.gov/catdir/toc/fy0803/2008270541.html</subfield>
+  </datafield>
+</record>
