@@ -65,10 +65,12 @@ public class BullkHarvestJob implements HarvestJob {
         try {
             status = HarvestStatus.RUNNING;
             URL url = new URL(resource.getUrl());
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": Starting download - " + url);
             download(url);
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": Download finished. " + url);
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
-            logger.log(Level.SEVERE, "Exception during bulk download", e);
+            logger.log(Level.SEVERE, Thread.currentThread().getName() + "Download failed.", e);
         }
         status = HarvestStatus.FINISHED;
     }
@@ -88,10 +90,10 @@ public class BullkHarvestJob implements HarvestJob {
                     throw new Exception("Storage write failed. ", ioe);
                 }
             } else {
-                throw new Exception("Download failed. (" + responseCode + ")");
+                throw new Exception("Http connection failed. (" + responseCode + ")");
             }
         } catch (IOException ioe) {
-            throw new Exception("Download failed.", ioe);
+            throw new Exception("Http connection failed.", ioe);
         }
     }
     

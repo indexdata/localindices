@@ -33,15 +33,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         super(storageDir, harvestable);
         databaseName = "job" + harvestable.getId();
         config = storageDir + "/zebra.cfg";
-        this.domConf = storageDir + "/" + domConf;
-        // fix that - probaly a open function required
-        /*
-        try {
-            create();
-        } catch (IOException ioe) {
-            logger.log(Level.INFO, "cannot create db.");
-        }
-        */
+        this.domConf = "dom." + storageDir + "/" + domConf;
     }
     
     @Override
@@ -54,14 +46,6 @@ public class ZebraFileStorage extends MultiFileStorage {
     public void purge() throws IOException {
         super.purge();
         drop();
-    }
-
-    private void create() throws IOException {
-        logger.log(Level.INFO, "Zebra: Creating db: " + databaseName + "...");
-        //String[] createCmd = {"zebraidx", "create", databaseName};
-        String[] createCmd = {"zebraidx", "-c", config, "-t", domConf, "init"};
-        ProcessUtils.logError(ProcessUtils.execAndReturn(createCmd), logger);
-        logger.log(Level.INFO, "Zebra: db created.");    
     }
     
     private void update() throws IOException {        
