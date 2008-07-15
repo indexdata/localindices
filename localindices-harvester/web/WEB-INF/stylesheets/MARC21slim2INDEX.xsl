@@ -76,13 +76,14 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
      </xsl:variable>
 
      <z:record z:id="{$controlField001}" type="update">
-
+      <z:index name="any:w">
 
        <!-- <xsl:attribute name="id"></xsl:attribute> -->
        <!-- <xsl:attribute name="type">update</xsl:attribute> -->
        <!-- <xsl:attribute name="rank"></xsl:attribute> -->
 
-       <xsl:call-template name="bib1_rules"/>
+        <xsl:call-template name="bib1_rules"/>
+       </z:index>
      </z:record>
    </xsl:template>
 

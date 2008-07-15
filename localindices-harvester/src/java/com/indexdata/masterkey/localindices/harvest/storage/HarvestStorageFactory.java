@@ -21,6 +21,6 @@ public class HarvestStorageFactory {
         if (harvestable instanceof OaiPmhResource)
             return new ZebraFileStorage(storageDir, harvestable);
         else
-            return new ZebraFileStorage(storageDir, harvestable, "dom-conf-marc.xml");
+            return new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
     }
 }
