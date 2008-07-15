@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.torus.Layer;
 import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
@@ -44,8 +45,12 @@ public class SearchablesConverter extends Records {
             layer.seLayertName("final");
             layer.setName(entity.getName());
             layer.setZurl(zurlBase + "/job" + entity.getId());
-            layer.setTransform("dc_snippet.xsl");
-            layer.setElementSet("dcsnippet");
+            if (!(entity instanceof XmlBulkResource)) {
+                layer.setTransform("dc_snippet.xsl");
+                layer.setElementSet("dcsnippet");
+            } else {
+                layer.setElementSet("pz2snippet");               
+            }
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);

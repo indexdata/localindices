@@ -1,6 +1,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
-  xmlns:z="http://indexdata.com/zebra-2.0"
+  xmlns:z="http://www.indexdata.com/zebra/"
   exclude-result-prefixes="z"
   version="1.0">
   <xsl:output indent="yes" method="xml" version="1.0" encoding="UTF-8"/>
@@ -12,6 +12,11 @@
       </xsl:copy>
   </xsl:template>
 
+  <xsl:template match="*">
+      <xsl:copy-of select="."/>
+      <xsl:apply-templates/>
+  </xsl:template>
+  
   <xsl:template match="z:record/z:snippet">
         <pz:metadata type="snippet">
           <xsl:apply-templates mode="snippet"/>
@@ -23,9 +28,7 @@
     <xsl:value-of select="."/>
     <xsl:text>@se</xsl:text>
   </xsl:template>
-  
-  <xsl:template match="*">
-      <xsl:copy-of select="."/>
-  </xsl:template>
+    
+  <xsl:template match="text()"/>
   
  </xsl:stylesheet>

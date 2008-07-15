@@ -14,6 +14,7 @@
    <xslt stylesheet="stylesheets/pz2index.xsl"/>
  </retrieve>
  <retrieve name="pz2snippet">
+     <process-meta/>
      <xslt stylesheet="stylesheets/snippet2pz.xsl"/>
  </retrieve>
 </dom>
