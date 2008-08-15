@@ -64,10 +64,7 @@ public class BullkHarvestJob implements HarvestJob {
     public void run() {
         try {
             status = HarvestStatus.RUNNING;
-            URL url = new URL(resource.getUrl());
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": Starting download - " + url);
-            download(url);
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": Download finished. " + url);
+            downloadList(resource.getUrl().split(" "));
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
             logger.log(Level.SEVERE, Thread.currentThread().getName() + "Download failed.", e);
@@ -75,8 +72,16 @@ public class BullkHarvestJob implements HarvestJob {
         status = HarvestStatus.FINISHED;
     }
     
-    private void download (URL url) throws Exception {
+    private void downloadList(String[] urls) throws Exception {
+        for (String url : urls) {
+            download(url);
+        }
+    }
+    
+    private void download(String urlString) throws Exception {
+        logger.log(Level.INFO, Thread.currentThread().getName() + ": Starting download - " + urlString);
         try {
+            URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             int responseCode = conn.getResponseCode();
@@ -92,6 +97,7 @@ public class BullkHarvestJob implements HarvestJob {
             } else {
                 throw new Exception("Http connection failed. (" + responseCode + ")");
             }
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": Download finished. " + urlString);
         } catch (IOException ioe) {
             throw new Exception("Http connection failed.", ioe);
         }

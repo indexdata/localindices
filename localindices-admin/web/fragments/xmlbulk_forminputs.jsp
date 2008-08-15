@@ -7,7 +7,7 @@
 <f:subview id="xmlbulk_form_inputs">
     <h5>XML bulk specific information:</h5>
     <h:panelGrid columns="2">
-        <h:outputText value="URL:"/>
+        <h:outputText value="URLs (space-separated):"/>
         <h:inputText value="#{resourceController.resource.url}"/>
         <h:outputText value="Expected Schema:"/>
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>
