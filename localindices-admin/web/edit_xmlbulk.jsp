@@ -17,7 +17,7 @@
         <f:view>
             <h:form>
                 <h:commandLink value="Resource List" action="list_resources" />
-                <h3>Edit XML bulk resource:</h3>
+                <h3>Edit MARC bulk resource:</h3>
                 <%@ include file="fragments/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/xmlbulk_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
