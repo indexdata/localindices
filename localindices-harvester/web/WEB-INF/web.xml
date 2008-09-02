@@ -13,7 +13,7 @@
     </context-param>
     <context-param>
         <param-name>ZEBRASRV_URL</param-name>
-        <param-value>coffee.indexdata.dk</param-value>
+        <param-value>us4.indexdata.com</param-value>
     </context-param>
     <context-param>
         <param-name>ZEBRASRV_PORT</param-name>
