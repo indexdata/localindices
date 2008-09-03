@@ -26,18 +26,28 @@ public class BullkHarvestJob implements HarvestJob {
     private String error;
     private XmlBulkResource resource;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey");
+    private boolean die = false;
     
     public BullkHarvestJob(XmlBulkResource resource) {
         this.resource = resource;
         this.status = HarvestStatus.NEW;
     }
     
+    private synchronized boolean isKillSendt() {
+        if (die) {
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": MARC harvest thread received kill signal.");
+        }
+        return die;
+    }
+
+    private synchronized void onKillSendt() {
+        die = true;
+    }
+    
     public void kill() {
-        try {
-            storage.purge();
+        if (status != HarvestStatus.FINISHED) {
             status = HarvestStatus.KILLED;
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "", ioe);
+            onKillSendt();
         }
     }
 
@@ -85,10 +95,11 @@ public class BullkHarvestJob implements HarvestJob {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             int responseCode = conn.getResponseCode();
+            int contentLenght = conn.getContentLength();
             if (responseCode == 200) {
                 try {
                     storage.begin();
-                    pipe(conn.getInputStream(), storage.getOutputStream(), 4096);
+                    pipe(conn.getInputStream(), storage.getOutputStream(), contentLenght);
                     storage.commit();
                 } catch (IOException ioe) {         
                     storage.rollback();
@@ -97,17 +108,30 @@ public class BullkHarvestJob implements HarvestJob {
             } else {
                 throw new Exception("Http connection failed. (" + responseCode + ")");
             }
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": Download finished. " + urlString);
+            logger.log(Level.INFO, Thread.currentThread().getName() + ": Finished - " + urlString);
         } catch (IOException ioe) {
             throw new Exception("Http connection failed.", ioe);
         }
     }
     
-    private void pipe(InputStream is, OutputStream os, int streamBuffSize) throws IOException {
-        byte[] buf = new byte[streamBuffSize];
+    private void pipe(InputStream is, OutputStream os, int total) throws IOException {
+        int blockSize = 4096;
+        int copied = 0;
+        int num = 0;
+        int logBlockNum = 256; //how many blocks to log progress
+        byte[] buf = new byte[blockSize];
         for (int len = -1; (len = is.read(buf)) != -1;) {
             os.write(buf, 0, len);
+            if (isKillSendt()) throw new IOException("Download interputed with a kill signal.");
+            // every megabyte
+            copied += len;
+            if (num % logBlockNum == 0)
+                logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                        + " Downloaded " + copied + "/" + total + " bytes (" + ((double)copied/(double)total*100) +"%)");
+            num++;
         }
+        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                        + " Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied/ (double) total*100) +"%)");
         os.flush();
     }
 
