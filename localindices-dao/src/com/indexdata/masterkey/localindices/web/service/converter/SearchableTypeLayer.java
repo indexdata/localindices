@@ -20,6 +20,24 @@ public class SearchableTypeLayer extends Layer {
     private String zurl;
     private String transform;
     private String elementSet;
+    private String requestSyntax;
+    private String recordEncoding;
+
+    public String getRecordEncoding() {
+        return recordEncoding;
+    }
+
+    public void setRecordEncoding(String recordEncoding) {
+        this.recordEncoding = recordEncoding;
+    }
+
+    public String getRequestSyntax() {
+        return requestSyntax;
+    }
+
+    public void setRequestSyntax(String requestSyntax) {
+        this.requestSyntax = requestSyntax;
+    }
 
     public String getTransform() {
         return transform;
