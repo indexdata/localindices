@@ -25,10 +25,6 @@ public class ZebraFileStorage extends MultiFileStorage {
     private String config;
     private String domConf;
     
-    public ZebraFileStorage(String storageDir, Harvestable harvestable) {
-        this(storageDir, harvestable, "dom-conf.xml");
-    }
-    
     public ZebraFileStorage(String storageDir, Harvestable harvestable, String domConf) {
         super(storageDir, harvestable);
         databaseName = "job" + harvestable.getId();

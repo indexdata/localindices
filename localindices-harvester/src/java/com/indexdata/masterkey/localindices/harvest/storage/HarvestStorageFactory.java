@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 /**
  * Returns an instance of a HarvestStorage object.
@@ -19,8 +20,10 @@ public class HarvestStorageFactory {
     }
     public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         if (harvestable instanceof OaiPmhResource)
-            return new ZebraFileStorage(storageDir, harvestable);
-        else
+            return new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
+        else if (harvestable instanceof XmlBulkResource)
             return new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
+        else
+            return null;
     }
 }
