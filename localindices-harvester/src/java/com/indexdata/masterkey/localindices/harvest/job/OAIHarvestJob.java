@@ -54,8 +54,11 @@ public class OAIHarvestJob implements HarvestJob {
         if (resource.getUrl() == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
-        if (resource.getMetadataPrefix() == null) {
+        if (resource.getMetadataPrefix().isEmpty() || resource.getMetadataPrefix() == null) {
             resource.setMetadataPrefix("oai_dc");
+        }
+        if (resource.getOaiSetName().isEmpty()) {
+            resource.setOaiSetName(null);
         }
         if (resource.getDateFormat() != null) {
             currentDateFormat = resource.getDateFormat();

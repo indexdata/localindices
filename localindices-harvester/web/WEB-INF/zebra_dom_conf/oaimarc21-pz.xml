@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dom>
+ <input syntax="xml">
+   <xmlreader level="3"/>
+   <xslt stylesheet="stylesheets/marc21.xsl" />
+   <xslt stylesheet="stylesheets/addsnippet.xsl"/>
+ </input>
+ <extract name="index">
+   <xslt stylesheet="stylesheets/pz2index.xsl"/>
+ </extract>
+ <retrieve name="pz2">
+ </retrieve>
+ <retrieve name="index">
+   <xslt stylesheet="stylesheets/pz2index.xsl"/>
+ </retrieve>
+ <retrieve name="pz2snippet">
+     <process-meta/>
+     <xslt stylesheet="stylesheets/snippet2pz.xsl"/>
+ </retrieve>
+</dom>

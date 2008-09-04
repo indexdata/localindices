@@ -19,8 +19,13 @@ public class HarvestStorageFactory {
         
     }
     public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
-        if (harvestable instanceof OaiPmhResource)
-            return new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
+        if (harvestable instanceof OaiPmhResource) {
+            if (((OaiPmhResource)harvestable).getMetadataPrefix().equalsIgnoreCase("marc21")) {
+                return new ZebraFileStorage(storageDir, harvestable, "oaimarc21-pz.xml");
+            } else {
+                return new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
+            }
+        }
         else if (harvestable instanceof XmlBulkResource)
             return new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
         else
