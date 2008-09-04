@@ -12,11 +12,15 @@
         <h:outputText value="OAI Set Name:"/>
         <h:inputText value="#{resourceController.resource.oaiSetName}"/>
         <h:outputText value="Metadata Prefix: "/>
-        <h:inputText value="#{resourceController.resource.metadataPrefix}"/>
-        <h:outputText value="Metdata Schema URI: "/>
+        <h:selectOneMenu value="#{resourceController.resource.metadataPrefix}">
+            <f:selectItems value="#{resourceController.metadataPrefixes}" />
+        </h:selectOneMenu>
+        <!--
+        <h:outputText value="Metadata Schema URI: "/>
         <h:inputText value="#{resourceController.resource.schemaURI}"/>
         <h:outputText value="Normalization Filter: "/>
         <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
+        -->
         <h:outputText value="Use long date format:"/>
         <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
         <h:outputText value="Harvest from (dd/MM/yyyy):"/>

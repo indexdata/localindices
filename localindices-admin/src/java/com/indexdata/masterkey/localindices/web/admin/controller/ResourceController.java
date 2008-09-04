@@ -63,6 +63,22 @@ public class ResourceController {
     public void setResource(Harvestable resource) {
         this.resource = resource;
     }
+    
+    public List<SelectItem> getMetadataPrefixes() {
+        List<SelectItem> list = new ArrayList<SelectItem>();
+        
+        SelectItem selectItem = new SelectItem();
+        selectItem.setLabel("OAI_DC");
+        selectItem.setValue("oai_dc");
+        list.add(selectItem);
+        
+        selectItem = new SelectItem();
+        selectItem.setLabel("MARC21/USMARC");
+        selectItem.setValue("marc21");
+        list.add(selectItem);
+        
+        return list;
+    }
 
     // <editor-fold defaultstate="collapsed" desc="Harvest schedule handling functions">
     private enum Month {
