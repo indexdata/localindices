@@ -2,16 +2,17 @@
 <Scene Scope="Project" version="2">
     <Scope Scope="Faces Configuration Only"/>
     <Scope Scope="Project">
-        <Node id="fragments/generic_resource_forminputs.jsp" x="12" y="264" zoom="true"/>
-        <Node id="add_webcrawl.jsp" x="650" y="150" zoom="true"/>
         <Node id="add_oaipmh.jsp" x="656" y="-11" zoom="true"/>
         <Node id="add_xmlbulk.jsp" x="653" y="75" zoom="true"/>
         <Node id="list_resources.jsp" x="6" y="-181" zoom="true"/>
-        <Node id="edit_oaipmh.jsp" x="616" y="-399" zoom="true"/>
         <Node id="edit_webcrawl.jsp" x="50" y="-406" zoom="true"/>
+        <Node id="error.jsp" x="16" y="230" zoom="true"/>
+        <Node id="add_webcrawl.jsp" x="650" y="150" zoom="true"/>
+        <Node id="fragments/generic_resource_forminputs.jsp" x="12" y="264" zoom="true"/>
+        <Node id="edit_oaipmh.jsp" x="616" y="-399" zoom="true"/>
         <Node id="fragments/xmlbulk_forminputs.jsp" x="400" y="300" zoom="true"/>
         <Node id="fragments/oaipmh_forminputs.jsp" x="405" y="264" zoom="true"/>
-        <Node id="error.jsp" x="16" y="230" zoom="true"/>
+        <Node id="login.jsp" x="195" y="227" zoom="true"/>
         <Node id="fragments/webcrawl_forminputs.jsp" x="13" y="299" zoom="true"/>
         <Node id="edit_xmlbulk.jsp" x="328" y="-405" zoom="true"/>
     </Scope>

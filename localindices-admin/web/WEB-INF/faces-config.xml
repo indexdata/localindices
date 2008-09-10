@@ -11,10 +11,21 @@
         <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.ResourceController</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
     </managed-bean>
+    <managed-bean>
+        <managed-bean-name>loginManager</managed-bean-name>
+        <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.LoginManager</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+    </managed-bean>
     <navigation-rule>
         <navigation-case>
             <from-outcome>failure</from-outcome>
             <to-view-id>/error.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>logged_out</from-outcome>
+            <to-view-id>/login.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>

@@ -25,6 +25,8 @@
                 -->
                 <h:outputText value=" | "/>
                 <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <h:outputText value=" | "/>
+                <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
             </h:form>
             <h:form>
                 <h3><h:outputText value="Available resources:" /></h3>
