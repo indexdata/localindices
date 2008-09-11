@@ -16,6 +16,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name="layer")
 public class IdentityTypeLayer extends Layer {
     private String identityId;
+    private String displayName;
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
     public String getIdentityId() {
         return identityId;

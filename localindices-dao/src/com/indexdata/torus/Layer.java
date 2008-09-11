@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name="layer")
 public abstract class Layer {
+    private String id;
     private String layerName;
     private List<Object> otherElements;
         
@@ -26,6 +27,7 @@ public abstract class Layer {
     public Layer(String name) {
         layerName = name;
     }
+    
     @XmlAttribute(name="name")
     final public String getLayerName() {
         return layerName;
@@ -33,6 +35,14 @@ public abstract class Layer {
 
     final public void seLayertName(String name) {
         layerName = name;
+    }
+    
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
     
     /**

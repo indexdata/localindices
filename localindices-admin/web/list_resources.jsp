@@ -20,12 +20,13 @@
                 <h:outputText value=" | Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
                 <!--
-                <h:outputText value=" | "/>
+                <h:outputText value=" : "/>
                 <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />
                 -->
                 <h:outputText value=" | "/>
                 <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
                 <h:outputText value=" | "/>
+                Hello, <h:outputText value="#{loginManager.displayName}" />!
                 <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
             </h:form>
             <h:form>

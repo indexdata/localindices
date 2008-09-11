@@ -27,11 +27,13 @@ import javax.servlet.http.HttpSession;
  */
 public class AuthenticationCheckFilter implements Filter {
     private static String LOGIN_PAGE;
+    private static String SU_COOKIE_NAME;
 
     public void init(FilterConfig cfg) throws ServletException {
         LOGIN_PAGE = cfg.getInitParameter("LOGIN_PAGE");
+        SU_COOKIE_NAME = cfg.getInitParameter("SU_COOKIE_NAME");
         if (LOGIN_PAGE == null)
-            throw new UnavailableException("Missing init parameter: LOGIN_PAGE");            
+            throw new UnavailableException("Missing init parameter: LOGIN_PAGE");
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -39,31 +41,52 @@ public class AuthenticationCheckFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse)response;
         HttpSession session = req.getSession();
         String pageRequested = req.getRequestURI();
+        // if the loginManager instance is created by faces, the parameters
+        // are stored in the request
         
         if (pageRequested == null || !pageRequested.endsWith(LOGIN_PAGE)) {
             LoginManager logMgr = (LoginManager) session.getAttribute("loginManager");
-            // first check if logged in from harvester admin
-            if (logMgr == null || !logMgr.isLoggedIn()) {
-                // so we're not logged in - look for the 
-                for (Cookie cookie : req.getCookies()) {
-                    if (cookie.getName().equals("admin-superuser")) {
-                        if (logMgr.doLoginWithId(cookie.getValue()))  {
-                            chain.doFilter(request, response);
-                            return;
-                        } else {
-                            res.sendRedirect(LOGIN_PAGE);
-                            return;
-                        }
-                    }
-                }
-                res.sendRedirect(LOGIN_PAGE);
+            if (logMgr == null) {
+                logMgr = new LoginManager();
+                session.setAttribute("loginManager", logMgr);                
+            }
+            // logged in locally, good enough
+            if(logMgr.isLoggedIn()) {
+                chain.doFilter(request, response);
                 return;
-            }                
+            }
+            // otherwise go for cookie
+            String suId = getCookieValue(req, SU_COOKIE_NAME);
+            if (suId != null) {
+                // try to login, using that cookie     
+                if (logMgr.doLoginWithId(suId)) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+            }
+            //block access            
+            res.sendRedirect(LOGIN_PAGE);
+            return;                            
         }
         chain.doFilter(request, response);
     }
 
     public void destroy() {
     }
-    
+
+    private String getCookieValue(HttpServletRequest req, String cookieName) {
+        if (req.getCookies() == null) return null;
+        for (Cookie cookie : req.getCookies()) {
+            if (cookie.getName().equals(cookieName)) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private void removeCookieByName(HttpServletResponse res, String name) {
+        Cookie rotten = new Cookie(name, "");
+        rotten.setMaxAge(0);
+        res.addCookie(rotten);        
+    }
 }
