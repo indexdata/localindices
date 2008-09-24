@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class LoginManager {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
-    private String idTorusURI = "http://us4java.indexdata.com/torus/admin/records/admin/";
+    private String idTorusURI = "http://us4java.indexdata.com/torus/admin/records/wizard/";
     private String username;
     private String password;
     private String displayName;
@@ -129,6 +129,7 @@ public class LoginManager {
     
     private static void setCookie (String name, String value, boolean kill) {
         Cookie cookie = new Cookie(name, value);
+        cookie.setPath("/");
         if (kill) cookie.setMaxAge(0);
         ((HttpServletResponse) FacesContext
                 .getCurrentInstance()
