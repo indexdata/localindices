@@ -8,7 +8,7 @@
     <h5>MARC bulk specific information:</h5>
     <h:panelGrid columns="2">
         <h:outputText value="URLs (space-separated):"/>
-        <h:inputTextarea value="#{resourceController.resource.url}"/>
+        <h:inputTextarea cols="100" rows="50" value="#{resourceController.resource.url}"/>
         <!--
         <h:outputText value="Expected Schema:"/>
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>

@@ -51,14 +51,6 @@
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
                     </h:column>
-                    <!--
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Records: " />
-                        </f:facet> 
-                        <h:outputText value="#{item.recordsHarvested}"></h:outputText>
-                    </h:column>
-                    -->
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Status: " />
