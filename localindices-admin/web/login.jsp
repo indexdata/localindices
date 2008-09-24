@@ -24,7 +24,7 @@
                             <h:outputText value="Username:"/>
                             <h:inputText value="#{loginManager.username}" required="true"/>
                             <h:outputText value="Password:"/>
-                            <h:inputText value="#{loginManager.password}" required="true"/>
+                            <h:inputSecret value="#{loginManager.password}" required="true"/>
                             <h:commandButton value="Login" action="#{loginManager.doLogin}"/>
                         </h:panelGrid>
                     </h:form>
