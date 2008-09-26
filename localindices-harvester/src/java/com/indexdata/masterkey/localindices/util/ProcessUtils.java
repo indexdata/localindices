@@ -35,16 +35,19 @@ public class ProcessUtils {
      * and destroys it when tha calling thread is interrupted.
      * @param cmd command to be executed
      * @param logger a logger to log to
+     * @return process return value
      * @throws java.io.IOException
      */
-    public static void execAndWait(String[] cmd, Logger logger) throws IOException {
+    public static int execAndWait(String[] cmd, Logger logger) throws IOException {
         Process p = execAndReturn(cmd);
         logError(p, logger);
         try {
             p.waitFor();
+            return p.exitValue();
         } catch (InterruptedException ie) {
             logger.log(Level.WARNING, "ProcessUtils: Calling thread was interupted, destroying the process.");
             p.destroy();
+            return -1;
         }
     }
     
