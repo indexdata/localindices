@@ -12,16 +12,14 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -29,7 +27,7 @@ import java.util.logging.Logger;
  */
 public class HarvestableDAOFake implements HarvestableDAO {
     private Map<Long, Harvestable> harvestables;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.dao");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
     
     public HarvestableDAOFake() {
         harvestables = new HashMap<Long, Harvestable>();
@@ -58,7 +56,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
             harvestables.put(hable2.getId(), hable2);
             
         } catch (ParseException pe) {
-            logger.log(Level.SEVERE, "This will never happen.");
+            logger.log(Level.DEBUG, pe);
         }
     }
 
@@ -77,7 +75,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
                 href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
                 hrefs.add(href);
             } catch (URISyntaxException urie) {
-                logger.log(Level.SEVERE, "This will never happen.");
+                logger.log(Level.DEBUG, urie);
             }
         }
         return hrefs;
@@ -87,7 +85,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         try {
             return (Harvestable) harvestables.get(href.getId()).clone();
         } catch (CloneNotSupportedException cle) {
-            logger.log(Level.SEVERE, "This should never happen", cle);
+            logger.log(Level.DEBUG, cle);
         }
         return null;
     }
@@ -97,10 +95,9 @@ public class HarvestableDAOFake implements HarvestableDAO {
         try {
             hclone = (Harvestable) harvestable.clone();
         } catch (CloneNotSupportedException cle) {
-            logger.log(Level.SEVERE, "This should never happen");                    
+            logger.log(Level.DEBUG, cle);                    
         }
         harvestables.put(hclone.getId(), hclone);
-        logger.log(Level.INFO, "harvestable updated");
         return hclone;
     }
 

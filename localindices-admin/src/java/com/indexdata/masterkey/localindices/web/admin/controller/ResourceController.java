@@ -17,8 +17,8 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
@@ -32,7 +32,7 @@ import javax.servlet.ServletContext;
  * @author jakub
  */
 public class ResourceController {
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.web.admin");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
     private HarvestableDAO dao;
     private Harvestable resource;
     private DataModel model;
@@ -52,7 +52,7 @@ public class ResourceController {
         try {
             dao = HarvestableDAOFactory.getHarvestableDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
         } catch (HarvestableDAOException ex) {
-            logger.log(Level.SEVERE, "Exception when retrieving DAO", ex);
+            logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
         }
     }
 
@@ -147,7 +147,7 @@ public class ResourceController {
         if (dayOfMonth != null && month != null && dayOfWeek != null) {
             return min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
         } else {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the schedule inputs.");
+            logger.log(Level.ERROR, "Something messed up with the schedule inputs.");
         }
         return null;
     }
@@ -162,7 +162,7 @@ public class ResourceController {
                 month = inputs[3].equals("*") ? "0" : inputs[3];
                 dayOfWeek = inputs[4].equals("*") ? "0" : inputs[4];
             } else {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Something messed up with the persisted schedule string (" + scheduleString + ").");
+                logger.log(Level.ERROR, "Something messed up with the persisted schedule string (" + scheduleString + ").");
             }
         } else {
             this.dayOfMonth = this.month = this.dayOfWeek = null;

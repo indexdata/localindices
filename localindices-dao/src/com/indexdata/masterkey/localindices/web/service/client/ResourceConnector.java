@@ -8,17 +8,14 @@ package com.indexdata.masterkey.localindices.web.service.client;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 /**
  * 
+ * @param <T> resource binded type
  * @author jakub
- * @param T data-binding container type
  */
 public class ResourceConnector<T> {
 

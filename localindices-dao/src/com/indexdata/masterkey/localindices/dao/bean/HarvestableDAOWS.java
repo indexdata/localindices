@@ -15,8 +15,8 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesCo
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class HarvestableDAOWS implements HarvestableDAO {
 
     private String serviceBaseURL;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.dao");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
     public HarvestableDAOWS(String serviceBaseURL) {
         this.serviceBaseURL = serviceBaseURL;
@@ -45,7 +45,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
             HarvestablesConverter hc = harvestablesConnector.get();
             return hc.getReferences();
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot retrieve the list of harvestables", male);
+            logger.log(Level.DEBUG, male);
         }
         return null;
     }
@@ -64,7 +64,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             return harvestableConnector.get().getEntity();
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot retreve harvestable from it's ref", male);
+            logger.log(Level.DEBUG, male);
         }
         return null;
     } // retrieveFromRef
@@ -85,7 +85,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
             hc.setEntity(harvestable);
             harvestableConnector.put(hc);
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot update harvestable", male);
+            logger.log(Level.DEBUG, male);
         }
         return harvestable;
     } // updateJob
@@ -101,7 +101,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
         harvestableContainer.setEntity(harvestable);
         harvestablesConnector.postAny(harvestableContainer);
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot create harvestable", male);
+            logger.log(Level.DEBUG, male);
         }
     }
 
@@ -115,7 +115,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             hable = harvestableConnector.get().getEntity();
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot retrieve harvestable with id " + id, male);
+            logger.log(Level.DEBUG,  male);
         }
         return hable;    
     }
@@ -133,7 +133,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             harvestableConnector.delete();
         } catch (Exception male) {
-            logger.log(Level.SEVERE, "Cannot delete harvestable with id " + harvestable.getId(), male);
+            logger.log(Level.DEBUG, male);
         }
     }
 

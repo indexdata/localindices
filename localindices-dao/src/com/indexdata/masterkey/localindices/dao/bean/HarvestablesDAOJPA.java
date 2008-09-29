@@ -9,16 +9,16 @@ package com.indexdata.masterkey.localindices.dao.bean;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.UserTransaction;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 
 /**
  * Java Persistence API implementation of the DAO
@@ -26,6 +26,7 @@ import javax.transaction.UserTransaction;
  */
 //@PersistenceContext(name = "persistence/localindicesPU", unitName = "localindicesPU")
 public class HarvestablesDAOJPA implements HarvestableDAO {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
     
     /* *Persistence stuff*
      * There are two ways of doing persistence:
@@ -73,7 +74,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         try {
             em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindicesPU");
         } catch (NamingException e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, e);
+            logger.log(Level.DEBUG, e);
         }
         return em;
     }
@@ -83,7 +84,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         try {
             utx = (UserTransaction) new InitialContext().lookup("java:comp/UserTransaction");
         } catch (NamingException e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, e);
+            logger.log(Level.DEBUG, e);
         }
         return utx;
     }
@@ -97,11 +98,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.persist(harvestable);
             utx.commit();
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 utx.rollback();
             } catch (Exception e) {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, e);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
             //em.close();
@@ -126,11 +127,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             harvestable = em.merge(updHarvestable);
             utx.commit();
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 utx.rollback();
             } catch (Exception e) {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
         //em.close();
@@ -152,11 +153,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.remove(harvestable);
             utx.commit();
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 utx.rollback();
             } catch (Exception e) {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, e);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
         //em.close();
@@ -176,11 +177,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             hables = q.getResultList();
             utx.commit();
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 utx.rollback();
             } catch (Exception e) {
-                Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
             //em.close();
