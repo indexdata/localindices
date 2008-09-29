@@ -28,30 +28,25 @@ public class SchedulerThread implements Runnable {
     }
 
     public void run() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + 
-                ": SchedulerThread started.");
+        logger.log(Level.INFO, "Scheduler started.");
         keepRunning = true;
         while (keepRunning()) {
             try {
                 Thread.sleep(10 * 1000);
-                logger.log(Level.INFO, Thread.currentThread().getName() + 
-                        ": checking and updating current job list..");
+                logger.log(Level.INFO, "Checking and updating current job list..");
                 scheduler.checkJobs();
                 scheduler.updateJobs();
                 scheduler.checkJobs();
             } catch (InterruptedException e) {
-                logger.log(Level.WARN, Thread.currentThread().getName() + 
-                        ": SchedulerThread was interrrupted. Exiting.");
+                logger.log(Level.WARN, "Scheduler was interrrupted. Exiting...");
             }
         }
         scheduler.stopAllJobs();
-        logger.log(Level.INFO, Thread.currentThread().getName() + 
-                ": SchedulerThread exits.");
+        logger.log(Level.INFO, "Scheduler exits.");
     }
 
     public synchronized void kill() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + 
-                ": SchedulerThread was kindly asked to stop.");
+        logger.log(Level.WARN, "Scheduler received kill signal. Exiting...");
         keepRunning = false;
     }
 

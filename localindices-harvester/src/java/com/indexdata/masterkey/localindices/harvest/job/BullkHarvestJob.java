@@ -35,7 +35,7 @@ public class BullkHarvestJob implements HarvestJob {
     
     private synchronized boolean isKillSendt() {
         if (die) {
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": MARC harvest thread received kill signal.");
+            logger.log(Level.WARN, "Bulk harvest received kill signal.");
         }
         return die;
     }
@@ -77,7 +77,7 @@ public class BullkHarvestJob implements HarvestJob {
             downloadList(resource.getUrl().split(" "));
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
-            logger.log(Level.ERROR, Thread.currentThread().getName() + "Download failed.", e);
+            logger.log(Level.ERROR,  "Download failed.", e);
         }
         status = HarvestStatus.FINISHED;
     }
@@ -89,7 +89,7 @@ public class BullkHarvestJob implements HarvestJob {
     }
     
     private void download(String urlString) throws Exception {
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": Starting download - " + urlString);
+        logger.log(Level.INFO, "Starting download - " + urlString);
         try {
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -108,7 +108,7 @@ public class BullkHarvestJob implements HarvestJob {
             } else {
                 throw new Exception("Http connection failed. (" + responseCode + ")");
             }
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": Finished - " + urlString);
+            logger.log(Level.INFO, "Finished - " + urlString);
         } catch (IOException ioe) {
             throw new Exception("Http connection failed.", ioe);
         }
@@ -126,12 +126,10 @@ public class BullkHarvestJob implements HarvestJob {
             // every megabyte
             copied += len;
             if (num % logBlockNum == 0)
-                logger.log(Level.INFO, Thread.currentThread().getName() 
-                        + " Downloaded " + copied + "/" + total + " bytes (" + ((double)copied/(double)total*100) +"%)");
+                logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes (" + ((double)copied/(double)total*100) +"%)");
             num++;
         }
-        logger.log(Level.INFO, Thread.currentThread().getName() 
-                        + " Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied/ (double) total*100) +"%)");
+        logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied/ (double) total*100) +"%)");
         os.flush();
     }
 

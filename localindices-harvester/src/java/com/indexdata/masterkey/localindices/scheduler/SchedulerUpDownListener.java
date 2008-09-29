@@ -36,7 +36,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        logger.log(Level.INFO, "SchedulerUpDownListener: harvester context is initialized...");
+        logger.log(Level.INFO, "Harvester context is being initialized...");
         ServletContext ctx = servletContextEvent.getServletContext();
         
         unpackDir(ctx, "/WEB-INF/stylesheets", 
@@ -54,21 +54,22 @@ public class SchedulerUpDownListener implements ServletContextListener {
         th.start();
         ctx.setAttribute("schedulerThread", st);
 
-        logger.log(Level.INFO, "SchedulerUpDownListener: scheduling thread created, started and placed in the context.");
+        logger.log(Level.INFO, "Scheduler created, started and placed in the context.");
     }
 
-    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {       
+        logger.log(Level.INFO, "Harvester is being undeployed...");
         if (st != null) {
-            logger.log(Level.INFO, "SchedulerUpDownListener: telling the scheduling thread to stop...");
+            logger.log(Level.INFO, "Stopping the scheduler...");
             st.kill();
-            logger.log(Level.INFO, "SchedulerUpDownListener: waking the scheduling thread up so it can close down...");
+            logger.log(Level.INFO, "Interrupting the scheduler...");
             th.interrupt();
         }
         if (zsrvT != null) {
-            logger.log(Level.INFO, "SchedulerUpDownListener: shuting down zserv...");
+            logger.log(Level.INFO, "Shutting down zserv...");
             zsrvT.interrupt();
         }
-        logger.log(Level.INFO, "SchedulerUpDownListener: application context destroyed.");
+        logger.log(Level.INFO, "Harvester context destroyed.");
     }
     
     private void unpackResourceWithSubstitute(ServletContext ctx, String source, String dest, String token) {

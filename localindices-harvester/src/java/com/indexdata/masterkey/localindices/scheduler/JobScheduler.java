@@ -43,7 +43,7 @@ public class JobScheduler {
     public void updateJobs() {
         Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList();
         if (refs == null) {
-            logger.log(Level.ERROR, Thread.currentThread().getName() + ": harvestableRef list is null. Cannot update current job list");
+            logger.log(Level.ERROR, "Cannot update current job list - retrieved list is empty.");
         } else {
             // mark all job so we know what to remove
             for (JobInstance j : jobs.values()) {
@@ -56,8 +56,7 @@ public class JobScheduler {
                 if (ji != null) {
                     // and seetings has changed
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
-                        logger.log(Level.INFO, Thread.currentThread().getName() 
-                                + ": JOB#" + ji.getHarvestable().getId() 
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                                 + " parameters changed (LU " + href.getLastUpdated()
                                 + "), killing old harvesting thread.");
                         ji.stop();
@@ -71,12 +70,11 @@ public class JobScheduler {
                     try {
                         ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
                         jobs.put(id, ji);
-                        logger.log(Level.INFO, Thread.currentThread().getName()
-                                + ": JOB#" + ji.getHarvestable().getId()
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
                                 + " created.");
                     } catch (Exception e) {
-                        logger.log(Level.ERROR, Thread.currentThread().getName() 
-                                + ": Cannot update the current job list with " + harv, e);
+                        logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
+                        logger.log(Level.DEBUG, e);
                     }
                 }
                 ji.seen = true;
@@ -86,8 +84,7 @@ public class JobScheduler {
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    logger.log(Level.INFO, Thread.currentThread().getName()
-                            + ": JOB#" + ji.getHarvestable().getId() 
+                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                             + " no longer in the DB. Deleting from list.");
                     //ji.stop();
                     ji.destroy();
@@ -163,21 +160,18 @@ public class JobScheduler {
     }
     
     private void reportError(Harvestable hable) {
-        logger.log(Level.ERROR, Thread.currentThread().getName() 
-                + ": JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
+        logger.log(Level.ERROR, "JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
         dao.updateHarvestable(hable);
     }
     
     private void reportStatus(Harvestable hable, HarvestStatus status) {
-        logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": JOB#" + hable.getId() + " status updated to " + status);
+        logger.log(Level.INFO, "JOB#" + hable.getId() + " status updated to " + status);
         hable.setCurrentStatus(status.name());
         dao.updateHarvestable(hable);
     }
 
     private void persistFinished(JobInstance ji) {
-        logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": JOB#" + ji.getHarvestable().getId() + " has finished. persisted.");
+        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " has finished. persisted.");
         ji.getHarvestable().setLastHarvestStarted(ji.getLastHarvestStarted());
         dao.updateHarvestable(ji.getHarvestable());
     }

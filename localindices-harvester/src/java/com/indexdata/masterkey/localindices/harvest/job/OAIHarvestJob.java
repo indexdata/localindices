@@ -41,7 +41,7 @@ public class OAIHarvestJob implements HarvestJob {
 
     private synchronized boolean isKillSendt() {
         if (die) {
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received kill signal.");
+            logger.log(Level.INFO, "OAI harvest thread received kill signal.");
         }
         return die;
     }
@@ -86,11 +86,11 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void finishReceived() {
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread received finish notification.");
+        logger.log(Level.INFO, "OAI harvest received finish notification.");
         if (status.equals(HarvestStatus.FINISHED)) {
             status = HarvestStatus.WAITING;
         }
-        logger.log(Level.INFO, Thread.currentThread().getName() + ": OAI harvest thread status: " + status);
+        logger.log(Level.INFO, "OAI harvest job's status after finish: " + status);
     }
 
     public String getError() {
@@ -109,13 +109,11 @@ public class OAIHarvestJob implements HarvestJob {
         // where are we?
         Date nextFrom = null;
         if (resource.getUntilDate() != null)
-            logger.log(Level.INFO, Thread.currentThread().getName() 
-                    + " until param will be overwritten to yesterday.");
+            logger.log(Level.INFO, "OAI harvest: until param will be overwritten to yesterday.");
         resource.setUntilDate(yesterday());
         nextFrom = new Date();
         
-        logger.log(Level.INFO, Thread.currentThread().getName() 
-                + ": OAI harvest thread started. Harvesting from: " 
+        logger.log(Level.INFO, "OAI harvest started. Harvesting from: " 
                 + resource.getFromDate() + " until: " + resource.getUntilDate());
         
         status = HarvestStatus.RUNNING; 
@@ -138,7 +136,7 @@ public class OAIHarvestJob implements HarvestJob {
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
             resource.setError(e.getMessage());
-            logger.log(Level.ERROR, Thread.currentThread().getName(), e);
+            logger.log(Level.ERROR, e);
         }
         // if there was an error do not move the time marker
         // - we'll try havesting data next time
@@ -147,8 +145,7 @@ public class OAIHarvestJob implements HarvestJob {
             resource.setFromDate(nextFrom);
             resource.setUntilDate(null);
             status = HarvestStatus.FINISHED;
-            logger.log(Level.INFO, Thread.currentThread().getName() 
-                    + ": OAI harvest thread finishes OK. Next from: " 
+            logger.log(Level.INFO, "OAI harvest finishes OK. Next from: " 
                     + resource.getFromDate());
             try {
                 storage.commit();
@@ -158,8 +155,7 @@ public class OAIHarvestJob implements HarvestJob {
                 logger.log(Level.ERROR, "Storage commit failed.");
             }
         } else {
-            logger.log(Level.INFO, Thread.currentThread().getName() 
-                    + ": OAI harvest thread killed/faced error " +
+            logger.log(Level.INFO, "OAI harvest killed/faced error " +
                     "- rolling back. Next from param: " + resource.getFromDate());
             try {
                 storage.rollback();
@@ -187,17 +183,17 @@ public class OAIHarvestJob implements HarvestJob {
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (checkError(errors)) {
-                logger.log(Level.ERROR, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                logger.log(Level.ERROR, "Error record: " + listRecords.toString());
                 break;
             }
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             String resumptionToken = listRecords.getResumptionToken();
             if (resumptionToken == null || resumptionToken.length() == 0) {
-                logger.log(Level.INFO, Thread.currentThread().getName() + ": Records stored. No resumptionToken received, harvest done.");
+                logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
                 listRecords = null;
             } else {
-                logger.log(Level.INFO, Thread.currentThread().getName() + ": Records stored, next resumptionToken is " + resumptionToken);
+                logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
                 listRecords = new ListRecords(baseURL, resumptionToken);
             }
         }
@@ -212,13 +208,13 @@ public class OAIHarvestJob implements HarvestJob {
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (checkError(errors)) {
-                logger.log(Level.ERROR, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                logger.log(Level.ERROR, "OAI job's error record: " + listRecords.toString());
                 break;
             }
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
             resumptionToken = listRecords.getResumptionToken();
-            logger.log(Level.INFO, Thread.currentThread().getName() + ": next resumptionToken: " + resumptionToken);
+            logger.log(Level.INFO, "OAI job's next resumptionToken: " + resumptionToken);
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
             } else {
@@ -238,7 +234,7 @@ public class OAIHarvestJob implements HarvestJob {
                 error += item.getTextContent();
             }
             resource.setError(error);
-            logger.log(Level.ERROR, Thread.currentThread().getName() + ": OAI harvest error: " + error);
+            logger.log(Level.ERROR, "OAI job's error: " + error);
             return true;
         }
         return false;
