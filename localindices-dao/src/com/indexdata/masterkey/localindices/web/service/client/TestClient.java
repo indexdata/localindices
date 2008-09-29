@@ -23,7 +23,7 @@ public class TestClient {
     public static void main(String[] args) throws IOException {
         try {
             System.out.println("+++ Retrieving harvestables:");
-            String baseURL = "http://coffee.indexdata.dk/localindices-harvester/resources/";
+            String baseURL = "http://localhost:8080/localindices-harvester/resources/";
             
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(

@@ -105,4 +105,8 @@ public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBod
     public Object readFrom(Class<Object> arg0, Type arg1, Annotation[] arg2, MediaType arg3, MultivaluedMap<String, String> arg4, InputStream arg5) throws IOException, WebApplicationException {
         return readFrom(arg0, arg3, arg4, arg5);
     }
+
+    public Object readFrom(Class<Object> arg0, Type arg1, MediaType arg2, Annotation[] arg3, MultivaluedMap<String, String> arg4, InputStream arg5) throws IOException {
+        return readFrom(arg0, arg2, arg4, arg5);
+    }
 }
