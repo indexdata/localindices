@@ -23,13 +23,13 @@ public class TestClient {
     public static void main(String[] args) throws IOException {
         try {
             System.out.println("+++ Retrieving harvestables:");
-            String baseURL = "http://localhost:8080/localindexes/resources/";
+            String baseURL = "http://coffee.indexdata.dk/localindices-harvester/resources/";
             
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
                         new URL(baseURL + "harvestables/"), 
-                        "com.indexdata.localindexes.web.entity" +
-                        ":com.indexdata.localindexes.web.service.converter");
+                        "com.indexdata.masterkey.localindices.entity" +
+                        ":com.indexdata.masterkey.localindices.web.service.converter");
 
             HarvestablesConverter hc = harvestablesConnector.get();
             for (HarvestableRefConverter ref : hc.getReferences()) {
@@ -59,8 +59,8 @@ public class TestClient {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
                         resourceURL, 
-                        "com.indexdata.localindexes.web.entity" +
-                        ":com.indexdata.localindexes.web.service.converter");
+                        "com.indexdata.masterkey.localindices.entity" +
+                        ":com.indexdata.masterkey.localindices.web.service.converter");
                         
             harvestable = harvestableConnector.get().getEntity();
                         
