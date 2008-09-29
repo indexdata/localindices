@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * This class stores the harvested resources onto the file system and indexes them with Zebra
@@ -33,6 +33,7 @@ import java.util.logging.Logger;
  * @author Heikki
  */
 public class MultiFileStorage implements HarvestStorage {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     protected String basePath;   // where the data is to be stored
     protected String incomingDir;  // dir (under basePath) for this job
     protected String committedDir; // dir for committed harvests
@@ -40,7 +41,6 @@ public class MultiFileStorage implements HarvestStorage {
     private String namePrefix; // file name prefix (in jobDir)
     private OutputStream fos;  // the "file handle"
 
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
     public MultiFileStorage(String storageDir, Harvestable harvestable) {
         basePath = storageDir;
@@ -48,9 +48,9 @@ public class MultiFileStorage implements HarvestStorage {
         committedDir = basePath + "/committed" + "/job" + harvestable.getId();
         namePrefix = harvestable.getId().toString();
 
-        logger.log(Level.FINER, "ZebraFileStorage: " +
-                "i='" + incomingDir + "' " +
-                "c='" + committedDir + "'");
+        logger.log(Level.INFO, "File storage " +
+                "incoming: '" + incomingDir + "' " +
+                "commited: '" + committedDir + "'");
     }
 
     /** 
@@ -127,8 +127,7 @@ public class MultiFileStorage implements HarvestStorage {
             throw new IOException("Could not delete incoming dir'" +
                     fi.getPath() + "'");
         }
-        logger.log(Level.FINE, "ZebraFileStorage: Committed '" +
-                fc.getPath() + "'");
+        logger.log(Level.INFO, "Committed dir '" + fc.getPath() + "'");
         
     } // commit
 
@@ -162,8 +161,7 @@ public class MultiFileStorage implements HarvestStorage {
      * @throws java.io.IOException
      */
     public void purge() throws IOException {
-        logger.log(Level.INFO, "ZebraFileStorage: removeAll '" +
-                basePath + "'");
+        logger.log(Level.INFO, "Purge '" + basePath + "'");
         deleteDir( new File(committedDir)) ;
         deleteDir( new File(incomingDir)) ;
     }

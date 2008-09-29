@@ -13,8 +13,8 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -33,7 +33,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     private SchedulerThread st;
     private Thread zsrvT;
     private ZebraServer zsrv;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "SchedulerUpDownListener: harvester context is initialized...");
@@ -83,7 +83,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
             os.close();
             is.close();
         } catch (IOException ioe) {
-            logger.log(Level.WARNING, "Cannot unpack resource " + source + " to " + dest);
+            logger.log(Level.WARN, "Cannot unpack resource " + source + " to " + dest);
         }
     }
     
@@ -109,7 +109,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
                 os.close();
                 is.close();
             } catch (IOException ioe) {
-                logger.log(Level.WARNING, "Cannot unpack file " + resourcePath + " to " + dest);
+                logger.log(Level.WARN, "Cannot unpack file " + resourcePath + " to " + dest);
             }            
         }
     }

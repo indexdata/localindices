@@ -13,19 +13,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 /**
  * This class handles bulk HTTP download of a single file.
  * @author jakub
  */
 public class BullkHarvestJob implements HarvestJob {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestStorage storage;
     private HarvestStatus status;
     private String error;
     private XmlBulkResource resource;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey");
     private boolean die = false;
     
     public BullkHarvestJob(XmlBulkResource resource) {
@@ -77,7 +77,7 @@ public class BullkHarvestJob implements HarvestJob {
             downloadList(resource.getUrl().split(" "));
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
-            logger.log(Level.SEVERE, Thread.currentThread().getName() + "Download failed.", e);
+            logger.log(Level.ERROR, Thread.currentThread().getName() + "Download failed.", e);
         }
         status = HarvestStatus.FINISHED;
     }
@@ -126,11 +126,11 @@ public class BullkHarvestJob implements HarvestJob {
             // every megabyte
             copied += len;
             if (num % logBlockNum == 0)
-                logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                logger.log(Level.INFO, Thread.currentThread().getName() 
                         + " Downloaded " + copied + "/" + total + " bytes (" + ((double)copied/(double)total*100) +"%)");
             num++;
         }
-        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+        logger.log(Level.INFO, Thread.currentThread().getName() 
                         + " Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied/ (double) total*100) +"%)");
         os.flush();
     }

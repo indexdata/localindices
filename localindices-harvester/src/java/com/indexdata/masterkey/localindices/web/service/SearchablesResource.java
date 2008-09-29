@@ -10,19 +10,12 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.ProduceMime;
-import javax.ws.rs.ConsumeMime;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
 import javax.servlet.ServletContext;
 

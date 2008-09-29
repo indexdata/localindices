@@ -13,7 +13,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.ProduceMime;
 import javax.ws.rs.ConsumeMime;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 

@@ -11,8 +11,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * Wrapper class around zebrasrv.
@@ -33,7 +33,7 @@ public class ZebraServer implements Runnable {
             String[] cmd = {"zebrasrv", "-c", config,  "@:" + portNum};
             ProcessUtils.execAndWait(cmd, logger);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "ZebraServer: failure in zebrasrv process.", ex);
+            logger.log(Level.ERROR, "ZebraServer: failure in zebrasrv process.", ex);
         }
     }
 }

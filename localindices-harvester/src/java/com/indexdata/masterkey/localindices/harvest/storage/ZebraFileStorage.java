@@ -9,8 +9,8 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.util.*;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * This storage uses the MultiFileStorage harvested files 
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class ZebraFileStorage extends MultiFileStorage {
     
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private String databaseName;
     private String config;
     private String domConf;

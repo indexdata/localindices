@@ -17,8 +17,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * JobScheduler schedules the job kept in the memory-based collection,
@@ -27,9 +27,9 @@ import java.util.logging.Logger;
  * @author jakub
  */
 public class JobScheduler {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestableDAO dao;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private Map<String, String> config;
     
     public JobScheduler(Map<String, String> config) {
@@ -43,7 +43,7 @@ public class JobScheduler {
     public void updateJobs() {
         Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList();
         if (refs == null) {
-            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": harvestableRef list is null. Cannot update current job list");
+            logger.log(Level.ERROR, Thread.currentThread().getName() + ": harvestableRef list is null. Cannot update current job list");
         } else {
             // mark all job so we know what to remove
             for (JobInstance j : jobs.values()) {
@@ -75,7 +75,7 @@ public class JobScheduler {
                                 + ": JOB#" + ji.getHarvestable().getId()
                                 + " created.");
                     } catch (Exception e) {
-                        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+                        logger.log(Level.ERROR, Thread.currentThread().getName() 
                                 + ": Cannot update the current job list with " + harv, e);
                     }
                 }
@@ -163,7 +163,7 @@ public class JobScheduler {
     }
     
     private void reportError(Harvestable hable) {
-        logger.log(Level.SEVERE, Thread.currentThread().getName() 
+        logger.log(Level.ERROR, Thread.currentThread().getName() 
                 + ": JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
         dao.updateHarvestable(hable);
     }

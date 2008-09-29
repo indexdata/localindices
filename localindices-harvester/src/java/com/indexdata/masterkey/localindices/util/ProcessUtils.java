@@ -9,8 +9,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * Process helper class.
@@ -45,7 +45,7 @@ public class ProcessUtils {
             p.waitFor();
             return p.exitValue();
         } catch (InterruptedException ie) {
-            logger.log(Level.WARNING, "ProcessUtils: Calling thread was interupted, destroying the process.");
+            logger.log(Level.WARN, "Calling thread was interupted, destroying the process.");
             p.destroy();
             return -1;
         }
@@ -70,7 +70,7 @@ public class ProcessUtils {
                         logger.log(Level.INFO, line);
                     }
                 } catch (IOException ex) {
-                    logger.log(Level.SEVERE, "ProcessUtils: Logging thread encountered an io error (process died?) and will exit.");
+                    logger.log(Level.WARN, "Logging thread encountered an io error (process died?) and will exit.");
                 }
             }
         };

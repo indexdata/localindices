@@ -25,8 +25,6 @@ import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
@@ -52,7 +50,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 /**
  * HarvesterVerb is the parent class for each of the OAI verbs.
@@ -60,7 +59,7 @@ import java.util.logging.Logger;
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class HarvesterVerb {
-    private static Logger logger = Logger.getLogger(HarvesterVerb.class.getCanonicalName());
+    private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
     
     /* Primary OAI namespaces */
     public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";

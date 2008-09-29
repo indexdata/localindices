@@ -12,8 +12,8 @@ import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * A JobInstance is one instance of a harvesting job managed by the scheduler.
@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * @author heikki
  */
 public class JobInstance {
-
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private Harvestable harvestable;
     private Thread harvestingThread;
     private HarvestJob harvestJob;
@@ -32,7 +32,6 @@ public class JobInstance {
     private String lastHarvestError;
     private HarvestStatus lastHarvestStatus;
     private Date lastHarvestStarted;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     
     public boolean seen; // for checking what has been deleted
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
@@ -44,7 +43,7 @@ public class JobInstance {
                 int min = cal.get(Calendar.MINUTE);
                 int hr = cal.get(Calendar.HOUR_OF_DAY);
                 cronLine = new CronLine(min + " " + hr + " " + "* * *");
-                logger.log(Level.WARNING, 
+                logger.log(Level.WARN, 
                         "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
             }
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
@@ -94,7 +93,8 @@ public class JobInstance {
         try {
             harvestJob.getStorage().purge();
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            logger.log(Level.ERROR, "Destroy failed.");
+            logger.log(Level.DEBUG, ex);
         }
     }
     

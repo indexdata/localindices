@@ -8,8 +8,8 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * The scheduler thread runs the actuall JobScheduler. It controls 
@@ -19,9 +19,9 @@ import java.util.logging.Logger;
  * @author jakub
  */
 public class SchedulerThread implements Runnable {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private boolean keepRunning;
     private JobScheduler scheduler;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
 
     public SchedulerThread(Map<String, String> config) {
         scheduler = new JobScheduler(config);
@@ -40,7 +40,7 @@ public class SchedulerThread implements Runnable {
                 scheduler.updateJobs();
                 scheduler.checkJobs();
             } catch (InterruptedException e) {
-                logger.log(Level.WARNING, Thread.currentThread().getName() + 
+                logger.log(Level.WARN, Thread.currentThread().getName() + 
                         ": SchedulerThread was interrrupted. Exiting.");
             }
         }

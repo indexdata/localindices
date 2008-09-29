@@ -10,8 +10,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import ORG.oclc.oai.harvester2.verb.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
@@ -31,10 +31,10 @@ import org.xml.sax.SAXException;
  * @author jakub
  */
 public class OAIHarvestJob implements HarvestJob {
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private OaiPmhResource resource;
     private HarvestStatus status;
     private HarvestStorage storage;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.harvester");
     private boolean die = false;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
@@ -109,7 +109,7 @@ public class OAIHarvestJob implements HarvestJob {
         // where are we?
         Date nextFrom = null;
         if (resource.getUntilDate() != null)
-            logger.log(Level.SEVERE, Thread.currentThread().getName() 
+            logger.log(Level.INFO, Thread.currentThread().getName() 
                     + " until param will be overwritten to yesterday.");
         resource.setUntilDate(yesterday());
         nextFrom = new Date();
@@ -138,7 +138,7 @@ public class OAIHarvestJob implements HarvestJob {
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
             resource.setError(e.getMessage());
-            logger.log(Level.SEVERE, Thread.currentThread().getName(), e);
+            logger.log(Level.ERROR, Thread.currentThread().getName(), e);
         }
         // if there was an error do not move the time marker
         // - we'll try havesting data next time
@@ -153,7 +153,9 @@ public class OAIHarvestJob implements HarvestJob {
             try {
                 storage.commit();
             } catch (IOException ioe) {
-                logger.log(Level.SEVERE, "Storage commit failed.");
+                status = HarvestStatus.ERROR;
+                resource.setError(ioe.getMessage());
+                logger.log(Level.ERROR, "Storage commit failed.");
             }
         } else {
             logger.log(Level.INFO, Thread.currentThread().getName() 
@@ -162,7 +164,7 @@ public class OAIHarvestJob implements HarvestJob {
             try {
                 storage.rollback();
             } catch (IOException ioe) {
-                logger.log(Level.SEVERE, "Storage rollback failed.");
+                logger.log(Level.ERROR, "Storage rollback failed.");
             }            
         }
     }
@@ -185,7 +187,7 @@ public class OAIHarvestJob implements HarvestJob {
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (checkError(errors)) {
-                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                logger.log(Level.ERROR, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
                 break;
             }
             out.write(listRecords.toString().getBytes("UTF-8"));
@@ -210,7 +212,7 @@ public class OAIHarvestJob implements HarvestJob {
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = listRecords.getErrors();
             if (checkError(errors)) {
-                logger.log(Level.SEVERE, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
+                logger.log(Level.ERROR, Thread.currentThread().getName() + ": Error record: " + listRecords.toString());
                 break;
             }
             out.write(listRecords.toString().getBytes("UTF-8"));
@@ -236,7 +238,7 @@ public class OAIHarvestJob implements HarvestJob {
                 error += item.getTextContent();
             }
             resource.setError(error);
-            logger.log(Level.SEVERE, Thread.currentThread().getName() + ": OAI harvest error: " + error);
+            logger.log(Level.ERROR, Thread.currentThread().getName() + ": OAI harvest error: " + error);
             return true;
         }
         return false;
