@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 public class ZebraServer implements Runnable {
     private String config;
     private int portNum;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey2.localindices");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     
     public ZebraServer(String storageDir, int portNum) {
         config = storageDir + "/zebra.cfg"; 
