@@ -10,6 +10,7 @@ import com.indexdata.masterkey.localindices.entity.*;
 import com.indexdata.masterkey.localindices.web.service.converter.*;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * Tests the WS client.
@@ -46,6 +47,7 @@ public class TestClient {
             harvestable.setCurrentStatus("no status");
             harvestable.setMaxDbSize(320);
             harvestable.setScheduleString("0:1:1");
+            harvestable.setLastUpdated(new Date());
             
             HarvestableConverter harvestableContainer = new HarvestableConverter();
             harvestableContainer.setEntity(harvestable);

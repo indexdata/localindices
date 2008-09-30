@@ -11,10 +11,10 @@ import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.ProduceMime;
-import javax.ws.rs.ConsumeMime;
 import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 
 /**
  * REST Web service (reource) that maps to a Harvestable entity.
@@ -46,7 +46,7 @@ public class HarvestableResource {
      * @return an instance of HarvestableConverter
      */
     @GET
-    @ProduceMime({"application/xml", "application/json"})
+    @Produces("application/xml")
     public HarvestableConverter get() {
         return new HarvestableConverter(dao.retrieveHarvestableById(id), context.getAbsolutePath());
     }
@@ -57,7 +57,7 @@ public class HarvestableResource {
      * @param data an HarvestableConverter entity that is deserialized from an XML stream
      */
     @PUT
-    @ConsumeMime({"application/xml", "application/json"})
+    @Consumes("application/xml")
     public void put(HarvestableConverter data) {
         dao.updateHarvestable(dao.retrieveHarvestableById(id), data.getEntity());
     }

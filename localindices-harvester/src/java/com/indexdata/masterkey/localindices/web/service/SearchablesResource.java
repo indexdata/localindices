@@ -10,7 +10,6 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
-import javax.ws.rs.ProduceMime;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.core.Context;
@@ -18,6 +17,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
 import javax.servlet.ServletContext;
+import javax.ws.rs.Produces;
 
 /**
  * RESTful WS (resource) that maps to the Searchables collection.
@@ -52,7 +52,7 @@ public class SearchablesResource {
      * @return an instance of Searchables
      */
     @GET
-    @ProduceMime({"application/xml", "application/json"})
+    @Produces("application/xml")
     public SearchablesConverter get(
             
             @QueryParam("start")

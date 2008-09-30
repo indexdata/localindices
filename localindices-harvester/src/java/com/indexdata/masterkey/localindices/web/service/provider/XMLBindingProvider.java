@@ -11,7 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import javax.ws.rs.ProduceMime;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -28,8 +29,9 @@ import javax.xml.bind.Unmarshaller;
  *
  * @author jakub@indexdata.com
  */
-@ProduceMime("application/xml")
 @Provider
+@Produces("application/xml")
+@Consumes("application/xml")
 public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBodyReader<Object> {
     
     //each-package has to contain a jaxb.index file with classes specified
@@ -108,5 +110,17 @@ public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBod
 
     public Object readFrom(Class<Object> arg0, Type arg1, MediaType arg2, Annotation[] arg3, MultivaluedMap<String, String> arg4, InputStream arg5) throws IOException {
         return readFrom(arg0, arg2, arg4, arg5);
+    }
+
+    public boolean isWriteable(Class<?> arg0, Type arg1, Annotation[] arg2, MediaType arg3) {
+        return isWriteable(arg0);
+    }
+
+    public long getSize(Object arg0, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType arg4) {
+        return getSize(arg0);
+    }
+
+    public boolean isReadable(Class<?> arg0, Type arg1, Annotation[] arg2, MediaType arg3) {
+        return isReadable(arg0);
     }
 }

@@ -522,15 +522,17 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy-ear-war file="${reference.localindices-dao.jar}" propname="included.lib.reference.localindices-dao.jar.X"/>
         <basename file="${file.reference.log4j-1.2.15.jar}" property="included.lib.file.reference.log4j-1.2.15.jar"/>
         <copy-ear-war file="${file.reference.log4j-1.2.15.jar}" propname="included.lib.file.reference.log4j-1.2.15.jar.X"/>
-        <basename file="${file.reference.jsr311-api.jar}" property="included.lib.file.reference.jsr311-api.jar"/>
-        <copy-ear-war file="${file.reference.jsr311-api.jar}" propname="included.lib.file.reference.jsr311-api.jar.X"/>
-        <basename file="${file.reference.jersey.jar}" property="included.lib.file.reference.jersey.jar"/>
-        <copy-ear-war file="${file.reference.jersey.jar}" propname="included.lib.file.reference.jersey.jar.X"/>
+        <basename file="${file.reference.jsr311-api-1.0.jar}" property="included.lib.file.reference.jsr311-api-1.0.jar"/>
+        <copy-ear-war file="${file.reference.jsr311-api-1.0.jar}" propname="included.lib.file.reference.jsr311-api-1.0.jar.X"/>
+        <basename file="${file.reference.jersey-core-1.0.jar}" property="included.lib.file.reference.jersey-core-1.0.jar"/>
+        <copy-ear-war file="${file.reference.jersey-core-1.0.jar}" propname="included.lib.file.reference.jersey-core-1.0.jar.X"/>
+        <basename file="${file.reference.jersey-server-1.0.jar}" property="included.lib.file.reference.jersey-server-1.0.jar"/>
+        <copy-ear-war file="${file.reference.jersey-server-1.0.jar}" propname="included.lib.file.reference.jersey-server-1.0.jar.X"/>
         <basename file="${file.reference.asm-3.1.jar}" property="included.lib.file.reference.asm-3.1.jar"/>
         <copy-ear-war file="${file.reference.asm-3.1.jar}" propname="included.lib.file.reference.asm-3.1.jar.X"/>
         <mkdir dir="${build.web.dir}/META-INF"/>
         <manifest file="${build.web.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${included.lib.reference.oclc-harvester.jar} ${included.lib.reference.localindices-dao.jar} ${included.lib.file.reference.log4j-1.2.15.jar} ${included.lib.file.reference.jsr311-api.jar} ${included.lib.file.reference.jersey.jar} ${included.lib.file.reference.asm-3.1.jar} "/>
+            <attribute name="Class-Path" value="${included.lib.reference.oclc-harvester.jar} ${included.lib.reference.localindices-dao.jar} ${included.lib.file.reference.log4j-1.2.15.jar} ${included.lib.file.reference.jsr311-api-1.0.jar} ${included.lib.file.reference.jersey-core-1.0.jar} ${included.lib.file.reference.jersey-server-1.0.jar} ${included.lib.file.reference.asm-3.1.jar} "/>
         </manifest>
         <delete dir="${dist.ear.dir}/temp"/>
     </target>
@@ -538,8 +540,9 @@ or ant -Dj2ee.platform.classpath=&lt;server_classpath&gt; (where no properties f
         <copy file="${reference.oclc-harvester.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${reference.localindices-dao.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.log4j-1.2.15.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jsr311-api.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
-        <copy file="${file.reference.jersey.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jsr311-api-1.0.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jersey-core-1.0.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
+        <copy file="${file.reference.jersey-server-1.0.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
         <copy file="${file.reference.asm-3.1.jar}" todir="${build.web.dir}/WEB-INF/lib"/>
     </target>
     <target depends="init,compile,compile-jsps,-pre-dist,library-inclusion-in-manifest" name="do-ear-dist">

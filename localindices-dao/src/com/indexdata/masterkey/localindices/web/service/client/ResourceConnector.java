@@ -71,6 +71,7 @@ public class ResourceConnector<T> {
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", mimeType);
             conn.setRequestMethod("PUT");
 
             JAXBContext context = getJAXBContext();
@@ -128,6 +129,7 @@ public class ResourceConnector<T> {
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", mimeType);
             conn.setRequestMethod("POST");
 
             JAXBContext context = getJAXBContext();

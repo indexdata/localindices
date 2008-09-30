@@ -11,8 +11,6 @@ import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.ProduceMime;
-import javax.ws.rs.ConsumeMime;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.DefaultValue;
@@ -23,6 +21,8 @@ import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 
 /**
  * RESTful WS (resource) that maps to the Harvestables collection.
@@ -55,7 +55,7 @@ public class HarvestablesResource {
      * @return an instance of HarvestablesConverter
      */
     @GET
-    @ProduceMime({"application/xml", "application/json"})
+    @Produces("application/xml")
     public HarvestablesConverter get(
             
             @QueryParam("start")
@@ -73,7 +73,7 @@ public class HarvestablesResource {
      * @return Http 201 response code.
      */
     @POST
-    @ConsumeMime({"application/xml", "application/json"})
+    @Consumes("application/xml")
     public Response post(HarvestableConverter data) {
         Harvestable entity = data.getEntity();
         dao.createHarvestable(entity);
