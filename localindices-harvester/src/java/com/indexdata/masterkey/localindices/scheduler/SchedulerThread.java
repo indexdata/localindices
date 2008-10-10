@@ -33,7 +33,7 @@ public class SchedulerThread implements Runnable {
         while (keepRunning()) {
             try {
                 Thread.sleep(10 * 1000);
-                logger.log(Level.INFO, "Checking and updating current job list..");
+                //logger.log(Level.INFO, "Checking and updating current job list..");
                 scheduler.checkJobs();
                 scheduler.updateJobs();
                 scheduler.checkJobs();

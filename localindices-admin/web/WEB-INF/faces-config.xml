@@ -36,6 +36,12 @@
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
+            <from-outcome>harvester_log</from-outcome>
+            <to-view-id>/harvester_log.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
             <from-outcome>resource_added</from-outcome>
             <to-view-id>/list_resources.jsp</to-view-id>
         </navigation-case>
