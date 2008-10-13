@@ -51,6 +51,9 @@ public class JobInstance {
         } else if (hable instanceof XmlBulkResource) {
             harvestJob = new BullkHarvestJob((XmlBulkResource) hable);
             harvestJob.setStorage(storage);
+        } else if (hable instanceof WebCrawlResource) {
+            harvestJob = new WebHarvestJob((WebCrawlResource) hable);
+            harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }

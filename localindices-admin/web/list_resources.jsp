@@ -18,11 +18,9 @@
             <h:form>
                 <h:commandLink value="Resource List" action="list_resources" />
                 <h:outputText value=" | Add new resource: "/>
-                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
-                <!--
+                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
                 <h:outputText value=", "/>
-                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />
-                -->
+                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
                 <h:outputText value=", "/>
                 <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
                 <h:outputText value=" | "/>
