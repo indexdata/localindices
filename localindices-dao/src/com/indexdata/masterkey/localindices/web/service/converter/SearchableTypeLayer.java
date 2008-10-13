@@ -29,6 +29,7 @@ public class SearchableTypeLayer extends Layer {
     private String cclMapDate;
     private String cclMapTerm;
     private String authentication;
+    private String urlRecipe;
 
     public String getRecordEncoding() {
         return recordEncoding;
@@ -133,6 +134,14 @@ public class SearchableTypeLayer extends Layer {
 
     public void setAuthentication(String authentication) {
         this.authentication = authentication;
-    }       
+    }
+
+    public String getUrlRecipe() {
+        return urlRecipe;
+    }
+
+    public void setUrlRecipe(String urlRecipe) {
+        this.urlRecipe = urlRecipe;
+    }
 
 }
