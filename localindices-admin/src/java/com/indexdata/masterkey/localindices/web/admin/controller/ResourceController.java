@@ -83,7 +83,7 @@ public class ResourceController {
     // <editor-fold defaultstate="collapsed" desc="Harvest schedule handling functions">
     private enum Month {
 
-        Any, January, Febraruary, March, April, May, June,
+        Any, January, February, March, April, May, June,
         July, August, September, November, October, December
     }
     private enum DayOfTheWeek {
