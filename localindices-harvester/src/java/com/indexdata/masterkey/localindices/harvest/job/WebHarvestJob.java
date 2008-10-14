@@ -18,6 +18,16 @@ import org.apache.log4j.Logger;
  * Crawls around web sites and stores full text, title, url, etc.
  *
  * @author heikki
+ * 
+ * TODO:
+ *   - Extract links from pages (absolute and relative!)
+ *   - Keep track of depth, stop at limit
+ *   - Robots.txt (with cache)
+ *   - Redirects (watch out for loops etc)
+ *   - Do not load a server too hard (if same server as last time, wait a second)
+ *   - Get text into zebra
+ *   - filter what types of links to follow
+ *   - error handling, time outs, etc
  */
 public class WebHarvestJob implements HarvestJob {
 
@@ -103,7 +113,8 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     private String fetchPage(String pageUrl) {
-        // FIXME - Return a structure with all the data and error messages
+        // FIXME - Return a pageinfo structure with all the data and error messages
+        // FIXME - Take the URL as an URL, not as a string
         logger.log(Level.TRACE, "About to fetch '" + pageUrl + "'");
         URL url;
         try {
@@ -163,16 +174,13 @@ public class WebHarvestJob implements HarvestJob {
         pageInfo pi = new pageInfo();
         pi.content=page; // save it all for future reference
         pi.url = url;
-
+        // Split headers and body, if possible
         Pattern p1 = Pattern.compile("<head>(.*)</head>.*"+
                 "<body>(.*)", 
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         Matcher m1 = p1.matcher(page);
         if (m1.find()) {
             logger.log(Level.TRACE, "P1 matched." );
-            //for ( int i = 1; i<=m1.groupCount(); i++) 
-            //    logger.log(Level.TRACE, "  P1 match " + i + ": '" + m1.group(i)+"'" );
-
             pi.headers = m1.group(1);
             pi.body = m1.group(2);
         } else {
@@ -180,20 +188,51 @@ public class WebHarvestJob implements HarvestJob {
             pi.headers ="";
             pi.body = page; // doesn't look like good html, try to extract links anyway
         }
+        // Extract a title
         pi.title="";
         Pattern p2 = Pattern.compile("<title>(.*)</title>",
-                Pattern.CASE_INSENSITIVE);
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         Matcher m2 = p2.matcher(pi.headers);
         if (m2.find()) {
             pi.title=m2.group(1);
-        } else {
+        } else {            
             pi.title="???"; // FIXME - try to get the first H1 tag, 
             // or first text line or something
         }
+        // extract full text
+
+        // extract links
+        URL pageUrl;
+        try {
+            pageUrl = new URL(url);
+        } catch (MalformedURLException ex) {
+            return pi; // without extracting links, they won't be good without this
+        }
+
+        //Pattern p3 = Pattern.compile("<a([^>]+)>",
+        Pattern p3 = Pattern.compile("<a[^>]+href=['\"]?([^>'\"#]+)['\"# ]?[^>]*>", 
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        Matcher m3 = p3.matcher(pi.body);
+        while (m3.find()) {
+            String lnk = m3.group(1);
+            
+            URL linkUrl;
+            try {
+                linkUrl = new URL(pageUrl, lnk);
+            } catch (MalformedURLException ex) {
+                logger.log(Level.TRACE, "Could not make a good url from '" + lnk +"'");
+                break;
+            }
+            String newlnk = linkUrl.toString();
+            logger.log(Level.TRACE, "Found link '" + m3.group() +"' '"+lnk+"' "+
+                    "-> '" + newlnk + "'" );
+            
+        }
+        
         logger.log(Level.TRACE, "Split page " + pi.url + " into "+
                 "title:'" + pi.title + "'  " +
-                "headers:'" + pi.headers + "' " +
-                "body:'" + pi.body + "' " );
+                "headers (" + pi.headers.length() + ") " +
+                "body: (" + pi.body.length() + ") " );
 
         
         return pi;
