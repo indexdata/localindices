@@ -83,6 +83,7 @@ public class BullkHarvestJob implements HarvestJob {
             status = HarvestStatus.FINISHED;
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
+            error = e.getMessage();
             logger.log(Level.ERROR,  "Download failed.", e);
         }
     }
