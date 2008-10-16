@@ -30,7 +30,12 @@ public class BullkHarvestJob implements HarvestJob {
     
     public BullkHarvestJob(XmlBulkResource resource) {
         this.resource = resource;
-        this.status = HarvestStatus.NEW;
+        String persistedStatus = resource.getCurrentStatus();
+        if (persistedStatus == null)
+            this.status = HarvestStatus.NEW;
+        else
+            this.status = HarvestStatus.WAITING;
+        this.resource.setError(null);
     }
     
     private synchronized boolean isKillSendt() {
