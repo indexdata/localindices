@@ -75,11 +75,11 @@ public class BullkHarvestJob implements HarvestJob {
         try {
             status = HarvestStatus.RUNNING;
             downloadList(resource.getUrl().split(" "));
+            status = HarvestStatus.FINISHED;
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
             logger.log(Level.ERROR,  "Download failed.", e);
         }
-        status = HarvestStatus.FINISHED;
     }
     
     private void downloadList(String[] urls) throws Exception {
