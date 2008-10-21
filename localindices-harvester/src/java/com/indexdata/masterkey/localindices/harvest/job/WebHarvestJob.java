@@ -124,7 +124,7 @@ public class WebHarvestJob implements HarvestJob {
         this.error = e;
         status = HarvestStatus.ERROR;
         resource.setError(e);
-        logger.log(Level.ERROR, e);
+        logger.log(Level.ERROR, e); 
     }
 
     public String getError() {
