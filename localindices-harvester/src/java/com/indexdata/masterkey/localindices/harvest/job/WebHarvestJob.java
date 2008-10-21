@@ -64,7 +64,7 @@ public class WebHarvestJob implements HarvestJob {
     private final static int readBlockSize = 1000000; // bytes to read in one op
     private final static int maxReadSize = 10000000; // 10MB 
     private final static String userAgentString = "IndexData Masterkey Web crawler";
-    private final int sleepTime = 100; // ms to sleep between requests
+    private final int sleepTime = 1000; // ms to sleep between requests
 
     private class pageInfo {
 
@@ -113,7 +113,7 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     public HarvestStorage getStorage() {
-        return storage;
+        return this.storage;
     }
 
     public void finishReceived() {
@@ -152,12 +152,12 @@ public class WebHarvestJob implements HarvestJob {
             urlConnection.setRequestProperty("User-agent", userAgentString);
             InputStream urlStream = url.openStream();
             pi.contenttype = urlConnection.getContentType();
-              // Fixme - this requests the page once! And with 'Java' in user'agent
-              // and below we fetch it once more! (with proper user-agent)
+            // Fixme - this requests the page once! And with 'Java' in user'agent
+            // and below we fetch it once more! (with proper user-agent)
             if (pi.contenttype.isEmpty()) {
                 pi.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
             }
-            if (pi.contenttype == null || pi.contenttype.isEmpty() ) {
+            if (pi.contenttype == null || pi.contenttype.isEmpty()) {
                 pi.error = "Skipped '" + pageUrl + "'. could not get content type";
                 logger.log(Level.DEBUG, pi.error);
                 return pi;
@@ -233,7 +233,7 @@ public class WebHarvestJob implements HarvestJob {
             pi.title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
         }
-        
+
         // extract full text
         p = Pattern.compile("<[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
@@ -358,19 +358,18 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     /** A little delay between making the requests
-     * Some times things have slowed down a lot, so I check and log such!
      */
     private void sleep() {
         long startTime = System.currentTimeMillis();
         try {
             Thread.sleep(sleepTime);
-        } catch (InterruptedException ex) {            
-            logger.log(Level.TRACE,"Sleep got interrupted");
+        } catch (InterruptedException ex) {
+            logger.log(Level.TRACE, "Sleep got interrupted");
         }
         long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
-        if ( elapsed > 2*sleepTime) {
-            logger.log(Level.TRACE,"Slept " + elapsed + "ms, "+
-                    "asked for only " + sleepTime+ "ms" );
+        if (elapsed > 2 * sleepTime) {
+            logger.log(Level.TRACE, "Slept " + elapsed + "ms, " +
+                    "asked for only " + sleepTime + "ms");
         }
     } // sleep
 
@@ -387,14 +386,14 @@ public class WebHarvestJob implements HarvestJob {
                 }
                 pageInfo pi = fetchPage(curUrl);
                 if (!pi.content.isEmpty()) {
+                    // TODO: Split according to the type of the page
                     splitHtmlPage(pi);
                     for (URL u : pi.links) {
                         if (!nextRound.contains(u) && filterLink(u)) {
-                            // FIXME - filter those links that need to be followed
                             nextRound.add(u);
                         }
-                        sleep();
                     }
+                    sleep();
                 }
             }
         }
@@ -429,13 +428,35 @@ public class WebHarvestJob implements HarvestJob {
 
     public void run() {
         status = HarvestStatus.RUNNING;
+        if (storage == null) {
+            setError("Internal error: no storage set");
+            return;
+        }
+        try {
+            storage.begin();
+        } catch (IOException ex) {
+            setError("I/O error on storage.begin: " + ex.getMessage());
+            return;
+        }
         harvestLoop();
         if (this.error == null) {
             if (isKillSendt()) {
                 setError("Web Crawl interrupted with a kill signal");
+                try {
+                    storage.rollback();
+                } catch (IOException ex) {
+                    setError("I/O error on storage.rollback (after interrupt) " +
+                            ex.getMessage());
+                }
             } else {
-                //status = HarvestStatus.FINISHED;
+                try {
+                    //status = HarvestStatus.FINISHED;
+                    storage.commit();
+                } catch (IOException ex) {
+                    setError("I/O error on storage.begin: " + ex.getMessage());
+                }
                 setError("All done - but we call it an error so we can do again");
+
             }
         }
     } // run()
