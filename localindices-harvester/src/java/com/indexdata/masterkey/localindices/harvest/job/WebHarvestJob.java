@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
  * 
  * TODO:
  *   - use proper XML tools to produce the XML fragments to index
- *   - modify storage so we can overwrite instead of appending (in the commit op)
  *   - Redirects (watch out for loops etc) (doesn't the library handle this?)
+ *     (make a test page or two to see what actually happens)
  *   - different extract routines for different types
  *   - Parse and understand a jump page
  *   - (after the jump page), harvest the same site only, but as deep as it goes
@@ -58,8 +58,8 @@ public class WebHarvestJob implements HarvestJob {
     private int numtosearch;
     private int round;
     private Map<URL, String> robotCache = new HashMap<URL, String>();
-    private final static int connTimeOut = 3000; // ms to make a connection
-    private final static int readTimeOut = 3000; // ms to read a block
+    private final static int connTimeOut = 30000; // ms to make a connection
+    private final static int readTimeOut = 30000; // ms to read a block
     // About 30 seconds seems reasonable. 
     private final static int readBlockSize = 1000000; // bytes to read in one op
     private final static int maxReadSize = 10000000; // 10MB 
@@ -296,9 +296,9 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     private String xmlTag(String tag, String data) {
-        return "<"+tag+">" +
+        return "<pz:metadata type=\""+tag+"\">" +
                 data +
-                "</"+tag+">" ;
+                "</pz:metadata>" ;
     }
     
     /** Convert the page into XML suitable for indexing with zebra */

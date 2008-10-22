@@ -20,20 +20,19 @@ public class HarvestStorageFactory {
     }
 
     public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
+        HarvestStorage st = null;
         if (harvestable instanceof OaiPmhResource) {
             if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21")) {
-                return new ZebraFileStorage(storageDir, harvestable, "oaimarc21-pz.xml");
+                st = new ZebraFileStorage(storageDir, harvestable, "oaimarc21-pz.xml");
             } else {
-                return new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
+                st = new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
             }
         } else if (harvestable instanceof XmlBulkResource) {
-            return new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
+            st = new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
         } else if (harvestable instanceof WebCrawlResource) {
-            HarvestStorage st = new ZebraFileStorage(storageDir, harvestable, "pz-pz.xml");
+            st = new ZebraFileStorage(storageDir, harvestable, "pz-pz.xml");
             st.setOverwriteMode(true);
-            return st;
-        } else {
-            return null;
         }
+        return st;
     }
 }

@@ -35,7 +35,15 @@ public class ZebraFileStorage extends MultiFileStorage {
     public void commit() throws IOException {
         super.commit();
         if ( super.getOverwriteMode()) {
+            try {
             zebraDrop();
+            } catch (IOException ex) {
+                logger.log(Level.INFO, "Dropping the database failed: " + 
+                        ex.getMessage() );
+                // Most likely it failed because we didn't have one already,
+                // so we ignore the error here. If the disk is broken, the
+                // next operation(s) will fail too!
+            }
         }
         zebraUpdate();
         zebraCommit();
@@ -56,7 +64,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         };
         int ret = ProcessUtils.execAndWait(indexCmd, logger);
         if (ret != 0) {
-            throw new IOException("Updating DB failed.");
+            throw new IOException("Updating DB failed. rc=" + ret);
         }
         logger.log(Level.INFO, "Zebra: update complete.");
     }
@@ -67,7 +75,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         String[] dropCmd = {"zebraidx", "-c", config, "-t", domConf, "drop", databaseName};
         int ret = ProcessUtils.execAndWait(dropCmd, logger);
         if (ret != 0) {
-            throw new IOException("Dropping DB failed.");
+            throw new IOException("Dropping DB failed. rc=" + ret);
         }
         logger.log(Level.INFO, "Zebra: db dropped.");        
         
@@ -77,7 +85,7 @@ public class ZebraFileStorage extends MultiFileStorage {
         String[] commitCmd = {"zebraidx", "-c", config, "-t", domConf, "commit"};
         int ret = ProcessUtils.execAndWait(commitCmd, logger);
         if (ret != 0) {
-            throw new IOException("Commit when dropping DB failed.");
+            throw new IOException("Commit when dropping DB failed. rc=" + ret);
         }
         logger.log(Level.INFO, "Zebra: data committed.");
 
