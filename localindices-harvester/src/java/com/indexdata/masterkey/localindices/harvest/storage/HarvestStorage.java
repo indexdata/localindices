@@ -38,6 +38,17 @@ public interface HarvestStorage {
      * @throws java.io.IOException
      */
     public void purge() throws IOException;
+ 
+    /** 
+     * Set/get a flag that indicates the overwrite mode
+     * Normally a storage is in append mode, so new transactions
+     * (begin-write-commit) are appended to the existing ones. 
+     * But in overwrite mode, we remove all the old stuff when doing
+     * the commit. Useful for things that need to be harvested all
+     * over again, like bulk uploads.
+     */
+    public void setOverwriteMode(boolean mode);
+    public boolean getOverwriteMode();
     
     /** 
      * Returns an output stream that allows for writing data to the storage.

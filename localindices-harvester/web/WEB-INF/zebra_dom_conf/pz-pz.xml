@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dom>
  <input syntax="xml">
-   <xmlreader level="2"/>
+   <xmlreader level="1"/>
    <xslt stylesheet="stylesheets/addsnippet.xsl"/>
  </input>
  <extract name="index">

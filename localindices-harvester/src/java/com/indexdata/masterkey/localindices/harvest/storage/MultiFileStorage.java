@@ -40,6 +40,7 @@ public class MultiFileStorage implements HarvestStorage {
     protected String currentFileName; // the file name, no path
     private String namePrefix; // file name prefix (in jobDir)
     private OutputStream fos;  // the "file handle"
+    private boolean overwriteMode = false; // default to appending, as before
 
 
     public MultiFileStorage(String storageDir, Harvestable harvestable) {
@@ -111,6 +112,10 @@ public class MultiFileStorage implements HarvestStorage {
     public void commit() throws IOException {
         fos.close();
         File fc = new File(committedDir);
+        if (overwriteMode && fc.exists()) {
+            deleteDir(fc);
+        }
+        fc = new File(committedDir);
         if (!fc.exists()) {
             if (!fc.mkdirs()) {
                 throw new IOException("Could not create commit-dir '" +
@@ -140,7 +145,8 @@ public class MultiFileStorage implements HarvestStorage {
     private void deleteDir(File f) throws IOException {
         if ( ! f.exists() )
             return;
-        logger.log(Level.INFO,"Recursing into '" + f.getCanonicalPath() + "'");
+        logger.log(Level.DEBUG,"Recursing into '" + f.getCanonicalPath() + "'" +
+                " for deleting it");
         for (File ff : f.listFiles()) {
             if (ff.isDirectory()) {
                 deleteDir(ff);
@@ -194,5 +200,14 @@ public class MultiFileStorage implements HarvestStorage {
     public String getOutFileName() {
         return incomingDir + "/" + currentFileName;
     }
+
+    public void setOverwriteMode(boolean mode) {
+        overwriteMode = mode;
+    }
+    
+    public boolean getOverwriteMode(){
+        return overwriteMode;
+    }
+    
     
 } // MultiFileStorage

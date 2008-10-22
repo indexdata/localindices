@@ -3,7 +3,6 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -16,22 +15,25 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
  * @author jakub
  */
 public class HarvestStorageFactory {
+
     public HarvestStorageFactory() {
-        
     }
+
     public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         if (harvestable instanceof OaiPmhResource) {
-            if (((OaiPmhResource)harvestable).getMetadataPrefix().equalsIgnoreCase("marc21")) {
+            if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21")) {
                 return new ZebraFileStorage(storageDir, harvestable, "oaimarc21-pz.xml");
             } else {
                 return new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
             }
-        }
-        else if (harvestable instanceof XmlBulkResource)
+        } else if (harvestable instanceof XmlBulkResource) {
             return new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
-        else if (harvestable instanceof WebCrawlResource)
-            return new ZebraFileStorage(storageDir, harvestable, "pz-pz.xml");
-        else
+        } else if (harvestable instanceof WebCrawlResource) {
+            HarvestStorage st = new ZebraFileStorage(storageDir, harvestable, "pz-pz.xml");
+            st.setOverwriteMode(true);
+            return st;
+        } else {
             return null;
+        }
     }
 }

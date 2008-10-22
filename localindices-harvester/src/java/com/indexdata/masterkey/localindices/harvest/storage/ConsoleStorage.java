@@ -14,7 +14,8 @@ import java.io.OutputStream;
  * @author jakub
  */
 public class ConsoleStorage implements HarvestStorage {
-
+    private boolean overwriteMode = false;
+    
     public void begin() throws IOException {
         System.out.println("--- Storage write begun ---");
     }
@@ -34,4 +35,14 @@ public class ConsoleStorage implements HarvestStorage {
     public OutputStream getOutputStream() {
         return System.out;
     }
+    
+    public void setOverwriteMode(boolean mode) {
+        System.out.println("--- OverwriteMode set to " + mode );
+        overwriteMode = mode;        
+    }
+    
+    public boolean getOverwriteMode(){
+        return overwriteMode;        
+    }
+
 }

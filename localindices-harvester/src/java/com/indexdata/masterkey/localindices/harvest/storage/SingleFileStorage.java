@@ -53,4 +53,14 @@ public class SingleFileStorage implements HarvestStorage {
     public String getOutFileName() {
         return outFileName;
     }
+    
+    public void setOverwriteMode(boolean mode) {
+        if (mode)
+            throw new UnsupportedOperationException("Overwritemode not supported");
+    }
+    
+    public boolean getOverwriteMode(){
+        return false;
+    }
+
 }

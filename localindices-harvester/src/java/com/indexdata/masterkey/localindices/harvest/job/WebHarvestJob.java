@@ -8,6 +8,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,17 +24,16 @@ import org.apache.log4j.Logger;
  * @author heikki
  * 
  * TODO:
- *   - produce indexable XML
- *   - write into the storage
- *   - open, close and commit the storage properly
+ *   - use proper XML tools to produce the XML fragments to index
  *   - modify storage so we can overwrite instead of appending (in the commit op)
  *   - Redirects (watch out for loops etc) (doesn't the library handle this?)
  *   - different extract routines for different types
- *   - error handling, 
+ *   - Parse and understand a jump page
+ *   - (after the jump page), harvest the same site only, but as deep as it goes
+ *     (within some reasonable limit to avoid endless loops!)
  *   - Parameters
  *     - Remove the filetype mask
  *     - Add max pages to harvest
- *   - Add a filter to skip some links
  * TODO - tests
  *   - Test a site with plain text files
  *   - Test with a tarpit-like site
@@ -77,6 +77,7 @@ public class WebHarvestJob implements HarvestJob {
         public Vector<URL> links = new Vector<URL>();
         public String plaintext = "";
         public String title = "";
+        public String xml = "";
     }
 
     public WebHarvestJob(WebCrawlResource resource) {
@@ -124,7 +125,7 @@ public class WebHarvestJob implements HarvestJob {
         this.error = e;
         status = HarvestStatus.ERROR;
         resource.setError(e);
-        logger.log(Level.ERROR, e); 
+        logger.log(Level.ERROR, e);
     }
 
     public String getError() {
@@ -273,6 +274,44 @@ public class WebHarvestJob implements HarvestJob {
                 pi.links.size() + " links");
     }
 
+    private void xmlStart() throws IOException {
+        String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " +
+                "?>\n" +
+                "<records" +
+                  " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" "+
+                ">\n";
+        OutputStream os = storage.getOutputStream();
+        os.write(header.getBytes());
+    }
+
+    private void saveXmlFragment( pageInfo pi) throws IOException {
+        OutputStream os = storage.getOutputStream();
+        os.write(pi.xml.getBytes());        
+    }
+    
+    private void xmlEnd() throws IOException {
+        String footer = "</records>\n";
+        OutputStream os = storage.getOutputStream();
+        os.write(footer.getBytes());
+    }
+
+    private String xmlTag(String tag, String data) {
+        return "<"+tag+">" +
+                data +
+                "</"+tag+">" ;
+    }
+    
+    /** Convert the page into XML suitable for indexing with zebra */
+    private void makeXmlFragment(pageInfo pi) {
+        // FIXME - Use proper XML tools to do this, to avoid problems with
+        // bad entities, character sets, etc.
+        pi.xml = "<pz:record>\n";
+        pi.xml += xmlTag("md-title", pi.title);
+        pi.xml += xmlTag("md-fulltext", pi.plaintext);
+        pi.xml += xmlTag("md-electronic-url", pi.url.toString() );
+        pi.xml += "</pz:record>\n";        
+    } // makeXml
+
     private boolean checkRobots(URL url) {
         String strHost = url.getHost();
         if (strHost == null || strHost.isEmpty()) {
@@ -393,6 +432,15 @@ public class WebHarvestJob implements HarvestJob {
                             nextRound.add(u);
                         }
                     }
+                    makeXmlFragment(pi);
+                    if ( !pi.xml.isEmpty() ) {
+                        try {
+                            saveXmlFragment(pi);
+                        } catch (IOException ex) {
+                            setError("I/O error writing data: " + 
+                                    ex.getMessage());
+                        }
+                    }
                     sleep();
                 }
             }
@@ -404,7 +452,10 @@ public class WebHarvestJob implements HarvestJob {
         round = 0;
         long startTime = System.currentTimeMillis();
         initWorkList();
-        while (round <= resource.getRecursionDepth() && !toSearch.isEmpty() && !isKillSendt()) {
+        while (round <= resource.getRecursionDepth() && 
+                !toSearch.isEmpty() && 
+                !isKillSendt() &&
+                this.error == null) {
             harvestRound();
             logger.log(Level.DEBUG, "Round " + round + ": " +
                     searched.size() + " urls seen. " +
@@ -434,6 +485,7 @@ public class WebHarvestJob implements HarvestJob {
         }
         try {
             storage.begin();
+            xmlStart();
         } catch (IOException ex) {
             setError("I/O error on storage.begin: " + ex.getMessage());
             return;
@@ -451,6 +503,7 @@ public class WebHarvestJob implements HarvestJob {
             } else {
                 try {
                     //status = HarvestStatus.FINISHED;
+                    xmlEnd();                            
                     storage.commit();
                 } catch (IOException ex) {
                     setError("I/O error on storage.begin: " + ex.getMessage());

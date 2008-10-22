@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
  */
 public class ProcessUtils {
 
-    
     /**
      * Executes a process and returns immediately.
      * @param cmd a command to be executed
@@ -39,6 +38,14 @@ public class ProcessUtils {
      * @throws java.io.IOException
      */
     public static int execAndWait(String[] cmd, Logger logger) throws IOException {
+        if ( logger.isDebugEnabled() )
+        {
+            String logcmd = "About to execute command: ";
+            for (String c : cmd) {
+                logcmd += c + " ";
+            }
+            logger.log(Level.DEBUG, logcmd);
+        }
         Process p = execAndReturn(cmd);
         logError(p, logger);
         try {
@@ -50,15 +57,16 @@ public class ProcessUtils {
             return -1;
         }
     }
-    
+
     /**
      * Logs the process error output in a seperate thread.
      * @param proc process that prints the output to be logged
      * @param logger a logger to log to
      * @return logging thread
      */
-    public static Thread logError(final Process proc, final Logger logger) {        
+    public static Thread logError(final Process proc, final Logger logger) {
         Thread lT = new Thread() {
+
             @Override
             public void run() {
                 InputStream is = proc.getErrorStream();
