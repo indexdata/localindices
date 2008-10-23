@@ -10,16 +10,12 @@
   <xsl:template match="text()"/>
   
   <xsl:template match="pz:record">
-   <z:record z:id="{pz:metadata[@type='id']}">
-     <z:index name="any:w">
-         
-      <xsl:for-each select="pz:metadata">
-       <z:index name="{@type}:w {@type}:p">
-        <xsl:value-of select="."/>
-       </z:index>
-      </xsl:for-each>
-      
-    </z:index>
+   <z:record z:id="{pz:metadata[@type='id']}">         
+    <xsl:for-each select="pz:metadata">
+     <z:index name="any:w {@type}:w {@type}:p">
+      <xsl:value-of select="."/>
+     </z:index>
+    </xsl:for-each>      
    </z:record>
   </xsl:template>
   
