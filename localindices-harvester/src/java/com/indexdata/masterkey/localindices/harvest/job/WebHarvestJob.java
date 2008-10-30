@@ -29,6 +29,9 @@ import org.apache.log4j.Logger;
  *     (make a test page or two to see what actually happens)
  *   - different extract routines for different types
  *   - Parse and understand a jump page
+ *     Start url prefixes jump: and jump2:
+ *   - Keep the queue of crawlrequests, instead of urls, so we can keep track
+ *     of depth limits, jumppage numbers, etc.
  *   - (after the jump page), harvest the same site only, but as deep as it goes
  *     (within some reasonable limit to avoid endless loops!)
  *   - Parameters
@@ -133,7 +136,9 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     private pageInfo fetchPage(URL url) {
-        // FIXME - Return a pageinfo structure with all the data and error messages
+        // FIXME - Pass a request structure that contains the URL,
+        // and also referring page, jumppage-flag, and other stuff.
+
         pageInfo pi = new pageInfo();
         pi.url = url;
         pi.error = null;
@@ -192,6 +197,7 @@ public class WebHarvestJob implements HarvestJob {
             return pi;
         } catch (FileNotFoundException ex) {
             pi.error = "I/O Exception: " + pageUrl + " Not found ";
+        // FIXME - Display also the referring page
         } catch (IOException ex) {
             pi.error = "I/O Exception " +
                     "(" + ex.getClass().getSimpleName() + ") " +
@@ -202,7 +208,7 @@ public class WebHarvestJob implements HarvestJob {
                     "with " + pageUrl + ": " + ex.getMessage());
         }
         logger.log(Level.DEBUG, pi.error);
-        return pi; // signals an error, real return is inside the try block
+        return pi;
     } // fetchPage
 
     /** Split a html page. 
@@ -272,23 +278,48 @@ public class WebHarvestJob implements HarvestJob {
                 "h=" + pi.headers.length() + "b " +
                 "b=" + pi.body.length() + "b) " +
                 pi.links.size() + " links");
+    } // splitHtmlPage
+    
+    /** Split a plain-text link page
+     */
+    private void splitTextLinkPage( pageInfo pi ) {
+        pi.links.clear();
+        Pattern p = Pattern.compile("(http://\\S+)",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        Matcher m = p.matcher(pi.body);
+        while (m.find()) {
+            String lnk = m.group(1);
+            URL linkUrl;
+            try {
+                linkUrl = new URL(pi.url, lnk);
+            } catch (MalformedURLException ex) {
+                logger.log(Level.TRACE, "Could not make a good url from " +
+                        "'" + lnk + "' " +
+                        "when parsing " + pi.url.toString());
+                break;
+            }
+            //logger.log(Level.TRACE, "Found link '" + m3.group() + "' '" + lnk + "' " +
+            //        "-> '" + linkUrl.toString() + "'");
+            if (!pi.links.contains(linkUrl)) {
+                pi.links.add(linkUrl);
+            }
+        }
     }
-
     private void xmlStart() throws IOException {
         String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " +
                 "?>\n" +
                 "<records" +
-                  " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" "+
+                " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " +
                 ">\n";
         OutputStream os = storage.getOutputStream();
         os.write(header.getBytes());
     }
 
-    private void saveXmlFragment( pageInfo pi) throws IOException {
+    private void saveXmlFragment(pageInfo pi) throws IOException {
         OutputStream os = storage.getOutputStream();
-        os.write(pi.xml.getBytes());        
+        os.write(pi.xml.getBytes());
     }
-    
+
     private void xmlEnd() throws IOException {
         String footer = "</records>\n";
         OutputStream os = storage.getOutputStream();
@@ -296,11 +327,13 @@ public class WebHarvestJob implements HarvestJob {
     }
 
     private String xmlTag(String tag, String data) {
-        return "<pz:metadata type=\""+tag+"\">" +
-                data +
-                "</pz:metadata>" ;
+        String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML tools
+        clean = clean.replaceAll("<", "&lt;");
+        return "<pz:metadata type=\"" + tag + "\">" +
+                clean +
+                "</pz:metadata>";
     }
-    
+
     /** Convert the page into XML suitable for indexing with zebra */
     private void makeXmlFragment(pageInfo pi) {
         // FIXME - Use proper XML tools to do this, to avoid problems with
@@ -308,8 +341,8 @@ public class WebHarvestJob implements HarvestJob {
         pi.xml = "<pz:record>\n";
         pi.xml += xmlTag("md-title", pi.title);
         pi.xml += xmlTag("md-fulltext", pi.plaintext);
-        pi.xml += xmlTag("md-electronic-url", pi.url.toString() );
-        pi.xml += "</pz:record>\n";        
+        pi.xml += xmlTag("md-electronic-url", pi.url.toString());
+        pi.xml += "</pz:record>\n";
     } // makeXml
 
     private boolean checkRobots(URL url) {
@@ -360,7 +393,12 @@ public class WebHarvestJob implements HarvestJob {
         return true;
     }
 
-    private boolean filterLink(URL url) {
+    private boolean filterLink(URL url, URL samepage) {
+        if (samepage != null) {
+            if (!url.getHost().equals(samepage.getHost())) {
+                return false; // different site, don't go there
+            }
+        }
         if (resource.getUriMasks().isEmpty()) {
             return true; // no filtering, go anywhere
         }
@@ -377,7 +415,7 @@ public class WebHarvestJob implements HarvestJob {
         return false;
     }
 
-    private void initWorkList() {
+    private void OLDinitWorkList() {
         searched = new Vector<URL>();
         toSearch = new Vector<URL>();
         nextRound = new Vector<URL>();
@@ -394,6 +432,69 @@ public class WebHarvestJob implements HarvestJob {
         // Fixme - validate they all are OK
         }
         numtosearch = toSearch.size();
+    }
+
+    private void initWorkList() {
+        searched = new Vector<URL>();
+        toSearch = new Vector<URL>();
+        nextRound = new Vector<URL>();
+        logger.log(Level.TRACE, "InitWorkList: " + resource.getStartUrls());
+        Pattern p = Pattern.compile("([^:]+:)?(http:[^ ]+)",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+
+        Matcher m = p.matcher(resource.getStartUrls());
+        while (m.find()) {
+            logger.log(Level.TRACE, "Start Url: " +
+                    "'" + m.group(1) + "' " +
+                    "'" + m.group(2) + "'");
+            if (m.group(1) == null) {
+                // simple http:
+                try {
+                    URL url;
+                    url = new URL(m.group(2));
+                    toSearch.add(url);
+                    logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'");
+                } catch (MalformedURLException ex) {
+                    setError("Invalid start url: '" + m.group(2) + "'");
+                    toSearch.clear();
+                    return;
+                }
+            } else {
+                if (m.group(1).equals("jump:")) {
+                    try {
+                        URL url;
+                        url = new URL(m.group(2));
+                        pageInfo pi = fetchPage(url);
+                        if (!pi.content.isEmpty()) {
+                            splitHtmlPage(pi);
+                            if (pi.links.isEmpty()) {
+                                splitTextLinkPage(pi);
+                            }
+                            if (pi.links.isEmpty()) {
+                                setError("Jump page " + m.group(2) + 
+                                        " contains no links ");
+                                toSearch.clear();
+                                return;
+                            }
+                            for (URL u : pi.links) {
+                                if (!toSearch.contains(u) && filterLink(u, null)) {
+                                    toSearch.add(u);
+                                }
+                            }
+                        }
+                    } catch (MalformedURLException ex) {
+                        setError("Invalid start url: '" + m.group(2) + "'");
+                        toSearch.clear();
+
+                    }
+                } else {
+                    setError("Invalid start url prefix: '" + m.group(1) + "'");
+                    toSearch.clear();
+                    return;
+                }
+
+            }
+        }
     }
 
     /** A little delay between making the requests
@@ -421,23 +522,22 @@ public class WebHarvestJob implements HarvestJob {
                 searched.add(curUrl); // to make sure we don't go there again  
                 if (!checkRobots(curUrl)) {
                     break;
-                //resource.setCurrentStatus("" + searched.size() + " pages visited");
                 }
                 pageInfo pi = fetchPage(curUrl);
                 if (!pi.content.isEmpty()) {
                     // TODO: Split according to the type of the page
                     splitHtmlPage(pi);
                     for (URL u : pi.links) {
-                        if (!nextRound.contains(u) && filterLink(u)) {
+                        if (!nextRound.contains(u) && filterLink(u, curUrl)) {
                             nextRound.add(u);
                         }
                     }
                     makeXmlFragment(pi);
-                    if ( !pi.xml.isEmpty() ) {
+                    if (!pi.xml.isEmpty()) {
                         try {
                             saveXmlFragment(pi);
                         } catch (IOException ex) {
-                            setError("I/O error writing data: " + 
+                            setError("I/O error writing data: " +
                                     ex.getMessage());
                         }
                     }
@@ -452,8 +552,8 @@ public class WebHarvestJob implements HarvestJob {
         round = 0;
         long startTime = System.currentTimeMillis();
         initWorkList();
-        while (round <= resource.getRecursionDepth() && 
-                !toSearch.isEmpty() && 
+        while (round <= resource.getRecursionDepth() &&
+                !toSearch.isEmpty() &&
                 !isKillSendt() &&
                 this.error == null) {
             harvestRound();
@@ -503,7 +603,7 @@ public class WebHarvestJob implements HarvestJob {
             } else {
                 try {
                     //status = HarvestStatus.FINISHED;
-                    xmlEnd();                            
+                    xmlEnd();
                     storage.commit();
                 } catch (IOException ex) {
                     setError("I/O error on storage.begin: " + ex.getMessage());
@@ -513,5 +613,5 @@ public class WebHarvestJob implements HarvestJob {
             }
         }
     } // run()
-}
+} // class WebHarvestJob
 
