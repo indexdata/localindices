@@ -14,6 +14,7 @@
     <context-param>
         <param-name>ZEBRASRV_URL</param-name>
         <param-value>us4.indexdata.com</param-value>
+        <!--<param-value>coffee.indexdata.dk</param-value>-->
     </context-param>
     <context-param>
         <param-name>ZEBRASRV_PORT</param-name>
@@ -34,7 +35,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ServletAdaptor</servlet-name>
-        <url-pattern>/resources/*</url-pattern>
+        <url-pattern>/records/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>SchedulerStatusServlet</welcome-file>

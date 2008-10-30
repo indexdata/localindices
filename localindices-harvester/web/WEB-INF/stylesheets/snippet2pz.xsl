@@ -12,21 +12,20 @@
       </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="*">
+  <xsl:template match="pz:metadata">
       <xsl:copy-of select="."/>
       <xsl:apply-templates/>
   </xsl:template>
   
   <xsl:template match="z:record/z:snippet">
         <pz:metadata type="snippet">
+          <xsl:text>@sfields</xsl:text><xsl:value-of select="@fields"/><xsl:text>@sfields</xsl:text>
           <xsl:apply-templates mode="snippet"/>
         </pz:metadata>
   </xsl:template>
 
   <xsl:template match="z:s" mode="snippet">
-    <xsl:text>@sb</xsl:text>
-    <xsl:value-of select="."/>
-    <xsl:text>@se</xsl:text>
+    <xsl:text>@sb</xsl:text><xsl:value-of select="."/><xsl:text>@se</xsl:text>
   </xsl:template>
     
   <xsl:template match="text()"/>
