@@ -46,6 +46,12 @@ import org.apache.log4j.Logger;
  *     - understand also Allow lines
  *   - better load reduction for servers.
  *     - keep todo list in a priority queue, with time stamps when a hosts turn is
+ *     - or run each site in its own thread, with proper sleeps.
+ *     - or, keep a last-see timestamp for each host, and check if we may call
+ *       again. If not, take the request off the top of the queue, and instert
+ *       into a random position in the later half of the queue.  This would be
+ *       easy to do with N threads in parallel.
+ *   - Detect and convert character sets, if possible 
  */
 public class WebHarvestJob implements HarvestJob {
 
@@ -67,7 +73,7 @@ public class WebHarvestJob implements HarvestJob {
     private final static int readBlockSize = 1000000; // bytes to read in one op
     private final static int maxReadSize = 10000000; // 10MB 
     private final static String userAgentString = "IndexData Masterkey Web crawler";
-    private final int sleepTime = 1000; // ms to sleep between requests
+    private final int sleepTime = 10000; // ms to sleep between requests
 
     private class pageInfo {
 
@@ -160,7 +166,7 @@ public class WebHarvestJob implements HarvestJob {
             pi.contenttype = urlConnection.getContentType();
             // Fixme - this requests the page once! And with 'Java' in user'agent
             // and below we fetch it once more! (with proper user-agent)
-            if (pi.contenttype.isEmpty()) {
+            if (pi.contenttype == null || pi.contenttype.isEmpty()) {
                 pi.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
             }
             if (pi.contenttype == null || pi.contenttype.isEmpty()) {
@@ -181,14 +187,16 @@ public class WebHarvestJob implements HarvestJob {
             // first, read in the entire URL
             byte b[] = new byte[readBlockSize];
             int numRead = urlStream.read(b);
-            pi.content = new String(b, 0, numRead);
-            //FIXME - Check if content all too big, abort! Could be a tar pit
-            // or misbehaving web server that just keeps outputting rubbish
-            while ((numRead != -1) && (pi.content.length() < maxReadSize)) {
-                numRead = urlStream.read(b);
-                if (numRead != -1) {
-                    String newContent = new String(b, 0, numRead);
-                    pi.content += newContent;
+            if (numRead <= 0) {
+                pi.content = "";
+            } else {
+                pi.content = new String(b, 0, numRead);
+                while ((numRead != -1) && (pi.content.length() < maxReadSize)) {
+                    numRead = urlStream.read(b);
+                    if (numRead != -1) {
+                        String newContent = new String(b, 0, numRead);
+                        pi.content += newContent;
+                    }
                 }
             }
             urlStream.close();
@@ -233,9 +241,12 @@ public class WebHarvestJob implements HarvestJob {
         pi.title = "";
         p = Pattern.compile("<title>\\s*(.*\\S)\\s*</title>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+                // FIXME - fails if there are two titles, takes them both
+                // and everything in between
         m = p.matcher(pi.headers);
         if (m.find()) {
             pi.title = m.group(1);
+            // FIXME - truncate to a decen max
         } else {
             pi.title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
@@ -279,14 +290,16 @@ public class WebHarvestJob implements HarvestJob {
                 "b=" + pi.body.length() + "b) " +
                 pi.links.size() + " links");
     } // splitHtmlPage
-    
+
     /** Split a plain-text link page
      */
-    private void splitTextLinkPage( pageInfo pi ) {
+    private void splitTextLinkPage(pageInfo pi) {
         pi.links.clear();
         Pattern p = Pattern.compile("(http://\\S+)",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         Matcher m = p.matcher(pi.body);
+        logger.log(Level.TRACE, "Parsing text links from " +
+                pi.body.length() + "bytes " + trunc(pi.body,50) );
         while (m.find()) {
             String lnk = m.group(1);
             URL linkUrl;
@@ -298,13 +311,14 @@ public class WebHarvestJob implements HarvestJob {
                         "when parsing " + pi.url.toString());
                 break;
             }
-            //logger.log(Level.TRACE, "Found link '" + m3.group() + "' '" + lnk + "' " +
-            //        "-> '" + linkUrl.toString() + "'");
+            logger.log(Level.TRACE, "Found link '" + m.group(1) + "' '" + lnk + "' " +
+                    "-> '" + linkUrl.toString() + "'");
             if (!pi.links.contains(linkUrl)) {
                 pi.links.add(linkUrl);
             }
         }
     }
+
     private void xmlStart() throws IOException {
         String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " +
                 "?>\n" +
@@ -332,6 +346,12 @@ public class WebHarvestJob implements HarvestJob {
         return "<pz:metadata type=\"" + tag + "\">" +
                 clean +
                 "</pz:metadata>";
+    }
+    
+    private String trunc (String s, int len) {
+        if (s.length()<=len)
+            return s;
+        return s.substring(0,len-1);
     }
 
     /** Convert the page into XML suitable for indexing with zebra */
@@ -467,11 +487,15 @@ public class WebHarvestJob implements HarvestJob {
                         pageInfo pi = fetchPage(url);
                         if (!pi.content.isEmpty()) {
                             splitHtmlPage(pi);
+                            logger.log(Level.TRACE, "Jump page contained " +
+                                    pi.links.size() + " HTML links");
                             if (pi.links.isEmpty()) {
                                 splitTextLinkPage(pi);
+                                logger.log(Level.TRACE, "Jump page contained " +
+                                        pi.links.size() + " plintext links");
                             }
                             if (pi.links.isEmpty()) {
-                                setError("Jump page " + m.group(2) + 
+                                setError("Jump page " + m.group(2) +
                                         " contains no links ");
                                 toSearch.clear();
                                 return;
@@ -495,6 +519,7 @@ public class WebHarvestJob implements HarvestJob {
 
             }
         }
+        numtosearch = toSearch.size();
     }
 
     /** A little delay between making the requests
@@ -520,30 +545,31 @@ public class WebHarvestJob implements HarvestJob {
             toSearch.removeElementAt(0);
             if (!searched.contains(curUrl)) {
                 searched.add(curUrl); // to make sure we don't go there again  
-                if (!checkRobots(curUrl)) {
-                    break;
-                }
-                pageInfo pi = fetchPage(curUrl);
-                if (!pi.content.isEmpty()) {
-                    // TODO: Split according to the type of the page
-                    splitHtmlPage(pi);
-                    for (URL u : pi.links) {
-                        if (!nextRound.contains(u) && filterLink(u, curUrl)) {
-                            nextRound.add(u);
+                if (checkRobots(curUrl)) {
+                    pageInfo pi = fetchPage(curUrl);
+                    if (!pi.content.isEmpty()) {
+                        // TODO: Split according to the type of the page
+                        splitHtmlPage(pi);
+                        for (URL u : pi.links) {
+                            if (!nextRound.contains(u) &&
+                                    filterLink(u, curUrl) &&
+                                    checkRobots(u)) {
+                                nextRound.add(u);
+                            }
                         }
-                    }
-                    makeXmlFragment(pi);
-                    if (!pi.xml.isEmpty()) {
-                        try {
-                            saveXmlFragment(pi);
-                        } catch (IOException ex) {
-                            setError("I/O error writing data: " +
-                                    ex.getMessage());
+                        makeXmlFragment(pi);
+                        if (!pi.xml.isEmpty()) {
+                            try {
+                                saveXmlFragment(pi);
+                            } catch (IOException ex) {
+                                setError("I/O error writing data: " +
+                                        ex.getMessage());
+                            }
                         }
-                    }
-                    sleep();
-                }
-            }
+                        sleep();
+                    } // got page
+                } // robot ok
+            } // not searched
         }
     } // harvestRound
 
