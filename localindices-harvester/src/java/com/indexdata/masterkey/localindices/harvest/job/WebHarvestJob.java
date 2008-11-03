@@ -239,10 +239,10 @@ public class WebHarvestJob implements HarvestJob {
         }
         // Extract a title
         pi.title = "";
-        p = Pattern.compile("<title>\\s*(.*\\S)\\s*</title>",
+        p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-                // FIXME - fails if there are two titles, takes them both
-                // and everything in between
+                // The ?? modifier should make it reluctant, so we get the firs title
+                // only, if there are several FIXME - does not work
         m = p.matcher(pi.headers);
         if (m.find()) {
             pi.title = m.group(1);
@@ -295,8 +295,9 @@ public class WebHarvestJob implements HarvestJob {
      */
     private void splitTextLinkPage(pageInfo pi) {
         pi.links.clear();
-        Pattern p = Pattern.compile("(http://\\S+)",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        //Pattern p = Pattern.compile("(http://\\S+)",
+        Pattern p = Pattern.compile("(http://[^ <>]+)",
+                Pattern.CASE_INSENSITIVE );
         Matcher m = p.matcher(pi.body);
         logger.log(Level.TRACE, "Parsing text links from " +
                 pi.body.length() + "bytes " + trunc(pi.body,50) );
@@ -343,6 +344,8 @@ public class WebHarvestJob implements HarvestJob {
     private String xmlTag(String tag, String data) {
         String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML tools
         clean = clean.replaceAll("<", "&lt;");
+        clean = clean.replaceAll(">", "&gt;");
+        clean = clean.replaceAll("\\s+", " ");
         return "<pz:metadata type=\"" + tag + "\">" +
                 clean +
                 "</pz:metadata>";
@@ -492,7 +495,7 @@ public class WebHarvestJob implements HarvestJob {
                             if (pi.links.isEmpty()) {
                                 splitTextLinkPage(pi);
                                 logger.log(Level.TRACE, "Jump page contained " +
-                                        pi.links.size() + " plintext links");
+                                        pi.links.size() + " plaintext links");
                             }
                             if (pi.links.isEmpty()) {
                                 setError("Jump page " + m.group(2) +
@@ -628,13 +631,13 @@ public class WebHarvestJob implements HarvestJob {
                 }
             } else {
                 try {
-                    //status = HarvestStatus.FINISHED;
                     xmlEnd();
                     storage.commit();
+                    status = HarvestStatus.FINISHED;
+                    //setError("All done - but we call it an error so we can do again");
                 } catch (IOException ex) {
                     setError("I/O error on storage.begin: " + ex.getMessage());
                 }
-                setError("All done - but we call it an error so we can do again");
 
             }
         }
