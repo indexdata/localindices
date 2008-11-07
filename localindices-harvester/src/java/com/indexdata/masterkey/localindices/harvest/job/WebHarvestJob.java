@@ -24,6 +24,8 @@ import org.apache.log4j.Logger;
  * @author heikki
  * 
  * TODO:
+ *   - Parsing of the title element - only the first of many titles, not all
+ *     between the first and last tags!
  *   - use proper XML tools to produce the XML fragments to index
  *   - Redirects (watch out for loops etc) (doesn't the library handle this?)
  *     (make a test page or two to see what actually happens)
@@ -244,9 +246,9 @@ public class WebHarvestJob implements HarvestJob {
                 // The ?? modifier should make it reluctant, so we get the firs title
                 // only, if there are several FIXME - does not work
         m = p.matcher(pi.headers);
-        if (m.find()) {
+        if (m.find() && m.group(1) != null && !m.group(1).isEmpty()) {
             pi.title = m.group(1);
-            // FIXME - truncate to a decen max
+            // FIXME - truncate to a decent max
         } else {
             pi.title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
