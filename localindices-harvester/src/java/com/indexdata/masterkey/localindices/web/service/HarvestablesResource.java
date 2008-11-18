@@ -62,8 +62,9 @@ public class HarvestablesResource {
             @DefaultValue("0") int start,
             
             @QueryParam("max")
-            @DefaultValue("10") int max) {
-        return new HarvestablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath());
+            @DefaultValue("100") int max) {
+        return new HarvestablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath(), 
+                start, max, dao.getHarvestableCount());
     }
 
     /**

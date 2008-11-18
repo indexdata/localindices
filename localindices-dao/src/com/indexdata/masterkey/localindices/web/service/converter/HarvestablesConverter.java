@@ -11,7 +11,6 @@ import java.net.URI;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlAttribute;
 import java.util.ArrayList;
 
@@ -25,6 +24,9 @@ import java.util.ArrayList;
 public class HarvestablesConverter {
     private Collection<HarvestableRefConverter> references;
     private URI uri;
+    private int start;
+    private int max;
+    private int count;
     
     /** Creates a new instance of HarvestablesConverter */
     public HarvestablesConverter() {
@@ -36,12 +38,15 @@ public class HarvestablesConverter {
      * @param entities associated entities
      * @param uri associated uri
      */
-    public HarvestablesConverter(Collection<Harvestable> entities, URI uri) {
+    public HarvestablesConverter(Collection<Harvestable> entities, URI uri, int start, int max, int count) {
         this.references = new ArrayList<HarvestableRefConverter>();
         for (Harvestable entity : entities) {
             references.add(new HarvestableRefConverter(entity, uri, true));
         }
         this.uri = uri;
+        this.start = start;
+        this.max = max;
+        this.count = count;
     }
 
     /**
@@ -76,5 +81,31 @@ public class HarvestablesConverter {
     public void setResourceUri(URI uri) {
         this.uri = uri;
     }
+
+    @XmlAttribute(name = "max")
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
+    }
     
+    @XmlAttribute(name = "start")
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+    
+    @XmlAttribute(name = "count")
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }    
 }

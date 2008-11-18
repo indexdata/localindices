@@ -42,6 +42,7 @@ public class SearchablesConverter extends Records {
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
+            layer.setId(entity.getId().toString());
             layer.seLayertName("final");
             layer.setName(entity.getName());
             layer.setZurl(zurlBase + "/job" + entity.getId());

@@ -27,7 +27,7 @@ public interface HarvestableDAO {
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
-    Collection<HarvestableRefConverter> pollHarvestableRefList();
+    Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max);
     /**
      * Retrieve harvestable from the Web Service using it's reference (URL)
      * @param href harvestableRef entity

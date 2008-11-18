@@ -35,11 +35,12 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
-    public Collection<HarvestableRefConverter> pollHarvestableRefList() {
+    public Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
-                    new URL(serviceBaseURL),
+                    new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             HarvestablesConverter hc = harvestablesConnector.get();
@@ -140,7 +141,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
     public Collection<Harvestable> retrieveHarvestables(int start, int max) {
        //TODO this cannot be more stupid
        Collection<Harvestable> hables = new ArrayList<Harvestable>();
-       Collection<HarvestableRefConverter> hrefs = pollHarvestableRefList();
+       Collection<HarvestableRefConverter> hrefs = pollHarvestableRefList(start, max);
        if (hrefs != null) {
             for (HarvestableRefConverter href : hrefs) {
                 Harvestable hable = retrieveFromRef(href);
@@ -151,6 +152,19 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     public int getHarvestableCount() {
-        return 100;
+        String url = serviceBaseURL + "?start=0&max=1";
+        try {
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                    new URL(url),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            HarvestablesConverter hc = harvestablesConnector.get();
+            return hc.getCount();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+            return 0;
+        }
+        
     }
 }

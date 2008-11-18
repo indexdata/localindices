@@ -41,7 +41,7 @@ public class JobScheduler {
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList();
+        Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList(0,Integer.parseInt(config.get("MAX_JOBS")));
         if (refs == null) {
             logger.log(Level.ERROR, "Cannot update current job list - retrieved list is empty.");
         } else {

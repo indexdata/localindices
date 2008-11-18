@@ -60,7 +60,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         }
     }
 
-    public Collection<HarvestableRefConverter> pollHarvestableRefList() {
+    public Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max) {
         Collection<HarvestableRefConverter> hrefs = new ArrayList<HarvestableRefConverter>();
         for (Harvestable hable : harvestables.values()) {
             try {

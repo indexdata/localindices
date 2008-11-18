@@ -199,9 +199,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
-    public Collection<HarvestableRefConverter> pollHarvestableRefList() {
+    public Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max) {
         Collection<HarvestableRefConverter> hrefs = new ArrayList<HarvestableRefConverter>();
-        for (Harvestable hable : retrieveHarvestables(0, 100)) {
+        for (Harvestable hable : retrieveHarvestables(start, max)) {
             HarvestableRefConverter href = new HarvestableRefConverter(hable);
             hrefs.add(href);
         }

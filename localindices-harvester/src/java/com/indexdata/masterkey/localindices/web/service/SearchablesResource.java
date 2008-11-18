@@ -59,7 +59,7 @@ public class SearchablesResource {
             @DefaultValue("0") int start,
             
             @QueryParam("max")
-            @DefaultValue("10") int max) {
+            @DefaultValue("100") int max) {
         String zurlBase = servletContext.getInitParameter("ZEBRASRV_URL");
         String zurlPort = servletContext.getInitParameter("ZEBRASRV_PORT");
         return new SearchablesConverter(dao.retrieveHarvestables(start, max), 
