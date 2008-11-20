@@ -5,13 +5,9 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +22,7 @@ import org.apache.log4j.Logger;
  * New model
  * The old one was suitable for harvesting one web site, or at most a few.
  * 
- * Start list - a list of links extracted from the jump page
+ * SiteList - a list of SiteRequests extracted from the jump page
  *   - The link to start from
  *   - Statistics for reporting
  *   - Counters for pages visited and waiting
@@ -64,6 +60,7 @@ import org.apache.log4j.Logger;
  *
  * How to get there
  *   - Init code, build start list
+ *   - Request queue
  * 
  * TODO:
  *   - Parsing of the title element - only the first of many titles, not all
@@ -98,29 +95,10 @@ import org.apache.log4j.Logger;
  *   - Detect and convert character sets, if possible 
  */
 public class WebHarvestJob implements HarvestJob {
-
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
-    private HarvestStorage storage;
-    private HarvestStatus status;
-    private String error;
-    private WebCrawlResource resource;
-    private boolean die = false;
-    private Vector<URL> toSearch; // todo list for this round
-    private Vector<URL> searched; // all pages we have seen
-    private Vector<URL> nextRound; // links found in this round are pushed here
-    private int numtosearch;
-    private int round;
-    private Map<URL, String> robotCache = new HashMap<URL, String>();
-    private final static int connTimeOut = 30000; // ms to make a connection
-    private final static int readTimeOut = 30000; // ms to read a block
-    // About 30 seconds seems reasonable. 
-    private final static int readBlockSize = 1000000; // bytes to read in one op
-    private final static int maxReadSize = 10000000; // 10MB 
-    private final static String userAgentString = "IndexData Masterkey Web crawler";
-    private final int sleepTime = 10000; // ms to sleep between requests
-
+    // Data structures
+    
+    // Info about one harvested page
     private class pageInfo {
-
         public URL url = null;
         public String error = "";
         public String contenttype = "";
@@ -133,6 +111,39 @@ public class WebHarvestJob implements HarvestJob {
         public String xml = "";
     }
 
+    // Request to harvest one site, with parameters etc
+    // Collects statistics of this site, etc
+    // Comes from the jump page, goes into statistics report
+    private class siteRequest {
+        public URL url = null; // where to start the job
+        public int maxdepth =0; // how deep to recurse
+        public int seen=0; // how many pages harvested
+        public int togo=0; // how many to go (so far)
+    }
+
+    // Request to harvest one page
+    private class pageRequest {
+        public URL url = null; // the page to harvest
+        public int depth=0; // how deep are we now
+        public siteRequest sitereq = null; // points to the site request
+    }
+
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+    private HarvestStorage storage;
+    private HarvestStatus status;
+    private String error;
+    private WebCrawlResource resource;
+    private boolean die = false;
+    private Vector<URL> toSearch; // todo list for this round
+    private Vector<URL> searched; // all pages we have seen
+    private Vector<URL> nextRound; // links found in this round are pushed here
+    private int numtosearch;
+    private int round;
+    private static WebRobotCache robotCache = new WebRobotCache();
+    private final int sleepTime = 10000; // ms to sleep between requests
+
+    
+    
     public WebHarvestJob(WebCrawlResource resource) {
         this.resource = resource;
         this.status = HarvestStatus.NEW;
@@ -185,184 +196,6 @@ public class WebHarvestJob implements HarvestJob {
         return error;
     }
 
-    private pageInfo fetchPage(URL url) {
-        // FIXME - Pass a request structure that contains the URL,
-        // and also referring page, jumppage-flag, and other stuff.
-
-        pageInfo pi = new pageInfo();
-        pi.url = url;
-        pi.error = null;
-        pi.content = "";
-        String pageUrl = url.toString();
-        logger.log(Level.TRACE, "About to fetch '" + pageUrl + "'");
-        if (url.getProtocol().compareTo("http") != 0) {
-            pi.error = "Unsupported protocol in '" + pageUrl + "'";
-            logger.log(Level.ERROR, pi.error);
-            return pi;
-        }
-        try {
-            URLConnection urlConnection = url.openConnection();
-            urlConnection.setConnectTimeout(connTimeOut);
-            urlConnection.setReadTimeout(readTimeOut);
-            urlConnection.setAllowUserInteraction(false);
-            urlConnection.setRequestProperty("User-agent", userAgentString);
-            InputStream urlStream = url.openStream();
-            pi.contenttype = urlConnection.getContentType();
-            // Fixme - this requests the page once! And with 'Java' in user'agent
-            // and below we fetch it once more! (with proper user-agent)
-            if (pi.contenttype == null || pi.contenttype.isEmpty()) {
-                pi.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
-            }
-            if (pi.contenttype == null || pi.contenttype.isEmpty()) {
-                pi.error = "Skipped '" + pageUrl + "'. could not get content type";
-                logger.log(Level.DEBUG, pi.error);
-                return pi;
-            }
-            if (!pi.contenttype.startsWith("text/html") &&
-                    !pi.contenttype.startsWith("text/plain")) {
-                // Get also plain text, we need it for robots.txt, and
-                // might as well index it all anyway
-                pi.error = "Skipped '" + pageUrl + "'. Content type '" +
-                        pi.contenttype + "' not acceptable ";
-                logger.log(Level.DEBUG, pi.error);
-                return pi;
-            }
-            // search the input stream for links
-            // first, read in the entire URL
-            byte b[] = new byte[readBlockSize];
-            int numRead = urlStream.read(b);
-            if (numRead <= 0) {
-                pi.content = "";
-            } else {
-                pi.content = new String(b, 0, numRead);
-                while ((numRead != -1) && (pi.content.length() < maxReadSize)) {
-                    numRead = urlStream.read(b);
-                    if (numRead != -1) {
-                        String newContent = new String(b, 0, numRead);
-                        pi.content += newContent;
-                    }
-                }
-            }
-            urlStream.close();
-            logger.log(Level.TRACE, pageUrl + " Read " + pi.content.length() + " bytes");
-            //logger.log(Level.DEBUG, content );
-            return pi;
-        } catch (FileNotFoundException ex) {
-            pi.error = "I/O Exception: " + pageUrl + " Not found ";
-        // FIXME - Display also the referring page
-        } catch (IOException ex) {
-            pi.error = "I/O Exception " +
-                    "(" + ex.getClass().getSimpleName() + ") " +
-                    "with " + pageUrl + ": " + ex.getMessage();
-            logger.log(Level.ERROR,
-                    "I/O Exception " +
-                    "(" + ex.getClass().getSimpleName() + ") " +
-                    "with " + pageUrl + ": " + ex.getMessage());
-        }
-        logger.log(Level.DEBUG, pi.error);
-        return pi;
-    } // fetchPage
-
-    /** Split a html page. 
-     * First extract body and headers, then fulltext and links 
-     */
-    private void splitHtmlPage(pageInfo pi) {
-        // Split headers and body, if possible
-        Pattern p = Pattern.compile("<head>(.*)</head>.*" +
-                "<body[^>]*>(.*)",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        Matcher m = p.matcher(pi.content);
-        if (m.find()) {
-            //logger.log(Level.TRACE, "P1 matched.");
-            pi.headers = m.group(1);
-            pi.body = m.group(2);
-        } else {
-            logger.log(Level.TRACE, "P1 did NOT match. p='" + p.pattern() + "'");
-            pi.headers = "";
-            pi.body = pi.content; // doesn't look like good html, try to extract links anyway
-        }
-        // Extract a title
-        pi.title = "";
-        p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-                // The ?? modifier should make it reluctant, so we get the firs title
-                // only, if there are several FIXME - does not work
-        m = p.matcher(pi.headers);
-        if (m.find() && m.group(1) != null && !m.group(1).isEmpty()) {
-            pi.title = m.group(1);
-            // FIXME - truncate to a decent max
-        } else {
-            pi.title = "???"; // FIXME - try to get the first H1 tag, 
-        // or first text line or something
-        }
-
-        // extract full text
-        p = Pattern.compile("<[^>]*>",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        m = p.matcher(pi.content);
-        pi.plaintext = m.replaceAll("");
-        //logger.log(Level.TRACE, "Plaintext: " + pi.plaintext);
-
-        // extract links
-        p = Pattern.compile("<a[^>]+href=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        m = p.matcher(pi.body);
-        while (m.find()) {
-            String lnk = m.group(1);
-            URL linkUrl;
-            try {
-                linkUrl = new URL(pi.url, lnk);
-            } catch (MalformedURLException ex) {
-                logger.log(Level.TRACE, "Could not make a good url from " +
-                        "'" + lnk + "' " +
-                        "when parsing " + pi.url.toString());
-                break;
-            }
-            //logger.log(Level.TRACE, "Found link '" + m3.group() + "' '" + lnk + "' " +
-            //        "-> '" + linkUrl.toString() + "'");
-            if (!pi.links.contains(linkUrl)) {
-                pi.links.add(linkUrl);
-            }
-        }
-
-        logger.log(Level.DEBUG,
-                "JOB#" + resource.getId() + " " +
-                round + ":" + searched.size() + "/" + numtosearch + " " +
-                pi.url + " " +
-                "title:'" + pi.title + "' (" +
-                "h=" + pi.headers.length() + "b " +
-                "b=" + pi.body.length() + "b) " +
-                pi.links.size() + " links");
-    } // splitHtmlPage
-
-    /** Split a plain-text link page
-     */
-    private void splitTextLinkPage(pageInfo pi) {
-        pi.links.clear();
-        //Pattern p = Pattern.compile("(http://\\S+)",
-        Pattern p = Pattern.compile("(http://[^ <>]+)",
-                Pattern.CASE_INSENSITIVE );
-        Matcher m = p.matcher(pi.body);
-        logger.log(Level.TRACE, "Parsing text links from " +
-                pi.body.length() + "bytes " + trunc(pi.body,50) );
-        while (m.find()) {
-            String lnk = m.group(1);
-            URL linkUrl;
-            try {
-                linkUrl = new URL(pi.url, lnk);
-            } catch (MalformedURLException ex) {
-                logger.log(Level.TRACE, "Could not make a good url from " +
-                        "'" + lnk + "' " +
-                        "when parsing " + pi.url.toString());
-                break;
-            }
-            logger.log(Level.TRACE, "Found link '" + m.group(1) + "' '" + lnk + "' " +
-                    "-> '" + linkUrl.toString() + "'");
-            if (!pi.links.contains(linkUrl)) {
-                pi.links.add(linkUrl);
-            }
-        }
-    }
 
     private void xmlStart() throws IOException {
         String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " +
@@ -374,7 +207,7 @@ public class WebHarvestJob implements HarvestJob {
         os.write(header.getBytes());
     }
 
-    private void saveXmlFragment(pageInfo pi) throws IOException {
+    private void saveXmlFragment(WebPage pi) throws IOException {
         OutputStream os = storage.getOutputStream();
         os.write(pi.xml.getBytes());
     }
@@ -395,14 +228,9 @@ public class WebHarvestJob implements HarvestJob {
                 "</pz:metadata>";
     }
     
-    private String trunc (String s, int len) {
-        if (s.length()<=len)
-            return s;
-        return s.substring(0,len-1);
-    }
 
     /** Convert the page into XML suitable for indexing with zebra */
-    private void makeXmlFragment(pageInfo pi) {
+    private void makeXmlFragment(WebPage pi) {
         // FIXME - Use proper XML tools to do this, to avoid problems with
         // bad entities, character sets, etc.
         pi.xml = "<pz:record>\n";
@@ -411,54 +239,6 @@ public class WebHarvestJob implements HarvestJob {
         pi.xml += xmlTag("md-electronic-url", pi.url.toString());
         pi.xml += "</pz:record>\n";
     } // makeXml
-
-    private boolean checkRobots(URL url) {
-        String strHost = url.getHost();
-        if (strHost == null || strHost.isEmpty()) {
-            // Should not happen!
-            logger.log(Level.DEBUG, "Could not extract host from '" +
-                    url.toString() + "' - skipping robots txt");
-            return false;
-        }
-        String strRobot = "http://" + strHost + "/robots.txt";
-        URL robUrl;
-        try {
-            robUrl = new URL(strRobot);
-        } catch (MalformedURLException e) {
-            // something weird is happening, so don't trust it
-            logger.log(Level.DEBUG, "Could not create robot url " +
-                    "'" + strRobot + "'");
-            return false;
-        }
-        String robtxt = robotCache.get(robUrl);
-        if (robtxt == null) {
-            pageInfo robpg = fetchPage(robUrl);
-            robtxt = robpg.content;
-            robotCache.put(robUrl, robtxt);
-            logger.log(Level.DEBUG, "Got " + robUrl.toString() +
-                    " (" + robtxt.length() + " b)");
-        }
-        if (robtxt.isEmpty()) {
-            return true; // no robots.txt, go ahead
-        // Simplified, we assume all User-agent lines apply to us
-        // Most likely nobody has (yet?) written a robots.txt section 
-        // for specifically for us.
-        }
-        Pattern p = Pattern.compile("^Disallow:\\s*(.*\\S)\\s*$",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-        Matcher m = p.matcher(robtxt);
-        String urlpath = url.getPath();
-        while (m.find()) {
-            String path = m.group(1);
-            if (urlpath.startsWith(path)) {
-                logger.log(Level.TRACE, "Path '" + urlpath + "' forbidden " +
-                        "by robot '" + path + "'");
-                return false; // found one they don't want us to go to
-            }
-        }
-        //logger.log(Level.TRACE, "Path '"+urlpath+"' all right ");
-        return true;
-    }
 
     private boolean filterLink(URL url, URL samepage) {
         if (samepage != null) {
@@ -482,24 +262,6 @@ public class WebHarvestJob implements HarvestJob {
         return false;
     }
 
-    private void OLDinitWorkList() {
-        searched = new Vector<URL>();
-        toSearch = new Vector<URL>();
-        nextRound = new Vector<URL>();
-        for (String startUrl : resource.getStartUrls().split(" ")) {
-            URL url;
-            try {
-                url = new URL(startUrl);
-                toSearch.add(url);
-                logger.log(Level.TRACE, "Added start URL '" + startUrl + "'");
-            } catch (MalformedURLException ex) {
-                setError("Invalid start url: '" + startUrl + "'");
-                toSearch.clear();
-            }
-        // Fixme - validate they all are OK
-        }
-        numtosearch = toSearch.size();
-    }
 
     private void initWorkList() {
         searched = new Vector<URL>();
@@ -531,13 +293,16 @@ public class WebHarvestJob implements HarvestJob {
                     try {
                         URL url;
                         url = new URL(m.group(2));
-                        pageInfo pi = fetchPage(url);
-                        if (!pi.content.isEmpty()) {
-                            splitHtmlPage(pi);
+                        WebPage pi = new WebPage(url);
+                        if (pi.content.isEmpty()) {
+                            setError("Could not get jump page " + m.group(2) );
+                            toSearch.clear();
+                        } else {
+                            pi.splitHtmlPage();
                             logger.log(Level.TRACE, "Jump page contained " +
                                     pi.links.size() + " HTML links");
                             if (pi.links.isEmpty()) {
-                                splitTextLinkPage(pi);
+                                pi.splitTextLinkPage();
                                 logger.log(Level.TRACE, "Jump page contained " +
                                         pi.links.size() + " plaintext links");
                             }
@@ -592,15 +357,15 @@ public class WebHarvestJob implements HarvestJob {
             toSearch.removeElementAt(0);
             if (!searched.contains(curUrl)) {
                 searched.add(curUrl); // to make sure we don't go there again  
-                if (checkRobots(curUrl)) {
-                    pageInfo pi = fetchPage(curUrl);
+                if ( robotCache.checkRobots(curUrl)) {
+                    WebPage pi = new WebPage(curUrl);
                     if (!pi.content.isEmpty()) {
                         // TODO: Split according to the type of the page
-                        splitHtmlPage(pi);
+                        pi.splitHtmlPage();
                         for (URL u : pi.links) {
                             if (!nextRound.contains(u) &&
                                     filterLink(u, curUrl) &&
-                                    checkRobots(u)) {
+                                    robotCache.checkRobots(u)) {
                                 nextRound.add(u);
                             }
                         }
