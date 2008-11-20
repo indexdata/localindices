@@ -2,8 +2,9 @@
  * Caching for the robots.txt
  */
 
-package com.indexdata.masterkey.localindices.harvest.job;
+package com.indexdata.masterkey.localindices.crawl;
 
+import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -41,8 +42,8 @@ public class WebRobotCache {
         }
         String robtxt = cache.get(robUrl);
         if (robtxt == null) {
-            WebPage robpg = new WebPage(robUrl);
-            robtxt = robpg.content;
+            HTMLPage robpg = new HTMLPage(robUrl);
+            robtxt = robpg.getContent();
             cache.put(robUrl, robtxt);
             logger.log(Level.DEBUG, "Got " + robUrl.toString() +
                     " (" + robtxt.length() + " b)");

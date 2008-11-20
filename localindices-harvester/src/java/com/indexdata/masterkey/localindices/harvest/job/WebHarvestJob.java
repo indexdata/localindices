@@ -3,11 +3,14 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,20 +100,7 @@ import org.apache.log4j.Logger;
 public class WebHarvestJob implements HarvestJob {
     // Data structures
     
-    // Info about one harvested page
-    private class pageInfo {
-        public URL url = null;
-        public String error = "";
-        public String contenttype = "";
-        public String content = ""; // the whole thing
-        public String headers = "";
-        public String body = "";
-        public Vector<URL> links = new Vector<URL>();
-        public String plaintext = "";
-        public String title = "";
-        public String xml = "";
-    }
-
+  
     // Request to harvest one site, with parameters etc
     // Collects statistics of this site, etc
     // Comes from the jump page, goes into statistics report
@@ -203,42 +193,57 @@ public class WebHarvestJob implements HarvestJob {
                 "<records" +
                 " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " +
                 ">\n";
-        OutputStream os = storage.getOutputStream();
-        os.write(header.getBytes());
+        saveXmlFragment(header);
     }
 
-    private void saveXmlFragment(WebPage pi) throws IOException {
+    private void saveXmlFragment(String xml) throws IOException {
         OutputStream os = storage.getOutputStream();
-        os.write(pi.xml.getBytes());
+        os.write(xml.getBytes());
     }
 
     private void xmlEnd() throws IOException {
         String footer = "</records>\n";
-        OutputStream os = storage.getOutputStream();
-        os.write(footer.getBytes());
+        saveXmlFragment(footer);
     }
 
-    private String xmlTag(String tag, String data) {
-        String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML tools
-        clean = clean.replaceAll("<", "&lt;");
-        clean = clean.replaceAll(">", "&gt;");
-        clean = clean.replaceAll("\\s+", " ");
-        return "<pz:metadata type=\"" + tag + "\">" +
-                clean +
-                "</pz:metadata>";
+    /** Split a plain-text link page
+     */
+    private List<URL> splitTextLinkPage(HTMLPage page) {
+        List<URL> links = new Vector<URL>();
+        //Pattern p = Pattern.compile("(http://\\S+)",
+        Pattern p = Pattern.compile("(http://[^ <>]+)",
+                Pattern.CASE_INSENSITIVE);
+        String body = page.getBody();
+        Matcher m = p.matcher(body);
+        logger.log(Level.TRACE, "Parsing text links from " +
+                body.length() + "bytes " + trunc(body, 50));
+        while (m.find()) {
+            String lnk = m.group(1);
+            URL linkUrl;
+            try {
+                linkUrl = new URL(page.getUrl(), lnk);
+            } catch (MalformedURLException ex) {
+                logger.log(Level.TRACE, "Could not make a good url from " +
+                        "'" + lnk + "' " +
+                        "when parsing " + page.getUrl().toString());
+                break;
+            }
+            logger.log(Level.TRACE, "Found link '" + m.group(1) + "' '" + lnk + "' " +
+                    "-> '" + linkUrl.toString() + "'");
+            if (!links.contains(linkUrl)) {
+                links.add(linkUrl);
+            }
+        }
+        return links;
     }
-    
 
-    /** Convert the page into XML suitable for indexing with zebra */
-    private void makeXmlFragment(WebPage pi) {
-        // FIXME - Use proper XML tools to do this, to avoid problems with
-        // bad entities, character sets, etc.
-        pi.xml = "<pz:record>\n";
-        pi.xml += xmlTag("md-title", pi.title);
-        pi.xml += xmlTag("md-fulltext", pi.plaintext);
-        pi.xml += xmlTag("md-electronic-url", pi.url.toString());
-        pi.xml += "</pz:record>\n";
-    } // makeXml
+    private String trunc(String s, int len) {
+        if (s.length() <= len) {
+            return s;
+        }
+        return s.substring(0, len - 1);
+    }
+
 
     private boolean filterLink(URL url, URL samepage) {
         if (samepage != null) {
@@ -293,26 +298,26 @@ public class WebHarvestJob implements HarvestJob {
                     try {
                         URL url;
                         url = new URL(m.group(2));
-                        WebPage pi = new WebPage(url);
-                        if (pi.content.isEmpty()) {
+                        HTMLPage pi = new HTMLPage(url);
+                        if (pi.getContent().isEmpty()) {
                             setError("Could not get jump page " + m.group(2) );
                             toSearch.clear();
                         } else {
-                            pi.splitHtmlPage();
+                            List <URL> links = pi.getLinks();
                             logger.log(Level.TRACE, "Jump page contained " +
-                                    pi.links.size() + " HTML links");
-                            if (pi.links.isEmpty()) {
-                                pi.splitTextLinkPage();
+                                    links.size() + " HTML links");
+                            if (links.isEmpty()) {
+                                links = splitTextLinkPage(pi);
                                 logger.log(Level.TRACE, "Jump page contained " +
-                                        pi.links.size() + " plaintext links");
+                                        links.size() + " plaintext links");
                             }
-                            if (pi.links.isEmpty()) {
+                            if (links.isEmpty()) {
                                 setError("Jump page " + m.group(2) +
                                         " contains no links ");
                                 toSearch.clear();
                                 return;
                             }
-                            for (URL u : pi.links) {
+                            for (URL u : links) {
                                 if (!toSearch.contains(u) && filterLink(u, null)) {
                                     toSearch.add(u);
                                 }
@@ -358,21 +363,20 @@ public class WebHarvestJob implements HarvestJob {
             if (!searched.contains(curUrl)) {
                 searched.add(curUrl); // to make sure we don't go there again  
                 if ( robotCache.checkRobots(curUrl)) {
-                    WebPage pi = new WebPage(curUrl);
-                    if (!pi.content.isEmpty()) {
+                    HTMLPage pi = new HTMLPage(curUrl);
+                    if (!pi.getContent().isEmpty()) {
                         // TODO: Split according to the type of the page
-                        pi.splitHtmlPage();
-                        for (URL u : pi.links) {
+                        for (URL u : pi.getLinks()) {
                             if (!nextRound.contains(u) &&
                                     filterLink(u, curUrl) &&
                                     robotCache.checkRobots(u)) {
                                 nextRound.add(u);
                             }
                         }
-                        makeXmlFragment(pi);
+                        String xml = pi.xmlFragment();
                         if (!pi.xml.isEmpty()) {
                             try {
-                                saveXmlFragment(pi);
+                                saveXmlFragment(xml);
                             } catch (IOException ex) {
                                 setError("I/O error writing data: " +
                                         ex.getMessage());

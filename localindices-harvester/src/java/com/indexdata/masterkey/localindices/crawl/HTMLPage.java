@@ -1,4 +1,6 @@
 /*
+ * One harvested web page
+ * 
  *  Copyright (c) 1995-2008, Index Data
  *  All rights reserved.
  *  See the file LICENSE for details.
@@ -20,20 +22,23 @@ import org.apache.log4j.Logger;
 
 /**
  *
- * @author jakub
+ * @author Heikki and Jakub
  */
 public class HTMLPage {
+
     private URL url;
     private String error = "";
     private String contenttype = "";
     private String content = ""; // the whole thing
+
     private String headers = "";
     private String body = "";
     private List<URL> links = new Vector<URL>();
     private String plaintext = "";
     private String title = "";
-    private String xml = "";
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
+    public String xml = ""; // FIXME - move XML stuff here too
+    private static Logger logger =
+            Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
     public final static int readBlockSize = 1000000; // bytes to read in one op
     public final static int maxReadSize = 10000000; // 10MB
     public final static int connTimeOut = 30000; // ms to make a connection
@@ -42,9 +47,44 @@ public class HTMLPage {
 
     public HTMLPage(URL url) {
         this.url = url;
+        fetch();
     }
     
+    public String getContent() {
+        return content;
+    }
+    public String getBody() {
+        return body;
+    }
+
+    public String getContenttype() {
+        return contenttype;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public String getHeaders() {
+        return headers;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public URL getUrl() {
+        return url;
+    }
+    
+    public List<URL> getLinks() {
+        return links;
+    }
+
     public void fetch() {
+        if (this.content != null && !this.content.isEmpty()) {
+            return; // already fetched, save some work
+        }
         this.error = null;
         this.content = "";
         String pageUrl = url.toString();
@@ -99,7 +139,7 @@ public class HTMLPage {
             }
             urlStream.close();
             logger.log(Level.TRACE, pageUrl + " Read " + this.content.length() + " bytes");
-            //logger.log(Level.DEBUG, content );
+            splitHtmlPage();
             return;
         } catch (FileNotFoundException ex) {
             this.error = "I/O Exception: " + pageUrl + " Not found ";
@@ -115,7 +155,7 @@ public class HTMLPage {
         }
         logger.log(Level.DEBUG, this.error);
     }
-    
+
     /** Split a html page. 
      * First extract body and headers, then fulltext and links 
      */
@@ -138,12 +178,12 @@ public class HTMLPage {
         this.title = "";
         p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-                // The ?? modifier should make it reluctant, so we get the firs title
-                // only, if there are several FIXME - does not work
+        // The ?? modifier should make it reluctant, so we get the firs title
+        // only, if there are several FIXME - does not work
         m = p.matcher(this.headers);
         if (m.find() && m.group(1) != null && !m.group(1).isEmpty()) {
             this.title = m.group(1);
-            // FIXME - truncate to a decent max
+        // FIXME - truncate to a decent max
         } else {
             this.title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
@@ -186,38 +226,25 @@ public class HTMLPage {
                 this.links.size() + " links");
     } // splitHtmlPage
 
-    /** Split a plain-text link page
-     */
-    private void splitTextLinkPage() {
-        this.links.clear();
-        //Pattern p = Pattern.compile("(http://\\S+)",
-        Pattern p = Pattern.compile("(http://[^ <>]+)",
-                Pattern.CASE_INSENSITIVE );
-        Matcher m = p.matcher(this.body);
-        logger.log(Level.TRACE, "Parsing text links from " +
-                this.body.length() + "bytes " + trunc(this.body,50) );
-        while (m.find()) {
-            String lnk = m.group(1);
-            URL linkUrl;
-            try {
-                linkUrl = new URL(this.url, lnk);
-            } catch (MalformedURLException ex) {
-                logger.log(Level.TRACE, "Could not make a good url from " +
-                        "'" + lnk + "' " +
-                        "when parsing " + this.url.toString());
-                break;
-            }
-            logger.log(Level.TRACE, "Found link '" + m.group(1) + "' '" + lnk + "' " +
-                    "-> '" + linkUrl.toString() + "'");
-            if (!this.links.contains(linkUrl)) {
-                this.links.add(linkUrl);
-            }
-        }
+    private String xmlTag(String tag, String data) {
+        String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML tools
+        clean = clean.replaceAll("<", "&lt;");
+        clean = clean.replaceAll(">", "&gt;");
+        clean = clean.replaceAll("\\s+", " ");
+        return "<pz:metadata type=\"" + tag + "\">" +
+                clean +
+                "</pz:metadata>";
     }
-    
-    private String trunc (String s, int len) {
-        if (s.length()<=len)
-            return s;
-        return s.substring(0,len-1);
-    }
+
+    /** Convert the page into XML suitable for indexing with zebra */
+    public String xmlFragment() {
+        // FIXME - Use proper XML tools to do this, to avoid problems with
+        // bad entities, character sets, etc.
+        String xml = "<pz:record>\n";
+        xml += xmlTag("md-title", title);
+        xml += xmlTag("md-fulltext", plaintext);
+        xml += xmlTag("md-electronic-url", url.toString());
+        xml += "</pz:record>\n";
+        return xml;
+    } // makeXml
 }
