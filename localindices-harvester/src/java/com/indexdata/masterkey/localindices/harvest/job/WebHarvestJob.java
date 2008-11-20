@@ -23,6 +23,48 @@ import org.apache.log4j.Logger;
  *
  * @author heikki
  * 
+ * New model
+ * The old one was suitable for harvesting one web site, or at most a few.
+ * 
+ * Start list - a list of links extracted from the jump page
+ *   - The link to start from
+ *   - Statistics for reporting
+ *   - Counters for pages visited and waiting
+ * 
+ * Request queue 
+ *   - a list of pages to be visited
+ *   - Worker threads take one from there, add links to the end
+ *   - contain a depth indicator, to avoid going too deep.
+ * 
+ * NotBefore
+ *   - Mapping from hostnames to times when host can be visited
+ *   - When about to visit a page, its time will be set to now+10min, so that
+ *     other threads don't feel tempted to visit the same site
+ *   - When a page has been processed, the time is set to now+1min, not to
+ *     load the server. (note, the now is after the visiting has been done).
+ *     (perhaps we add the time it took to get the page, to reduce load on
+ *     heavy pages)
+ * 
+ * Visited
+ *   - A list of pages already visited, to make sure we don't loop
+ * 
+ * RobotCache
+ *   - Collection of robots.txt files, one for each hostname 
+ * 
+ * Initializing
+ *   - Load the jump page, parse links, create records to start list
+ *   - Start worker threads
+ * 
+ * Worker threads
+ *   - Pick a link from the queue
+ *   - If notyet, return to the end of queue (or random position near end)
+ *   - Fetch page
+ *   - Extract links
+ *   - Append those that pass the filter, to the end of the queue
+ *
+ * How to get there
+ *   - Init code, build start list
+ * 
  * TODO:
  *   - Parsing of the title element - only the first of many titles, not all
  *     between the first and last tags!
