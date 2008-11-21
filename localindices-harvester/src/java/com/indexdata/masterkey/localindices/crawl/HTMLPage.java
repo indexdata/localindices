@@ -7,11 +7,14 @@
  */
 package com.indexdata.masterkey.localindices.crawl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -24,24 +27,25 @@ import org.apache.log4j.Logger;
  * @author Heikki and Jakub
  */
 public class HTMLPage {
-
+    public final static int READ_BLOCK_SIZE = 1000000; // bytes to read in one op
+    public final static int MAX_READ_SIZE = 10000000; // 10MB
+    public final static int CONN_TIMEOUT = 30000; // ms to make a connection
+    public final static int READ_TIMEOUT = 30000; // ms to read a block
+    public final static String USER_AGENT_STRING = "IndexData Masterkey Web crawler";
+    
     private URL url;
     private String error = "";
-    private String contenttype = "";
+    private String contentType;
+    private int contentLength;
     private String content = ""; // the whole thing
     private String headers = "";
     private String body = "";
     private List<URL> links = new Vector<URL>();
     private String plaintext = "";
     private String title = "";
-    public String xml = ""; // FIXME - move XML stuff here too
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
-    public final static int readBlockSize = 1000000; // bytes to read in one op
-    public final static int maxReadSize = 10000000; // 10MB
-    public final static int connTimeOut = 30000; // ms to make a connection
-    public final static int readTimeOut = 30000; // ms to read a block
-    public final static String userAgentString = "IndexData Masterkey Web crawler";
+
 
     public HTMLPage(URL url) {
         this.url = url;
@@ -75,7 +79,7 @@ public class HTMLPage {
     }
 
     public String getContenttype() {
-        return contenttype;
+        return contentType;
     }
 
     public String getError() {
@@ -99,33 +103,40 @@ public class HTMLPage {
     }
 
     private InputStream request() throws IOException {
-        content = "";
-        String pageUrl = url.toString();
-        logger.log(Level.TRACE, "About to fetch '" + pageUrl + "'");
-        if (url.getProtocol().compareTo("http") != 0) {
-            throw new IOException("Unsupported protocol in '" + pageUrl + "'");
-        }
-        URLConnection conn = url.openConnection();
-        conn.setConnectTimeout(connTimeOut);
-        conn.setReadTimeout(readTimeOut);
+        if (!url.getProtocol().equalsIgnoreCase("http"))
+            throw new IOException("Only HTTP supported,");
+        logger.log(Level.TRACE, "Opening connection to " + url.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setAllowUserInteraction(false);
-        conn.setRequestProperty("User-agent", userAgentString);
-        InputStream urlStream = url.openStream();
-        this.contenttype = conn.getContentType();
+        conn.setRequestProperty("User-agent", USER_AGENT_STRING);
+        conn.setConnectTimeout(CONN_TIMEOUT);
+        conn.setReadTimeout(READ_TIMEOUT);
+        InputStream urlStream = conn.getInputStream();
+        int responseCode = conn.getResponseCode();
+        int contentLength = conn.getContentLength();
+        String contentType = conn.getContentType();
+        // only OK
+        if (responseCode != 200)
+            throw new IOException("HTTP connection failed (" + responseCode + ") at" +
+                    url.toString());
         // Fixme - this requests the page once! And with 'Java' in user'agent
         // and below we fetch it once more! (with proper user-agent)
-        if (this.contenttype == null || this.contenttype.isEmpty()) {
-            this.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
+        
+        // this is not needed - it's done anyways
+        /*if (contentType == null || contentType.isEmpty()) {
+            contentType = URLConnection.guessContentTypeFromStream(urlStream);
         }
-        if (this.contenttype == null || this.contenttype.isEmpty()) {
-            throw new IOException("Could not verify content type at " + pageUrl);
-        }
-        if (!this.contenttype.startsWith("text/html") &&
-                !this.contenttype.startsWith("text/plain")) {
+        */
+        if (contentType == null || contentType.isEmpty())
+            throw new IOException("Could not verify content type at " + url.toString());
+        if (!contentType.startsWith("text/html") 
+                && !contentType.startsWith("text/plain"))
             // Get also plain text, we need it for robots.txt, and
             // might as well index it all anyway
-            throw new IOException("Content type '" + contenttype + "' not acceptable at" + pageUrl);
-        }
+            throw new IOException("Content type '" + contentType + "' not acceptable at" + url.toString());
+            
+        this.contentType = contentType;
+        this.contentLength = contentLength;
         return urlStream;
     }
 
@@ -133,56 +144,56 @@ public class HTMLPage {
      * First extract body and headers, then fulltext and links 
      */
     private void parse() {
+        if (content == null) return;
         // Split headers and body, if possible
         Pattern p = Pattern.compile("<head>(.*)</head>.*" +
                 "<body[^>]*>(.*)",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        Matcher m = p.matcher(this.content);
+        Matcher m = p.matcher(content);
         if (m.find()) {
-            //logger.log(Level.TRACE, "P1 matched.");
-            this.headers = m.group(1);
-            this.body = m.group(2);
+            //TODO the headers shoould be further spread apart, there's some md to get out
+            headers = m.group(1);
+            body = m.group(2);
         } else {
-            logger.log(Level.TRACE, "P1 did NOT match. p='" + p.pattern() + "'");
-            this.headers = "";
-            this.body = this.content; // doesn't look like good html, try to extract links anyway
+            headers = "";
+            body = content; // doesn't look like good html, try to extract links anyway
         }
         // Extract a title
-        this.title = "";
         p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         // The ?? modifier should make it reluctant, so we get the firs title
         // only, if there are several FIXME - does not work
-        m = p.matcher(this.headers);
+        m = p.matcher(headers);
         if (m.find() && m.group(1) != null && !m.group(1).isEmpty()) {
-            this.title = m.group(1);
+            title = m.group(1);
         // FIXME - truncate to a decent max
         } else {
-            this.title = "???"; // FIXME - try to get the first H1 tag, 
+            title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
         }
 
         // extract full text
         p = Pattern.compile("<[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        m = p.matcher(this.content);
-        this.plaintext = m.replaceAll("");
+        m = p.matcher(content);
+        plaintext = m.replaceAll("");
         //logger.log(Level.TRACE, "Plaintext: " + this.plaintext);
 
         // extract links
         p = Pattern.compile("<a[^>]+href=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        m = p.matcher(this.body);
+        m = p.matcher(body);
         while (m.find()) {
             String lnk = m.group(1);
             URL linkUrl;
             try {
-                linkUrl = new URL(this.url, lnk);
+                linkUrl = new URL(url, lnk);
             } catch (MalformedURLException ex) {
                 logger.log(Level.TRACE, "Could not make a good url from " +
                         "'" + lnk + "' " +
                         "when parsing " + this.url.toString());
                 break;
+                // FIXME why not continue here? 
             }
             if (!this.links.contains(linkUrl)) {
                 this.links.add(linkUrl);
@@ -201,13 +212,13 @@ public class HTMLPage {
      * Read in the entire input stream
      */
     private void read(InputStream is) throws IOException {
-        byte[] b = new byte[readBlockSize];
+        byte[] b = new byte[READ_BLOCK_SIZE];
         int numRead = is.read(b);
         if (numRead <= 0) {
             content = "";
         } else {
             content = new String(b, 0, numRead);
-            while ((numRead != -1) && (content.length() < maxReadSize)) {
+            while ((numRead != -1) && (content.length() < MAX_READ_SIZE)) {
                 numRead = is.read(b);
                 if (numRead != -1) {
                     String newContent = new String(b, 0, numRead);
@@ -217,6 +228,19 @@ public class HTMLPage {
         }
         is.close();
         logger.log(Level.TRACE, url.toString() + " Read " + content.length() + " bytes.");
+    } //read
+    
+    //this should be faster but does not appear so
+    private void read2(InputStream is) throws IOException {
+        char[] b = new char[READ_BLOCK_SIZE];
+        Reader r = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        int charsRead = -1;
+        while ((charsRead = r.read(b)) != -1 && sb.length() < MAX_READ_SIZE) {
+            sb.append(b);
+        }
+        r.close();
+        content = sb.toString();
     } //read
 
     private String xmlTag(String tag, String data) {
@@ -230,7 +254,7 @@ public class HTMLPage {
     }
 
     /** Convert the page into XML suitable for indexing with zebra */
-    public String xmlFragment() {
+    public String toPazpar2Metadata() {
         // FIXME - Use proper XML tools to do this, to avoid problems with
         // bad entities, character sets, etc.
         String xml = "<pz:record>\n";

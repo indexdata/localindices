@@ -61,8 +61,9 @@ public class HTMLPageTest {
      * Test of xmlFragment method, of class HTMLPage.
      */
     @Test
-    public void testXmlFragment() {
-        System.out.println("xmlFragment");        
+    public void testToPazpar2Metadata() {
+        System.out.println("xmlFragment");
+        System.out.println(instance.toPazpar2Metadata());
     }
 
 }

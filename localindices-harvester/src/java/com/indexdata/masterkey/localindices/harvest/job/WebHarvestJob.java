@@ -373,8 +373,8 @@ public class WebHarvestJob implements HarvestJob {
                                 nextRound.add(u);
                             }
                         }
-                        String xml = pi.xmlFragment();
-                        if (!pi.xml.isEmpty()) {
+                        String xml = pi.toPazpar2Metadata();
+                        if (!xml.isEmpty()) {
                             try {
                                 saveXmlFragment(xml);
                             } catch (IOException ex) {
