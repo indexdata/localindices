@@ -1,10 +1,8 @@
 /*
  * Caching for the robots.txt
  */
-
 package com.indexdata.masterkey.localindices.crawl;
 
-import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -15,12 +13,28 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
- *
+ * Simple cache to keep the robots.txt files from various sites
  * @author heikki
  */
 public class WebRobotCache {
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private Map<URL, String> cache = new HashMap<URL, String>();
+
+    private synchronized String getRobots(URL robUrl) {
+        String robtxt = cache.get(robUrl);
+        // yes, we need to check here too, because some other thread might
+        // have been fetching the very same file, and we may have been 
+        // waiting until it did the job.
+        if (robtxt == null) {
+            HTMLPage robpg = new HTMLPage(robUrl);
+            robtxt = robpg.getContent();
+            cache.put(robUrl, robtxt);
+            logger.log(Level.DEBUG, "Got " + robUrl.toString() +
+                    " (" + robtxt.length() + " b)");
+        }
+        return robtxt;
+    }
 
     public boolean checkRobots(URL url) {
         String strHost = url.getHost();
@@ -42,11 +56,7 @@ public class WebRobotCache {
         }
         String robtxt = cache.get(robUrl);
         if (robtxt == null) {
-            HTMLPage robpg = new HTMLPage(robUrl);
-            robtxt = robpg.getContent();
-            cache.put(robUrl, robtxt);
-            logger.log(Level.DEBUG, "Got " + robUrl.toString() +
-                    " (" + robtxt.length() + " b)");
+            robtxt = this.getRobots(robUrl);
         }
         if (robtxt.isEmpty()) {
             return true; // no robots.txt, go ahead
@@ -69,6 +79,4 @@ public class WebRobotCache {
         //logger.log(Level.TRACE, "Path '"+urlpath+"' all right ");
         return true;
     }
-
-
 }
