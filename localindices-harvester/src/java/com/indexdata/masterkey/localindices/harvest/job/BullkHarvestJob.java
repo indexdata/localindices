@@ -3,9 +3,9 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
@@ -21,23 +23,26 @@ import org.apache.log4j.Level;
  * @author jakub
  */
 public class BullkHarvestJob implements HarvestJob {
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestStorage storage;
     private HarvestStatus status;
     private String error;
+    private List<URL> urls = new ArrayList<URL>();
     private XmlBulkResource resource;
     private boolean die = false;
-    
+
     public BullkHarvestJob(XmlBulkResource resource) {
         this.resource = resource;
         String persistedStatus = resource.getCurrentStatus();
-        if (persistedStatus == null)
+        if (persistedStatus == null) {
             this.status = HarvestStatus.NEW;
-        else
+        } else {
             this.status = HarvestStatus.WAITING;
+        }
         this.resource.setError(null);
     }
-    
+
     private synchronized boolean isKillSendt() {
         if (die) {
             logger.log(Level.WARN, "Bulk harvest received kill signal.");
@@ -48,7 +53,7 @@ public class BullkHarvestJob implements HarvestJob {
     private synchronized void onKillSendt() {
         die = true;
     }
-    
+
     public void kill() {
         if (status != HarvestStatus.FINISHED) {
             status = HarvestStatus.KILLED;
@@ -85,42 +90,88 @@ public class BullkHarvestJob implements HarvestJob {
             status = HarvestStatus.ERROR;
             error = e.getMessage();
             resource.setError(e.getMessage());
-            logger.log(Level.ERROR,  "Download failed.", e);
+            logger.log(Level.ERROR, "Download failed.", e);
         }
     }
-    
+
     private void downloadList(String[] urls) throws Exception {
         for (String url : urls) {
-            download(url);
+            download(new URL(url));
         }
     }
-    
-    private void download(String urlString) throws Exception {
-        logger.log(Level.INFO, "Starting download - " + urlString);
+
+    private void download(URL url) throws Exception {
+        logger.log(Level.INFO, "Starting download - " + url.toString());
         try {
-            URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             int responseCode = conn.getResponseCode();
             int contentLenght = conn.getContentLength();
+            String contentType = conn.getContentType();
             if (responseCode == 200) {
-                try {
-                    storage.begin();
-                    pipe(conn.getInputStream(), storage.getOutputStream(), contentLenght);
-                    storage.commit();
-                } catch (IOException ioe) {         
-                    storage.rollback();
-                    throw new Exception("Storage write failed. ", ioe);
+                //jump page
+                if (contentType.startsWith("text/html")) {
+                    logger.log(Level.INFO, "Jump page found at " + url.toString());
+                    HTMLPage jp = new HTMLPage(conn.getInputStream(), url);
+                    if (jp.getLinks().isEmpty()) {
+                        throw new Exception("No links found on the jump page");
+                    }
+                    int proper = 0;
+                    int dead = 0;
+                    int recursive = 0;
+                    for (URL link : jp.getLinks()) {
+                        conn = (HttpURLConnection) link.openConnection();
+                        conn.setRequestMethod("GET");
+                        responseCode = conn.getResponseCode();
+                        contentLenght = conn.getContentLength();
+                        contentType = conn.getContentType();
+                        if (responseCode == 200) {
+                            // watch for non-marc links
+                            if (contentType.startsWith("text/html")) {
+                                logger.log(Level.WARN, "Possible sub-link ignored at " + link.toString());
+                                recursive++;
+                                continue;
+                            // possibly a marc file
+                            } else {
+                                logger.log(Level.INFO, "Found file at " + link.toString());
+                                store(conn.getInputStream(), contentLenght);
+                                proper++;
+                            }
+                        } else {
+                            logger.log(Level.WARN, "Dead link (" + responseCode + " at " + link.toString());
+                            dead++;
+                            continue;
+                        }
+                    }
+                    if (proper == 0) 
+                        throw new Exception("No proper links found at " + url.toString() + 
+                                ", trash links: " + recursive +
+                                ", dead links: " + dead);
+                //assume marc file, TODO text/plain                    
+                } else {
+                    store(conn.getInputStream(), contentLenght);
+                    return;
                 }
             } else {
                 throw new Exception("Http connection failed. (" + responseCode + ")");
             }
-            logger.log(Level.INFO, "Finished - " + urlString);
+            logger.log(Level.INFO, "Finished - " + url.toString());
         } catch (IOException ioe) {
             throw new Exception("Http connection failed.", ioe);
         }
     }
-    
+
+    private void store(InputStream is, int contentLenght) throws Exception {
+        try {
+            storage.begin();
+            pipe(is, storage.getOutputStream(), contentLenght);
+            storage.commit();
+        } catch (IOException ioe) {
+            storage.rollback();
+            throw new Exception("Storage write failed. ", ioe);
+        }
+    }
+
     private void pipe(InputStream is, OutputStream os, int total) throws IOException {
         int blockSize = 4096;
         int copied = 0;
@@ -129,15 +180,17 @@ public class BullkHarvestJob implements HarvestJob {
         byte[] buf = new byte[blockSize];
         for (int len = -1; (len = is.read(buf)) != -1;) {
             os.write(buf, 0, len);
-            if (isKillSendt()) throw new IOException("Download interputed with a kill signal.");
+            if (isKillSendt()) {
+                throw new IOException("Download interputed with a kill signal.");
             // every megabyte
+            }
             copied += len;
-            if (num % logBlockNum == 0)
-                logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes (" + ((double)copied/(double)total*100) +"%)");
+            if (num % logBlockNum == 0) {
+                logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes (" + ((double) copied / (double) total * 100) + "%)");
+            }
             num++;
         }
-        logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied/ (double) total*100) +"%)");
+        logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied / (double) total * 100) + "%)");
         os.flush();
     }
-
 }

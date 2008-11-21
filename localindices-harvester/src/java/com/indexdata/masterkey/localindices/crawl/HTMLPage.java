@@ -7,7 +7,6 @@
  */
 package com.indexdata.masterkey.localindices.crawl;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -30,7 +29,6 @@ public class HTMLPage {
     private String error = "";
     private String contenttype = "";
     private String content = ""; // the whole thing
-
     private String headers = "";
     private String body = "";
     private List<URL> links = new Vector<URL>();
@@ -43,16 +41,35 @@ public class HTMLPage {
     public final static int maxReadSize = 10000000; // 10MB
     public final static int connTimeOut = 30000; // ms to make a connection
     public final static int readTimeOut = 30000; // ms to read a block
-    private final static String userAgentString = "IndexData Masterkey Web crawler";
+    public final static String userAgentString = "IndexData Masterkey Web crawler";
 
     public HTMLPage(URL url) {
         this.url = url;
-        fetch();
+        try {
+            read(request());
+            parse();
+        } catch (IOException ioe) {
+            this.error = ioe.getMessage();
+            logger.log(Level.ERROR, this.error);
+        }
     }
     
+    public HTMLPage(InputStream is, URL url) throws IOException {
+        this.url = url;
+        read(is);
+        parse();
+    }
+    
+    public HTMLPage(String content, URL url) {
+        this.url = url;
+        this.content = content;
+        parse();
+    }
+
     public String getContent() {
         return content;
     }
+
     public String getBody() {
         return body;
     }
@@ -76,90 +93,46 @@ public class HTMLPage {
     public URL getUrl() {
         return url;
     }
-    
+
     public List<URL> getLinks() {
         return links;
     }
 
-    public void fetch() {
-        if (this.content != null && !this.content.isEmpty()) {
-            return; // already fetched, save some work
-        }
-        this.error = null;
-        this.content = "";
+    private InputStream request() throws IOException {
+        content = "";
         String pageUrl = url.toString();
         logger.log(Level.TRACE, "About to fetch '" + pageUrl + "'");
         if (url.getProtocol().compareTo("http") != 0) {
-            this.error = "Unsupported protocol in '" + pageUrl + "'";
-            logger.log(Level.ERROR, this.error);
-            return;
+            throw new IOException("Unsupported protocol in '" + pageUrl + "'");
         }
-        try {
-            URLConnection urlConnection = url.openConnection();
-            urlConnection.setConnectTimeout(connTimeOut);
-            urlConnection.setReadTimeout(readTimeOut);
-            urlConnection.setAllowUserInteraction(false);
-            urlConnection.setRequestProperty("User-agent", userAgentString);
-            InputStream urlStream = url.openStream();
-            this.contenttype = urlConnection.getContentType();
-            // Fixme - this requests the page once! And with 'Java' in user'agent
-            // and below we fetch it once more! (with proper user-agent)
-            if (this.contenttype == null || this.contenttype.isEmpty()) {
-                this.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
-            }
-            if (this.contenttype == null || this.contenttype.isEmpty()) {
-                this.error = "Skipped '" + pageUrl + "'. could not get content type";
-                logger.log(Level.DEBUG, this.error);
-                return;
-            }
-            if (!this.contenttype.startsWith("text/html") &&
-                    !this.contenttype.startsWith("text/plain")) {
-                // Get also plain text, we need it for robots.txt, and
-                // might as well index it all anyway
-                this.error = "Skipped '" + pageUrl + "'. Content type '" +
-                        this.contenttype + "' not acceptable ";
-                logger.log(Level.DEBUG, this.error);
-                return;
-            }
-            // search the input stream for links
-            // first, read in the entire URL
-            byte b[] = new byte[readBlockSize];
-            int numRead = urlStream.read(b);
-            if (numRead <= 0) {
-                this.content = "";
-            } else {
-                this.content = new String(b, 0, numRead);
-                while ((numRead != -1) && (this.content.length() < maxReadSize)) {
-                    numRead = urlStream.read(b);
-                    if (numRead != -1) {
-                        String newContent = new String(b, 0, numRead);
-                        this.content += newContent;
-                    }
-                }
-            }
-            urlStream.close();
-            logger.log(Level.TRACE, pageUrl + " Read " + this.content.length() + " bytes");
-            splitHtmlPage();
-            return;
-        } catch (FileNotFoundException ex) {
-            this.error = "I/O Exception: " + pageUrl + " Not found ";
-        // FIXME - Display also the referring page
-        } catch (IOException ex) {
-            this.error = "I/O Exception " +
-                    "(" + ex.getClass().getSimpleName() + ") " +
-                    "with " + pageUrl + ": " + ex.getMessage();
-            logger.log(Level.ERROR,
-                    "I/O Exception " +
-                    "(" + ex.getClass().getSimpleName() + ") " +
-                    "with " + pageUrl + ": " + ex.getMessage());
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(connTimeOut);
+        conn.setReadTimeout(readTimeOut);
+        conn.setAllowUserInteraction(false);
+        conn.setRequestProperty("User-agent", userAgentString);
+        InputStream urlStream = url.openStream();
+        this.contenttype = conn.getContentType();
+        // Fixme - this requests the page once! And with 'Java' in user'agent
+        // and below we fetch it once more! (with proper user-agent)
+        if (this.contenttype == null || this.contenttype.isEmpty()) {
+            this.contenttype = URLConnection.guessContentTypeFromStream(urlStream);
         }
-        logger.log(Level.DEBUG, this.error);
+        if (this.contenttype == null || this.contenttype.isEmpty()) {
+            throw new IOException("Could not verify content type at " + pageUrl);
+        }
+        if (!this.contenttype.startsWith("text/html") &&
+                !this.contenttype.startsWith("text/plain")) {
+            // Get also plain text, we need it for robots.txt, and
+            // might as well index it all anyway
+            throw new IOException("Content type '" + contenttype + "' not acceptable at" + pageUrl);
+        }
+        return urlStream;
     }
 
     /** Split a html page. 
      * First extract body and headers, then fulltext and links 
      */
-    private void splitHtmlPage() {
+    private void parse() {
         // Split headers and body, if possible
         Pattern p = Pattern.compile("<head>(.*)</head>.*" +
                 "<body[^>]*>(.*)",
@@ -211,8 +184,6 @@ public class HTMLPage {
                         "when parsing " + this.url.toString());
                 break;
             }
-            //logger.log(Level.TRACE, "Found link '" + m3.group() + "' '" + lnk + "' " +
-            //        "-> '" + linkUrl.toString() + "'");
             if (!this.links.contains(linkUrl)) {
                 this.links.add(linkUrl);
             }
@@ -224,7 +195,29 @@ public class HTMLPage {
                 "h=" + this.headers.length() + "b " +
                 "b=" + this.body.length() + "b) " +
                 this.links.size() + " links");
-    } // splitHtmlPage
+    } // parse
+
+    /*
+     * Read in the entire input stream
+     */
+    private void read(InputStream is) throws IOException {
+        byte[] b = new byte[readBlockSize];
+        int numRead = is.read(b);
+        if (numRead <= 0) {
+            content = "";
+        } else {
+            content = new String(b, 0, numRead);
+            while ((numRead != -1) && (content.length() < maxReadSize)) {
+                numRead = is.read(b);
+                if (numRead != -1) {
+                    String newContent = new String(b, 0, numRead);
+                    content += newContent;
+                }
+            }
+        }
+        is.close();
+        logger.log(Level.TRACE, url.toString() + " Read " + content.length() + " bytes.");
+    } //read
 
     private String xmlTag(String tag, String data) {
         String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML tools
