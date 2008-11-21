@@ -46,7 +46,7 @@ public class ListIdentifiers extends HarvesterVerb {
      */
     public ListIdentifiers(String baseURL, String from, String until,
             String set, String metadataPrefix)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, from, until, set, metadataPrefix));
     }
@@ -61,7 +61,7 @@ public class ListIdentifiers extends HarvesterVerb {
      * @throws TransformerException
      */
     public ListIdentifiers(String baseURL, String resumptionToken)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, resumptionToken));
     }

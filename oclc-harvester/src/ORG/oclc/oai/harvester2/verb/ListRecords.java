@@ -47,7 +47,7 @@ public class ListRecords extends HarvesterVerb {
      */
     public ListRecords(String baseURL, String from, String until,
             String set, String metadataPrefix)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, from, until, set, metadataPrefix));
     }
@@ -62,7 +62,7 @@ public class ListRecords extends HarvesterVerb {
      * @throws TransformerException
      */
     public ListRecords(String baseURL, String resumptionToken)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, resumptionToken));
     }

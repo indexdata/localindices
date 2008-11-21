@@ -44,7 +44,7 @@ public class GetRecord extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public GetRecord(String baseURL, String identifier, String metadataPrefix)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, identifier, metadataPrefix));
     }
