@@ -3,6 +3,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
@@ -111,10 +112,7 @@ public class WebHarvestJob implements HarvestJob {
     private WebCrawlResource resource;
     private boolean die = false;
     private Vector<SiteRequest> sites;
-    private Vector<URL> toSearch; // todo list for this round
-    private Vector<URL> searched; // all pages we have seen
-    private Vector<URL> nextRound; // links found in this round are pushed here
-    private int numtosearch;
+    private CrawlQueue que;
     private int round;
     private static WebRobotCache robotCache = new WebRobotCache();
     private final int sleepTime = 10000; // ms to sleep between requests
@@ -253,9 +251,7 @@ public class WebHarvestJob implements HarvestJob {
    
     private void initWorkList() {
         sites = new Vector<SiteRequest>();
-        searched = new Vector<URL>();
-        toSearch = new Vector<URL>();
-        nextRound = new Vector<URL>();
+        que = new CrawlQueue();
         logger.log(Level.TRACE, "InitWorkList: " + resource.getStartUrls());
         Pattern p = Pattern.compile("([^:]+:)?(http:[^ ]+)",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -284,7 +280,7 @@ public class WebHarvestJob implements HarvestJob {
                         URL url;
                         url = new URL(m.group(2));
                         HTMLPage pi = new HTMLPage(url);
-                        if (pi.getContent().isEmpty()) {
+                        if (pi.getContent()== null || pi.getContent().isEmpty()) {
                             setError("Could not get jump page " + m.group(2));
                             sites.clear();
                         } else {
@@ -299,7 +295,7 @@ public class WebHarvestJob implements HarvestJob {
                             if (links.isEmpty()) {
                                 setError("Jump page " + m.group(2) +
                                         " contains no links ");
-                                toSearch.clear();
+                                sites.clear();
                                 return;
                             }
                             for (URL u : links) {
@@ -313,6 +309,7 @@ public class WebHarvestJob implements HarvestJob {
                                             " is already in the jump list." );
                                 } else {
                                     sites.add(site);
+                                    logger.log(Level.INFO, "Added jump link " + u.toString() );
                                 }
                             }
                         }
@@ -329,7 +326,9 @@ public class WebHarvestJob implements HarvestJob {
 
             }
         }
-        numtosearch = toSearch.size();
+        for ( SiteRequest s : sites ) {
+            que.add(s);
+        }
     }
 
     /** A little delay between making the requests
@@ -348,26 +347,23 @@ public class WebHarvestJob implements HarvestJob {
         }
     } // sleep
 
-    /** Harvest one round of links */
+    /** Harvest one round of links - NO, the whole queue, until we move to threads*/
     private void harvestRound() {
-        while (!toSearch.isEmpty() && !isKillSendt()) {
-            URL curUrl = toSearch.firstElement();
-            toSearch.removeElementAt(0);
-            if (!searched.contains(curUrl)) {
-                searched.add(curUrl); // to make sure we don't go there again  
+        while (!que.isEmpty() && !isKillSendt()) {
+            PageRequest pg = que.get();
+            URL curUrl = pg.url;
                 if (robotCache.checkRobots(curUrl)) {
                     HTMLPage pi = new HTMLPage(curUrl);
                     if (!pi.getContent().isEmpty()) {
                         // TODO: Split according to the type of the page
                         for (URL u : pi.getLinks()) {
-                            if (!nextRound.contains(u) &&
-                                    filterLink(u, curUrl) &&
+                            if ( filterLink(u, curUrl) &&
                                     robotCache.checkRobots(u)) {
-                                nextRound.add(u);
+                                que.add(pg,u);
                             }
                         }
                         String xml = pi.xmlFragment();
-                        if (!pi.xml.isEmpty()) {
+                        if (!xml.isEmpty()) {
                             try {
                                 saveXmlFragment(xml);
                             } catch (IOException ex) {
@@ -378,7 +374,6 @@ public class WebHarvestJob implements HarvestJob {
                         sleep();
                     } // got page
                 } // robot ok
-            } // not searched
         }
     } // harvestRound
 
@@ -387,11 +382,12 @@ public class WebHarvestJob implements HarvestJob {
         round = 0;
         long startTime = System.currentTimeMillis();
         initWorkList();
+        harvestRound();
+/*
         while (round <= resource.getRecursionDepth() &&
-                !toSearch.isEmpty() &&
+                !que.isEmpty() &&
                 !isKillSendt() &&
                 this.error == null) {
-            harvestRound();
             logger.log(Level.DEBUG, "Round " + round + ": " +
                     searched.size() + " urls seen. " +
                     nextRound.size() + " urls to go ");
@@ -400,6 +396,7 @@ public class WebHarvestJob implements HarvestJob {
             nextRound.clear();
             round++;
         }
+*/
         long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
 
         String killmsg = "Did";
@@ -407,9 +404,8 @@ public class WebHarvestJob implements HarvestJob {
             killmsg = "Killed after";
         }
         logger.log(Level.DEBUG, killmsg + " " + (round - 1) + " rounds. " +
-                "Seen " + searched.size() + " urls " +
-                " in " + elapsed + " seconds " +
-                "(Next depth would have taken " + toSearch.size() + " pages more)");
+                "Seen " + que.numSeen() + " urls " +
+                " in " + elapsed + " seconds " );
     }
 
     public void run() {

@@ -34,11 +34,10 @@ public class HTMLPage {
     private List<URL> links = new Vector<URL>();
     private String plaintext = "";
     private String title = "";
-    public String xml = ""; // FIXME - move XML stuff here too
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
-    public final static int readBlockSize = 1000000; // bytes to read in one op
-    public final static int maxReadSize = 10000000; // 10MB
+    public final static int readBlockSize = 100 * 1024; // bytes to read in one op
+    public final static int maxReadSize = 100 * 1024 * 2024; 
     public final static int connTimeOut = 30000; // ms to make a connection
     public final static int readTimeOut = 30000; // ms to read a block
     public final static String userAgentString = "IndexData Masterkey Web crawler";
