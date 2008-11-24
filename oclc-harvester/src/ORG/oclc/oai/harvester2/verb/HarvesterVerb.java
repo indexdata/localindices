@@ -188,7 +188,7 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public HarvesterVerb(String requestURL) throws IOException,
-    ParserConfigurationException, SAXException, TransformerException {
+    ParserConfigurationException, TransformerException, HarvesterVerbException {
         harvest(requestURL);
     }
     
@@ -202,7 +202,7 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public void harvest(String requestURL) throws IOException,
-    ParserConfigurationException, SAXException, TransformerException {
+    ParserConfigurationException, TransformerException, HarvesterVerbException {
         this.requestURL = requestURL;
         logger.log(Level.INFO, "requestURL=" + requestURL);
         InputStream in = null;
@@ -266,7 +266,11 @@ public abstract class HarvesterVerb {
             builder = factory.newDocumentBuilder();
             builderMap.put(t, builder);
         }
-        doc = builder.parse(data);
+        try {
+            doc = builder.parse(data);
+        } catch (SAXException saxe) {
+            throw new HarvesterVerbException("Cannot parse response.", saxe, in);
+        }
         
         StringTokenizer tokenizer = new StringTokenizer(
                 getSingleString("/*/@xsi:schemaLocation"), " ");

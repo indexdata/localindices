@@ -19,7 +19,6 @@ package ORG.oclc.oai.harvester2.verb;
 import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.xml.sax.SAXException;
 
 /**
  * This class represents an ListSets response on either the server or
@@ -43,7 +42,7 @@ public class ListSets extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public ListSets(String baseURL)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL));
     }

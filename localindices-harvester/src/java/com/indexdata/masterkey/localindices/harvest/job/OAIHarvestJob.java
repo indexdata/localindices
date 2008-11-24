@@ -15,12 +15,12 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.util.TextUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.xml.sax.SAXException;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used
@@ -167,9 +167,7 @@ public class OAIHarvestJob implements HarvestJob {
 
     private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec,
-            OutputStream out)
-            throws IOException, ParserConfigurationException, SAXException, TransformerException,
-            NoSuchFieldException {
+            OutputStream out) throws IOException {
         out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
         out.write(("<harvest from=\"" + from + "\" until=\"" + until + "\">\n").getBytes("UTF-8"));
         //out.write(new Identify(baseURL).toString().getBytes("UTF-8"));
@@ -178,23 +176,48 @@ public class OAIHarvestJob implements HarvestJob {
         //out.write("\n".getBytes("UTF-8"));
         //out.write(new ListSets(baseURL).toString().getBytes("UTF-8"));
         //out.write("\n".getBytes("UTF-8"));
-        ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
+        ListRecords listRecords = null;
+        try {
+            listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix);
+        } catch (HarvesterVerbException hve) {
+            logger.log(Level.ERROR, "ListRecords failed, invalid XML response:\n"
+                    + TextUtils.readStream(hve.getResponseStream()));
+            throw new IOException("ListRecords failed because of the invalid XML", hve);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
         while (listRecords != null && !isKillSendt()) {
-            NodeList errors = listRecords.getErrors();
+            NodeList errors = null;
+            try {
+                errors = listRecords.getErrors();
+            } catch (TransformerException te) {
+                throw new IOException("Cannot read OAI-PMH protocol errors.", te);
+            }
             if (checkError(errors)) {
                 logger.log(Level.ERROR, "Error record: " + listRecords.toString());
                 break;
             }
             out.write(listRecords.toString().getBytes("UTF-8"));
             out.write("\n".getBytes("UTF-8"));
-            String resumptionToken = listRecords.getResumptionToken();
+            String resumptionToken = null;
+            try {
+                resumptionToken = listRecords.getResumptionToken();
+            } catch (Exception e) {
+                throw new IOException("Cannot read the resumption token");
+            }
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
                 listRecords = null;
             } else {
                 logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
-                listRecords = new ListRecords(baseURL, resumptionToken);
+                try {
+                    listRecords = new ListRecords(baseURL, resumptionToken);
+                } catch (HarvesterVerbException hve) {
+                  throw new IOException("ListRecords failed because of the invalid XML", hve);
+                } catch (Exception e) {
+                  throw new IOException(e);
+                }
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
@@ -202,7 +225,7 @@ public class OAIHarvestJob implements HarvestJob {
     
     private void harvest(String baseURL, String resumptionToken,
             OutputStream out)
-            throws IOException, ParserConfigurationException, SAXException, TransformerException,
+            throws IOException, ParserConfigurationException, HarvesterVerbException, TransformerException,
             NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
         while (listRecords != null && !isKillSendt()) {

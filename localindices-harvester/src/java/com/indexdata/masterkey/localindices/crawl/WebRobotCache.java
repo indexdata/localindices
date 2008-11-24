@@ -3,6 +3,7 @@
  */
 package com.indexdata.masterkey.localindices.crawl;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -27,7 +28,14 @@ public class WebRobotCache {
         // have been fetching the very same file, and we may have been 
         // waiting until it did the job.
         if (robtxt == null) {
-            HTMLPage robpg = new HTMLPage(robUrl);
+            HTMLPage robpg;
+            try {
+                robpg = new HTMLPage(robUrl);
+            } catch (IOException ex) {
+                cache.put(robUrl, "");
+                return ""; // no robots.txt, ok to go
+                //FIXME - Is this the right way to handle all excpetions?
+            }
             robtxt = robpg.getContent();
             cache.put(robUrl, robtxt);
             logger.log(Level.DEBUG, "Got " + robUrl.toString() +

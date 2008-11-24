@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.crawl;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.After;
@@ -36,9 +37,11 @@ public class HTMLPageTest {
     @Before
     public void setUp() {
         try { 
-            instance = new HTMLPage(new URL("http://bagel.indexdata.com/cf/"));
+            instance = new HTMLPage(new URL("http://bagel.indexdata.com/cf"));
         } catch (MalformedURLException e) {
             fail("Cannot instantiate test class");
+        } catch (IOException e) {
+            fail("I/O Excpetion " + e.getMessage() );
         }
     }
 
@@ -61,8 +64,9 @@ public class HTMLPageTest {
      * Test of xmlFragment method, of class HTMLPage.
      */
     @Test
-    public void testXmlFragment() {
-        System.out.println("xmlFragment");        
+    public void testToPazpar2Metadata() {
+        System.out.println("xmlFragment");
+        System.out.println(instance.toPazpar2Metadata());
     }
 
 }

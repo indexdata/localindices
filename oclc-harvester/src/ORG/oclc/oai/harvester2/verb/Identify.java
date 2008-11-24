@@ -43,7 +43,7 @@ public class Identify extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public Identify(String baseURL)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL));
     }

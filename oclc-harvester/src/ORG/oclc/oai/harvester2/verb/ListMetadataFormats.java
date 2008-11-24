@@ -44,7 +44,7 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public ListMetadataFormats(String baseURL)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         this(baseURL, null);
     }
@@ -59,7 +59,7 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @throws TransformerException
      */
     public ListMetadataFormats(String baseURL, String identifier)
-    throws IOException, ParserConfigurationException, SAXException,
+    throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
         super(getRequestURL(baseURL, identifier));
     }

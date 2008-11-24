@@ -105,6 +105,7 @@ import org.apache.log4j.Logger;
  *   - Detect and convert character sets, if possible 
  */
 public class WebHarvestJob implements HarvestJob {
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestStorage storage;
     private HarvestStatus status;
@@ -116,6 +117,7 @@ public class WebHarvestJob implements HarvestJob {
     private int round;
     private static WebRobotCache robotCache = new WebRobotCache();
     private final int sleepTime = 10000; // ms to sleep between requests
+    private final int hitInterval = 60 * 1000 ;  // ms between hitting the same host
 
     public WebHarvestJob(WebCrawlResource resource) {
         this.resource = resource;
@@ -248,7 +250,6 @@ public class WebHarvestJob implements HarvestJob {
         return false;
     }
 
-   
     private void initWorkList() {
         sites = new Vector<SiteRequest>();
         que = new CrawlQueue();
@@ -268,7 +269,8 @@ public class WebHarvestJob implements HarvestJob {
                     site.url = new URL(m.group(2));
                     site.maxdepth = resource.getRecursionDepth();
                     sites.add(site);
-                    logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'");
+                    logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'" +
+                            " (d=" + site.maxdepth +")");
                 } catch (MalformedURLException ex) {
                     setError("Invalid start url: '" + m.group(2) + "'");
                     sites.clear();
@@ -280,7 +282,7 @@ public class WebHarvestJob implements HarvestJob {
                         URL url;
                         url = new URL(m.group(2));
                         HTMLPage pi = new HTMLPage(url);
-                        if (pi.getContent()== null || pi.getContent().isEmpty()) {
+                        if (pi.getContent() == null || pi.getContent().isEmpty()) {
                             setError("Could not get jump page " + m.group(2));
                             sites.clear();
                         } else {
@@ -302,14 +304,12 @@ public class WebHarvestJob implements HarvestJob {
                                 SiteRequest site = new SiteRequest();
                                 site.url = u;
                                 site.maxdepth = resource.getRecursionDepth();
-                                sites.add(site);
-                                logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'");
-                                if (sites.contains(site) ) {
+                                if (sites.contains(site)) {
                                     logger.log(Level.INFO, "Site " + u.toString() +
-                                            " is already in the jump list." );
+                                            " is already in the jump list.");
                                 } else {
                                     sites.add(site);
-                                    logger.log(Level.INFO, "Added jump link " + u.toString() );
+                                    logger.log(Level.INFO, "Added jump link " + u.toString());
                                 }
                             }
                         }
@@ -317,6 +317,9 @@ public class WebHarvestJob implements HarvestJob {
                         setError("Invalid start url: '" + m.group(2) + "'");
                         sites.clear();
 
+                    } catch (IOException ex) {
+                        setError("I/O Exception '" + m.group(2) + "'" + ex.getMessage());
+                        sites.clear();
                     }
                 } else {
                     setError("Invalid start url prefix: '" + m.group(1) + "'");
@@ -326,7 +329,8 @@ public class WebHarvestJob implements HarvestJob {
 
             }
         }
-        for ( SiteRequest s : sites ) {
+        logger.log(Level.INFO, "Starting with " + sites.size() + " start links");
+        for (SiteRequest s : sites) {
             que.add(s);
         }
     }
@@ -349,31 +353,46 @@ public class WebHarvestJob implements HarvestJob {
 
     /** Harvest one round of links - NO, the whole queue, until we move to threads*/
     private void harvestRound() {
+        logger.log(Level.TRACE, "harvestRound starting :" +
+                " isempty= " + que.isEmpty() +
+                " isK= " + isKillSendt());
         while (!que.isEmpty() && !isKillSendt()) {
             PageRequest pg = que.get();
+            if (pg == null) {
+                logger.log(Level.TRACE, "Got a null pagerequest, must be done");
+                return;
+            }
             URL curUrl = pg.url;
-                if (robotCache.checkRobots(curUrl)) {
-                    HTMLPage pi = new HTMLPage(curUrl);
-                    if (!pi.getContent().isEmpty()) {
-                        // TODO: Split according to the type of the page
-                        for (URL u : pi.getLinks()) {
-                            if ( filterLink(u, curUrl) &&
-                                    robotCache.checkRobots(u)) {
-                                que.add(pg,u);
-                            }
+            if (robotCache.checkRobots(curUrl)) {
+                HTMLPage pi = null;
+                try {
+                    pi = new HTMLPage(curUrl);
+                    que.setNotYet(pg, hitInterval );
+                } catch (IOException ex) {
+                    logger.log(Level.TRACE, "I/O error in getting " + 
+                            curUrl.toString() +" : " + ex.getMessage() );
+                }
+                if (pi != null && pi.getContent() != null && 
+                        !pi.getContent().isEmpty()) {
+                    // TODO: Split according to the type of the page
+                    for (URL u : pi.getLinks()) {
+                        if (filterLink(u, curUrl) &&
+                                robotCache.checkRobots(u)) {
+                            que.add(pg, u);
                         }
-                        String xml = pi.xmlFragment();
-                        if (!xml.isEmpty()) {
-                            try {
-                                saveXmlFragment(xml);
-                            } catch (IOException ex) {
-                                setError("I/O error writing data: " +
-                                        ex.getMessage());
-                            }
+                    }
+                    String xml = pi.toPazpar2Metadata();
+                    if (!xml.isEmpty()) {
+                        try {
+                            saveXmlFragment(xml);
+                        } catch (IOException ex) {
+                            setError("I/O error writing data: " +
+                                    ex.getMessage());
                         }
-                        sleep();
-                    } // got page
-                } // robot ok
+                    }
+                //sleep();
+                } // got page
+            } // robot ok
         }
     } // harvestRound
 
@@ -383,20 +402,20 @@ public class WebHarvestJob implements HarvestJob {
         long startTime = System.currentTimeMillis();
         initWorkList();
         harvestRound();
-/*
+        /*
         while (round <= resource.getRecursionDepth() &&
-                !que.isEmpty() &&
-                !isKillSendt() &&
-                this.error == null) {
-            logger.log(Level.DEBUG, "Round " + round + ": " +
-                    searched.size() + " urls seen. " +
-                    nextRound.size() + " urls to go ");
-            toSearch.addAll(nextRound);
-            numtosearch += toSearch.size();
-            nextRound.clear();
-            round++;
+        !que.isEmpty() &&
+        !isKillSendt() &&
+        this.error == null) {
+        logger.log(Level.DEBUG, "Round " + round + ": " +
+        searched.size() + " urls seen. " +
+        nextRound.size() + " urls to go ");
+        toSearch.addAll(nextRound);
+        numtosearch += toSearch.size();
+        nextRound.clear();
+        round++;
         }
-*/
+         */
         long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
 
         String killmsg = "Did";
@@ -405,7 +424,7 @@ public class WebHarvestJob implements HarvestJob {
         }
         logger.log(Level.DEBUG, killmsg + " " + (round - 1) + " rounds. " +
                 "Seen " + que.numSeen() + " urls " +
-                " in " + elapsed + " seconds " );
+                " in " + elapsed + " seconds ");
     }
 
     public void run() {
