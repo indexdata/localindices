@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -17,6 +18,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement(name="xmlBulk")
 public class XmlBulkResource extends Harvestable implements Serializable {
+    @Column(length=16384)
     private String url;
     private String expectedSchema;
     private String normalizationFilter;
