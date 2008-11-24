@@ -180,15 +180,28 @@ public class MultiFileStorage implements HarvestStorage {
      */
     public void rollback() throws IOException {
         fos.close();
-        File f = new File(incomingDir + "/" + currentFileName);
-        if (!f.delete()) {
-            throw new IOException("Could not delete harvested file '" +
-                    f.getPath() + "'");
+        File fi = new File(incomingDir + "/" + currentFileName);
+        if (fi.exists()) {
+            if (!fi.delete()) {
+                throw new IOException("Could not delete harvested file '" +
+                    fi.getPath() + "'");
+            }
         }
-        f = new File(incomingDir);
-        if (!f.delete()) {
-            throw new IOException("Could not delete incoming dir'" +
-                    f.getPath() + "'");
+        // clean mess from previous commits
+        fi = new File(incomingDir);
+        if (fi.exists()) {
+            if (!fi.delete()) {
+                throw new IOException("Could not delete incoming dir'" +
+                    fi.getPath() + "'");
+            }
+        }
+        // cleanup committed file if commit gotten that far
+        File fc = new File(committedDir + "/" + currentFileName);
+        if (fc.exists()) {
+            if (!fc.delete()) {
+                throw new IOException("Could not delete harvested file '" +
+                    fc.getPath() + "'");
+            }
         }
     } // rollback
 
