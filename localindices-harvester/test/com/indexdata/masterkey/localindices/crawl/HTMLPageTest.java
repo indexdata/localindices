@@ -36,7 +36,7 @@ public class HTMLPageTest {
     @Before
     public void setUp() {
         try { 
-            instance = new HTMLPage(new URL("http://bagel.indexdata.com/cf/"));
+            instance = new HTMLPage(new URL("http://bagel.indexdata.com/cf"));
         } catch (MalformedURLException e) {
             fail("Cannot instantiate test class");
         }

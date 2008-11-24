@@ -48,9 +48,8 @@ public class HTMLPage {
 
 
     public HTMLPage(URL url) {
-        this.url = url;
         try {
-            read(request());
+            read(request(url));
             parse();
         } catch (IOException ioe) {
             this.error = ioe.getMessage();
@@ -102,10 +101,11 @@ public class HTMLPage {
         return links;
     }
 
-    private InputStream request() throws IOException {
+    private InputStream request(URL url) throws IOException {
         if (!url.getProtocol().equalsIgnoreCase("http"))
             throw new IOException("Only HTTP supported,");
         logger.log(Level.TRACE, "Opening connection to " + url.toString());
+        HttpURLConnection.setFollowRedirects(true);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setAllowUserInteraction(false);
         conn.setRequestProperty("User-agent", USER_AGENT_STRING);
@@ -135,6 +135,7 @@ public class HTMLPage {
             // might as well index it all anyway
             throw new IOException("Content type '" + contentType + "' not acceptable at" + url.toString());
             
+        this.url = conn.getURL();
         this.contentType = contentType;
         this.contentLength = contentLength;
         return urlStream;
