@@ -43,7 +43,7 @@ public class JobScheduler {
     public void updateJobs() {
         Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList(0,Integer.parseInt(config.get("MAX_JOBS")));
         if (refs == null) {
-            logger.log(Level.ERROR, "Cannot update current job list - retrieved list is empty.");
+            logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
         } else {
             // mark all job so we know what to remove
             for (JobInstance j : jobs.values()) {
@@ -58,26 +58,37 @@ public class JobScheduler {
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
                         logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                                 + " parameters changed (LU " + href.getLastUpdated()
-                                + "), killing old harvesting thread.");
+                                + "), stopping thread and destroying job");
                         ji.stop();
                         ji = null; // signal to create a new one
                         // should we remove it from the list?
                     }
+                    //but it's been disabled
+                    if (!href.isEnabled()) {
+                        logger.log(Level.INFO, "JOB#" + id 
+                                + " has been disabled");
+                        if (ji != null) ji.stop();
+                        jobs.remove(id);
+                    }
                 }
                 // crate new job
                 if (ji == null) {
-                    Harvestable harv = dao.retrieveFromRef(href);
-                    try {
-                        ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
-                        jobs.put(id, ji);
-                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-                                + " created.");
-                    } catch (Exception e) {
-                        logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
-                        logger.log(Level.DEBUG, e);
+                    if (!href.isEnabled()) {
+                        //logger.log(Level.INFO, "New JOB#" + href.getId() + " is disabled, nothing will be created");
+                    } else {
+                        Harvestable harv = dao.retrieveFromRef(href);
+                        try {
+                            ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
+                            jobs.put(id, ji);
+                            logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
+                                    + " created.");
+                        } catch (Exception e) {
+                            logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
+                            logger.log(Level.DEBUG, e);
+                        }
                     }
                 }
-                ji.seen = true;
+                if (ji != null) ji.seen = true;
             }
 
             // kill jobs with no entities in the WS

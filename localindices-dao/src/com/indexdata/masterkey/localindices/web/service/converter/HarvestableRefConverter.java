@@ -26,6 +26,7 @@ public class HarvestableRefConverter {
     private Long id;
     private URI uri;
     private Date lastUpdated;
+    private boolean enabled;
 
     /** Creates a new instance of HarvestableRefConverter */
     public HarvestableRefConverter() {
@@ -39,6 +40,7 @@ public class HarvestableRefConverter {
     public HarvestableRefConverter(Harvestable entity) {
         id = entity.getId();
         lastUpdated = entity.getLastUpdated();
+        enabled = entity.getEnabled();
     }
 
     /**
@@ -49,8 +51,7 @@ public class HarvestableRefConverter {
      * @param isUriExtendable indicates whether the uri can be extended
      */
     public HarvestableRefConverter(Harvestable entity, URI uri, boolean isUriExtendable) {
-        id = entity.getId();
-        lastUpdated = entity.getLastUpdated();
+        this(entity);
         if (isUriExtendable) {
             try {
                 this.uri = new URI(uri.toString() + entity.getId() + "/");
@@ -101,4 +102,15 @@ public class HarvestableRefConverter {
     public void setLastUpdated(Date lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
+
+    @XmlElement(name="enabled")
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
+    
 }

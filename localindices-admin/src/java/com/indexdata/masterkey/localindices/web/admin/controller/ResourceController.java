@@ -39,11 +39,18 @@ public class ResourceController {
     private Boolean longDate;
     private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
+    private Boolean setToNow = false;
 
+    public Boolean getSetToNow() {
+        return setToNow;
+    }
+    public void setSetToNow(Boolean setToNow) {
+        this.setToNow = setToNow;
+    }
+        
     public Boolean getLongDate() {
         return longDate;
     }
-
     public void setLongDate(Boolean longDate) {
         this.longDate = longDate;
     }
@@ -59,7 +66,6 @@ public class ResourceController {
     public Harvestable getResource() {
         return resource;
     }
-
     public void setResource(Harvestable resource) {
         this.resource = resource;
     }
@@ -301,7 +307,7 @@ public class ResourceController {
     /* update resource */
     public String prepareResourceToEdit() {
         resource = getResourceFromRequestParam();
-        scheduleStringToInputs(resource.getScheduleString());
+        postDePersist();
         logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
         if (resource instanceof OaiPmhResource) {
             return "edit_oaipmh";
@@ -344,7 +350,11 @@ public class ResourceController {
     }
     
     private void prePersist() {
-        resource.setScheduleString(scheduleInputsToString());
+        if (setToNow) {
+            resource.setScheduleString(null);
+        } else {
+            resource.setScheduleString(scheduleInputsToString());
+        }
         if (resource instanceof OaiPmhResource) {
             if (longDate) 
                 ((OaiPmhResource) resource).setDateFormat(LONG_DATE_FORMAT);
@@ -354,7 +364,12 @@ public class ResourceController {
         resource.setLastUpdated(new Date());
     }
     private void postDePersist() {
-        scheduleStringToInputs(resource.getScheduleString());
+        if (resource.getScheduleString() != null) {
+            scheduleStringToInputs(resource.getScheduleString());
+            setToNow = false;
+        } else {
+            setToNow = true;
+        }
         if (resource instanceof OaiPmhResource) {
             if (((OaiPmhResource) resource).getDateFormat().equals(LONG_DATE_FORMAT))
                     longDate = true;

@@ -77,6 +77,12 @@
                     </h:column>
                     <h:column>
                         <f:facet name="header">
+                            <h:outputText value="Enabled" />
+                        </f:facet> 
+                        <h:outputText value="#{item.enabled}"></h:outputText>
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">
                             <h:outputText value="Available Actions: " />
                         </f:facet> 
                         <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
