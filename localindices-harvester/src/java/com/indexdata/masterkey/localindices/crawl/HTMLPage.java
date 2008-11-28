@@ -147,6 +147,7 @@ public class HTMLPage {
      */
     private void parse() {
         if (content == null) return;
+        Long startTime = System.currentTimeMillis();
         // Split headers and body, if possible
         Pattern p = Pattern.compile("<head>(.*)</head>.*" +
                 "<body[^>]*>(.*)",
@@ -160,6 +161,7 @@ public class HTMLPage {
             headers = "";
             body = content; // doesn't look like good html, try to extract links anyway
         }
+        Long et1 = System.currentTimeMillis() - startTime;
         // Extract a title
         //p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
         p = Pattern.compile("<title>\\s*(.*)??</title>",
@@ -174,6 +176,7 @@ public class HTMLPage {
             title = "???"; // FIXME - try to get the first H1 tag, 
         // or first text line or something
         }
+        Long et2 = System.currentTimeMillis() - startTime;
 
         // extract full text
         p = Pattern.compile("<[^>]*>",
@@ -181,6 +184,7 @@ public class HTMLPage {
         m = p.matcher(content);
         plaintext = m.replaceAll("");
         //logger.log(Level.TRACE, "Plaintext: " + this.plaintext);
+        Long et3 = System.currentTimeMillis() - startTime;
 
         // extract links
         p = Pattern.compile("<a[^>]+href=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
@@ -203,13 +207,19 @@ public class HTMLPage {
                 this.links.add(linkUrl);
             }
         }
+        Long et4 = System.currentTimeMillis() - startTime;
 
         logger.log(Level.DEBUG,
                 this.url + " " +
                 "title:'" + this.title + "' (" +
                 "h=" + this.headers.length() + "b " +
                 "b=" + this.body.length() + "b) " +
-                this.links.size() + " links");
+                this.links.size() + " links" );
+        logger.log(Level.DEBUG,"Parse timings: " +
+                " body: " + et1 +
+                " title: " + et2 + 
+                " plain: " + et3 +
+                " links: " + et4 );
     } // parse
 
     /*

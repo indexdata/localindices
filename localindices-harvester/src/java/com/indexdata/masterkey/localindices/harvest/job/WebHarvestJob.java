@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -117,7 +118,7 @@ public class WebHarvestJob implements HarvestJob {
     private int round;
     private static WebRobotCache robotCache = new WebRobotCache();
     private final int sleepTime = 10000; // ms to sleep between requests
-    private final int hitInterval = 60 * 1000 ;  // ms between hitting the same host
+    private final int hitInterval = 60 * 1000;  // ms between hitting the same host
 
     public WebHarvestJob(WebCrawlResource resource) {
         this.resource = resource;
@@ -193,31 +194,44 @@ public class WebHarvestJob implements HarvestJob {
     /** Split a plain-text link page
      */
     private List<URL> splitTextLinkPage(HTMLPage page) {
-        List<URL> links = new Vector<URL>();
+        Long startTime = System.currentTimeMillis();
+        //List<URL> links = new Vector<URL>();
+        List<URL> links = new ArrayList<URL>(100);
         //Pattern p = Pattern.compile("(http://\\S+)",
         Pattern p = Pattern.compile("(http://[^ <>]+)",
                 Pattern.CASE_INSENSITIVE);
         String body = page.getBody();
         Matcher m = p.matcher(body);
-        logger.log(Level.TRACE, "Parsing text links from " +
+        URL pgUrl = page.getUrl();
+        logger.log(Level.TRACE, "Parsing text links from " + pgUrl.toString() + " : " +
                 body.length() + "bytes " + trunc(body, 50));
         while (m.find()) {
             String lnk = m.group(1);
-            URL linkUrl;
-            try {
-                linkUrl = new URL(page.getUrl(), lnk);
-            } catch (MalformedURLException ex) {
-                logger.log(Level.TRACE, "Could not make a good url from " +
-                        "'" + lnk + "' " +
-                        "when parsing " + page.getUrl().toString());
-                break;
-            }
-            logger.log(Level.TRACE, "Found link '" + m.group(1) + "' '" + lnk + "' " +
-                    "-> '" + linkUrl.toString() + "'");
-            if (!links.contains(linkUrl)) {
-                links.add(linkUrl);
+            URL linkUrl = null;
+            if (lnk != null) {
+                try {
+                    logger.log(Level.TRACE, "Anout to do " + lnk);
+                    linkUrl = new URL(pgUrl, lnk);
+                    if (linkUrl == null) {
+                        logger.log(Level.TRACE, "OOPS Got a null URL");
+                    }
+                    logger.log(Level.TRACE, "Found link '" + lnk + "' " +
+                            "-> '" + linkUrl.toString() + "'");
+                    if (!links.contains(linkUrl)) {
+                        links.add(linkUrl);
+                    }
+                   logger.log(Level.TRACE, "Added into links");
+                } catch (MalformedURLException ex) {
+                    logger.log(Level.TRACE, "Could not make a good url from " +
+                            "'" + lnk + "' " +
+                            "when parsing " + page.getUrl().toString());
+                }
             }
         }
+        Long elapsed = System.currentTimeMillis() - startTime;
+        logger.log(Level.TRACE, "Parsed " + links.size() + " links in " +
+                elapsed + " ms");
+
         return links;
     }
 
@@ -270,7 +284,7 @@ public class WebHarvestJob implements HarvestJob {
                     site.maxdepth = resource.getRecursionDepth();
                     sites.add(site);
                     logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'" +
-                            " (d=" + site.maxdepth +")");
+                            " (d=" + site.maxdepth + ")");
                 } catch (MalformedURLException ex) {
                     setError("Invalid start url: '" + m.group(2) + "'");
                     sites.clear();
@@ -353,9 +367,6 @@ public class WebHarvestJob implements HarvestJob {
 
     /** Harvest one round of links - NO, the whole queue, until we move to threads*/
     private void harvestRound() {
-        logger.log(Level.TRACE, "harvestRound starting :" +
-                " isempty= " + que.isEmpty() +
-                " isK= " + isKillSendt());
         while (!que.isEmpty() && !isKillSendt()) {
             PageRequest pg = que.get();
             if (pg == null) {
@@ -367,14 +378,13 @@ public class WebHarvestJob implements HarvestJob {
                 HTMLPage pi = null;
                 try {
                     pi = new HTMLPage(curUrl);
-                    que.setNotYet(pg, hitInterval );
+                    que.setNotYet(pg, hitInterval);
                 } catch (IOException ex) {
-                    logger.log(Level.TRACE, "I/O error in getting " + 
-                            curUrl.toString() +" : " + ex.getMessage() );
+                    logger.log(Level.TRACE, "I/O error in getting " +
+                            curUrl.toString() + " : " + ex.getMessage());
                 }
-                if (pi != null && pi.getContent() != null && 
+                if (pi != null && pi.getContent() != null &&
                         !pi.getContent().isEmpty()) {
-                    // TODO: Split according to the type of the page
                     for (URL u : pi.getLinks()) {
                         if (filterLink(u, curUrl) &&
                                 robotCache.checkRobots(u)) {
@@ -390,7 +400,6 @@ public class WebHarvestJob implements HarvestJob {
                                     ex.getMessage());
                         }
                     }
-                //sleep();
                 } // got page
             } // robot ok
         }
