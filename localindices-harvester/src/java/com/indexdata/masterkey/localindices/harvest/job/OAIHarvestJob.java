@@ -181,9 +181,11 @@ public class OAIHarvestJob implements HarvestJob {
             listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix);
         } catch (HarvesterVerbException hve) {
-            logger.log(Level.ERROR, "ListRecords failed, invalid XML response:\n"
+            String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " 
+                    + hve.getMessage();
+            logger.log(Level.ERROR, msg + " Erroneous respponse:\n" 
                     + TextUtils.readStream(hve.getResponseStream()));
-            throw new IOException("ListRecords failed because of the invalid XML", hve);
+            throw new IOException(msg, hve);
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -214,7 +216,11 @@ public class OAIHarvestJob implements HarvestJob {
                 try {
                     listRecords = new ListRecords(baseURL, resumptionToken);
                 } catch (HarvesterVerbException hve) {
-                  throw new IOException("ListRecords failed because of the invalid XML", hve);
+                    String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " 
+                            + hve.getMessage();
+                    logger.log(Level.ERROR, msg + " Erroneous respponse:\n" 
+                            + TextUtils.readStream(hve.getResponseStream()));
+                    throw new IOException(msg, hve);
                 } catch (Exception e) {
                   throw new IOException(e);
                 }

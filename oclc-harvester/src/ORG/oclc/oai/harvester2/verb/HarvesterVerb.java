@@ -16,6 +16,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import com.sun.org.apache.xpath.internal.XPathAPI;
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -258,8 +259,11 @@ public abstract class HarvesterVerb {
             in = con.getInputStream();
         }
         
-        InputSource data = new InputSource(in);
+        int contentLength = con.getContentLength();
+        InputStream bin = new BufferedInputStream(in);
+        bin.mark(contentLength);
         
+        InputSource data = new InputSource(bin);        
         Thread t = Thread.currentThread();
         DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
         if (builder == null) {
@@ -269,7 +273,9 @@ public abstract class HarvesterVerb {
         try {
             doc = builder.parse(data);
         } catch (SAXException saxe) {
-            throw new HarvesterVerbException("Cannot parse response.", saxe, in);
+            bin.reset();
+            throw new HarvesterVerbException("Cannot parse response: " + saxe.getMessage(),
+                    saxe, bin, requestURL);
         }
         
         StringTokenizer tokenizer = new StringTokenizer(

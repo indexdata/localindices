@@ -14,7 +14,7 @@
         <h:inputText value="#{resourceController.resource.title}" />
         -->
         <h:outputText value="Description:"/>
-        <h:inputTextarea value="#{resourceController.resource.description}"/>
+        <h:inputTextarea cols="60" rows="6" value="#{resourceController.resource.description}"/>
         <!-- not used
         <h:outputText value="Maximum records:"/>
         <h:inputText value="#{resourceController.resource.maxDbSize}" />
@@ -44,9 +44,9 @@
             </h:selectOneMenu>
             (min)
         </h:panelGrid>
-        <!-- bnot used
+        <h:outputText value="Ignore schedule, harvest now:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.setToNow}"/>
         <h:outputText value="Harvester enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
-        -->
     </h:panelGrid>
 </f:subview>

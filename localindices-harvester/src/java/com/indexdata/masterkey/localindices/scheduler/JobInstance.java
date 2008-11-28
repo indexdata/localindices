@@ -35,8 +35,13 @@ public class JobInstance {
     
     public boolean seen; // for checking what has been deleted
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
-        // harvest job factory
-        cronLine = new CronLine(hable.getScheduleString());
+        //if cron line is not specified - default to today
+        if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
+            logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
+            cronLine = CronLine.currentCronLine();
+        } else {        
+            cronLine = new CronLine(hable.getScheduleString());
+        }
         if (hable instanceof OaiPmhResource) {
             if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
                 Calendar cal = Calendar.getInstance();

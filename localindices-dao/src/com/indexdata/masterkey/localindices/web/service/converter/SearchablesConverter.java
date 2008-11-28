@@ -38,7 +38,8 @@ public class SearchablesConverter extends Records {
      */
     public SearchablesConverter(Collection<Harvestable> entities, URI uri, String zurlBase) {
         Collection<Record> records = new ArrayList<Record>();
-        for (Harvestable entity : entities) {            
+        for (Harvestable entity : entities) {
+            if (!entity.getEnabled()) continue;
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();

@@ -14,13 +14,20 @@ import java.io.InputStream;
  */
 public class HarvesterVerbException extends Exception {
     InputStream responseStream;
+    String requestURL;
 
-    public HarvesterVerbException(String msg, Throwable cause, InputStream responseStream) {
+    public HarvesterVerbException(String msg, Throwable cause, InputStream responseStream, String requestURL) {
         super(msg, cause);
+        this.requestURL = requestURL;
         this.responseStream = responseStream;
     }
     
     public InputStream getResponseStream() {
         return responseStream;
     }
+
+    public String getRequestURL() {
+        return requestURL;
+    }
+    
 }

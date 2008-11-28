@@ -102,7 +102,7 @@ public class HTMLPage {
         return links;
     }
 
-    private InputStream request( ) throws IOException {
+    private InputStream request() throws IOException {
         if (!url.getProtocol().equalsIgnoreCase("http"))
             throw new IOException("Only HTTP supported,");
         logger.log(Level.TRACE, "Opening connection to " + url.toString());
@@ -136,6 +136,7 @@ public class HTMLPage {
             // might as well index it all anyway
             throw new IOException("Content type '" + contentType + "' not acceptable at" + url.toString());
             
+        this.url = conn.getURL();
         this.contentType = contentType;
         this.contentLength = contentLength;
         this.url = conn.getURL();
