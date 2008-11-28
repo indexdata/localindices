@@ -114,8 +114,8 @@ public class HTMLPage {
         conn.setReadTimeout(READ_TIMEOUT);
         InputStream urlStream = conn.getInputStream();
         int responseCode = conn.getResponseCode();
-        int contentLength = conn.getContentLength();
-        String contentType = conn.getContentType();
+        int conteLength = conn.getContentLength();
+        String contType = conn.getContentType();
         // only OK
         if (responseCode != 200)
             throw new IOException("HTTP connection failed (" + responseCode + ") at " +
@@ -124,21 +124,21 @@ public class HTMLPage {
         // and below we fetch it once more! (with proper user-agent)
         
         // this is not needed - it's done anyways
-        /*if (contentType == null || contentType.isEmpty()) {
-            contentType = URLConnection.guessContentTypeFromStream(urlStream);
+        /*if (contType == null || contType.isEmpty()) {
+            contType = URLConnection.guessContentTypeFromStream(urlStream);
         }
         */
-        if (contentType == null || contentType.isEmpty())
+        if (contType == null || contType.isEmpty())
             throw new IOException("Could not verify content type at " + url.toString());
-        if (!contentType.startsWith("text/html") 
-                && !contentType.startsWith("text/plain"))
+        if (!contType.startsWith("text/html") 
+                && !contType.startsWith("text/plain"))
             // Get also plain text, we need it for robots.txt, and
             // might as well index it all anyway
-            throw new IOException("Content type '" + contentType + "' not acceptable at" + url.toString());
+            throw new IOException("Content type '" + contType + "' not acceptable at" + url.toString());
             
         this.url = conn.getURL();
-        this.contentType = contentType;
-        this.contentLength = contentLength;
+        this.contentType = contType;
+        this.contentLength = conteLength;
         this.url = conn.getURL();
         return urlStream;
     }
