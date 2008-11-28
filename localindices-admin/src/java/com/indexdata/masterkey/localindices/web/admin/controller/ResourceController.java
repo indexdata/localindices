@@ -90,7 +90,7 @@ public class ResourceController {
     private enum Month {
 
         Any, January, February, March, April, May, June,
-        July, August, September, November, October, December
+        July, August, September, October, November, December
     }
     private enum DayOfTheWeek {
 
