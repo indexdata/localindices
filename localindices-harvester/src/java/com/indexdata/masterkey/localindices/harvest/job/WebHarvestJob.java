@@ -217,9 +217,14 @@ public class WebHarvestJob implements HarvestJob {
                     }
                     logger.log(Level.TRACE, "Found link '" + lnk + "' " +
                             "-> '" + linkUrl.toString() + "'");
+                    /* NOTE - this is awfully slow - so we don't deduplicate here
+                     * It will happe in the work queue anyway.
+                     * See the comment on HTMLPage
                     if (!links.contains(linkUrl)) {
                         links.add(linkUrl);
                     }
+                     */
+                   links.add(linkUrl);
                    logger.log(Level.TRACE, "Added into links");
                 } catch (MalformedURLException ex) {
                     logger.log(Level.TRACE, "Could not make a good url from " +

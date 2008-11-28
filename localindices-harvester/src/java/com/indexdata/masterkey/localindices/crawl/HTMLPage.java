@@ -204,7 +204,15 @@ public class HTMLPage {
                         "'" + lnk + "' " +
                         "when parsing " + this.url.toString());
             }
-            if (linkUrl!= null && !this.links.contains(linkUrl)) {
+            //if (linkUrl!= null && !this.links.contains(linkUrl)) {
+            // For some reason, the links.contains test was awfully slow
+            // - up to a minute for a list of 100 links. And with low CPU 
+            // load, it could not be just an inefficient implementation, 
+            // it must be some mysterious locking thing. 
+            // The solution for now is not to deduplicate the list here,
+            // the crawler does its own deduplication anyway, and the bulk
+            // upload should never have duplicates in the first place.
+            if (linkUrl!= null) {
                 this.links.add(linkUrl);
             }
         }
