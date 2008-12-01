@@ -62,6 +62,7 @@ public class WebRobotCache {
                     "'" + strRobot + "'");
             return false;
         }
+
         String robtxt = cache.get(robUrl);
         if (robtxt == null) {
             robtxt = this.getRobots(robUrl);

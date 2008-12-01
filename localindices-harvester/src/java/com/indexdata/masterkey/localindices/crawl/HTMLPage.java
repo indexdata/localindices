@@ -27,12 +27,12 @@ import org.apache.log4j.Logger;
  * @author Heikki and Jakub
  */
 public class HTMLPage {
+
     public final static int READ_BLOCK_SIZE = 1000000; // bytes to read in one op
     public final static int MAX_READ_SIZE = 10000000; // 10MB
     public final static int CONN_TIMEOUT = 30000; // ms to make a connection
     public final static int READ_TIMEOUT = 30000; // ms to read a block
     public final static String USER_AGENT_STRING = "IndexData Masterkey Web crawler";
-    
     private URL url;
     private String error = "";
     private String contentType;
@@ -57,13 +57,13 @@ public class HTMLPage {
             throw ioe;
         }
     }
-    
+
     public HTMLPage(InputStream is, URL url) throws IOException {
         this.url = url;
         read(is);
         parse();
     }
-    
+
     public HTMLPage(String content, URL url) {
         this.url = url;
         this.content = content;
@@ -103,8 +103,9 @@ public class HTMLPage {
     }
 
     private InputStream request() throws IOException {
-        if (!url.getProtocol().equalsIgnoreCase("http"))
+        if (!url.getProtocol().equalsIgnoreCase("http")) {
             throw new IOException("Only HTTP supported,");
+        }
         logger.log(Level.TRACE, "Opening connection to " + url.toString());
         HttpURLConnection.setFollowRedirects(true);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -117,25 +118,25 @@ public class HTMLPage {
         int conteLength = conn.getContentLength();
         String contType = conn.getContentType();
         // only OK
-        if (responseCode != 200)
+        if (responseCode != 200) {
             throw new IOException("HTTP connection failed (" + responseCode + ") at " +
                     url.toString());
         // Fixme - this requests the page once! And with 'Java' in user'agent
         // and below we fetch it once more! (with proper user-agent)
-        
         // this is not needed - it's done anyways
         /*if (contType == null || contType.isEmpty()) {
-            contType = URLConnection.guessContentTypeFromStream(urlStream);
+        contType = URLConnection.guessContentTypeFromStream(urlStream);
         }
-        */
-        if (contType == null || contType.isEmpty())
+         */
+        }
+        if (contType == null || contType.isEmpty()) {
             throw new IOException("Could not verify content type at " + url.toString());
-        if (!contType.startsWith("text/html") 
-                && !contType.startsWith("text/plain"))
-            // Get also plain text, we need it for robots.txt, and
-            // might as well index it all anyway
+        }
+        if (!contType.startsWith("text/html") && !contType.startsWith("text/plain")) // Get also plain text, we need it for robots.txt, and
+        // might as well index it all anyway
+        {
             throw new IOException("Content type '" + contType + "' not acceptable at" + url.toString());
-            
+        }
         this.url = conn.getURL();
         this.contentType = contType;
         this.contentLength = conteLength;
@@ -147,7 +148,9 @@ public class HTMLPage {
      * First extract body and headers, then fulltext and links 
      */
     private void parse() {
-        if (content == null) return;
+        if (content == null) {
+            return;
+        }
         Long startTime = System.currentTimeMillis();
         // Split headers and body, if possible
         Pattern p = Pattern.compile("<head>(.*)</head>.*" +
@@ -163,12 +166,12 @@ public class HTMLPage {
             body = content; // doesn't look like good html, try to extract links anyway
         }
         Long et1 = System.currentTimeMillis() - startTime;
+        startTime = System.currentTimeMillis();
         // Extract a title
-        //p = Pattern.compile("<title>\\s*(.*\\S)??\\s*</title>",
-        p = Pattern.compile("<title>\\s*(.*)??</title>",
+        p = Pattern.compile("<title>\\s*(.*?)\\s*</title>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        // The ?? modifier should make it reluctant, so we get the firs title
-        // only, if there are several FIXME - does not work
+        // The *? modifier should make it reluctant, so we get the firs title
+        // only, if there are several 
         m = p.matcher(headers);
         if (m.find() && m.group(1) != null && !m.group(1).isEmpty()) {
             title = m.group(1);
@@ -178,27 +181,35 @@ public class HTMLPage {
         // or first text line or something
         }
         Long et2 = System.currentTimeMillis() - startTime;
+        startTime = System.currentTimeMillis();
 
-        // extract full text
-        p = Pattern.compile("<[^>]*>",
+        // extract full text - without tags and javascript
+        p = Pattern.compile("<script.*?/script>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(content);
+        String rawtext = m.replaceAll("");
+        //logger.log(Level.TRACE,"content:" + content);
+        //logger.log(Level.TRACE,"raw:" + rawtext);
+        p = Pattern.compile("<[^>]*>",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        m = p.matcher(rawtext);
         plaintext = m.replaceAll("");
-        //logger.log(Level.TRACE, "Plaintext: " + this.plaintext);
+        //logger.log(Level.TRACE, "Plaintext: " + plaintext);
         Long et3 = System.currentTimeMillis() - startTime;
+        startTime = System.currentTimeMillis();
 
         // extract links
-        p = Pattern.compile("<a[^>]+href=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
+        p = Pattern.compile("<a[^>]+href=['\"]?([^>'\"# ]+)['\"# ]?[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(body);
         while (m.find()) {
             String lnk = m.group(1);
-            URL linkUrl=null;
+            URL linkUrl = null;
             try {
                 linkUrl = new URL(url, lnk);
-                //logger.log(Level.TRACE, "Made link " + linkUrl.toString() + 
-                //        " out of " + url.toString() + " and " + lnk );
-                        
+            //logger.log(Level.TRACE, "Made link " + linkUrl.toString() + 
+            //        " out of " + url.toString() + " and " + lnk );
+
             } catch (MalformedURLException ex) {
                 logger.log(Level.TRACE, "Could not make a good url from " +
                         "'" + lnk + "' " +
@@ -212,23 +223,26 @@ public class HTMLPage {
             // The solution for now is not to deduplicate the list here,
             // the crawler does its own deduplication anyway, and the bulk
             // upload should never have duplicates in the first place.
-            if (linkUrl!= null) {
+            if (linkUrl != null) {
                 this.links.add(linkUrl);
             }
         }
         Long et4 = System.currentTimeMillis() - startTime;
+        startTime = System.currentTimeMillis();
 
         logger.log(Level.DEBUG,
                 this.url + " " +
                 "title:'" + this.title + "' (" +
                 "h=" + this.headers.length() + "b " +
                 "b=" + this.body.length() + "b) " +
-                this.links.size() + " links" );
-        logger.log(Level.DEBUG,"Parse timings: " +
-                " body: " + et1 +
-                " title: " + et2 + 
-                " plain: " + et3 +
-                " links: " + et4 );
+                this.links.size() + " links");
+        if (et1 + et2 + et3 + et4 > 1000) {
+            logger.log(Level.DEBUG, "Parse timings: " +
+                    " body: " + et1 +
+                    " title: " + et2 +
+                    " plain: " + et3 +
+                    " links: " + et4);
+        }
     } // parse
 
     /*
@@ -252,7 +266,7 @@ public class HTMLPage {
         is.close();
         logger.log(Level.TRACE, url.toString() + " Read " + content.length() + " bytes.");
     } //read
-    
+
     //this should be faster but does not appear so
     private void read2(InputStream is) throws IOException {
         char[] b = new char[READ_BLOCK_SIZE];
@@ -271,6 +285,7 @@ public class HTMLPage {
         clean = clean.replaceAll("<", "&lt;");
         clean = clean.replaceAll(">", "&gt;");
         clean = clean.replaceAll("\\s+", " ");
+        clean = clean.replaceAll("\000", " ");
         return "<pz:metadata type=\"" + tag + "\">" +
                 clean +
                 "</pz:metadata>";

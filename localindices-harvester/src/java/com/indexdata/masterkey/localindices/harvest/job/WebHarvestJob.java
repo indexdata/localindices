@@ -3,12 +3,12 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
+import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
+import com.indexdata.masterkey.localindices.crawl.CrawlThread;
 import com.indexdata.masterkey.localindices.crawl.SiteRequest;
-import com.indexdata.masterkey.localindices.crawl.PageRequest;
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 
@@ -116,9 +116,10 @@ public class WebHarvestJob implements HarvestJob {
     private Vector<SiteRequest> sites;
     private CrawlQueue que;
     private int round;
-    private static WebRobotCache robotCache = new WebRobotCache();
-    private final int sleepTime = 10000; // ms to sleep between requests
+    private /*static*/ WebRobotCache robotCache = new WebRobotCache();
     private final int hitInterval = 60 * 1000;  // ms between hitting the same host
+    private final int numWorkers = 200;
+    private Vector<CrawlThread> workers = new Vector<CrawlThread>(numWorkers);
 
     public WebHarvestJob(WebCrawlResource resource) {
         this.resource = resource;
@@ -157,18 +158,26 @@ public class WebHarvestJob implements HarvestJob {
         return this.storage;
     }
 
+    public WebRobotCache getRobotCache() {
+        return robotCache;
+
+    }
+
     public void finishReceived() {
         status = HarvestStatus.WAITING;
     }
 
-    private void setError(String e) {
+    public synchronized void setError(String e) {
         this.error = e;
         status = HarvestStatus.ERROR;
         resource.setError(e);
         logger.log(Level.ERROR, e);
+        if (que != null) {
+            que.setFinished();
+        }
     }
 
-    public String getError() {
+    public synchronized String getError() {
         return error;
     }
 
@@ -181,7 +190,7 @@ public class WebHarvestJob implements HarvestJob {
         saveXmlFragment(header);
     }
 
-    private void saveXmlFragment(String xml) throws IOException {
+    public synchronized void saveXmlFragment(String xml) throws IOException {
         OutputStream os = storage.getOutputStream();
         os.write(xml.getBytes());
     }
@@ -210,22 +219,20 @@ public class WebHarvestJob implements HarvestJob {
             URL linkUrl = null;
             if (lnk != null) {
                 try {
-                    logger.log(Level.TRACE, "Anout to do " + lnk);
                     linkUrl = new URL(pgUrl, lnk);
                     if (linkUrl == null) {
                         logger.log(Level.TRACE, "OOPS Got a null URL");
                     }
                     logger.log(Level.TRACE, "Found link '" + lnk + "' " +
                             "-> '" + linkUrl.toString() + "'");
-                    /* NOTE - this is awfully slow - so we don't deduplicate here
-                     * It will happe in the work queue anyway.
+                    /* NOTE - Vector.contains() is awfully slow - so we don't deduplicate here
+                     * It will happen in the work queue anyway.
                      * See the comment on HTMLPage
                     if (!links.contains(linkUrl)) {
-                        links.add(linkUrl);
+                    links.add(linkUrl);
                     }
                      */
-                   links.add(linkUrl);
-                   logger.log(Level.TRACE, "Added into links");
+                    links.add(linkUrl);
                 } catch (MalformedURLException ex) {
                     logger.log(Level.TRACE, "Could not make a good url from " +
                             "'" + lnk + "' " +
@@ -245,28 +252,6 @@ public class WebHarvestJob implements HarvestJob {
             return s;
         }
         return s.substring(0, len - 1);
-    }
-
-    private boolean filterLink(URL url, URL samepage) {
-        if (samepage != null) {
-            if (!url.getHost().equals(samepage.getHost())) {
-                return false; // different site, don't go there
-            }
-        }
-        if (resource.getUriMasks().isEmpty()) {
-            return true; // no filtering, go anywhere
-        }
-        String urlStr = url.toString();
-        for (String mask : resource.getUriMasks().split(" ")) {
-            Pattern p = Pattern.compile(mask);
-            Matcher m = p.matcher(urlStr);
-            if (m.find()) {
-                //logger.log(Level.TRACE, "url '"+urlStr+"' matched '" + mask + "'");
-                return true;
-            }
-        }
-        //logger.log(Level.TRACE, "url '"+urlStr+"' refused by filters");
-        return false;
     }
 
     private void initWorkList() {
@@ -348,74 +333,63 @@ public class WebHarvestJob implements HarvestJob {
 
             }
         }
-        logger.log(Level.INFO, "Starting with " + sites.size() + " start links");
         for (SiteRequest s : sites) {
             que.add(s);
         }
+        logger.log(Level.INFO, "Starting with " + que.size() + " start links " +
+                "from " + sites.size() + " jump links");
     }
 
-    /** A little delay between making the requests
-     */
-    private void sleep() {
-        long startTime = System.currentTimeMillis();
-        try {
-            Thread.sleep(sleepTime);
-        } catch (InterruptedException ex) {
-            logger.log(Level.TRACE, "Sleep got interrupted");
-        }
-        long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
-        if (elapsed > 2 * sleepTime) {
-            logger.log(Level.TRACE, "Slept " + elapsed + "ms, " +
-                    "asked for only " + sleepTime + "ms");
-        }
-    } // sleep
+    private void logWorkerStatus() {
 
-    /** Harvest one round of links - NO, the whole queue, until we move to threads*/
-    private void harvestRound() {
-        while (!que.isEmpty() && !isKillSendt()) {
-            PageRequest pg = que.get();
-            if (pg == null) {
-                logger.log(Level.TRACE, "Got a null pagerequest, must be done");
-                return;
-            }
-            URL curUrl = pg.url;
-            if (robotCache.checkRobots(curUrl)) {
-                HTMLPage pi = null;
-                try {
-                    pi = new HTMLPage(curUrl);
-                    que.setNotYet(pg, hitInterval);
-                } catch (IOException ex) {
-                    logger.log(Level.TRACE, "I/O error in getting " +
-                            curUrl.toString() + " : " + ex.getMessage());
-                }
-                if (pi != null && pi.getContent() != null &&
-                        !pi.getContent().isEmpty()) {
-                    for (URL u : pi.getLinks()) {
-                        if (filterLink(u, curUrl) &&
-                                robotCache.checkRobots(u)) {
-                            que.add(pg, u);
-                        }
-                    }
-                    String xml = pi.toPazpar2Metadata();
-                    if (!xml.isEmpty()) {
-                        try {
-                            saveXmlFragment(xml);
-                        } catch (IOException ex) {
-                            setError("I/O error writing data: " +
-                                    ex.getMessage());
-                        }
-                    }
-                } // got page
-            } // robot ok
+        String s = "";
+        s += resource.getName();
+        s += " q=" + que.size();
+        s += " s=" + que.numSeen();
+        s += " v: ";
+        for (CrawlThread th : workers) {
+            s += "" + th.getStatus();
         }
-    } // harvestRound
+        logger.log(Level.DEBUG, s);
+
+    }
 
     /** Harvest all there is to do */
     private void harvestLoop() {
         round = 0;
         long startTime = System.currentTimeMillis();
         initWorkList();
-        harvestRound();
+
+        int nw = que.size() / 10;
+        if (nw > numWorkers) {
+            nw = numWorkers;
+        }
+        if (nw < 3) {
+            nw = 3;
+        }
+        logger.log(Level.DEBUG, "Starting threads");
+        for (int i = 0; i < nw; i++) {
+            logger.log(Level.DEBUG, "Starting thread " + i + " of " + numWorkers);
+            CrawlThread worker = new CrawlThread(this, que, "", i, hitInterval);
+            Thread wthread = new Thread(worker);
+            workers.add(worker);
+            wthread.start();
+        }
+        logger.log(Level.DEBUG, "Started threads OK");
+        // FIXME - this is wrong - the last item may be picked from the queue,
+        // this terminates, and the thread that had the last item pushes new
+        // stuff in the queue...
+        while (!que.isEmpty()) {
+            logWorkerStatus();
+            try {
+                Thread.sleep(30 * 1000);
+            } catch (InterruptedException ex) {
+                logger.log(Level.DEBUG, "Sleep interrupted, never mind");
+            }
+        }
+        logWorkerStatus();
+
+        //harvestRound();
         /*
         while (round <= resource.getRecursionDepth() &&
         !que.isEmpty() &&
