@@ -115,11 +115,11 @@ public class WebHarvestJob implements HarvestJob {
     private boolean die = false;
     private Vector<SiteRequest> sites;
     private CrawlQueue que;
-    private int round;
-    private /*static*/ WebRobotCache robotCache = new WebRobotCache();
+    private WebRobotCache robotCache = new WebRobotCache();
     private final int hitInterval = 60 * 1000;  // ms between hitting the same host
-    private final int numWorkers = 200;
-    private Vector<CrawlThread> workers = new Vector<CrawlThread>(numWorkers);
+    private final int minNumWorkers = 10;
+    private final int maxNumWorkers = 200;
+    private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
     public WebHarvestJob(WebCrawlResource resource) {
         this.resource = resource;
@@ -165,6 +165,14 @@ public class WebHarvestJob implements HarvestJob {
 
     public void finishReceived() {
         status = HarvestStatus.WAITING;
+    }
+    // Set an "error" message to report progress
+    public synchronized void setStatusMsg(String e) {
+        if (status == HarvestStatus.RUNNING) {
+            resource.setError(e);
+            logger.log(Level.TRACE, "Reporting status " + e);
+        } else
+            logger.log(Level.TRACE, "NOT Reporting status " + e + ". not running");
     }
 
     public synchronized void setError(String e) {
@@ -344,32 +352,35 @@ public class WebHarvestJob implements HarvestJob {
 
         String s = "";
         s += resource.getName();
-        s += " q=" + que.size();
-        s += " s=" + que.numSeen();
-        s += " v: ";
+        s += " todo=" + que.size();
+        s += " seen=" + que.numSeen();
+        s += " done=" + (que.numSeen() - que.size());
+        s += " working=" + que.getUnderWork();
+        s += " S:";
         for (CrawlThread th : workers) {
             s += "" + th.getStatus();
         }
         logger.log(Level.DEBUG, s);
+        setStatusMsg("" + (que.numSeen() - que.size()) + " pages harvested," +
+                (que.size() + que.getUnderWork()) + " to go ");
 
     }
 
     /** Harvest all there is to do */
     private void harvestLoop() {
-        round = 0;
         long startTime = System.currentTimeMillis();
         initWorkList();
 
         int nw = que.size() / 10;
-        if (nw > numWorkers) {
-            nw = numWorkers;
+        if (nw > maxNumWorkers) {
+            nw = maxNumWorkers;
         }
-        if (nw < 3) {
-            nw = 3;
+        if (nw < minNumWorkers) {
+            nw = minNumWorkers;
         }
-        logger.log(Level.DEBUG, "Starting threads");
+        logger.log(Level.DEBUG, "Starting " + nw + " threads");
         for (int i = 0; i < nw; i++) {
-            logger.log(Level.DEBUG, "Starting thread " + i + " of " + numWorkers);
+            //logger.log(Level.DEBUG, "Starting thread " + i + " of " + nw);
             CrawlThread worker = new CrawlThread(this, que, "", i, hitInterval);
             Thread wthread = new Thread(worker);
             workers.add(worker);
@@ -378,45 +389,33 @@ public class WebHarvestJob implements HarvestJob {
         logger.log(Level.DEBUG, "Started threads OK");
         // FIXME - this is wrong - the last item may be picked from the queue,
         // this terminates, and the thread that had the last item pushes new
-        // stuff in the queue...
-        while (!que.isEmpty()) {
-            logWorkerStatus();
+        // stuff in the queue... Actually, more likely to happen in the beginning,
+        // if only one request in start list.
+        while (!que.alldone()) {
             try {
                 Thread.sleep(30 * 1000);
             } catch (InterruptedException ex) {
                 logger.log(Level.DEBUG, "Sleep interrupted, never mind");
             }
+            logWorkerStatus();
         }
-        logWorkerStatus();
 
-        //harvestRound();
-        /*
-        while (round <= resource.getRecursionDepth() &&
-        !que.isEmpty() &&
-        !isKillSendt() &&
-        this.error == null) {
-        logger.log(Level.DEBUG, "Round " + round + ": " +
-        searched.size() + " urls seen. " +
-        nextRound.size() + " urls to go ");
-        toSearch.addAll(nextRound);
-        numtosearch += toSearch.size();
-        nextRound.clear();
-        round++;
-        }
-         */
         long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
-
-        String killmsg = "Did";
+        String killmsg = "Ok!";
         if (isKillSendt()) {
-            killmsg = "Killed after";
+            killmsg = "Killed!";
+        // resource.setError("Interruped");
+        } else {
+            // resource.setError("OK. " + que.numSeen() + " pages harvested");
         }
-        logger.log(Level.DEBUG, killmsg + " " + (round - 1) + " rounds. " +
+        logger.log(Level.DEBUG, killmsg + " " +
                 "Seen " + que.numSeen() + " urls " +
                 " in " + elapsed + " seconds ");
     }
 
     public void run() {
         status = HarvestStatus.RUNNING;
+        setStatusMsg("");
         if (storage == null) {
             setError("Internal error: no storage set");
             return;
@@ -445,7 +444,7 @@ public class WebHarvestJob implements HarvestJob {
                     status = HarvestStatus.FINISHED;
                 //setError("All done - but we call it an error so we can do again");
                 } catch (IOException ex) {
-                    setError("I/O error on storage.begin: " + ex.getMessage());
+                    setError("I/O error on storage.commit: " + ex.getMessage());
                 }
 
             }

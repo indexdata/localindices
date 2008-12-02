@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.net.ssl.HttpsURLConnection;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -103,12 +104,17 @@ public class HTMLPage {
     }
 
     private InputStream request() throws IOException {
-        if (!url.getProtocol().equalsIgnoreCase("http")) {
-            throw new IOException("Only HTTP supported,");
+        HttpURLConnection conn = null;
+        if (url.getProtocol().equalsIgnoreCase("http") ||
+                url.getProtocol().equalsIgnoreCase("https")) {
+            logger.log(Level.TRACE, "Opening connection to " + url.toString());
+            HttpURLConnection.setFollowRedirects(true);
+            HttpsURLConnection.setFollowRedirects(true);
+            conn = (HttpURLConnection) url.openConnection();
+        } else {
+            throw new IOException("Only HTTP or HTTPS supported " +
+                    "(not " + url.getProtocol() + ") at " + url.toString());
         }
-        logger.log(Level.TRACE, "Opening connection to " + url.toString());
-        HttpURLConnection.setFollowRedirects(true);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setAllowUserInteraction(false);
         conn.setRequestProperty("User-agent", USER_AGENT_STRING);
         conn.setConnectTimeout(CONN_TIMEOUT);
@@ -119,8 +125,8 @@ public class HTMLPage {
         String contType = conn.getContentType();
         // only OK
         if (responseCode != 200) {
-            throw new IOException("HTTP connection failed (" + responseCode + ") at " +
-                    url.toString());
+            throw new IOException("Connection failed " +
+                    "(" + responseCode + ") at " + url.toString());
         // Fixme - this requests the page once! And with 'Java' in user'agent
         // and below we fetch it once more! (with proper user-agent)
         // this is not needed - it's done anyways
@@ -137,7 +143,7 @@ public class HTMLPage {
         {
             throw new IOException("Content type '" + contType + "' not acceptable at" + url.toString());
         }
-        this.url = conn.getURL();
+        this.url = conn.getURL(); // This may have changed if we process redirects
         this.contentType = contType;
         this.contentLength = conteLength;
         this.url = conn.getURL();
@@ -205,16 +211,19 @@ public class HTMLPage {
         while (m.find()) {
             String lnk = m.group(1);
             URL linkUrl = null;
-            try {
-                linkUrl = new URL(url, lnk);
-            //logger.log(Level.TRACE, "Made link " + linkUrl.toString() + 
-            //        " out of " + url.toString() + " and " + lnk );
+            if (!lnk.startsWith("javascript:") && !lnk.startsWith("mailto:")) {
+                try {
+                    linkUrl = new URL(url, lnk.replaceAll("&amp;", "&"));
+                // For some reason we get some of the '&'s doubly encoded.
+                // As "&amp;" is not good in an URL anyway, we decode them here
+                //logger.log(Level.TRACE, "Made link " + linkUrl.toString() + 
+                //        " out of " + url.toString() + " and " + lnk );
 
-            } catch (MalformedURLException ex) {
-                logger.log(Level.TRACE, "Could not make a good url from " +
-                        "'" + lnk + "' " +
-                        "when parsing " + this.url.toString());
-            }
+                } catch (MalformedURLException ex) {
+                    logger.log(Level.TRACE, "Could not make a good url from " +
+                            "'" + lnk + "' " +
+                            "when parsing " + this.url.toString());
+                }
             //if (linkUrl!= null && !this.links.contains(linkUrl)) {
             // For some reason, the links.contains test was awfully slow
             // - up to a minute for a list of 100 links. And with low CPU 
@@ -223,6 +232,7 @@ public class HTMLPage {
             // The solution for now is not to deduplicate the list here,
             // the crawler does its own deduplication anyway, and the bulk
             // upload should never have duplicates in the first place.
+            }
             if (linkUrl != null) {
                 this.links.add(linkUrl);
             }

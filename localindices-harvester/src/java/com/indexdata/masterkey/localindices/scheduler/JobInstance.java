@@ -3,7 +3,6 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
@@ -23,6 +22,7 @@ import org.apache.log4j.Logger;
  * @author heikki
  */
 public class JobInstance {
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private Harvestable harvestable;
     private Thread harvestingThread;
@@ -31,15 +31,16 @@ public class JobInstance {
     private CronLine lastCronLine;
     private String lastHarvestError;
     private HarvestStatus lastHarvestStatus;
+    private String lastStatusMsg;
     private Date lastHarvestStarted;
-    
     public boolean seen; // for checking what has been deleted
+
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
         //if cron line is not specified - default to today
         if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
             logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
             cronLine = CronLine.currentCronLine();
-        } else {        
+        } else {
             cronLine = new CronLine(hable.getScheduleString());
         }
         if (hable instanceof OaiPmhResource) {
@@ -48,7 +49,7 @@ public class JobInstance {
                 int min = cal.get(Calendar.MINUTE);
                 int hr = cal.get(Calendar.HOUR_OF_DAY);
                 cronLine = new CronLine(min + " " + hr + " " + "* * *");
-                logger.log(Level.WARN, 
+                logger.log(Level.WARN,
                         "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
             }
             harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
@@ -63,9 +64,11 @@ public class JobInstance {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }
         harvestable = hable;
-        if (hable.getCurrentStatus() != null)
+        if (hable.getCurrentStatus() != null) {
             lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
+        }
         lastHarvestError = hable.getError();
+        lastStatusMsg = hable.getError();
         seen = false;
     }
 
@@ -83,7 +86,7 @@ public class JobInstance {
             lastHarvestStarted = new Date();
         }
     }
-    
+
     /**
      * Tell the harvesting thread to stop, the harvesting thread should rollback
      * the data harvested so far.
@@ -91,7 +94,7 @@ public class JobInstance {
     public void stop() {
         harvestJob.kill();
     }
-    
+
     /**
      * Completely remove the harvesting job: 
      * tell the thread to stop and destroy the data.
@@ -105,7 +108,7 @@ public class JobInstance {
             logger.log(Level.DEBUG, ex);
         }
     }
-    
+
     /**
      * Inform the job that the harvested data was picked up and it may go to sleep.
      */
@@ -119,9 +122,10 @@ public class JobInstance {
      */
     public boolean timeToRun() {
         CronLine curCron = CronLine.currentCronLine();
-        if ( (lastCronLine != null ) && lastCronLine.matches(curCron))
+        if ((lastCronLine != null) && lastCronLine.matches(curCron)) {
             return false;
-        lastCronLine=curCron;
+        }
+        lastCronLine = curCron;
         return curCron.matches(cronLine);
     }
 
@@ -139,7 +143,7 @@ public class JobInstance {
         lastHarvestError = harvestJob.getError();
         return changed;
     }
-    
+
     /**
      * Return the last harvesting error.
      * @return harvesting error
@@ -147,7 +151,7 @@ public class JobInstance {
     public String getError() {
         return lastHarvestError;
     }
-    
+
     /**
      * Check if the harvest status has changed since the last check.
      * @return
@@ -160,9 +164,32 @@ public class JobInstance {
             changed = !(lastHarvestStatus == harvestJob.getStatus());
         }
         lastHarvestStatus = harvestJob.getStatus();
-        return changed; 
+        return changed;
     }
-    
+
+    /**
+     * Check if the harvest status (error) message has changed since the last check.
+     * @return
+     */
+    public boolean statusMsgChanged() {
+        boolean changed;
+        if (lastStatusMsg == null && harvestJob.getError() == null) {
+            changed = false;
+        } else if (lastStatusMsg == null) {
+            changed = true;
+            logger.log(Level.INFO, "Status " + harvestJob.getError() +
+                    " differs from NULL !");
+        } else {
+            changed = !(lastStatusMsg.equals(harvestJob.getError()));
+            if (changed) {
+                logger.log(Level.INFO, "Status " + harvestJob.getError() +
+                        " differs from " + lastStatusMsg);
+            }
+        }
+        lastStatusMsg = harvestJob.getError();
+        return changed;
+    }
+
     /**
      * Return last harvesting status.
      * @return harvesting status
@@ -170,7 +197,7 @@ public class JobInstance {
     public HarvestStatus getStatus() {
         return harvestJob.getStatus();
     }
-    
+
     /**
      * Check when was the job started.
      * @return harvest start date

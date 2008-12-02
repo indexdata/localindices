@@ -39,6 +39,8 @@ public class CrawlQueue {
     private Set<String> seen = new HashSet<String>();
     private Map<String, Long> notYet = new HashMap<String, Long>();
     private boolean finished = false;
+    private int underwork=0; // counts elements that are under work
+    
     private Random rnd = new Random();
 
     private synchronized void _add(PageRequest pg, 
@@ -67,10 +69,31 @@ public class CrawlQueue {
             return null;
         }
         PageRequest pg = q.remove(0);
+        incrementUnderWork();
         //logger.log(Level.TRACE, "q- " + pg.url.toString());
         return pg;
     }
 
+    // Increment the underwork counter
+    // to indicate that an element has been popped from the queue, but is still
+    // under work, so we can not be finished - it may produce more work later
+    private synchronized void incrementUnderWork() {
+        underwork ++;
+    }
+    // Decrement the underwork counter
+    // Any thread that gets a value from the queue, must decrement the 
+    // underwork counter when done with it!
+    public synchronized void decrementUnderWork() {
+        underwork--;
+    }
+    public synchronized int getUnderWork() {
+        return underwork;
+    }
+    
+    public synchronized boolean alldone() {
+        return isEmpty() && ( getUnderWork()==0 );
+    }
+    
     public void add(SiteRequest site) {
         PageRequest pg = new PageRequest(site.url);
         pg.sitereq = site;
@@ -111,6 +134,7 @@ public class CrawlQueue {
                 prevHost=host;
                 //logger.log(Level.TRACE, "not yet! " + host + " " + (ny - now) +
                 //        " " + pg.url.toString());
+                decrementUnderWork(); // that one is not under work, it went back
             }
             try {
                 Thread.sleep(500);

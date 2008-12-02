@@ -3,7 +3,6 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
@@ -27,21 +26,22 @@ import org.apache.log4j.Logger;
  * @author jakub
  */
 public class JobScheduler {
+
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestableDAO dao;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
     private Map<String, String> config;
-    
+
     public JobScheduler(Map<String, String> config) {
         dao = new HarvestablesDAOJPA();
-        this.config = config;        
+        this.config = config;
     }
-    
+
     /**
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList(0,Integer.parseInt(config.get("MAX_JOBS")));
+        Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList(0, Integer.parseInt(config.get("MAX_JOBS")));
         if (refs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
         } else {
@@ -56,18 +56,17 @@ public class JobScheduler {
                 if (ji != null) {
                     // and seetings has changed
                     if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
-                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
-                                + " parameters changed (LU " + href.getLastUpdated()
-                                + "), stopping thread and destroying job");
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " parameters changed (LU " + href.getLastUpdated() + "), stopping thread and destroying job");
                         ji.stop();
                         ji = null; // signal to create a new one
-                        // should we remove it from the list?
+                    // should we remove it from the list?
                     }
                     //but it's been disabled
                     if (!href.isEnabled()) {
-                        logger.log(Level.INFO, "JOB#" + id 
-                                + " has been disabled");
-                        if (ji != null) ji.stop();
+                        logger.log(Level.INFO, "JOB#" + id + " has been disabled");
+                        if (ji != null) {
+                            ji.stop();
+                        }
                         jobs.remove(id);
                     }
                 }
@@ -80,23 +79,23 @@ public class JobScheduler {
                         try {
                             ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
                             jobs.put(id, ji);
-                            logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-                                    + " created.");
+                            logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
                         } catch (Exception e) {
                             logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
                             logger.log(Level.DEBUG, e);
                         }
                     }
                 }
-                if (ji != null) ji.seen = true;
+                if (ji != null) {
+                    ji.seen = true;
+                }
             }
 
             // kill jobs with no entities in the WS
             for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
                 JobInstance ji = it.next();
                 if (!ji.seen) {
-                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
-                            + " no longer in the DB. Deleting from list.");
+                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " no longer in the DB. Deleting from list.");
                     //ji.stop();
                     ji.destroy();
                     it.remove();
@@ -104,37 +103,47 @@ public class JobScheduler {
             }
         }
     }
-    
+
     /**
      * Start, report status and error of the scheduled jobs.
      */
     public void checkJobs() {
         for (JobInstance ji : jobs.values()) {
-            switch(ji.getStatus()) {
+            switch (ji.getStatus()) {
                 case FINISHED: //update the lastHarvestStarted (and harvestedUntil) 
-                               //and send received signal
+                    //and send received signal
                     ji.setStatusToWaiting();
                     persistFinished(ji);
                     //persist from and until
                     break;
                 case ERROR:   // report error if changed
-                    if (ji.errorChanged()) reportError(ji.getHarvestable());
+                    if (ji.errorChanged()) {
+                        reportError(ji.getHarvestable());
                     // do not break
+                    }
                 case NEW:     // ask if time to run
                 case WAITING:
                     // should check harvested until?
-                    if (ji.timeToRun()) ji.start();
+                    if (ji.timeToRun()) {
+                        ji.start();
+                    }
                     break;
                 case RUNNING: //do nothing (update progress bar?)
                     break;
                 case KILLED: //zombie thread
                     break;
             }
-            if (ji.statusChanged())
+            if (ji.statusChanged()) {
                 reportStatus(ji.getHarvestable(), ji.getStatus());
+            }
+            if (ji.statusMsgChanged()) {
+                dao.updateHarvestable(ji.getHarvestable());
+                logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + 
+                        "Updating status message" );
+            }
         }
     }
-    
+
     /**
      * Return a collection of status and config information on the scheduled jobs.
      * @return collection of JobInfo objects
@@ -151,7 +160,7 @@ public class JobScheduler {
         }
         return jInfoList;
     }
-    
+
     /**
      * Brutally stop all jobs.
      */
@@ -160,7 +169,7 @@ public class JobScheduler {
             ji.stop();
         }
     }
-    
+
     /**
      * Stop the job with given id.
      * @param jobId
@@ -169,12 +178,12 @@ public class JobScheduler {
         JobInstance ji = jobs.get(jobId);
         ji.stop();
     }
-    
+
     private void reportError(Harvestable hable) {
         logger.log(Level.ERROR, "JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
         dao.updateHarvestable(hable);
     }
-    
+
     private void reportStatus(Harvestable hable, HarvestStatus status) {
         logger.log(Level.INFO, "JOB#" + hable.getId() + " status updated to " + status);
         hable.setCurrentStatus(status.name());

@@ -83,12 +83,20 @@ public class CrawlThread implements Runnable {
                 pi = new HTMLPage(curUrl);
                 setStatus(CRAWLTHREAD_PROCESSING);
                 que.setNotYet(pg, hitInterval);
+                // TODO: Time how long it took to get a page, and add that 
+                // to the interval, not to overload servers that are heavy
             } catch (IOException ex) {
+                que.setNotYet(pg, hitInterval); // Could be a different interval
                 logger.log(Level.TRACE, "Thread " + threadNumber + ": I/O error in getting " +
                         curUrl.toString() + " : " + ex.getMessage());
             }
             if (pi != null && pi.getContent() != null &&
                     !pi.getContent().isEmpty()) {
+                // FIXME - Ought to check the depth limit already here, 
+                // and skip the whole link rumba, if at a leaf node.
+                // Even better, if HTMLpage would extract links in a lazy way,
+                // only when needed.
+                
                 for (URL u : pi.getLinks()) {
                     if (filterLink(u, curUrl) &&
                             job.getRobotCache().checkRobots(u)) {
@@ -127,6 +135,7 @@ public class CrawlThread implements Runnable {
         while ((pg = que.get()) != null) {
             setStatus(CRAWLTHREAD_PROCESSING);
             crawlPage(pg);
+            que.decrementUnderWork(); // ok, now we are finished with it
             setStatus(CRAWLTHREAD_QWAIT);
         }
         setStatus(CRAWLTHREAD_DONE);
