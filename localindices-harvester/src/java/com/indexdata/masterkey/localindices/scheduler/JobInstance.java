@@ -177,14 +177,8 @@ public class JobInstance {
             changed = false;
         } else if (lastStatusMsg == null) {
             changed = true;
-            logger.log(Level.INFO, "Status " + harvestJob.getError() +
-                    " differs from NULL !");
         } else {
             changed = !(lastStatusMsg.equals(harvestJob.getError()));
-            if (changed) {
-                logger.log(Level.INFO, "Status " + harvestJob.getError() +
-                        " differs from " + lastStatusMsg);
-            }
         }
         lastStatusMsg = harvestJob.getError();
         return changed;

@@ -138,8 +138,6 @@ public class JobScheduler {
             }
             if (ji.statusMsgChanged()) {
                 dao.updateHarvestable(ji.getHarvestable());
-                logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + 
-                        "Updating status message" );
             }
         }
     }
