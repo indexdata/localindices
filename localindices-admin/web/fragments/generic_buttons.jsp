@@ -8,4 +8,6 @@
     <h:commandButton value="Save Changes & Exit" action="#{resourceController.saveResource}"/>
     <h:commandButton value="Cancel Changes & Exit" action="list_resources"/>
     <h:commandButton onclick="return confirm('Are you sure?');" value="Delete Harvested Records" action="#{resourceController.saveAndPurge}"/>
+    <br/>
+    <h:outputText styleClass="footer" value="Last Updated -- #{resourceController.resource.lastUpdated}"/>
 </f:subview>

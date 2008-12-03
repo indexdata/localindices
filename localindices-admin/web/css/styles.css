@@ -17,6 +17,11 @@ body {
     font: normal "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
+.footer {
+    color: #666;
+    font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+
 a {
     border-bottom: 1px dotted #666;
     color: #666;
