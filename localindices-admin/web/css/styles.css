@@ -54,15 +54,15 @@ td, th {
     padding: .3em .6em;
 }
 
-tbody td.first_in_row {
+tbody td.left {
     text-align: left;
 }
 
-tbody td.number {
+tbody td.right {
     text-align: right;
 }
 
-tbody td.action {
+tbody td.center {
     text-align: center;
 }
 

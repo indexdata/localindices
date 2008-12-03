@@ -38,7 +38,7 @@
                     <h:commandLink action="#{resourceController.next}" value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
                                    rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
                 </div>               
-                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="first_in_row,number,number,number,action">
+                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="ID: " />
