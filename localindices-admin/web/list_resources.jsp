@@ -41,39 +41,39 @@
                 <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="ID: " />
+                            <h:outputText value="ID" />
                         </f:facet> 
                         <h:outputText value="#{item.id}"></h:outputText>
                     </h:column>                
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Name: " />
+                            <h:outputText value="Name" />
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status: " />
+                            <h:outputText value="Status" />
                         </f:facet> 
                         <h:outputText value="#{item.currentStatus}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Error msg: " />
+                            <h:outputText value="Status Msg" />
                         </f:facet> 
                         <h:outputText value="#{item.error}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last harvested at: " />
+                            <h:outputText value="Last Harvested" />
                         </f:facet> 
                         <h:outputText value="#{item.lastHarvestStarted}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last edited at: " />
+                            <h:outputText value="Next Scheduled Harvest" />
                         </f:facet> 
-                        <h:outputText value="#{item.lastUpdated}"></h:outputText>
+                        <h:outputText value=""></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
@@ -83,7 +83,7 @@
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions: " />
+                            <h:outputText value="Available Actions" />
                         </f:facet> 
                         <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
                             <f:param name="resourceId" value="#{item.id}"/>
