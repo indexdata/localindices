@@ -23,9 +23,11 @@
                 <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
                 <h:outputText value=", "/>
                 <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <!-- NELLCO doesn't want logout
                 <h:outputText value=" | "/>
                 Hello, <h:outputText value="#{loginManager.displayName}" />!
                 <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
+                -->
                 <h:outputText value=" | " />
                 <h:commandLink value="View Logfile" action="harvester_log" />
             </h:form>
