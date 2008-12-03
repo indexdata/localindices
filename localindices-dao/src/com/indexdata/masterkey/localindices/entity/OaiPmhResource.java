@@ -25,7 +25,7 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     private String metadataPrefix;
     private String schemaURI;
     private String normalizationFilter;
-    //add?
+    // resumption token
     @Temporal(TemporalType.DATE)
     private Date fromDate;
     @Temporal(TemporalType.DATE)
@@ -55,7 +55,6 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     public void setUntilDate(Date untilDate) {
         this.untilDate = untilDate;
     }
-    //??? resumptionToken
 
     public String getUrl() {
         return url;
