@@ -20,6 +20,9 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -46,6 +49,40 @@ public class HTMLPage {
     private String title = "";
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
+
+    // Create a trust manager that does not validate certificate chains
+    // This code found floating around on the net, for example at
+    // http://www.exampledepot.com/egs/javax.net.ssl/TrustAll.html
+    // It royally messes up most of the security implications of using
+    // https, but for a crawler, we don't really care!
+    private void DisableCertValidation() {
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+
+        // Install the all-trusting trust manager
+        try {
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            logger.log(Level.ERROR, "Installing trust-all manager failed. " + e.getMessage());
+        }
+    // Now you can access an https URL without having the certificate in the truststore
+    }
 
     public HTMLPage(URL url) throws IOException {
         this.url = url;
@@ -108,13 +145,14 @@ public class HTMLPage {
         if (url.getProtocol().equalsIgnoreCase("http") ||
                 url.getProtocol().equalsIgnoreCase("https")) {
             logger.log(Level.TRACE, "Opening connection to " + url.toString());
-            HttpURLConnection.setFollowRedirects(true);
-            HttpsURLConnection.setFollowRedirects(true);
-            conn = (HttpURLConnection) url.openConnection();
         } else {
             throw new IOException("Only HTTP or HTTPS supported " +
                     "(not " + url.getProtocol() + ") at " + url.toString());
         }
+        DisableCertValidation();
+        HttpURLConnection.setFollowRedirects(true);
+        HttpsURLConnection.setFollowRedirects(true);
+        conn = (HttpURLConnection) url.openConnection();
         conn.setAllowUserInteraction(false);
         conn.setRequestProperty("User-agent", USER_AGENT_STRING);
         conn.setConnectTimeout(CONN_TIMEOUT);
@@ -123,6 +161,15 @@ public class HTMLPage {
         int responseCode = conn.getResponseCode();
         int conteLength = conn.getContentLength();
         String contType = conn.getContentType();
+        // Normally, the UrlConnection will follow redirections, but not to https!!##
+        if (responseCode == 302 && url.getProtocol().equalsIgnoreCase("http")) {
+            logger.log(Level.TRACE, "Got a 302 to l=" + conn.getHeaderField("Location"));
+            String location = conn.getHeaderField("Location");
+            url = new URL(location);
+            if (url.getProtocol().equalsIgnoreCase("https")) {
+                return request();
+            }
+        }
         // only OK
         if (responseCode != 200) {
             throw new IOException("Connection failed " +
@@ -296,6 +343,7 @@ public class HTMLPage {
         clean = clean.replaceAll(">", "&gt;");
         clean = clean.replaceAll("\\s+", " ");
         clean = clean.replaceAll("\000", " ");
+        clean = clean.replaceAll("\\p{Cntrl}", " ");
         return "<pz:metadata type=\"" + tag + "\">" +
                 clean +
                 "</pz:metadata>";
