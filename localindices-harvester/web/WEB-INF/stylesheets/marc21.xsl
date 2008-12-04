@@ -30,9 +30,6 @@
 	<xsl:when test="$fulltext_b">
 	  <xsl:text>electronic resource</xsl:text>
 	</xsl:when>
-	<xsl:when test="$electronic_location_url">
-	  <xsl:text>electronic resource</xsl:text>
-	</xsl:when>
 	<xsl:when test="$journal_title">
 	  <xsl:text>article</xsl:text>
 	</xsl:when>
@@ -194,10 +191,8 @@
 	</pz:metadata>
       </xsl:for-each>
 
-      <xsl:for-each select="marc:datafield[@tag &gt;= 500 and @tag &lt;= 599]
-			    [@tag != '506' and @tag != '530' and
-			    @tag != '540' and @tag != '546'
-                            and @tag != '522']">
+      <xsl:for-each select="marc:datafield[@tag = '500' or @tag = '505' or
+      		@tag = '518' or @tag = '520' or @tag = '522']">
 	<pz:metadata type="description">
             <xsl:value-of select="*/text()"/>
         </pz:metadata>
@@ -265,6 +260,12 @@
 	  <xsl:value-of select="$fulltext_b"/>
 	</pz:metadata>
       </xsl:if> -->
+
+      <xsl:for-each select="marc:datafield[@tag='907' or @tag='901']">
+        <pz:metadata type="iii-id">
+	  <xsl:value-of select="marc:subfield[@code='a']"/>
+	</pz:metadata>
+      </xsl:for-each>
 
       <xsl:for-each select="marc:datafield[@tag='926']">
         <pz:metadata type="holding">

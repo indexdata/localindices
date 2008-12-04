@@ -35,19 +35,25 @@ public abstract class Harvestable implements Serializable, Cloneable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
     protected String name;
+    //rename to service provider
     protected String title;
+    //rename to technical notes
     protected String description;
+    //add contact notes
     protected String scheduleString;
+    //remove
     protected Integer maxDbSize;
     protected Boolean enabled;
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastUpdated;
     //harvester-set properties
+    //add initialHarvest date
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastHarvestStarted;
     protected String currentStatus;
+    // rename to bytes harvested
     protected Integer recordsHarvested;
-    // boolean immediately?
+    // rename to status msg
     protected String error;
 
     public String getError() {

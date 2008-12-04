@@ -17,6 +17,11 @@ body {
     font: normal "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
+.footer {
+    color: #666;
+    font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+
 a {
     border-bottom: 1px dotted #666;
     color: #666;
@@ -54,15 +59,15 @@ td, th {
     padding: .3em .6em;
 }
 
-tbody td.first_in_row {
+tbody td.left {
     text-align: left;
 }
 
-tbody td.number {
+tbody td.right {
     text-align: right;
 }
 
-tbody td.action {
+tbody td.center {
     text-align: center;
 }
 

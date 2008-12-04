@@ -23,9 +23,11 @@
                 <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
                 <h:outputText value=", "/>
                 <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <!-- NELLCO doesn't want logout
                 <h:outputText value=" | "/>
                 Hello, <h:outputText value="#{loginManager.displayName}" />!
                 <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
+                -->
                 <h:outputText value=" | " />
                 <h:commandLink value="View Logfile" action="harvester_log" />
             </h:form>
@@ -38,42 +40,42 @@
                     <h:commandLink action="#{resourceController.next}" value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
                                    rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
                 </div>               
-                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="first_in_row,number,number,number,action">
+                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="ID: " />
+                            <h:outputText value="ID" />
                         </f:facet> 
                         <h:outputText value="#{item.id}"></h:outputText>
                     </h:column>                
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Name: " />
+                            <h:outputText value="Name" />
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status: " />
+                            <h:outputText value="Status" />
                         </f:facet> 
                         <h:outputText value="#{item.currentStatus}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Error msg: " />
+                            <h:outputText value="Status Msg" />
                         </f:facet> 
                         <h:outputText value="#{item.error}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last harvested at: " />
+                            <h:outputText value="Last Harvested" />
                         </f:facet> 
                         <h:outputText value="#{item.lastHarvestStarted}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last edited at: " />
+                            <h:outputText value="Next Scheduled Harvest" />
                         </f:facet> 
-                        <h:outputText value="#{item.lastUpdated}"></h:outputText>
+                        <h:outputText value=""></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
@@ -83,13 +85,14 @@
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions: " />
+                            <h:outputText value="Available Actions" />
                         </f:facet> 
                         <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
                         <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}">
+                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}"
+                            onclick="return confirm('Are you sure?');">
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
                     </h:column>

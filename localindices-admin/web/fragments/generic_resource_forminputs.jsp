@@ -7,13 +7,11 @@
 <f:subview id="generic_resource_form_inputs">
     <h5>General information: </h5>
     <h:panelGrid columns="2">
-        <h:outputText value="Display name:"/>
-        <h:inputText value="#{resourceController.resource.name}"/>
-        <!-- change that to db name
-        <h:outputText value="Title:"/>
-        <h:inputText value="#{resourceController.resource.title}" />
-        -->
-        <h:outputText value="Description:"/>
+        <h:outputText value="Name:"/>
+        <h:inputText value="#{resourceController.resource.name}" size="30"/>
+        <h:outputText value="Service Provider:"/>
+        <h:inputText value="#{resourceController.resource.title}" size="30"/>
+        <h:outputText value="Technical Notes:"/>
         <h:inputTextarea cols="60" rows="6" value="#{resourceController.resource.description}"/>
         <!-- not used
         <h:outputText value="Maximum records:"/>
@@ -46,7 +44,7 @@
         </h:panelGrid>
         <h:outputText value="Ignore schedule, harvest now:"/>
         <h:selectBooleanCheckbox value="#{resourceController.setToNow}"/>
-        <h:outputText value="Harvester enabled:"/>
+        <h:outputText value="Harvest job enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
     </h:panelGrid>
 </f:subview>

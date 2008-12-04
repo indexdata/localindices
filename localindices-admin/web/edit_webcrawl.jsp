@@ -20,8 +20,7 @@
                 <h3>Edit WebCrawl resource:</h3>
                 <%@ include file="fragments/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/webcrawl_forminputs.jsp" %>
-                <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
-                <h:commandButton value="Save and Purge" action="#{resourceController.saveAndPurge}"/>
+                <%@ include file="fragments/generic_buttons.jsp" %>
             </h:form>
         </f:view>
     </body>
