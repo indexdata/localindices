@@ -48,6 +48,7 @@ public class SearchablesConverter extends Records {
             layer.setName(entity.getName());
             layer.setZurl(zurlBase + "/job" + entity.getId());
             layer.setElementSet("pz2snippet");
+            layer.setServiceProvider(entity.getServiceProvider());
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);

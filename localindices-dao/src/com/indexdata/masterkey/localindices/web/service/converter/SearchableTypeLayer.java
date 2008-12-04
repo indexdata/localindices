@@ -30,6 +30,7 @@ public class SearchableTypeLayer extends Layer {
     private String cclMapTerm;
     private String authentication;
     private String urlRecipe;
+    private String serviceProvider;
 
     public String getRecordEncoding() {
         return recordEncoding;
@@ -144,4 +145,12 @@ public class SearchableTypeLayer extends Layer {
         this.urlRecipe = urlRecipe;
     }
 
+    public String getServiceProvider() {
+        return serviceProvider;
+    }
+
+    public void setServiceProvider(String serviceProvider) {
+        this.serviceProvider = serviceProvider;
+    }    
+    
 }
