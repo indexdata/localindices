@@ -35,6 +35,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
     protected String name;
+    protected String description;
     //renamed v1
     protected String serviceProvider;
     //renamed v1
@@ -60,6 +61,15 @@ public abstract class Harvestable implements Serializable, Cloneable {
     protected Integer amountHarvested;
     //renamed v1
     protected String message;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
 
     public String getMessage() {
         return message;
