@@ -11,6 +11,8 @@
         <h:inputText value="#{resourceController.resource.name}" size="30"/>
         <h:outputText value="Service Provider:"/>
         <h:inputText value="#{resourceController.resource.serviceProvider}" size="30"/>
+        <h:outputText value="Content Description:"/>
+        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.description}"/>
         <h:outputText value="Technical Notes:"/>
         <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.technicalNotes}"/>
         <h:outputText value="Contact notes:"/>

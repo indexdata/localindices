@@ -18,6 +18,12 @@ body {
 }
 
 .footer {
+    text-align: center;
+    color: #666;
+    font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+
+.item {
     color: #666;
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
