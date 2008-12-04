@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,7 +19,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Corresponds to version 1 update
@@ -35,12 +35,15 @@ public abstract class Harvestable implements Serializable, Cloneable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
     protected String name;
+    @Column(length=4096)
     protected String description;
     //renamed v1
     protected String serviceProvider;
     //renamed v1
+    @Column(length=4096)
     protected String technicalNotes;
     //added v1
+    @Column(length=4096)
     protected String contactNotes;
     protected String scheduleString;
     protected Integer maxDbSize;
@@ -60,6 +63,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
     //renamed v1
     protected Integer amountHarvested;
     //renamed v1
+    @Column(length=4096)
     protected String message;
 
     public String getDescription() {
