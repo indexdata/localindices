@@ -388,10 +388,6 @@ public class WebHarvestJob implements HarvestJob {
             wthread.start();
         }
         logger.log(Level.DEBUG, "Started threads OK");
-        // FIXME - this is wrong - the last item may be picked from the queue,
-        // this terminates, and the thread that had the last item pushes new
-        // stuff in the queue... Actually, more likely to happen in the beginning,
-        // if only one request in start list.
         while (!que.alldone()) {
             try {
                 Thread.sleep(30 * 1000);
@@ -442,6 +438,7 @@ public class WebHarvestJob implements HarvestJob {
                 try {
                     xmlEnd();
                     storage.commit();
+                    resource.setError("OK. " + que.numSeen() + " pages harvested");
                     status = HarvestStatus.FINISHED;
                 //setError("All done - but we call it an error so we can do again");
                 } catch (IOException ex) {
