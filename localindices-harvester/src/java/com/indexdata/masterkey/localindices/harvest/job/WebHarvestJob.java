@@ -117,8 +117,8 @@ public class WebHarvestJob implements HarvestJob {
     private CrawlQueue que;
     private WebRobotCache robotCache = new WebRobotCache();
     private final int hitInterval = 60 * 1000;  // ms between hitting the same host
-    private final int minNumWorkers = 10;
-    private final int maxNumWorkers = 200;
+    private final int minNumWorkers = 20;
+    private final int maxNumWorkers = 100;
     private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
     public WebHarvestJob(WebCrawlResource resource) {
@@ -170,6 +170,7 @@ public class WebHarvestJob implements HarvestJob {
     public synchronized void setStatusMsg(String e) {
         if (status == HarvestStatus.RUNNING) {
             resource.setError(e);
+            error=e;
             logger.log(Level.TRACE, "Reporting status " + e);
         } else
             logger.log(Level.TRACE, "NOT Reporting status " + e + ". not running");
@@ -428,7 +429,7 @@ public class WebHarvestJob implements HarvestJob {
             return;
         }
         harvestLoop();
-        if (this.error == null) {
+        if (status  == HarvestStatus.RUNNING) {
             if (isKillSendt()) {
                 setError("Web Crawl interrupted with a kill signal");
                 try {
