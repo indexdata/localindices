@@ -10,13 +10,11 @@
         <h:outputText value="Name:"/>
         <h:inputText value="#{resourceController.resource.name}" size="30"/>
         <h:outputText value="Service Provider:"/>
-        <h:inputText value="#{resourceController.resource.title}" size="30"/>
+        <h:inputText value="#{resourceController.resource.serviceProvider}" size="30"/>
         <h:outputText value="Technical Notes:"/>
-        <h:inputTextarea cols="60" rows="6" value="#{resourceController.resource.description}"/>
-        <!-- not used
-        <h:outputText value="Maximum records:"/>
-        <h:inputText value="#{resourceController.resource.maxDbSize}" />
-        -->
+        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.technicalNotes}"/>
+        <h:outputText value="Contact notes:"/>
+        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.contactNotes}" />
         <h:outputText value="Harvest schedule:"/>
         <h:panelGrid columns="7">
             Harvest

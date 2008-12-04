@@ -41,8 +41,8 @@ public class TestClient {
             
             Harvestable harvestable = new OaiPmhResource();
             harvestable.setName("test entry");
-            harvestable.setTitle("automatically posted harvestable");
-            harvestable.setDescription("relevant description");
+            harvestable.setServiceProvider("automatically posted harvestable");
+            harvestable.setTechnicalNotes("relevant description");
             harvestable.setEnabled(false);
             harvestable.setCurrentStatus("no status");
             harvestable.setMaxDbSize(320);
@@ -69,8 +69,8 @@ public class TestClient {
             System.out.println("+++ Retrieved harvestable:");
             System.out.println("Harvestable id: " + harvestable.getId());
             System.out.println("Harvestable name: " + harvestable.getName());
-            System.out.println("Harvestable title: " + harvestable.getTitle());
-            System.out.println("Harvestable description: " + harvestable.getDescription());
+            System.out.println("Harvestable title: " + harvestable.getServiceProvider());
+            System.out.println("Harvestable description: " + harvestable.getTechnicalNotes());
             
             System.out.println("+++ Updating the harvestable with new values.");
             String newName = "updated resource name";
@@ -81,7 +81,7 @@ public class TestClient {
             
             Harvestable harvestableCopy = (Harvestable) harvestable.clone();
             harvestable.setName(newName);
-            harvestable.setTitle(newTitle);
+            harvestable.setServiceProvider(newTitle);
             
             harvestableContainer.setEntity(harvestable);
             harvestableConnector.put(harvestableContainer);

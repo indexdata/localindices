@@ -178,7 +178,7 @@ public class JobScheduler {
     }
 
     private void reportError(Harvestable hable) {
-        logger.log(Level.ERROR, "JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getError());
+        logger.log(Level.ERROR, "JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getMessage());
         dao.updateHarvestable(hable);
     }
 

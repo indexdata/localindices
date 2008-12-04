@@ -21,7 +21,7 @@ import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
+ * Corresponds to version 1 update
  * @author jakub
  */
 @Entity
@@ -35,33 +35,38 @@ public abstract class Harvestable implements Serializable, Cloneable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
     protected String name;
-    //rename to service provider
-    protected String title;
-    //rename to technical notes
-    protected String description;
-    //add contact notes
+    //renamed v1
+    protected String serviceProvider;
+    //renamed v1
+    protected String technicalNotes;
+    //added v1
+    protected String contactNotes;
     protected String scheduleString;
-    //remove
     protected Integer maxDbSize;
     protected Boolean enabled;
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastUpdated;
     //harvester-set properties
-    //add initialHarvest date
+    //added v1
+    @Temporal(TemporalType.TIMESTAMP)
+    protected Date initiallyHarvested;
     @Temporal(TemporalType.TIMESTAMP)
     protected Date lastHarvestStarted;
+    // added v1
+    @Temporal(TemporalType.TIMESTAMP)
+    protected Date lastHarvestFinished;
     protected String currentStatus;
-    // rename to bytes harvested
-    protected Integer recordsHarvested;
-    // rename to status msg
-    protected String error;
+    //renamed v1
+    protected Integer amountHarvested;
+    //renamed v1
+    protected String message;
 
-    public String getError() {
-        return error;
+    public String getMessage() {
+        return message;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getCurrentStatus() {
@@ -72,12 +77,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
         this.currentStatus = currentStatus;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTechnicalNotes() {
+        return technicalNotes;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTechnicalNotes(String technicalNotes) {
+        this.technicalNotes = technicalNotes;
     }
 
     public Boolean getEnabled() {
@@ -128,14 +133,6 @@ public abstract class Harvestable implements Serializable, Cloneable {
         this.name = name;
     }
 
-    public Integer getRecordsHarvested() {
-        return recordsHarvested;
-    }
-
-    public void setRecordsHarvested(Integer recordsHarvested) {
-        this.recordsHarvested = recordsHarvested;
-    }
-
     public String getScheduleString() {
         return scheduleString;
     }
@@ -144,12 +141,44 @@ public abstract class Harvestable implements Serializable, Cloneable {
         this.scheduleString = scheduleString;
     }
 
-    public String getTitle() {
-        return title;
+    public String getServiceProvider() {
+        return serviceProvider;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setServiceProvider(String serviceProvider) {
+        this.serviceProvider = serviceProvider;
+    }
+      
+    public Date getInitiallyHarvested() {
+        return initiallyHarvested;
+    }
+
+    public void setInitiallyHarvested(Date initiallyHarvested) {
+        this.initiallyHarvested = initiallyHarvested;
+    }
+
+    public String getContactNotes() {
+        return contactNotes;
+    }
+
+    public void setContactNotes(String contactNotes) {
+        this.contactNotes = contactNotes;
+    }
+
+    public Date getLastHarvestFinished() {
+        return lastHarvestFinished;
+    }
+
+    public void setLastHarvestFinished(Date lastHarvestFinished) {
+        this.lastHarvestFinished = lastHarvestFinished;
+    }
+
+    public Integer getAmountHarvested() {
+        return amountHarvested;
+    }
+
+    public void setAmountHarvested(Integer amountHarvested) {
+        this.amountHarvested = amountHarvested;
     }
     
     @Override
@@ -181,5 +210,4 @@ public abstract class Harvestable implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
-
 }

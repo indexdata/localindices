@@ -67,8 +67,8 @@ public class JobInstance {
         if (hable.getCurrentStatus() != null) {
             lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
         }
-        lastHarvestError = hable.getError();
-        lastStatusMsg = hable.getError();
+        lastHarvestError = hable.getMessage();
+        lastStatusMsg = hable.getMessage();
         seen = false;
     }
 

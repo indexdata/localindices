@@ -71,7 +71,7 @@ public class OAIHarvestJob implements HarvestJob {
             this.status = HarvestStatus.NEW;
         else
             this.status = HarvestStatus.WAITING;
-        this.resource.setError(null);
+        this.resource.setMessage(null);
     }
 
     public void kill() {
@@ -94,7 +94,7 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public String getError() {
-        return resource.getError();
+        return resource.getMessage();
     }
 
     public void setStorage(HarvestStorage storage) {
@@ -135,7 +135,7 @@ public class OAIHarvestJob implements HarvestJob {
             
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
-            resource.setError(e.getMessage());
+            resource.setMessage(e.getMessage());
             logger.log(Level.ERROR, e);
         }
         // if there was an error do not move the time marker
@@ -151,7 +151,7 @@ public class OAIHarvestJob implements HarvestJob {
                 storage.commit();
             } catch (IOException ioe) {
                 status = HarvestStatus.ERROR;
-                resource.setError(ioe.getMessage());
+                resource.setMessage(ioe.getMessage());
                 logger.log(Level.ERROR, "Storage commit failed.");
             }
         } else {
@@ -262,7 +262,7 @@ public class OAIHarvestJob implements HarvestJob {
                 Node item = errors.item(i);
                 error += item.getTextContent();
             }
-            resource.setError(error);
+            resource.setMessage(error);
             logger.log(Level.ERROR, "OAI job's error: " + error);
             return true;
         }

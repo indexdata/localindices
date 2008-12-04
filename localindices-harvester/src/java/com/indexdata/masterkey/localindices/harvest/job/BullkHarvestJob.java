@@ -40,7 +40,7 @@ public class BullkHarvestJob implements HarvestJob {
         } else {
             this.status = HarvestStatus.WAITING;
         }
-        this.resource.setError(null);
+        this.resource.setMessage(null);
     }
 
     private synchronized boolean isKillSendt() {
@@ -89,7 +89,7 @@ public class BullkHarvestJob implements HarvestJob {
         } catch (Exception e) {
             status = HarvestStatus.ERROR;
             error = e.getMessage();
-            resource.setError(e.getMessage());
+            resource.setMessage(e.getMessage());
             logger.log(Level.ERROR, "Download failed.", e);
         }
     }

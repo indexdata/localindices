@@ -169,7 +169,7 @@ public class WebHarvestJob implements HarvestJob {
     // Set an "error" message to report progress
     public synchronized void setStatusMsg(String e) {
         if (status == HarvestStatus.RUNNING) {
-            resource.setError(e);
+            resource.setMessage(e);
             error=e;
             logger.log(Level.TRACE, "Reporting status " + e);
         } else
@@ -179,7 +179,7 @@ public class WebHarvestJob implements HarvestJob {
     public synchronized void setError(String e) {
         this.error = e;
         status = HarvestStatus.ERROR;
-        resource.setError(e);
+        resource.setMessage(e);
         logger.log(Level.ERROR, e);
         if (que != null) {
             que.setFinished();
@@ -438,7 +438,7 @@ public class WebHarvestJob implements HarvestJob {
                 try {
                     xmlEnd();
                     storage.commit();
-                    resource.setError("OK. " + que.numSeen() + " pages harvested");
+                    resource.setMessage("OK. " + que.numSeen() + " pages harvested");
                     status = HarvestStatus.FINISHED;
                 //setError("All done - but we call it an error so we can do again");
                 } catch (IOException ex) {

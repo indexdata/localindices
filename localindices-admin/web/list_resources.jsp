@@ -63,7 +63,7 @@
                         <f:facet name="header">
                             <h:outputText value="Status Msg" />
                         </f:facet> 
-                        <h:outputText value="#{item.error}"></h:outputText>
+                        <h:outputText value="#{item.message}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">

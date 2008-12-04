@@ -61,8 +61,8 @@ public class ResourceConnectorTest {
 
         harvestable = new OaiPmhResource();
         harvestable.setName("test entry");
-        harvestable.setTitle("automatically posted harvestable");
-        harvestable.setDescription("relevant description");
+        harvestable.setServiceProvider("automatically posted harvestable");
+        harvestable.setTechnicalNotes("relevant description");
         harvestable.setEnabled(false);
         harvestable.setCurrentStatus("no status");
         harvestable.setMaxDbSize(320);
@@ -123,7 +123,7 @@ public class ResourceConnectorTest {
             System.out.println("+++ Updating the harvestable with new values.");        
             Harvestable hClone = (Harvestable) harvestable.clone();
             hClone.setName("updated name");
-            hClone.setTitle("updated title");
+            hClone.setServiceProvider("updated title");
             HarvestableConverter hc = new HarvestableConverter();
             hc.setEntity(hClone);
             harvestableConnector.put(hc);

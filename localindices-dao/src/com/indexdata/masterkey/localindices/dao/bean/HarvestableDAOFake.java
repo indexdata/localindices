@@ -36,8 +36,8 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable.setId(new Long(1));
             hable.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("05/05/2008"));
             hable.setName("HeinOnline");
-            hable.setTitle("HeinOnline.org");
-            hable.setDescription("leading preservation publisher producing long out-of-print legal research materials in reprint and microfilm/fiche format and also became the world's largest distributor of legal periodicals");
+            hable.setServiceProvider("HeinOnline.org");
+            hable.setTechnicalNotes("leading preservation publisher producing long out-of-print legal research materials in reprint and microfilm/fiche format and also became the world's largest distributor of legal periodicals");
             hable.setScheduleString("* * * * *");
             hable.setUrl("http://heinonline.org/HOL/OAI");
             hable.setMetadataPrefix("oai_dc");
@@ -48,7 +48,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable2.setId(new Long(2));
             hable2.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("04/04/2008"));
             hable2.setName("University of Groningen");
-            hable2.setTitle("University Digital Archive of the University of Groningen, The Netherlands");
+            hable2.setServiceProvider("University Digital Archive of the University of Groningen, The Netherlands");
             hable2.setScheduleString("* * * * *");
             hable2.setUrl("http://ir.ub.rug.nl/oai/");
             hable2.setMetadataPrefix("oai_dc");
