@@ -142,6 +142,8 @@ public class CronLine {
      */
     public Date toDate() {
         Calendar cal = new GregorianCalendar();
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         if (!"*".equals(this.get(MINUTE))) 
             cal.set(Calendar.MINUTE, Integer.parseInt(this.get(MINUTE)));
         if (!"*".equals(this.get(HOUR))) 
