@@ -188,7 +188,7 @@ public class HTMLPage {
         if (!contType.startsWith("text/html") && !contType.startsWith("text/plain")) // Get also plain text, we need it for robots.txt, and
         // might as well index it all anyway
         {
-            throw new IOException("Content type '" + contType + "' not acceptable at" + url.toString());
+            throw new IOException("Content type '" + contType + "' not acceptable at " + url.toString());
         }
         this.url = conn.getURL(); // This may have changed if we process redirects
         this.contentType = contType;
