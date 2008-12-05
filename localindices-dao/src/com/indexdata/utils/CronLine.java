@@ -4,12 +4,12 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.scheduler;
+package com.indexdata.utils;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
-import com.indexdata.masterkey.localindices.scheduler.exception.CronLineParseException;
+import java.util.Date;
 
 /**
  * A CronLine is an internal representation of the time specification
@@ -20,7 +20,11 @@ import com.indexdata.masterkey.localindices.scheduler.exception.CronLineParseExc
  * @author heikki
  */
 public class CronLine {
-
+    public final static int MINUTE = 0;
+    public final static int HOUR = 1;
+    public final static int DAY_OF_MONTH = 2;
+    public final static int MONTH = 3;
+    public final static int DAY_OF_WEEK = 4;
     public final static int DAILY_PERIOD = 24 * 60;
     public final static int WEEKLY_PERIOD = 7 * 24 * 60;
     public final static int MONTHLY_PERIOD = 31 * 24 * 60;
@@ -119,5 +123,35 @@ public class CronLine {
             return (period == CronLine.DAILY_PERIOD ? CronLine.MONTHLY_PERIOD : CronLine.WEEKLY_PERIOD);
         }
         return CronLine.YEARLY_PERIOD;
+    }
+    
+    /**
+     * Returns value of a given cron field.
+     * @param cron field number
+     * @return
+     */
+    public String get(int field) {
+        if (field < 0 || field > 4) return null;
+        return fields[field];
+    }
+    
+    /**
+     * Converts cron entry to date;
+     * @param cronLine
+     * @return
+     */
+    public Date toDate() {
+        Calendar cal = new GregorianCalendar();
+        if (!"*".equals(this.get(MINUTE))) 
+            cal.set(Calendar.MINUTE, Integer.parseInt(this.get(MINUTE)));
+        if (!"*".equals(this.get(HOUR))) 
+            cal.set(Calendar.HOUR, Integer.parseInt(this.get(HOUR)));
+        if (!"*".equals(this.get(MONTH))) 
+            cal.set(Calendar.MONTH, Integer.parseInt(this.get(MONTH)) - 1);
+        if (!"*".equals(this.get(DAY_OF_MONTH))) 
+            cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(this.get(DAY_OF_MONTH)));
+        if (!"*".equals(this.get(DAY_OF_WEEK))) 
+            cal.set(Calendar.DAY_OF_WEEK, Integer.parseInt(this.get(DAY_OF_WEEK)));
+        return cal.getTime();
     }
 } // class CronLine

@@ -4,7 +4,7 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.scheduler.exception;
+package com.indexdata.utils;
 
 /**
  * Thrown if a specified string is a malformed Cron line.

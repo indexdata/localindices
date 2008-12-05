@@ -5,6 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
+import com.indexdata.utils.CronLine;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.entity.*;
 import com.indexdata.masterkey.localindices.harvest.job.*;

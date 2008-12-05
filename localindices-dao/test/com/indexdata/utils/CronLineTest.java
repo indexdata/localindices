@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.scheduler;
+package com.indexdata.utils;
 
-import com.indexdata.masterkey.localindices.scheduler.CronLine;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
 import org.junit.After;
@@ -116,5 +116,12 @@ public class CronLineTest {
         instance = new CronLine("0 0 1 1 1");
         assertEquals(CronLine.YEARLY_PERIOD, instance.shortestPeriod());
     }
-
+    
+    @Test
+    public void testToDate() {
+        //TODO fix this test
+        Date now = new Date();
+        Date result = CronLine.currentCronLine().toDate();
+        assertTrue(result.equals(now));
+    }
 }
