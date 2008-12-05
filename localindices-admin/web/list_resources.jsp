@@ -68,8 +68,9 @@
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Last Harvested" />
-                        </f:facet> 
-                        <h:outputText value="#{item.lastHarvestStarted}"></h:outputText>
+                        </f:facet>                        
+                        <h:outputText rendered="#{item.lastHarvestFinished != null}" value="#{item.lastHarvestFinished}"/>
+                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attemted on #{item.lastHarvestStarted}"/>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
