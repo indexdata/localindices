@@ -29,6 +29,7 @@ begin
     upd_stmt = 
       "zebraidx -tdom.#{dom_conf} -d #{zdb_name} -l #{zdb_name}.log update #{commited_path}/#{zdb_name}"
     print upd_stmt + "\n"
+    #exec upd_stmt
   end
   sth.finish
 rescue DBI::DatabaseError => e
