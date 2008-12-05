@@ -13,7 +13,6 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.utils.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -243,12 +242,6 @@ public class ResourceController {
         return list;
     }
     
-    public Date getNextHarvestSchedule(Harvestable resource) {
-        if (resource.getScheduleString() != null) {
-            return new CronLine(resource.getScheduleString()).toDate();
-        }
-        return null;
-    }
     //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Resource list paging functions">
     private int firstItem = 0;
