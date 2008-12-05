@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.entity;
 
+import com.indexdata.utils.CronLine;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
@@ -19,6 +20,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 /**
  * Corresponds to version 1 update
@@ -193,6 +195,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
     public void setAmountHarvested(Integer amountHarvested) {
         this.amountHarvested = amountHarvested;
+    }
+    
+    @Transient
+    public Date getNextHarvestSchedule() {
+        if (this.getScheduleString() != null) {
+            return new CronLine(this.getScheduleString()).toDate();
+        }
+        return null;
     }
     
     @Override

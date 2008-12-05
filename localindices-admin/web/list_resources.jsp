@@ -75,7 +75,7 @@
                         <f:facet name="header">
                             <h:outputText value="Next Scheduled Harvest" />
                         </f:facet> 
-                        <h:outputText value=""></h:outputText>
+                        <h:outputText value="#{item.nextHarvestSchedule}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
