@@ -7,6 +7,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.util.*;
+import java.io.File;
 import java.io.IOException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -24,11 +25,25 @@ public class ZebraFileStorage extends MultiFileStorage {
     private String config;
     private String domConf;
 
+    private void ensureDir(String storageDir, String dir) {
+        File f = new File(storageDir+"/"+dir);
+        if (!f.exists()) {  
+            f.mkdirs();
+            logger.log(Level.INFO, "Created dir " + 
+                    "'" + storageDir + "/" + dir +"'" );                            
+        }
+
+    }
+    
     public ZebraFileStorage(String storageDir, Harvestable harvestable, String domConf) {
         super(storageDir, harvestable);
         databaseName = "job" + harvestable.getId();
         config = storageDir + "/zebra.cfg";
         this.domConf = "dom." + storageDir + "/" + domConf;
+        ensureDir(storageDir,"reg");
+        ensureDir(storageDir,"shadow");
+        ensureDir(storageDir,"tmp");
+        ensureDir(storageDir,"lock");
     }
 
     @Override
