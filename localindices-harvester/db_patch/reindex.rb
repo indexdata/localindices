@@ -1,16 +1,28 @@
 #!/usr/bin/ruby -w
-# sudo aptitude install libdbi-ruby
-# sudo aptitude install libdbd-mysql-ruby
-#require 'rubygems'
+# sudo aptitude install libdbi-ruby libdbd-mysql-ruby
+#
+# NOTE - This *has* to be run as the glassfish user!
+# Otherwise your file permissions will be totally wrong and zebra will die
+#
+
 require 'dbi'
 
 commited_path = "/var/cache/harvested/committed"
 
 begin
+  print "asadmin stop-domain domain1 \n"
+  system "asadmin stop-domain domain1 "
   dbh = DBI.connect('DBI:MySQL:localindices:localhost',
   'localidxadm', 'localidxadmpass')
+
+  print "\n"
+  print "zebraidx init"
+  print "\n"
+  system "zebraidx init"
+
   sth = dbh.prepare("SELECT ID, DTYPE, METADATAPREFIX FROM HARVESTABLE")
   sth.execute
+
   sth.fetch do |row|
     zdb_name = "job#{row[0]}"
     dom_conf = ""
@@ -29,9 +41,18 @@ begin
     upd_stmt = 
       "zebraidx -tdom.#{dom_conf} -d #{zdb_name} -l #{zdb_name}.log update #{commited_path}/#{zdb_name}"
     print upd_stmt + "\n"
-    #exec upd_stmt
+    system upd_stmt
   end
+  
   sth.finish
+  print "\n"
+  print "zebraidx commit"
+  print "\n"
+  
+  system "zebraidx commit"
+  print "asadmin start-domain domain1 \n"
+  system "asadmin start-domain domain1 "
+
 rescue DBI::DatabaseError => e
   puts "Error: #{e.message}"
 ensure
