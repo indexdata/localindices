@@ -19,7 +19,9 @@ import org.apache.log4j.Logger;
  */
 public class WebRobotCache {
 
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+    private static Logger logger = 
+            Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
+
     private Map<URL, String> cache = new HashMap<URL, String>();
 
     private synchronized String getRobots(URL robUrl) {

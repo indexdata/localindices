@@ -171,9 +171,10 @@ public class WebHarvestJob implements HarvestJob {
         if (status == HarvestStatus.RUNNING) {
             resource.setMessage(e);
             error=e;
-            logger.log(Level.TRACE, "Reporting status " + e);
-        } else
-            logger.log(Level.TRACE, "NOT Reporting status " + e + ". not running");
+            //logger.log(Level.TRACE, "Reporting status " + e);
+        } else {
+            //logger.log(Level.TRACE, "NOT Reporting status " + e + ". not running");
+        }
     }
 
     public synchronized void setError(String e) {

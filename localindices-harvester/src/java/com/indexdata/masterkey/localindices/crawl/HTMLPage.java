@@ -91,7 +91,7 @@ public class HTMLPage {
             parse();
         } catch (IOException ioe) {
             this.error = ioe.getMessage();
-            logger.log(Level.ERROR, this.error);
+            logger.log(Level.DEBUG, "I/O error :" + this.error);
             throw ioe;
         }
     }
