@@ -30,10 +30,8 @@ public class JobInstance {
     private HarvestJob harvestJob;
     private CronLine cronLine;
     private CronLine lastCronLine;
-    private String lastHarvestError;
     private HarvestStatus lastHarvestStatus;
     private String lastStatusMsg;
-    private Date lastHarvestStarted;
     public boolean seen; // for checking what has been deleted
 
     public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
@@ -41,6 +39,7 @@ public class JobInstance {
         if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
             logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
             cronLine = CronLine.currentCronLine();
+            hable.setScheduleString(cronLine.toString());
         } else {
             cronLine = new CronLine(hable.getScheduleString());
         }
@@ -68,7 +67,6 @@ public class JobInstance {
         if (hable.getCurrentStatus() != null) {
             lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
         }
-        lastHarvestError = hable.getMessage();
         lastStatusMsg = hable.getMessage();
         seen = false;
     }
@@ -84,7 +82,9 @@ public class JobInstance {
         if (harvestingThread == null || !harvestingThread.isAlive()) {
             harvestingThread = new Thread(harvestJob);
             harvestingThread.start();
-            lastHarvestStarted = new Date();
+            if (harvestable.getInitiallyHarvested() == null)
+                harvestable.setInitiallyHarvested(new Date());
+            harvestable.setLastHarvestStarted(new Date());
         }
     }
 
@@ -113,8 +113,9 @@ public class JobInstance {
     /**
      * Inform the job that the harvested data was picked up and it may go to sleep.
      */
-    public void setStatusToWaiting() {
+    public void notifyFinish() {
         harvestJob.finishReceived();
+        harvestable.setLastHarvestFinished(new Date());
     }
 
     /**
@@ -128,29 +129,6 @@ public class JobInstance {
         }
         lastCronLine = curCron;
         return curCron.matches(cronLine);
-    }
-
-    /**
-     * Checks if the harvesting job error has changed since the last check.
-     * @return true/false
-     */
-    public boolean errorChanged() {
-        boolean changed;
-        if (lastHarvestError == null) {
-            changed = true;
-        } else {
-            changed = !lastHarvestError.equals(harvestJob.getError());
-        }
-        lastHarvestError = harvestJob.getError();
-        return changed;
-    }
-
-    /**
-     * Return the last harvesting error.
-     * @return harvesting error
-     */
-    public String getError() {
-        return lastHarvestError;
     }
 
     /**
@@ -193,11 +171,4 @@ public class JobInstance {
         return harvestJob.getStatus();
     }
 
-    /**
-     * Check when was the job started.
-     * @return harvest start date
-     */
-    public Date getLastHarvestStarted() {
-        return lastHarvestStarted;
-    }
 }

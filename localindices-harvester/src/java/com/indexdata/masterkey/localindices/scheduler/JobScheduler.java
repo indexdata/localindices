@@ -111,16 +111,14 @@ public class JobScheduler {
         for (JobInstance ji : jobs.values()) {
             switch (ji.getStatus()) {
                 case FINISHED: //update the lastHarvestStarted (and harvestedUntil) 
-                    //and send received signal
-                    ji.setStatusToWaiting();
-                    persistFinished(ji);
+                    //and send received signal                    
+                    ji.notifyFinish();
+                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
+                            + " has finished. Persisting state...");
+                    dao.updateHarvestable(ji.getHarvestable());
                     //persist from and until
                     break;
-                case ERROR:   // report error if changed
-                    if (ji.errorChanged()) {
-                        reportError(ji.getHarvestable());
-                    // do not break
-                    }
+                case ERROR:
                 case NEW:     // ask if time to run
                 case WAITING:
                     // should check harvested until?
@@ -134,9 +132,14 @@ public class JobScheduler {
                     break;
             }
             if (ji.statusChanged()) {
-                reportStatus(ji.getHarvestable(), ji.getStatus());
+                logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
+                        + " status updated to " + ji.getStatus());
+                ji.getHarvestable().setCurrentStatus(ji.getStatus().name());
+                dao.updateHarvestable(ji.getHarvestable());
             }
             if (ji.statusMsgChanged()) {
+                logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() 
+                        + " - status message updated - " + ji.getHarvestable().getMessage());
                 dao.updateHarvestable(ji.getHarvestable());
             }
         }
@@ -152,7 +155,7 @@ public class JobScheduler {
             JobInfo jInfo = new JobInfo();
             jInfo.setHarvestable(ji.getHarvestable());
             jInfo.setStatus(ji.getStatus());
-            jInfo.setError(ji.getError());
+            jInfo.setError(ji.getHarvestable().getMessage());
             jInfo.setHarvestPeriod("");
             jInfoList.add(jInfo);
         }
@@ -175,22 +178,5 @@ public class JobScheduler {
     public void stopJob(Long jobId) {
         JobInstance ji = jobs.get(jobId);
         ji.stop();
-    }
-
-    private void reportError(Harvestable hable) {
-        logger.log(Level.ERROR, "JOB#" + hable.getId() + " - HARVEST ERROR updated - " + hable.getMessage());
-        dao.updateHarvestable(hable);
-    }
-
-    private void reportStatus(Harvestable hable, HarvestStatus status) {
-        logger.log(Level.INFO, "JOB#" + hable.getId() + " status updated to " + status);
-        hable.setCurrentStatus(status.name());
-        dao.updateHarvestable(hable);
-    }
-
-    private void persistFinished(JobInstance ji) {
-        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " has finished. persisted.");
-        ji.getHarvestable().setLastHarvestStarted(ji.getLastHarvestStarted());
-        dao.updateHarvestable(ji.getHarvestable());
     }
 }
