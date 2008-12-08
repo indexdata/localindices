@@ -8,7 +8,7 @@ package com.indexdata.masterkey.localindices.web.service.converter;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import java.net.URI;
-import java.util.Collection;
+import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 @XmlRootElement(name = "harvestables")
 public class HarvestablesConverter {
-    private Collection<HarvestableBrief> references;
+    private List<HarvestableBrief> references;
     private URI uri;
     private int start;
     private int max;
@@ -38,7 +38,7 @@ public class HarvestablesConverter {
      * @param entities associated entities
      * @param uri associated uri
      */
-    public HarvestablesConverter(Collection<Harvestable> entities, URI uri, int start, int max, int count) {
+    public HarvestablesConverter(List<Harvestable> entities, URI uri, int start, int max, int count) {
         this.references = new ArrayList<HarvestableBrief>();
         for (Harvestable entity : entities) {
             references.add(new HarvestableBrief(entity, uri, true));
@@ -55,7 +55,7 @@ public class HarvestablesConverter {
      * @return a collection of HarvestableBrief
      */
     @XmlElement(name = "harvestableBrief")
-    public Collection<HarvestableBrief> getReferences() {
+    public List<HarvestableBrief> getReferences() {
         return references;
     }
 
@@ -64,7 +64,7 @@ public class HarvestablesConverter {
      *
      * @param references a collection of HarvestableBrief to set
      */
-    public void setReferences(Collection<HarvestableBrief> references) {
+    public void setReferences(List<HarvestableBrief> references) {
         this.references = references;
     }
 

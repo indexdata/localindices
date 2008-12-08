@@ -15,7 +15,7 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.log4j.Level;
@@ -60,8 +60,8 @@ public class HarvestableDAOFake implements HarvestableDAO {
         }
     }
 
-    public Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
-        Collection<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
+    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+        List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : harvestables.values()) {
             try {
                 // update the date so it looks like the settings has been changed
@@ -117,7 +117,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Collection<Harvestable> retrieveHarvestables(int start, int max) {
+    public List<Harvestable> retrieveHarvestables(int start, int max) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

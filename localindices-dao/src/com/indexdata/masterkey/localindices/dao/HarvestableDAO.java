@@ -8,7 +8,7 @@ package com.indexdata.masterkey.localindices.dao;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
-import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -20,13 +20,13 @@ public interface HarvestableDAO {
     public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable);
     public Harvestable updateHarvestable(Harvestable hable);
     public void deleteHarvestable(Harvestable harvestable);
-    public Collection<Harvestable> retrieveHarvestables(int start, int max);
+    public List<Harvestable> retrieveHarvestables(int start, int max);
     public int getHarvestableCount();    
     /**
      * Retrieve a list of brief (listing) harvestables.
      * @return
      */
-    Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max);
+    List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max);
     /**
      * Retrieves a harvestable using it's listing reference (brief)
      * @param hbrief brief (listing) harvestable

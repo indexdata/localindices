@@ -10,7 +10,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
@@ -164,10 +164,10 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
-    public Collection<Harvestable> retrieveHarvestables(int start, int max) {
+    public List<Harvestable> retrieveHarvestables(int start, int max) {
         EntityManager em = getEntityManager();
         UserTransaction utx = getUserTransaction();
-        Collection<Harvestable> hables = null;
+        List<Harvestable> hables = null;
         try {
             utx.begin();
             em.joinTransaction();
@@ -199,8 +199,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
-    public Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
-        Collection<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
+    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+        List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : retrieveHarvestables(start, max)) {
             HarvestableBrief href = new HarvestableBrief(hable);
             hrefs.add(href);

@@ -14,7 +14,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -35,7 +35,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
-    public Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -138,11 +138,11 @@ public class HarvestableDAOWS implements HarvestableDAO {
         }
     }
 
-    public Collection<Harvestable> retrieveHarvestables(int start, int max) {
+    public List<Harvestable> retrieveHarvestables(int start, int max) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
-       Collection<Harvestable> hables = new ArrayList<Harvestable>();
-       Collection<HarvestableBrief> hrefs = retrieveHarvestableBriefs(start, max);
+       List<Harvestable> hables = new ArrayList<Harvestable>();
+       List<HarvestableBrief> hrefs = retrieveHarvestableBriefs(start, max);
        if (hrefs != null) {
             for (HarvestableBrief href : hrefs) {
                 Harvestable hable = retrieveFromBrief(href);
