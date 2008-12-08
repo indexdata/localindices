@@ -7,7 +7,7 @@
 package com.indexdata.masterkey.localindices.dao;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.util.Collection;
 
 /**
@@ -21,17 +21,16 @@ public interface HarvestableDAO {
     public Harvestable updateHarvestable(Harvestable hable);
     public void deleteHarvestable(Harvestable harvestable);
     public Collection<Harvestable> retrieveHarvestables(int start, int max);
-    public int getHarvestableCount();
-    
+    public int getHarvestableCount();    
     /**
-     * Retrieve list of all harvestables from the Web Service
+     * Retrieve a list of brief (listing) harvestables.
      * @return
      */
-    Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max);
+    Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max);
     /**
-     * Retrieve harvestable from the Web Service using it's reference (URL)
-     * @param href harvestableRef entity
-     * @return harvesatble entity
+     * Retrieves a harvestable using it's listing reference (brief)
+     * @param hbrief brief (listing) harvestable
+     * @return harvesatble detailed harvestable
      */
-    Harvestable retrieveFromRef(HarvestableRefConverter href);
+    Harvestable retrieveFromBrief(HarvestableBrief hbrief);
 }

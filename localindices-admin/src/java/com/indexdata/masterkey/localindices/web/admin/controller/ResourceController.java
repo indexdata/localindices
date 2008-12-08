@@ -331,7 +331,7 @@ public class ResourceController {
 
     /* list resources */
     public DataModel getResources() {
-        return new ListDataModel((List) dao.retrieveHarvestables(firstItem, batchSize));
+        return new ListDataModel((List) dao.retrieveHarvestableBriefs(firstItem, batchSize));
     }
 
     public String deleteResource() {

@@ -10,7 +10,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.client.ResourceConnector;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
-    public Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max) {
+    public Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -51,12 +51,13 @@ public class HarvestableDAOWS implements HarvestableDAO {
         return null;
     }
 
+
     /**
      * Retrieve harvestable from the Web Service using it's reference (URL)
      * @param href harvestableRef entity
      * @return harvesatble entity
      */
-    public Harvestable retrieveFromRef(HarvestableRefConverter href) {
+    public Harvestable retrieveFromBrief(HarvestableBrief href) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
@@ -68,8 +69,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
             logger.log(Level.DEBUG, male);
         }
         return null;
-    } // retrieveFromRef
-
+    } // retrieveFromBrief
 
     /**
      * PUT harvestable to the Web Service
@@ -140,11 +140,12 @@ public class HarvestableDAOWS implements HarvestableDAO {
 
     public Collection<Harvestable> retrieveHarvestables(int start, int max) {
        //TODO this cannot be more stupid
+       logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
        Collection<Harvestable> hables = new ArrayList<Harvestable>();
-       Collection<HarvestableRefConverter> hrefs = pollHarvestableRefList(start, max);
+       Collection<HarvestableBrief> hrefs = retrieveHarvestableBriefs(start, max);
        if (hrefs != null) {
-            for (HarvestableRefConverter href : hrefs) {
-                Harvestable hable = retrieveFromRef(href);
+            for (HarvestableBrief href : hrefs) {
+                Harvestable hable = retrieveFromBrief(href);
                 hables.add(hable);
             }
        }

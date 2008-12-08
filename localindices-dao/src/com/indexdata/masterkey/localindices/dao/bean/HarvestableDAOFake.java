@@ -9,7 +9,7 @@ package com.indexdata.masterkey.localindices.dao.bean;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -60,8 +60,8 @@ public class HarvestableDAOFake implements HarvestableDAO {
         }
     }
 
-    public Collection<HarvestableRefConverter> pollHarvestableRefList(int start, int max) {
-        Collection<HarvestableRefConverter> hrefs = new ArrayList<HarvestableRefConverter>();
+    public Collection<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+        Collection<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : harvestables.values()) {
             try {
                 // update the date so it looks like the settings has been changed
@@ -71,7 +71,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
                     harvestables.put(hable.getId(), hable);
                 }
                 */
-                HarvestableRefConverter href = new HarvestableRefConverter(hable);
+                HarvestableBrief href = new HarvestableBrief(hable);
                 href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
                 hrefs.add(href);
             } catch (URISyntaxException urie) {
@@ -81,7 +81,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         return hrefs;
     }
 
-    public Harvestable retrieveFromRef(HarvestableRefConverter href) {
+    public Harvestable retrieveFromBrief(HarvestableBrief href) {
         try {
             return (Harvestable) harvestables.get(href.getId()).clone();
         } catch (CloneNotSupportedException cle) {

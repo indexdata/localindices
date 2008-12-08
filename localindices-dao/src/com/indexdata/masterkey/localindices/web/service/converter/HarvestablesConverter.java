@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 @XmlRootElement(name = "harvestables")
 public class HarvestablesConverter {
-    private Collection<HarvestableRefConverter> references;
+    private Collection<HarvestableBrief> references;
     private URI uri;
     private int start;
     private int max;
@@ -39,9 +39,9 @@ public class HarvestablesConverter {
      * @param uri associated uri
      */
     public HarvestablesConverter(Collection<Harvestable> entities, URI uri, int start, int max, int count) {
-        this.references = new ArrayList<HarvestableRefConverter>();
+        this.references = new ArrayList<HarvestableBrief>();
         for (Harvestable entity : entities) {
-            references.add(new HarvestableRefConverter(entity, uri, true));
+            references.add(new HarvestableBrief(entity, uri, true));
         }
         this.uri = uri;
         this.start = start;
@@ -50,21 +50,21 @@ public class HarvestablesConverter {
     }
 
     /**
-     * Returns a collection of HarvestableRefConverter.
+     * Returns a collection of HarvestableBrief.
      *
-     * @return a collection of HarvestableRefConverter
+     * @return a collection of HarvestableBrief
      */
-    @XmlElement(name = "harvestableRef")
-    public Collection<HarvestableRefConverter> getReferences() {
+    @XmlElement(name = "harvestableBrief")
+    public Collection<HarvestableBrief> getReferences() {
         return references;
     }
 
     /**
-     * Sets a collection of HarvestableRefConverter.
+     * Sets a collection of HarvestableBrief.
      *
-     * @param references a collection of HarvestableRefConverter to set
+     * @param references a collection of HarvestableBrief to set
      */
-    public void setReferences(Collection<HarvestableRefConverter> references) {
+    public void setReferences(Collection<HarvestableBrief> references) {
         this.references = references;
     }
 

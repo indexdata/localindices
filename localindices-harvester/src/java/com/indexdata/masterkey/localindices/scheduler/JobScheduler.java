@@ -8,7 +8,7 @@ package com.indexdata.masterkey.localindices.scheduler;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableRefConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.util.ArrayList;
@@ -41,28 +41,28 @@ public class JobScheduler {
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableRefConverter> refs = dao.pollHarvestableRefList(0, Integer.parseInt(config.get("MAX_JOBS")));
-        if (refs == null) {
+        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt(config.get("MAX_JOBS")));
+        if (hbriefs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
         } else {
             // mark all job so we know what to remove
             for (JobInstance j : jobs.values()) {
                 j.seen = false;
             }
-            for (HarvestableRefConverter href : refs) {
-                Long id = href.getId();
+            for (HarvestableBrief hbrief : hbriefs) {
+                Long id = hbrief.getId();
                 JobInstance ji = jobs.get(id);
                 // corresponding job is in the current list
                 if (ji != null) {
                     // and seetings has changed
-                    if (!ji.getHarvestable().getLastUpdated().equals(href.getLastUpdated())) {
-                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " parameters changed (LU " + href.getLastUpdated() + "), stopping thread and destroying job");
+                    if (!ji.getHarvestable().getLastUpdated().equals(hbrief.getLastUpdated())) {
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " parameters changed (LU " + hbrief.getLastUpdated() + "), stopping thread and destroying job");
                         ji.stop();
                         ji = null; // signal to create a new one
                     // should we remove it from the list?
                     }
                     //but it's been disabled
-                    if (!href.isEnabled()) {
+                    if (!hbrief.isEnabled()) {
                         logger.log(Level.INFO, "JOB#" + id + " has been disabled");
                         if (ji != null) {
                             ji.stop();
@@ -72,10 +72,10 @@ public class JobScheduler {
                 }
                 // crate new job
                 if (ji == null) {
-                    if (!href.isEnabled()) {
-                        //logger.log(Level.INFO, "New JOB#" + href.getId() + " is disabled, nothing will be created");
+                    if (!hbrief.isEnabled()) {
+                        //logger.log(Level.INFO, "New JOB#" + hbrief.getId() + " is disabled, nothing will be created");
                     } else {
-                        Harvestable harv = dao.retrieveFromRef(href);
+                        Harvestable harv = dao.retrieveFromBrief(hbrief);
                         try {
                             ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
                             jobs.put(id, ji);

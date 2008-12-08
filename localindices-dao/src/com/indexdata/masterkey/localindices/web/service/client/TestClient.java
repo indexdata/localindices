@@ -33,7 +33,7 @@ public class TestClient {
                         ":com.indexdata.masterkey.localindices.web.service.converter");
 
             HarvestablesConverter hc = harvestablesConnector.get();
-            for (HarvestableRefConverter ref : hc.getReferences()) {
+            for (HarvestableBrief ref : hc.getReferences()) {
                 System.out.println(ref.getResourceUri());
             }
             
