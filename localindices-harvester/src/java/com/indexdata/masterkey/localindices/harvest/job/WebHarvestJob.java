@@ -332,7 +332,8 @@ public class WebHarvestJob implements HarvestJob {
                         sites.clear();
 
                     } catch (IOException ex) {
-                        setError("I/O Exception '" + m.group(2) + "'" + ex.getMessage());
+                        // setError("I/O Exception '" + m.group(2) + "'" + ex.getMessage());
+                        setError("Could not load jump page " + m.group(2) );
                         sites.clear();
                     }
                 } else {
