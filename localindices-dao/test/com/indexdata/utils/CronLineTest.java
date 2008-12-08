@@ -6,6 +6,9 @@
 
 package com.indexdata.utils;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Formatter;
@@ -120,8 +123,15 @@ public class CronLineTest {
     @Test
     public void testToDate() {
         //TODO fix this test
-        Date now = new Date();
-        Date result = CronLine.currentCronLine().toDate();
-        assertTrue(result.equals(now));
+        Date date = null;
+        try {       
+            date = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss")
+                    .parse("Sat, 20 December 2008 14:13:00");
+        } catch (ParseException pe) {
+            fail(pe.getMessage());
+        }
+        Date cron = new CronLine("13 14 20 12 *").toDate();
+        System.out.println("Date: " + date + ", cron: " + cron);
+        assertTrue(date.equals(cron));
     }
 }
