@@ -9,17 +9,17 @@
             <name>localindices-admin</name>
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
-                <library files="6">
+                <library>
                     <file>${libs.jsf12.classpath}</file>
                 </library>
-                <library files="2">
+                <library>
                     <file>${libs.jstl11.classpath}</file>
                 </library>
-                <library files="1">
+                <library>
                     <file>${reference.localindices-dao.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library files="1">
+                <library>
                     <file>${file.reference.log4j-1.2.15.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
