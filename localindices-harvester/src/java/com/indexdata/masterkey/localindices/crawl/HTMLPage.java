@@ -49,6 +49,8 @@ public class HTMLPage {
     private String title = "";
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
+    private String description;
+    private String keywords;
 
     // Create a trust manager that does not validate certificate chains
     // This code found floating around on the net, for example at
@@ -235,11 +237,27 @@ public class HTMLPage {
         }
         Long et2 = System.currentTimeMillis() - startTime;
         startTime = System.currentTimeMillis();
+        
+        //meta tags
+        p = Pattern
+           .compile("<meta[^>]+name=['\"]?([^>'\"# ]+)['\"# ]?\\s*content=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        m = p.matcher(headers);
+        while (m.find()) {
+            String name = m.group(1);
+            String content = m.group(2);
+            
+            if ("description".equalsIgnoreCase(name)) {
+                description = content;
+            } else if ("keywords".equalsIgnoreCase(name)) {
+                keywords = content;
+            }            
+        }  
 
         // extract full text - without tags and javascript
-        p = Pattern.compile("<script.*?/script>",
+        p = Pattern.compile("<(script|style|object|canvas|applet).*?/(script|style|object|canvas|applet)>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
-        m = p.matcher(content);
+        m = p.matcher(body);
         String rawtext = m.replaceAll("");
         //logger.log(Level.TRACE,"content:" + content);
         //logger.log(Level.TRACE,"raw:" + rawtext);
@@ -354,9 +372,13 @@ public class HTMLPage {
         // FIXME - Use proper XML tools to do this, to avoid problems with
         // bad entities, character sets, etc.
         String xml = "<pz:record>\n";
-        xml += xmlTag("md-title", title);
-        xml += xmlTag("md-electronic-url", url.toString());
-        xml += xmlTag("md-fulltext", plaintext);
+        xml += xmlTag("title", title);
+        xml += xmlTag("description", description);
+        for(String keyword : keywords.split(",")) {
+            xml += xmlTag("subject", keyword);
+        }
+        xml += xmlTag("electronic-url", url.toString());
+        xml += xmlTag("fulltext", plaintext);
         xml += "</pz:record>\n";
         return xml;
     } // makeXml

@@ -37,7 +37,7 @@ public class HTMLPageTest {
     @Before
     public void setUp() {
         try { 
-            instance = new HTMLPage(new URL("http://bagel.indexdata.com/cf"));
+            instance = new HTMLPage(new URL("http://localhost:8080/localindices-harvester/crawl_test.html"));
         } catch (MalformedURLException e) {
             fail("Cannot instantiate test class");
         } catch (IOException e) {
