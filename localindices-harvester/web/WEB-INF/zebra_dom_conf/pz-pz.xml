@@ -2,6 +2,7 @@
 <dom>
  <input syntax="xml">
    <xmlreader level="1"/>
+   <xslt stylesheet="stylesheets/addmergekey.xsl"/>
    <xslt stylesheet="stylesheets/addsnippet.xsl"/>
  </input>
  <extract name="index">
