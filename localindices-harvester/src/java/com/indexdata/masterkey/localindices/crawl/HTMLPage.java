@@ -244,13 +244,13 @@ public class HTMLPage {
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(headers);
         while (m.find()) {
-            String name = m.group(1);
-            String content = m.group(2);
+            String metaName = m.group(1);
+            String metaContent = m.group(2);
             
-            if ("description".equalsIgnoreCase(name)) {
-                description = content;
-            } else if ("keywords".equalsIgnoreCase(name)) {
-                keywords = content;
+            if ("description".equalsIgnoreCase(metaName)) {
+                description = metaContent;
+            } else if ("keywords".equalsIgnoreCase(metaName)) {
+                keywords = metaContent;
             }            
         }  
 
@@ -378,9 +378,12 @@ public class HTMLPage {
         // bad entities, character sets, etc.
         String xml = "<pz:record>\n";
         xml += xmlTag("title", title);
-        xml += xmlTag("description", description);
-        for(String keyword : keywords.split(",")) {
-            xml += xmlTag("subject", keyword);
+        if (description != null)
+            xml += xmlTag("description", description);
+        if (keywords != null) {
+            for(String keyword : keywords.split(",")) {
+                xml += xmlTag("subject", keyword);
+            }
         }
         xml += xmlTag("electronic-url", url.toString());
         xml += xmlTag("fulltext", plaintext);
