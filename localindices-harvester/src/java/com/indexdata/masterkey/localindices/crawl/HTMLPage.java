@@ -254,13 +254,18 @@ public class HTMLPage {
             }            
         }  
 
-        // extract full text - without tags and javascript
-        p = Pattern.compile("<(script|style|object|canvas|applet).*?/(script|style|object|canvas|applet)>",
+        // extract full text strip tags like <tag>sdlfksd</tags>
+        p = Pattern.compile("<\\s*(script|style|object|canvas|applet)[^>]*>.*?</\\s*\\1\\s*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(body);
         String rawtext = m.replaceAll("");
-        //logger.log(Level.TRACE,"content:" + content);
-        //logger.log(Level.TRACE,"raw:" + rawtext);
+        
+        // extract full text strip tags like <tag/>        
+        p = Pattern.compile("<\\s*(script|style|object|canvas|applet).*?/\\s*>",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+        m = p.matcher(rawtext);
+        rawtext = m.replaceAll(""); 
+        
         p = Pattern.compile("<[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(rawtext);
