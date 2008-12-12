@@ -42,15 +42,14 @@ public class HTMLPage {
     private String contentType;
     private int contentLength;
     private String content = ""; // the whole thing
-    private String headers = "";
-    private String body = "";
     private List<URL> links = new Vector<URL>();
-    private String plaintext = "";
+    private String plainText = "";
     private String title = "";
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
     private String description;
     private String keywords;
+    private String author;
 
     // Create a trust manager that does not validate certificate chains
     // This code found floating around on the net, for example at
@@ -114,20 +113,12 @@ public class HTMLPage {
         return content;
     }
 
-    public String getBody() {
-        return body;
-    }
-
-    public String getContenttype() {
+    public String getContentType() {
         return contentType;
     }
 
     public String getError() {
         return error;
-    }
-
-    public String getHeaders() {
-        return headers;
     }
 
     public String getTitle() {
@@ -208,17 +199,16 @@ public class HTMLPage {
         }
         Long startTime = System.currentTimeMillis();
         // Split headers and body, if possible
-        Pattern p = Pattern.compile("<head>(.*)</head>.*" +
-                "<body[^>]*>(.*)",
+        Pattern p = Pattern.compile("<head>(.*)</head>.*" + "<body[^>]*>(.*)",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         Matcher m = p.matcher(content);
+        String headers = null, body = null;
         if (m.find()) {
-            //TODO the headers shoould be further spread apart, there's some md to get out
             headers = m.group(1);
             body = m.group(2);
         } else {
-            headers = "";
-            body = content; // doesn't look like good html, try to extract links anyway
+            headers = content;//many times the websites have only <head> see http://www.enviroliteracy.org/subcategory.php/161.html
+            body = content;// doesn't look like good html, try to extract links anyway
         }
         Long et1 = System.currentTimeMillis() - startTime;
         startTime = System.currentTimeMillis();
@@ -238,20 +228,21 @@ public class HTMLPage {
         Long et2 = System.currentTimeMillis() - startTime;
         startTime = System.currentTimeMillis();
         
-        //meta tags
+        //get meta tags
         p = Pattern
            .compile("<meta[^>]+name=['\"]?([^>'\"# ]+)['\"# ]?\\s*content=['\"]?([^>'\"#]+)['\"# ]?[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(headers);
         while (m.find()) {
             String metaName = m.group(1);
-            String metaContent = m.group(2);
-            
+            String metaContent = m.group(2);            
             if ("description".equalsIgnoreCase(metaName)) {
                 description = metaContent;
             } else if ("keywords".equalsIgnoreCase(metaName)) {
                 keywords = metaContent;
-            }            
+            } else if ("author".equalsIgnoreCase(metaName)) {
+                author = metaContent;
+            }
         }  
 
         // extract full text strip tags like <tag>sdlfksd</tags>
@@ -269,8 +260,7 @@ public class HTMLPage {
         p = Pattern.compile("<[^>]*>",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
         m = p.matcher(rawtext);
-        plaintext = m.replaceAll("");
-        //logger.log(Level.TRACE, "Plaintext: " + plaintext);
+        plainText = m.replaceAll("");
         Long et3 = System.currentTimeMillis() - startTime;
         startTime = System.currentTimeMillis();
 
@@ -310,12 +300,7 @@ public class HTMLPage {
         Long et4 = System.currentTimeMillis() - startTime;
         startTime = System.currentTimeMillis();
 
-        logger.log(Level.DEBUG,
-                this.url + " " +
-                "title:'" + this.title + "' (" +
-                "h=" + this.headers.length() + "b " +
-                "b=" + this.body.length() + "b) " +
-                this.links.size() + " links");
+        logger.log(Level.DEBUG, url + " title: '" + title + "' - " +links.size() + " links");
         if (et1 + et2 + et3 + et4 > 1000) {
             logger.log(Level.DEBUG, "Parse timings: " +
                     " body: " + et1 +
@@ -385,8 +370,11 @@ public class HTMLPage {
                 xml += xmlTag("subject", keyword);
             }
         }
+        if (author != null) {
+            xml += xmlTag("author", author);
+        }
         xml += xmlTag("electronic-url", url.toString());
-        xml += xmlTag("fulltext", plaintext);
+        xml += xmlTag("fulltext", plainText);
         xml += "</pz:record>\n";
         return xml;
     } // makeXml

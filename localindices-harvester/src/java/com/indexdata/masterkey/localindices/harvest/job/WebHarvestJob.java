@@ -219,7 +219,7 @@ public class WebHarvestJob implements HarvestJob {
         //Pattern p = Pattern.compile("(http://\\S+)",
         Pattern p = Pattern.compile("(http://[^ <>]+)",
                 Pattern.CASE_INSENSITIVE);
-        String body = page.getBody();
+        String body = page.getContent();
         Matcher m = p.matcher(body);
         URL pgUrl = page.getUrl();
         logger.log(Level.TRACE, "Parsing text links from " + pgUrl.toString() + " : " +
