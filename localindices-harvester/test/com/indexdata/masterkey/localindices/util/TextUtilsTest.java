@@ -48,8 +48,8 @@ public class TextUtilsTest {
      */
     @Test
     public void testCopyStreamWithReplace() {
-        String input = "this is some input text with a !replace! that should be substituted";
-        String expected = "this is some input text with a wildcard that should be substituted";
+        String input = "this is some input text with a !replace! that should be substituted\n";
+        String expected = "this is some input text with a wildcard that should be substituted\n";
         InputStream is = new ByteArrayInputStream(input.getBytes());
         OutputStream os = new ByteArrayOutputStream();
         try {
@@ -58,8 +58,8 @@ public class TextUtilsTest {
             fail();
         }
         String result = os.toString();
-        System.out.println("Expected: " + expected);
-        System.out.println("Result:" + result);
+        System.out.println("Expected: \"" + expected + "\"");
+        System.out.println("Result  : \"" + result + "\"");
         assertEquals(expected, result);
     }
 
