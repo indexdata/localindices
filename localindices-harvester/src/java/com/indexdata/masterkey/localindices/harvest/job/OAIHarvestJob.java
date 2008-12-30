@@ -205,7 +205,7 @@ public class OAIHarvestJob implements HarvestJob {
             if (checkError(errors)) {
                 logger.log(Level.ERROR, "Error record: " + listRecords.toString());
                 if (++errorCount > MAX_ERROR_RETRY)
-                   break;
+                   throw new IOException("Too many errors");
                 else
                 {
                     try {
