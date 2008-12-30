@@ -38,6 +38,8 @@ public class OAIHarvestJob implements HarvestJob {
     private boolean die = false;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
+    private final static int MAX_ERROR_RETRY = 3; // If this is > 0, harvester will retry requests on errors
+    private final static int ERROR_SLEEP = 60 * 1000; // Sleep for awhile if there is an error
 
     private synchronized boolean isKillSendt() {
         if (die) {
@@ -54,10 +56,10 @@ public class OAIHarvestJob implements HarvestJob {
         if (resource.getUrl() == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
-        if (resource.getMetadataPrefix() == null || resource.getMetadataPrefix().isEmpty()) {
+        if (resource.getMetadataPrefix() == null || resource.getMetadataPrefix().length() == 0) {
             resource.setMetadataPrefix("oai_dc");
         }
-        if (resource.getOaiSetName() != null && resource.getOaiSetName().isEmpty()) {
+        if (resource.getOaiSetName() != null && resource.getOaiSetName().length() == 0) {
             resource.setOaiSetName(null);
         }
         if (resource.getDateFormat() != null) {
@@ -189,8 +191,12 @@ public class OAIHarvestJob implements HarvestJob {
         } catch (Exception e) {
             throw new IOException(e);
         }
+
+        int errorCount = 0;
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = null;
+            String resumptionToken = null;
+
             try {
                 errors = listRecords.getErrors();
             } catch (TransformerException te) {
@@ -198,15 +204,30 @@ public class OAIHarvestJob implements HarvestJob {
             }
             if (checkError(errors)) {
                 logger.log(Level.ERROR, "Error record: " + listRecords.toString());
-                break;
+                if (++errorCount > MAX_ERROR_RETRY)
+                   break;
+                else
+                {
+                    try {
+                        Thread.sleep(ERROR_SLEEP);
+                    } catch (InterruptedException e)
+                    {
+                        throw new IOException(e);
+                    }
+                    logger.log(Level.INFO, "Retrying after delay");
+
+                }
             }
-            out.write(listRecords.toString().getBytes("UTF-8"));
-            out.write("\n".getBytes("UTF-8"));
-            String resumptionToken = null;
-            try {
-                resumptionToken = listRecords.getResumptionToken();
-            } catch (Exception e) {
-                throw new IOException("Cannot read the resumption token");
+            else
+            {
+                errorCount = 0;
+                out.write(listRecords.toString().getBytes("UTF-8"));
+                out.write("\n".getBytes("UTF-8"));
+                try {
+                    resumptionToken = listRecords.getResumptionToken();
+                } catch (Exception e) {
+                    throw new IOException("Cannot read the resumption token");
+                }
             }
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
@@ -225,10 +246,13 @@ public class OAIHarvestJob implements HarvestJob {
                   throw new IOException(e);
                 }
             }
+            
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
     }
-    
+
+    /*
+
     private void harvest(String baseURL, String resumptionToken,
             OutputStream out)
             throws IOException, ParserConfigurationException, HarvesterVerbException, TransformerException,
@@ -252,6 +276,9 @@ public class OAIHarvestJob implements HarvestJob {
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
     }
+
+
+     */
 
     private boolean checkError(NodeList errors) {
         if (errors != null && errors.getLength() > 0) {
