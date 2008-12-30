@@ -70,7 +70,7 @@
                             <h:outputText value="Last Harvested" />
                         </f:facet>                        
                         <h:outputText rendered="#{item.lastHarvestFinished != null}" value="#{item.lastHarvestFinished}"/>
-                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attemted on #{item.lastHarvestStarted}"/>
+                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attempted on #{item.lastHarvestStarted}"/>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
