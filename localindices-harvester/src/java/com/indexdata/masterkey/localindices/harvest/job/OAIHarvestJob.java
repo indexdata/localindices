@@ -193,9 +193,9 @@ public class OAIHarvestJob implements HarvestJob {
         }
 
         int errorCount = 0;
+        String resumptionToken = null;
         while (listRecords != null && !isKillSendt()) {
             NodeList errors = null;
-            String resumptionToken = null;
 
             try {
                 errors = listRecords.getErrors();
