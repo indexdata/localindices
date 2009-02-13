@@ -16,8 +16,13 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name="layer")
 public class IdentityTypeLayer extends Layer {
-    private String realm;
     private String displayName;
+    private String userName;
+    private String ipRanges;
+    private String realm;
+    private String iconUrl;
+    private String referer;
+    private String comment;
 
     public String getDisplayName() {
         return displayName;
@@ -34,5 +39,45 @@ public class IdentityTypeLayer extends Layer {
 
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
+    public void setIconUrl(String iconUrl) {
+        this.iconUrl = iconUrl;
+    }
+
+    public String getIpRanges() {
+        return ipRanges;
+    }
+
+    public void setIpRanges(String ipRanges) {
+        this.ipRanges = ipRanges;
+    }
+
+    public String getReferer() {
+        return referer;
+    }
+
+    public void setReferer(String referer) {
+        this.referer = referer;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }
