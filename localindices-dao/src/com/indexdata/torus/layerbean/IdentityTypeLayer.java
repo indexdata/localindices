@@ -7,6 +7,7 @@
 package com.indexdata.torus.layerbean;
 
 import com.indexdata.torus.Layer;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -15,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name="layer")
 public class IdentityTypeLayer extends Layer {
-    private String identityId;
+    private String realm;
     private String displayName;
 
     public String getDisplayName() {
@@ -26,11 +27,12 @@ public class IdentityTypeLayer extends Layer {
         this.displayName = displayName;
     }
 
-    public String getIdentityId() {
-        return identityId;
+    @XmlElement(name="identityId")
+    public String getRealm() {
+        return realm;
     }
 
-    public void setIdentityId(String identityId) {
-        this.identityId = identityId;
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 }
