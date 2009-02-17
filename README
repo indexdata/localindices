@@ -1,6 +1,12 @@
 --- COMPILING
 
-Right now the compilation only works with netbeans (http://www.netbeans.org). In netbeans go to File > Project Group... > New Group.. and select _Folder of projects_ then browse to the directory you've cloned _localindices_. All the projects should be loaded and you'll see if you have any import conflicts or such. If you have an javaee.jar import problem fix it by pointing to the file in the glassfish/lib directory.
+Compilation works easiest with netbeans (http://www.netbeans.org), though ant can be used as well. In netbeans go to File > Project Group... > New Group.. and select _Folder of projects_ then browse to the main git project directory (_localindices_). All projects should be loaded and you'll probably see import conflicts and data source problems.
+
+--- Deps
+
+TODO
+
+If you have an javaee.jar import problem fix it by pointing to the file in the glassfish/lib directory.
 
 --- RUNNING
 
