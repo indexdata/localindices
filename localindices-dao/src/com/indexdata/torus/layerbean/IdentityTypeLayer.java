@@ -21,6 +21,7 @@ public class IdentityTypeLayer extends Layer {
     private String ipRanges;
     private String realm;
     private String iconUrl;
+    private String proxyPattern;
     private String referer;
     private String comment;
 
@@ -80,4 +81,13 @@ public class IdentityTypeLayer extends Layer {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public String getProxyPattern() {
+        return proxyPattern;
+    }
+
+    public void setProxyPattern(String proxyPattern) {
+        this.proxyPattern = proxyPattern;
+    }
+
 }
