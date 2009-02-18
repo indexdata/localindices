@@ -1,19 +1,61 @@
---- COMPILING
+-- COMPILING
 
-Compilation works easiest with netbeans (http://www.netbeans.org), though ant can be used as well. In netbeans go to File > Project Group... > New Group.. and select _Folder of projects_ then browse to the main git project directory (_localindices_). All projects should be loaded and you'll probably see import conflicts and data source problems.
+Compilation works easiest with Netbeans (http://www.netbeans.org), though ant can be used as well. In netbeans go to File > Project Group... > New Group.. and select _Folder of projects_ then browse to the main git project directory (_localindices_). All projects should be loaded and you'll probably see import conflicts and data source problems.
 
 --- Deps
 
-TODO
+All components require log4j logging library (log4j-1.2.15.jar), on debian/ubuntu this can be installed via apt:
 
-If you have an javaee.jar import problem fix it by pointing to the file in the glassfish/lib directory.
+sudo apt-get install liblog4j1.2-java
 
---- RUNNING
+---- Localindices Harvester
+
+Project dependencies (oclc-harvester, localindices-dao) are part of the 'localindices' git project and will be automatically compiled and imported.
+
+Harvester requires Jersey (implementaion of JAX-RS, Java API for RESTful WS), part of JEE. Before we switch to Glassfish3 this library has to packaged along with the binaries. Jersey IS a part of the Netbeans installation but the default library support has been turned off in this project (NB was adding too many unnecessary jars, bloating the binary). Instead required Jersey jars:
+
+jersey-server.jar
+jersey-core.jar
+jsr311-api.jar
+asm.ja
+
+must be downloaded from:
+
+https://jersey.dev.java.net/source/browse/*checkout*/jersey/tags/jersey-1.0/jersey/dependencies.html
+
+and placed in a 'jersey' directory, on the same level as the 'localindices' git project.
+
+
+---- Localindices Admin
+
+Admin is a simple JavaServer Faces web application and as such requires a a compliant JEE 5 Application Server with JSF 1.2 included e.g. Glassfish V2.
+
+
+---- Localindices Dao
+
+This project contains all entity definitions (JavaBeans), abstracted database access layer (DAO) and a generic RESTful WS client.
+
+The relational DAO implementation requires javax.persistence and javax.transaction packages, part of JEE5 specs, usually implemented as a part of Application Server. This project is a library and not a web application so it does not require the full, operational server to compile. On debian/ubuntu those packages can be acquired by installing glassfish JEE libs (those are ONLY libraries and NOT the server itself):
+
+sudo apt-get install glassfish-javaee
+
+or you can make the project point to a javaee.jar in the Glassfish lib directory (you have installed Glassfish with Netbeans).
+
+
+-- RUNNING HARVESTER
+
+--- MySQL
 
 Make sure you have mysql installed, configured and running. Then create an empty database and user (using mysql console):
 
-    create database localidxadm;
-    grant all privileges on localidxadm.* to 'localidxadm'@'localhost' 
+    create database localindices;
+    grant all privileges on localindices.* to 'localidxadm'@'localhost' 
                 identified by 'localidxadmpass';
 
-In netbeans, select localindices-harvester as the main project and press F6 (this step is required because only this project have a DataSource definition required in glassfish and has to be loaded first). Harvester should start up and load DB schema. It should be also possible to deploy the admin now. For admin configuration (like WS URL) look in the web.xml.
+--- DataSource
+
+If running from Netbeans, select localindices-harvester as the main project and press F6 - DataSource definition file required in Glassfish to access the DB will be loaded automatically. Harvester should start up and set-up DB schema. It should be also possible to deploy the admin now. For admin configuration (like he harvester's WS URL) look in the web.xml.
+
+If you deploy on a standalone Glassfish, after setting up MySQL you have to add the DS definiton using the 'asadmin' utility.
+
+asadmin add-resources localindices-harvester/setup/sun-resources.xml
