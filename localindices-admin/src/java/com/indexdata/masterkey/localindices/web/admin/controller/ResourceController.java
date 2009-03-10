@@ -86,8 +86,15 @@ public class ResourceController {
         July, August, September, October, November, December
     }
     private enum DayOfTheWeek {
+        Any("*"), Monday("1"), Tuesday("2"), Wednesday("3"), Thursday("4"), Friday("5"), Saturday("6"), Sunday("0");
+        private String fieldValue;
+        DayOfTheWeek(String fieldValue) {
+            this.fieldValue = fieldValue;
+        }
+        public String fieldValue() {
+            return fieldValue;
+        }
 
-        Any, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
     }
     
     private String min;
@@ -141,7 +148,7 @@ public class ResourceController {
         String hour = this.hour;
         String dayOfMonth = this.dayOfMonth.equals("0") ? "*" : this.dayOfMonth;
         String month = this.month.equals("0") ? "*" : this.month;
-        String dayOfWeek = this.dayOfWeek.equals("0") ? "*" : this.dayOfWeek;
+        String dayOfWeek = this.dayOfWeek;
         this.min = this.hour = this.dayOfMonth = this.month = this.dayOfWeek = null;
         if (dayOfMonth != null && month != null && dayOfWeek != null) {
             return min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
@@ -159,7 +166,7 @@ public class ResourceController {
                 hour = inputs[1];
                 dayOfMonth = inputs[2].equals("*") ? "0" : inputs[2];
                 month = inputs[3].equals("*") ? "0" : inputs[3];
-                dayOfWeek = inputs[4].equals("*") ? "0" : inputs[4];
+                dayOfWeek = inputs[4];
             } else {
                 logger.log(Level.ERROR, "Something messed up with the persisted schedule string (" + scheduleString + ").");
             }
@@ -187,10 +194,8 @@ public class ResourceController {
         List<SelectItem> list = new ArrayList<SelectItem>();
         for (DayOfTheWeek day : DayOfTheWeek.values()) {
             SelectItem selectItem = new SelectItem();
-            String key = day.name();
-            Integer value = day.ordinal();
-            selectItem.setLabel(key);
-            selectItem.setValue(value);
+            selectItem.setLabel(day.name());
+            selectItem.setValue(day.fieldValue());
             list.add(selectItem);
         }
         return list;

@@ -69,6 +69,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
     //renamed v1
     @Column(length=4096)
     protected String message;
+    @Column(nullable=false)
     protected Boolean harvestImmediately;
     
     public String getDescription() {

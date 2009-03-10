@@ -33,7 +33,7 @@ public class CronLine {
     public final static int YEARLY_PERIOD = 12 * 31 * 24 * 60;
     private String[] fields;
     private final static int nfields = 5;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
     /**
      * Constructs a CronLine from a string representation of following format:
@@ -89,7 +89,7 @@ public class CronLine {
         int mday = cal.get(Calendar.DAY_OF_MONTH);
         int mon = cal.get(Calendar.MONTH) + 1;  // JAN = 1
 
-        int wday = cal.get(Calendar.DAY_OF_WEEK);
+        int wday = cal.get(Calendar.DAY_OF_WEEK) - 1; //SUN=0
         Formatter f = new Formatter();
         f.format("%d %d %d %d %d", min, hr, mday, mon, wday);
         CronLine c = new CronLine(f.toString());
