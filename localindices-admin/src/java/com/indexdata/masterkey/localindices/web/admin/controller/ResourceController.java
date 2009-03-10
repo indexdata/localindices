@@ -15,6 +15,7 @@ import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.apache.log4j.Level;
@@ -39,15 +40,7 @@ public class ResourceController {
     private Boolean longDate;
     private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
-    private Boolean setToNow = false;
 
-    public Boolean getSetToNow() {
-        return setToNow;
-    }
-    public void setSetToNow(Boolean setToNow) {
-        this.setToNow = setToNow;
-    }
-        
     public Boolean getLongDate() {
         return longDate;
     }
@@ -245,7 +238,7 @@ public class ResourceController {
     //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Resource list paging functions">
     private int firstItem = 0;
-    private int batchSize = 10;
+    private int batchSize = 100; 
 
     public int getBatchSize() {
         return batchSize;
@@ -331,7 +324,9 @@ public class ResourceController {
 
     /* list resources */
     public DataModel getResources() {
-        return new ListDataModel((List) dao.retrieveHarvestableBriefs(firstItem, batchSize));
+        List harvestableBriefs = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
+        Collections.sort(harvestableBriefs);
+        return new ListDataModel(harvestableBriefs);
     }
 
     public String deleteResource() {
@@ -350,12 +345,8 @@ public class ResourceController {
         return "resource_saved";
     }
     
-    private void prePersist() {
-        if (setToNow) {
-            resource.setScheduleString(null);
-        } else {
-            resource.setScheduleString(scheduleInputsToString());
-        }
+    private void prePersist() {        
+        resource.setScheduleString(scheduleInputsToString());
         if (resource instanceof OaiPmhResource) {
             if (longDate) 
                 ((OaiPmhResource) resource).setDateFormat(LONG_DATE_FORMAT);
@@ -366,14 +357,11 @@ public class ResourceController {
     }
     private void postDePersist() {
         if (resource.getScheduleString() != null) {
-            scheduleStringToInputs(resource.getScheduleString());
-            setToNow = false;
-        } else {
-            setToNow = true;
-        }
+            scheduleStringToInputs(resource.getScheduleString());            
+        } 
         if (resource instanceof OaiPmhResource) {
             if (((OaiPmhResource) resource).getDateFormat().equals(LONG_DATE_FORMAT))
-                    longDate = true;
+                longDate = true;
             else
                 longDate = false;
         }

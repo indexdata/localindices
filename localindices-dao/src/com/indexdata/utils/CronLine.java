@@ -10,6 +10,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Formatter;
 import java.util.Date;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 /**
  * A CronLine is an internal representation of the time specification
@@ -31,12 +33,15 @@ public class CronLine {
     public final static int YEARLY_PERIOD = 12 * 31 * 24 * 60;
     private String[] fields;
     private final static int nfields = 5;
+    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
 
     /**
-     * Constructs a CronLine from a string representation.
+     * Constructs a CronLine from a string representation of following format:
+     * "%d %d %d %d %d" applied to minute, hour, day-of-month, month, day-of-week
      * @param line For example: "55 23 * * 1" which means every Tuesday 23:55
      */
     public CronLine(String line) {
+        
         if (line == null) {
             throw new CronLineParseException("Supplied cron line is null");
         }
@@ -74,18 +79,21 @@ public class CronLine {
      * @return and instance of CronLine
      */
     public static CronLine currentCronLine() {
-        Calendar g = new GregorianCalendar(); // defaults to now()
+        Calendar cal = new GregorianCalendar(); // defaults to now()
+        return createCronLine(cal);
+    }
+    
+    public static CronLine createCronLine (Calendar cal) {
+        int min = cal.get(Calendar.MINUTE);
+        int hr = cal.get(Calendar.HOUR_OF_DAY);
+        int mday = cal.get(Calendar.DAY_OF_MONTH);
+        int mon = cal.get(Calendar.MONTH) + 1;  // JAN = 1
 
-        int min = g.get(Calendar.MINUTE);
-        int hr = g.get(Calendar.HOUR_OF_DAY);
-        int mday = g.get(Calendar.DAY_OF_MONTH);
-        int mon = g.get(Calendar.MONTH) + 1;  // JAN = 1
-
-        int wday = g.get(Calendar.DAY_OF_WEEK);
+        int wday = cal.get(Calendar.DAY_OF_WEEK);
         Formatter f = new Formatter();
         f.format("%d %d %d %d %d", min, hr, mday, mon, wday);
         CronLine c = new CronLine(f.toString());
-        return c;
+        return c;        
     }
 
     @Override
@@ -157,4 +165,44 @@ public class CronLine {
             cal.set(Calendar.DAY_OF_WEEK, Integer.parseInt(this.get(DAY_OF_WEEK)));
         return cal.getTime();
     }
+
+    /**
+     * Finds the next day that matches this CronLine, ignoring the time of day (hr,min,seconds,millis)
+     * @param offsetDate The point in time from which the search for a matching date should start
+     * @return
+     */
+    public Date nextMatchingDate(Date offsetDate) throws CronLineParseException {        
+        
+        // Need to limit scan in case we're looking for a non-valid date
+        int yearsToScan = 10; 
+        int timeOut = 365*yearsToScan;
+        // Adjust time part of offset date to make it matchable with this cron line
+        Calendar cal = new GregorianCalendar();
+        cal.setTime(offsetDate);        
+        cal.set(Calendar.AM_PM, Calendar.AM);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MINUTE, Integer.parseInt(this.get(MINUTE)));
+        cal.set(Calendar.HOUR, Integer.parseInt(this.get(HOUR)));
+        
+        // Must start with a time in the future.
+        if (!cal.getTime().after(new Date())) {
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+       
+        // Create the first cron line to test
+        CronLine offsetCronLine = CronLine.createCronLine(cal);
+        // Make cron line a day at a time until match is found
+        while (!offsetCronLine.matches(this) && timeOut>0) { 
+           cal.add(Calendar.DATE, 1);
+           offsetCronLine = CronLine.createCronLine(cal);
+           timeOut--;
+	}
+        if (timeOut==0) {
+            logger.log(Level.ERROR, "Could not find matching day for \""+this.toString()+"\" within the next "+yearsToScan+" years.");
+            throw new CronLineParseException("Could not find matching day for \""+this.toString()+"\" within the next "+yearsToScan+" years.");
+        }
+        return cal.getTime();        
+    }
+
 } // class CronLine

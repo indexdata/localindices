@@ -42,8 +42,8 @@
             </h:selectOneMenu>
             (min)
         </h:panelGrid>
-        <h:outputText value="Ignore schedule, harvest now:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.setToNow}"/>
+        <h:outputText value="Harvest now:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.harvestImmediately}"/>
         <h:outputText value="Harvest job enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
     </h:panelGrid>

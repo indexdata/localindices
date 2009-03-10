@@ -122,13 +122,23 @@ public class JobInstance {
      * Checks if the time has come to run the harvesting thread.
      * @return true/false
      */
-    public boolean timeToRun() {
-        CronLine curCron = CronLine.currentCronLine();
-        if ((lastCronLine != null) && lastCronLine.matches(curCron)) {
-            return false;
-        }
-        lastCronLine = curCron;
-        return curCron.matches(cronLine);
+    public boolean timeToRun() {        
+        boolean itIsTime = false;
+        if (harvestable.getHarvestImmediately()) {
+            itIsTime = true;
+            harvestable.setHarvestImmediately(false);
+        } else {
+            CronLine curCron = CronLine.currentCronLine();
+            if ((lastCronLine != null) && lastCronLine.matches(curCron)) {
+                itIsTime=false;
+            } else {
+                lastCronLine = curCron;
+                if (curCron.matches(cronLine)) {
+                    itIsTime=true;
+                }
+            }
+        }        
+        return itIsTime;
     }
 
     /**

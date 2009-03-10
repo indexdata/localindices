@@ -7,8 +7,10 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import com.indexdata.utils.CronLine;
+import com.indexdata.utils.CronLineParseException;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -67,7 +69,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
     //renamed v1
     @Column(length=4096)
     protected String message;
-
+    protected Boolean harvestImmediately;
+    
     public String getDescription() {
         return description;
     }
@@ -200,9 +203,23 @@ public abstract class Harvestable implements Serializable, Cloneable {
     @Transient
     public Date getNextHarvestSchedule() {
         if (this.getScheduleString() != null) {
-            return new CronLine(this.getScheduleString()).toDate();
+            
+            try {
+                return new CronLine(this.getScheduleString()).nextMatchingDate(new GregorianCalendar().getTime());
+            } catch (CronLineParseException cronLineParseException) {
+                // Error logged by CronLine, don't attempt to return a date to the UI.
+                return null;
+            }
         }
         return null;
+    }
+    
+     synchronized public void setHarvestImmediately (Boolean harvestImmediately) {
+        this.harvestImmediately = harvestImmediately;
+    }
+    
+    synchronized public Boolean getHarvestImmediately () {        
+        return harvestImmediately;
     }
     
     @Override

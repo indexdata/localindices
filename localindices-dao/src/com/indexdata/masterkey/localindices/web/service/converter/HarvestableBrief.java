@@ -21,7 +21,7 @@ import javax.xml.bind.annotation.XmlAttribute;
  * @author jakub
  */
 @XmlRootElement(name = "harvestableBrief")
-public class HarvestableBrief {
+public class HarvestableBrief implements Comparable {
     private Long id;
     private URI uri;
     private String name;
@@ -175,5 +175,22 @@ public class HarvestableBrief {
 
     public void setNextHarvestSchedule(Date nextHarvestSchedule) {
         this.nextHarvestSchedule = nextHarvestSchedule;
-    }        
+    }
+    
+    public int compareTo (Object brief) {        
+        return this.getName().compareTo(((HarvestableBrief)brief).getName());
+    }
+    
+    public boolean equals(Object brief) {
+        if (brief instanceof HarvestableBrief) {
+            return (this.getName().equals(((HarvestableBrief)brief).getName()));
+        } else {
+            return false;
+        }             
+    }
+    
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
+    
 }
