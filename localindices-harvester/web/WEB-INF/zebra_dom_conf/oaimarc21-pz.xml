@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dom>
  <input syntax="xml">
-   <xmlreader level="5"/>
+   <xmlreader level="3"/>
+   <xslt stylesheet="stylesheets/oai2marc.xsl" />
    <xslt stylesheet="stylesheets/marc21.xsl" />
    <xslt stylesheet="stylesheets/addsnippet.xsl"/>
  </input>
