@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -18,6 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name="webCrawl")
 public class WebCrawlResource extends Harvestable implements Serializable {
     // spce-delimited list
+    @Column(length=16384)
     private String startUrls;
     private String filetypeMasks;
     // space-delimited list
