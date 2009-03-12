@@ -41,18 +41,6 @@
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <navigation-case>
-            <from-outcome>resource_added</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
-        <navigation-case>
-            <from-outcome>resource_saved</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
-        </navigation-case>
-    </navigation-rule>
-    <navigation-rule>
         <from-view-id>/list_resources.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_oaipmh</from-outcome>

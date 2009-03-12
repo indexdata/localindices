@@ -7,7 +7,7 @@
 <f:subview id="generic_edit_buttons">
     <h5>Actions: </h5>
     <h:commandButton value="Save Changes & Exit" action="#{resourceController.saveResource}"/>
-    <h:commandButton value="Cancel Changes & Exit" action="list_resources"/>
+    <h:commandButton value="Cancel Changes & Exit" action="#{resourceController.listResources}"/>
     <h:commandButton onclick="return confirm('Are you sure?');" value="Delete Harvested Records" action="#{resourceController.saveAndPurge}"/>
     <br/>
     <h5>Status Info: </h5>

@@ -15,7 +15,7 @@
     </head>
     <body>
         <f:view>
-            <h:commandLink value="Resource List" action="list_resources" />
+            <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
             <h1><h:outputText value="Error has occured." /></h1>
         </f:view>
     </body>

@@ -16,7 +16,7 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Resource List" action="list_resources" />
+                <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
                 <h:outputText value=" | Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
                 <h:outputText value=", "/>

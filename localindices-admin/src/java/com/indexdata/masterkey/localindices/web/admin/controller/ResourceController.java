@@ -26,6 +26,7 @@ import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * The cotroller for the admin interface, implements all the buisness logic and
@@ -40,6 +41,7 @@ public class ResourceController {
     private Boolean longDate;
     private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
+    private List resources;
 
     public Boolean getLongDate() {
         return longDate;
@@ -260,8 +262,11 @@ public class ResourceController {
     }
 
     public int getItemCount() {
-        if (itemCount < 0)
+        HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+        if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
+            req.setAttribute("countRequestSeenFlag", "yes");
             itemCount = dao.getHarvestableCount();
+        }
         return itemCount;
     }
 
@@ -269,7 +274,7 @@ public class ResourceController {
         if (firstItem + batchSize < getItemCount()) {
             firstItem += batchSize;
         }
-        return "next_resource_batch";
+        return listResources();
     }
 
     public String prev() {
@@ -277,7 +282,13 @@ public class ResourceController {
         if (firstItem < 0) {
             firstItem = 0;
         }
-        return "prev_resource_batch";
+        return listResources();
+    }
+
+    public String listResources() {
+        resources = null;
+        itemCount = -1;
+        return "list_resources";
     }
 
     //</editor-fold>
@@ -302,8 +313,7 @@ public class ResourceController {
         prePersist();
         dao.createHarvestable(resource);
         resource = null;
-        //return failure
-        return "resource_added";
+        return listResources();
     }
 
     /* update resource */
@@ -327,24 +337,31 @@ public class ResourceController {
         prePersist();
         resource = dao.updateHarvestable(resource);
         resource = null;
-        return "resource_saved";
+        return listResources();
     }
 
+    private boolean isPb() {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
+    }
     /* list resources */
     public DataModel getResources() {
-        List harvestableBriefs = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
-        //this is a terrible hack
-        itemCount = -1;
-        if (harvestableBriefs != null)
-            Collections.sort(harvestableBriefs);
-        return new ListDataModel(harvestableBriefs);
+        //check if new request
+        HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+        if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
+            req.setAttribute("listRequestSeen", "yes");
+            resources = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
+        }
+        if (resources != null)
+            Collections.sort(resources);
+        return new ListDataModel(resources);
     }
 
     public String deleteResource() {
         resource = getResourceFromRequestParam();
         dao.deleteHarvestable(resource);
         resource = null;
-        return "resource_list";
+        return listResources();
     }
     
     public String saveAndPurge() {
@@ -353,7 +370,7 @@ public class ResourceController {
         resource.setId(null);
         dao.createHarvestable(resource);
         resource = null;
-        return "resource_saved";
+        return listResources();
     }
     
     private void prePersist() {        

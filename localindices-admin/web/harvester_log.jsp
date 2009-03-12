@@ -18,7 +18,7 @@
         <f:view>
             <!-- top menu, move out?-->
             <h:form>
-                <h:commandLink value="Resource List" action="list_resources" />
+                <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
                 <h:outputText value=" | Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
                 <!--
