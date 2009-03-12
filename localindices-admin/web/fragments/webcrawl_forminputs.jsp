@@ -8,7 +8,7 @@
     <h5>WebCrawl specific information: </h5>
     <h:panelGrid columns="2">
         <h:outputText value="Harvested URIs:"/>
-        <h:inputText value="#{resourceController.resource.startUrls}" size="70"/>
+        <h:inputTextarea cols="100" rows="15" value="#{resourceController.resource.startUrls}" />
         <!-- 
             <h:outputText value="Filetype mask:"/>
             <h:inputText value="#{resourceController.resource.filetypeMasks}"/>
