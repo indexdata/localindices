@@ -243,7 +243,8 @@ public class ResourceController {
     //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Resource list paging functions">
     private int firstItem = 0;
-    private int batchSize = 100; 
+    private int batchSize = 50;
+    private int itemCount = -1;
 
     public int getBatchSize() {
         return batchSize;
@@ -259,7 +260,9 @@ public class ResourceController {
     }
 
     public int getItemCount() {
-        return dao.getHarvestableCount();
+        if (itemCount < 0)
+            itemCount = dao.getHarvestableCount();
+        return itemCount;
     }
 
     public String next() {
@@ -330,6 +333,8 @@ public class ResourceController {
     /* list resources */
     public DataModel getResources() {
         List harvestableBriefs = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
+        //this is a terrible hack
+        itemCount = -1;
         if (harvestableBriefs != null)
             Collections.sort(harvestableBriefs);
         return new ListDataModel(harvestableBriefs);

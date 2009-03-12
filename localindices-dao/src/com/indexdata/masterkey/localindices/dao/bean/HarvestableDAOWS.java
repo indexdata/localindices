@@ -153,7 +153,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     public int getHarvestableCount() {
-        String url = serviceBaseURL + "?start=0&max=1";
+        String url = serviceBaseURL + "?start=0&max=0";
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(

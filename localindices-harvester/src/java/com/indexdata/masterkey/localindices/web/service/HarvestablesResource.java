@@ -21,6 +21,8 @@ import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 
@@ -63,7 +65,12 @@ public class HarvestablesResource {
             
             @QueryParam("max")
             @DefaultValue("100") int max) {
-        return new HarvestablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath(), 
+        List<Harvestable> entities;
+        if (max <= 0)
+            entities = new ArrayList<Harvestable>();
+        else
+            entities = dao.retrieveHarvestables(start, max);
+        return new HarvestablesConverter(entities, context.getAbsolutePath(),
                 start, max, dao.getHarvestableCount());
     }
 
