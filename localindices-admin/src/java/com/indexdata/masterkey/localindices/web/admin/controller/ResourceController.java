@@ -330,7 +330,8 @@ public class ResourceController {
     /* list resources */
     public DataModel getResources() {
         List harvestableBriefs = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
-        Collections.sort(harvestableBriefs);
+        if (harvestableBriefs != null)
+            Collections.sort(harvestableBriefs);
         return new ListDataModel(harvestableBriefs);
     }
 
