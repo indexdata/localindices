@@ -10,8 +10,8 @@
         <Node id="add_webcrawl.jsp" x="650" y="150" zoom="true"/>
         <Node id="fragments/generic_resource_forminputs.jsp" x="12" y="264" zoom="true"/>
         <Node id="edit_oaipmh.jsp" x="616" y="-399" zoom="true"/>
-        <Node id="harvester_log.jsp" x="150" y="300" zoom="true"/>
         <Node id="list_resources.xhtml" x="150" y="450" zoom="true"/>
+        <Node id="harvester_log.jsp" x="150" y="300" zoom="true"/>
         <Node id="fragments/xmlbulk_forminputs.jsp" x="400" y="300" zoom="true"/>
         <Node id="fragments/generic_buttons.jsp" x="900" y="150" zoom="true"/>
         <Node id="fragments/oaipmh_forminputs.jsp" x="405" y="264" zoom="true"/>

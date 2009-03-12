@@ -268,7 +268,7 @@ public class WebHarvestJob implements HarvestJob {
         sites = new Vector<SiteRequest>();
         que = new CrawlQueue();
         logger.log(Level.TRACE, "InitWorkList: " + resource.getStartUrls());
-        Pattern p = Pattern.compile("([^:]+:)?(http:[^ ]+)",
+        Pattern p = Pattern.compile("[ ]*([^:]+:)?(http:[^ ]+)",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
         Matcher m = p.matcher(resource.getStartUrls());
