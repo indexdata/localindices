@@ -38,6 +38,21 @@ public class SchedulerUpDownListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "Harvester context is being initialized...");
         ServletContext ctx = servletContextEvent.getServletContext();
+        File harvestDir = new File(ctx.getInitParameter("HARVEST_DIR"));
+        boolean hasDir = true;
+        if (!harvestDir.exists()) {
+            logger.log(Level.INFO, "HARVEST_DIR does not seem to exist, trying to create...");
+            hasDir = harvestDir.mkdir();
+        }
+        if (!hasDir) {
+            logger.log(Level.FATAL, "Cannot open/create HARVEST_DIR at"
+                    + ctx.getInitParameter("HARVEST_DIR") + ", scheduler cannot be started");
+            return;
+        }
+        new File(harvestDir, "reg").mkdir();
+        new File(harvestDir, "shadow").mkdir();
+        new File(harvestDir, "lock").mkdir();
+        new File(harvestDir, "tmp").mkdir();
         
         unpackDir(ctx, "/WEB-INF/stylesheets", 
                 ctx.getInitParameter("HARVEST_DIR") + "/stylesheets");
@@ -46,7 +61,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
         //copyZebraConf(ctx);
         unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", 
                 ctx.getInitParameter("HARVEST_DIR"), "HARVEST_DIR");
-        
+
         startZebraSrv(ctx);
 
         st = new SchedulerThread(getInitParamsAsMap(ctx));
