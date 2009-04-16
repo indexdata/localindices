@@ -10,12 +10,22 @@
   <xsl:template match="text()"/>
   
   <xsl:template match="pz:record">
-   <z:record z:id="{pz:metadata[@type='id']}">         
+   <xsl:variable name="id">
+       <xsl:choose>
+           <xsl:when test="pz:metadata[@type='zebra-id']">
+               <xsl:value-of select="pz:metadata[@type='zebra-id']"/>
+           </xsl:when>
+           <xsl:otherwise>
+               <xsl:value-of select="pz:metadata[@type='id']"/>
+           </xsl:otherwise>
+       </xsl:choose>
+   </xsl:variable>
+   <z:record z:id="{$id}">
     <xsl:for-each select="pz:metadata">
      <z:index name="any:w {@type}:w {@type}:p">
       <xsl:value-of select="."/>
      </z:index>
-    </xsl:for-each>      
+    </xsl:for-each>
    </z:record>
   </xsl:template>
   

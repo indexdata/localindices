@@ -312,8 +312,14 @@
         </pz:metadata>
       </xsl:if>
 
+      <!--passthrough id data-->
+      <xsl:for-each select="pz:metadata">
+          <xsl:copy-of select="."/>
+      </xsl:for-each>
+
     </pz:record>    
   </xsl:template>
+
   
   <xsl:template match="text()"/>
 

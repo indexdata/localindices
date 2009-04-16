@@ -9,6 +9,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:oai="http://www.openarchives.org/OAI/2.0/"
     xmlns:marc="http://www.loc.gov/MARC21/slim"
+    xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
     exclude-result-prefixes="oai">
 
 
@@ -17,26 +18,23 @@
         version="1.0"
         encoding="UTF-8"/>
 
-  <xsl:template match="marc:record">
-  <xsl:copy>
-   <xsl:copy-of select="@*"/>
-   <xsl:apply-templates/>
-  </xsl:copy>
-  </xsl:template>
 
-  <xsl:template match="marc:leader">
-    <xsl:copy-of select="."/>
-    <marc:controlfield tag="001"><xsl:value-of select="/oai:record/oai:header/oai:identifier"/></marc:controlfield>
-  </xsl:template>
+  <xsl:template match="oai:record">
 
-  <xsl:template match="marc:controlfield">
-      <xsl:if test="@tag != '001'">
-          <xsl:copy-of select="."/>
-      </xsl:if>
-  </xsl:template>
+      <xsl:variable name="oai-id">
+          <xsl:value-of select="oai:header/oai:identifier"/>
+      </xsl:variable>
 
-  <xsl:template match="marc:datafield">
-    <xsl:copy-of select="."/>
+      <xsl:for-each select="oai:metadata/marc:record">
+        <xsl:copy>
+          <xsl:copy-of select="@*"/>
+          <xsl:copy-of select="*"/>
+          <pz:metadata type="zebra-id">
+           <xsl:value-of select="$oai-id"/>
+          </pz:metadata>
+        </xsl:copy>
+      </xsl:for-each>
+
   </xsl:template>
 
   <xsl:template match="text()"/>
