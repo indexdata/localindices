@@ -77,7 +77,7 @@ public class JobScheduler {
                     } else {
                         Harvestable harv = dao.retrieveFromBrief(hbrief);
                         try {
-                            ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("HARVEST_DIR"), harv));
+                            ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("harvester.dir"), harv));
                             jobs.put(id, ji);
                             logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
                         } catch (Exception e) {
