@@ -41,7 +41,7 @@ public class JobScheduler {
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt(config.get("MAX_JOBS")));
+        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt(config.get("harvester.max-jobs")));
         if (hbriefs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
         } else {

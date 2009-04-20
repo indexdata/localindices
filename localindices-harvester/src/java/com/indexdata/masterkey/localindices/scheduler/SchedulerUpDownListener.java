@@ -7,12 +7,15 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.masterkey.localindices.util.TextUtils;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import javax.servlet.ServletContext;
@@ -38,33 +41,66 @@ public class SchedulerUpDownListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "Harvester context is being initialized...");
         ServletContext ctx = servletContextEvent.getServletContext();
-        File harvestDir = new File(ctx.getInitParameter("HARVEST_DIR"));
+        String harvestDirPath = ctx.getInitParameter("HARVEST_DIR");
+        if (harvestDirPath == null) {
+            logger.log(Level.FATAL, "Please specify HARVEST_DIR setting in the web.xml, deployment aborted.");
+            return;
+        }
+        //validate harvest dir
+        File harvestDir = new File(harvestDirPath);
         boolean hasDir = true;
         if (!harvestDir.exists()) {
             logger.log(Level.INFO, "HARVEST_DIR does not seem to exist, trying to create...");
             hasDir = harvestDir.mkdir();
         }
         if (!hasDir) {
-            logger.log(Level.FATAL, "Cannot open/create HARVEST_DIR at"
-                    + ctx.getInitParameter("HARVEST_DIR") + ", scheduler cannot be started");
+            logger.log(Level.FATAL, "Cannot access HARVEST_DIR at"
+                    + harvestDirPath + ", deployment aborted.");
             return;
         }
+        //load default settings
+        Properties props = null;
+        try {
+            props = loadDefaults(ctx);
+        } catch (IOException ex) {
+            logger.log(Level.FATAL, "Default harvester properties missing from the archive, deployment aborted.");
+            return;
+        }
+        //override with user settings, if any otherwise unpack the defaults
+        try {
+            FileInputStream userPropsFis = new FileInputStream(harvestDirPath + "/harvester.properties");
+            props.load(userPropsFis);
+            userPropsFis.close();
+        } catch (FileNotFoundException ex) {
+            FileOutputStream fos;
+            try {
+                fos = new FileOutputStream(harvestDirPath + "/harvester.properties");
+                props.store(fos, "In order for the canges to cause effect, the harvester needs to be redeployed");
+                fos.close();
+            } catch (FileNotFoundException ex2) {
+                //very weird
+                logger.log(Level.WARN, ex2);
+            } catch (IOException ioe) {
+                logger.log(Level.WARN, ioe);
+            }
+        } catch (IOException ioe) {
+            logger.log(Level.WARN, ioe);
+        }
+
+        //zebra dirs, configs, etc
         new File(harvestDir, "reg").mkdir();
         new File(harvestDir, "shadow").mkdir();
         new File(harvestDir, "lock").mkdir();
-        new File(harvestDir, "tmp").mkdir();
-        
-        unpackDir(ctx, "/WEB-INF/stylesheets", 
-                ctx.getInitParameter("HARVEST_DIR") + "/stylesheets");
-        unpackDir(ctx, "/WEB-INF/zebra_dom_conf", 
-                ctx.getInitParameter("HARVEST_DIR"));        
+        new File(harvestDir, "tmp").mkdir();        
+        unpackDir(ctx, "/WEB-INF/stylesheets", harvestDirPath + "/stylesheets");
+        unpackDir(ctx, "/WEB-INF/zebra_dom_conf", harvestDirPath);
         //copyZebraConf(ctx);
-        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", 
-                ctx.getInitParameter("HARVEST_DIR"), "HARVEST_DIR");
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, "HARVEST_DIR");
 
-        startZebraSrv(ctx);
+        startZebraSrv(props);
 
-        st = new SchedulerThread(getInitParamsAsMap(ctx));
+        ctx.setAttribute("harvester.properties", props);
+        st = new SchedulerThread((Map)props);
         th = new Thread(st);
         th.start();
         ctx.setAttribute("schedulerThread", st);
@@ -85,6 +121,13 @@ public class SchedulerUpDownListener implements ServletContextListener {
             zsrvT.interrupt();
         }
         logger.log(Level.INFO, "Harvester context destroyed.");
+    }
+
+    private Properties loadDefaults(ServletContext ctx) throws IOException {
+        InputStream is = ctx.getResourceAsStream("/WEB-INF/harvester.properties");
+        Properties props = new Properties();
+        props.load(is);
+        return props;
     }
     
     private void unpackResourceWithSubstitute(ServletContext ctx, String source, String dest, String token) {
@@ -140,10 +183,10 @@ public class SchedulerUpDownListener implements ServletContextListener {
         return paramMap;
     }
 
-    private void startZebraSrv(ServletContext ctx) {
-        int portNum = Integer.parseInt(ctx.getInitParameter("ZEBRASRV_PORT"));
+    private void startZebraSrv(Properties prop) {
+        int portNum = Integer.parseInt(prop.getProperty("harvester.zebra.port"));
         logger.log(Level.INFO, "Starting zebrasrv at port " + portNum);
-        zsrv = new ZebraServer(ctx.getInitParameter("HARVEST_DIR"), portNum);
+        zsrv = new ZebraServer(prop.getProperty("harvester.dir"), portNum);
         zsrvT = new Thread(zsrv);
         zsrvT.start();
     }

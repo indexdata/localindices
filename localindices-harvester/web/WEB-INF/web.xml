@@ -7,23 +7,6 @@
         <param-name>HARVEST_DIR</param-name>
         <param-value>/var/cache/harvested</param-value>
     </context-param>
-        <context-param>
-        <param-name>MAX_JOBS</param-name>
-        <param-value>100</param-value>
-    </context-param>
-    <context-param>
-        <param-name>STORAGE_TYPE</param-name>
-        <param-value>zebra</param-value>
-    </context-param>
-    <context-param>
-        <param-name>ZEBRASRV_URL</param-name>
-        <param-value>us4.indexdata.com</param-value>
-        <!--<param-value>coffee.indexdata.dk</param-value>-->
-    </context-param>
-    <context-param>
-        <param-name>ZEBRASRV_PORT</param-name>
-        <param-value>2100</param-value>
-    </context-param>
     <servlet>
         <servlet-name>SchedulerStatusServlet</servlet-name>
         <servlet-class>com.indexdata.masterkey.localindices.scheduler.SchedulerStatusServlet</servlet-class>
