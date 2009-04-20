@@ -94,17 +94,22 @@ public class SchedulerUpDownListener implements ServletContextListener {
         new File(harvestDir, "tmp").mkdir();        
         unpackDir(ctx, "/WEB-INF/stylesheets", harvestDirPath + "/stylesheets");
         unpackDir(ctx, "/WEB-INF/zebra_dom_conf", harvestDirPath);
-        //copyZebraConf(ctx);
         unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, "HARVEST_DIR");
-
         startZebraSrv(props);
 
+        //http proxy settings
+        Properties systemSettings = System.getProperties();
+        systemSettings.put("http.proxyHost", props.getProperty("harvester.http.proxyHost"));
+        systemSettings.put("http.proxyPort", props.getProperty("harvester.http.proxyPort"));
+        System.setProperties(systemSettings);
+        System.getProperties().list(System.out);
+
+        //put the config and scheduler in the context
         ctx.setAttribute("harvester.properties", props);
         st = new SchedulerThread((Map)props);
         th = new Thread(st);
         th.start();
         ctx.setAttribute("schedulerThread", st);
-
         logger.log(Level.INFO, "Scheduler created, started and placed in the context.");
     }
 
