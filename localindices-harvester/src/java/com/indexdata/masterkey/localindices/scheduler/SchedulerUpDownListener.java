@@ -12,6 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,16 +99,23 @@ public class SchedulerUpDownListener implements ServletContextListener {
         unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, "HARVEST_DIR");
         startZebraSrv(props);
 
+        //load properties to a config
+        Map<String,Object> config = new HashMap(props);
+
         //http proxy settings
-        Properties systemSettings = System.getProperties();
-        systemSettings.put("http.proxyHost", props.getProperty("harvester.http.proxyHost"));
-        systemSettings.put("http.proxyPort", props.getProperty("harvester.http.proxyPort"));
-        System.setProperties(systemSettings);
-        System.getProperties().list(System.out);
+        String proxyHost = props.getProperty("harvester.http.proxyHost");
+        String proxyPort = props.getProperty("harvester.http.proxyHost");
+        if (proxyPort != null && proxyHost != null) {
+            Proxy proxy = new Proxy(Proxy.Type.HTTP,
+                InetSocketAddress.createUnresolved(
+                props.getProperty("harvester.http.proxyHost"),
+                Integer.parseInt(props.getProperty("harvester.http.proxyPort"))));
+                config.put("harvester.http.proxy", proxy);
+        }
 
         //put the config and scheduler in the context
-        ctx.setAttribute("harvester.properties", props);
-        st = new SchedulerThread((Map)props);
+        ctx.setAttribute("harvester.config", config);
+        st = new SchedulerThread(config);
         th = new Thread(st);
         th.start();
         ctx.setAttribute("schedulerThread", st);

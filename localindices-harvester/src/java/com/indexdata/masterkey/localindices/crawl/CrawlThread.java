@@ -4,6 +4,7 @@ package com.indexdata.masterkey.localindices.crawl;
 
 import com.indexdata.masterkey.localindices.harvest.job.WebHarvestJob;
 import java.io.IOException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,15 +29,17 @@ public class CrawlThread implements Runnable {
     private static Logger logger =
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
     WebHarvestJob job;
+    private Proxy proxy;
     private CrawlQueue que;
     private String filterString;
     private int threadNumber;
     private int hitInterval;
     private int status = CRAWLTHREAD_STARTING;
 
-    public CrawlThread(WebHarvestJob job, CrawlQueue que,
+    public CrawlThread(WebHarvestJob job, Proxy proxy, CrawlQueue que,
             String filterString, int threadNumber, int hitInterval) {
         this.job = job;
+        this.proxy = proxy;
         this.que = que;
         this.filterString = filterString;
         this.threadNumber = threadNumber;
@@ -80,7 +83,7 @@ public class CrawlThread implements Runnable {
             HTMLPage pi = null;
             try {
                 setStatus(CRAWLTHREAD_IOWAIT);
-                pi = new HTMLPage(curUrl);
+                pi = new HTMLPage(curUrl, proxy);
                 setStatus(CRAWLTHREAD_PROCESSING);
                 que.setNotYet(pg, hitInterval);
                 // TODO: Time how long it took to get a page, and add that 

@@ -15,6 +15,7 @@ import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,19 +111,22 @@ public class WebHarvestJob implements HarvestJob {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestStorage storage;
     private HarvestStatus status;
+    private Proxy proxy;
     private String error;
     private WebCrawlResource resource;
     private boolean die = false;
     private Vector<SiteRequest> sites;
     private CrawlQueue que;
-    private WebRobotCache robotCache = new WebRobotCache();
+    private WebRobotCache robotCache;
     private final int hitInterval = 60 * 1000;  // ms between hitting the same host
     private final int minNumWorkers = 20;
     private final int maxNumWorkers = 100;
     private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
-    public WebHarvestJob(WebCrawlResource resource) {
+    public WebHarvestJob(WebCrawlResource resource, Proxy proxy) {
         this.resource = resource;
+        this.proxy = proxy;
+        robotCache = new WebRobotCache(proxy);
         this.status = HarvestStatus.NEW;
         logger.setLevel(Level.ALL);  // While debugging
         this.error = null;
@@ -295,7 +299,7 @@ public class WebHarvestJob implements HarvestJob {
                     try {
                         URL url;
                         url = new URL(m.group(2));
-                        HTMLPage pi = new HTMLPage(url);
+                        HTMLPage pi = new HTMLPage(url, proxy);
                         if (pi.getContent() == null || pi.getContent().isEmpty()) {
                             setError("Could not get jump page " + m.group(2));
                             sites.clear();
@@ -317,7 +321,8 @@ public class WebHarvestJob implements HarvestJob {
                             for (URL u : links) {
                                 SiteRequest site = new SiteRequest();
                                 site.url = u;
-                                site.maxdepth = resource.getRecursionDepth();
+                                site.maxdepth = resource.getRecursionDepth() != null
+                                        ? resource.getRecursionDepth() : 1;
                                 if (sites.contains(site)) {
                                     logger.log(Level.INFO, "Site " + u.toString() +
                                             " is already in the jump list.");
@@ -384,7 +389,7 @@ public class WebHarvestJob implements HarvestJob {
         logger.log(Level.DEBUG, "Starting " + nw + " threads");
         for (int i = 0; i < nw; i++) {
             //logger.log(Level.DEBUG, "Starting thread " + i + " of " + nw);
-            CrawlThread worker = new CrawlThread(this, que, "", i, hitInterval);
+            CrawlThread worker = new CrawlThread(this, proxy, que, "", i, hitInterval);
             Thread wthread = new Thread(worker);
             workers.add(worker);
             wthread.start();

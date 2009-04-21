@@ -17,6 +17,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.IOException;
+import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
@@ -42,10 +43,10 @@ public class Identify extends HarvesterVerb {
      * @exception MalformedURLException the baseURL is bad
      * @exception IOException an I/O error occurred
      */
-    public Identify(String baseURL)
+    public Identify(String baseURL, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL));
+        super(getRequestURL(baseURL), proxy);
     }
     
     /**

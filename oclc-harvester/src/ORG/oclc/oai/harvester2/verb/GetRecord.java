@@ -17,6 +17,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.IOException;
+import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
@@ -43,10 +44,10 @@ public class GetRecord extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public GetRecord(String baseURL, String identifier, String metadataPrefix)
+    public GetRecord(String baseURL, String identifier, String metadataPrefix, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier, metadataPrefix));
+        super(getRequestURL(baseURL, identifier, metadataPrefix), proxy);
     }
     
     /**

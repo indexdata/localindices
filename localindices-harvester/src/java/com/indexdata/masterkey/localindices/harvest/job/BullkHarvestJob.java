@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +31,11 @@ public class BullkHarvestJob implements HarvestJob {
     private String error;
     private List<URL> urls = new ArrayList<URL>();
     private XmlBulkResource resource;
+    private Proxy proxy;
     private boolean die = false;
 
-    public BullkHarvestJob(XmlBulkResource resource) {
+    public BullkHarvestJob(XmlBulkResource resource, Proxy proxy) {
+        this.proxy = proxy;
         this.resource = resource;
         String persistedStatus = resource.getCurrentStatus();
         if (persistedStatus == null) {
@@ -105,7 +108,11 @@ public class BullkHarvestJob implements HarvestJob {
     private void download(URL url) throws Exception {
         logger.log(Level.INFO, "Starting download - " + url.toString());
         try {
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection conn = null;
+            if (proxy != null)
+                conn = (HttpURLConnection) url.openConnection(proxy);
+            else
+                conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             int responseCode = conn.getResponseCode();
             int contentLenght = conn.getContentLength();
@@ -122,7 +129,10 @@ public class BullkHarvestJob implements HarvestJob {
                     int dead = 0;
                     int recursive = 0;
                     for (URL link : jp.getLinks()) {
-                        conn = (HttpURLConnection) link.openConnection();
+                        if (proxy != null)
+                            conn = (HttpURLConnection) link.openConnection(proxy);
+                        else
+                            conn = (HttpURLConnection) link.openConnection();
                         conn.setRequestMethod("GET");
                         responseCode = conn.getResponseCode();
                         contentLenght = conn.getContentLength();

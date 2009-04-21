@@ -17,6 +17,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.IOException;
+import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.xml.sax.SAXException;
@@ -43,10 +44,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public ListMetadataFormats(String baseURL)
+    public ListMetadataFormats(String baseURL, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        this(baseURL, null);
+        this(baseURL, null, proxy);
     }
     
     /**
@@ -58,10 +59,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListMetadataFormats(String baseURL, String identifier)
+    public ListMetadataFormats(String baseURL, String identifier, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier));
+        super(getRequestURL(baseURL, identifier), proxy);
     }
     
     /**

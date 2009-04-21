@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
@@ -188,9 +189,9 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public HarvesterVerb(String requestURL) throws IOException,
+    public HarvesterVerb(String requestURL, Proxy proxy) throws IOException,
     ParserConfigurationException, TransformerException, HarvesterVerbException {
-        harvest(requestURL);
+        harvest(requestURL, proxy);
     }
     
     /**
@@ -202,7 +203,7 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public void harvest(String requestURL) throws IOException,
+    public void harvest(String requestURL, Proxy proxy) throws IOException,
     ParserConfigurationException, TransformerException, HarvesterVerbException {
         this.requestURL = requestURL;
         logger.log(Level.INFO, "requestURL=" + requestURL);
@@ -211,7 +212,10 @@ public abstract class HarvesterVerb {
         HttpURLConnection con = null;
         int responseCode = 0;
         do {
-            con = (HttpURLConnection) url.openConnection();
+            if (proxy != null)
+                con = (HttpURLConnection) url.openConnection(proxy);
+            else
+                con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
             con.setRequestProperty("Accept-Encoding",
             "compress, gzip, identify");

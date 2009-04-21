@@ -18,6 +18,7 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Proxy;
 import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -35,6 +36,7 @@ public class OAIHarvestJob implements HarvestJob {
     private OaiPmhResource resource;
     private HarvestStatus status;
     private HarvestStorage storage;
+    private Proxy proxy;
     private boolean die = false;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
@@ -52,7 +54,7 @@ public class OAIHarvestJob implements HarvestJob {
         die = true;
     }
 
-    public OAIHarvestJob(OaiPmhResource resource) {
+    public OAIHarvestJob(OaiPmhResource resource, Proxy proxy) {
         if (resource.getUrl() == null) {
             throw new IllegalArgumentException("baseURL parameter cannot be null");
         }
@@ -68,6 +70,7 @@ public class OAIHarvestJob implements HarvestJob {
             currentDateFormat = DEFAULT_DATE_FORMAT;
         }
         this.resource = resource;     
+        this.proxy = proxy;
         String persistedStatus = resource.getCurrentStatus();
         if (persistedStatus == null)
             this.status = HarvestStatus.NEW;
@@ -181,7 +184,7 @@ public class OAIHarvestJob implements HarvestJob {
         ListRecords listRecords = null;
         try {
             listRecords = new ListRecords(baseURL, from, until, setSpec,
-                metadataPrefix);
+                metadataPrefix, proxy);
         } catch (HarvesterVerbException hve) {
             String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " 
                     + hve.getMessage();
@@ -235,7 +238,7 @@ public class OAIHarvestJob implements HarvestJob {
             } else {
                 logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
                 try {
-                    listRecords = new ListRecords(baseURL, resumptionToken);
+                    listRecords = new ListRecords(baseURL, resumptionToken, proxy);
                 } catch (HarvesterVerbException hve) {
                     String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " 
                             + hve.getMessage();

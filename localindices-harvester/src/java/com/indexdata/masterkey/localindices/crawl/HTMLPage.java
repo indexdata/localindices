@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.List;
 import java.util.Vector;
@@ -85,10 +86,10 @@ public class HTMLPage {
     // Now you can access an https URL without having the certificate in the truststore
     }
 
-    public HTMLPage(URL url) throws IOException {
+    public HTMLPage(URL url, Proxy proxy) throws IOException {
         this.url = url;
         try {
-            read(request());
+            read(request(proxy));
             parse();
         } catch (IOException ioe) {
             this.error = ioe.getMessage();
@@ -133,7 +134,7 @@ public class HTMLPage {
         return links;
     }
 
-    private InputStream request() throws IOException {
+    private InputStream request(Proxy proxy) throws IOException {
         HttpURLConnection conn = null;
         if (url.getProtocol().equalsIgnoreCase("http") ||
                 url.getProtocol().equalsIgnoreCase("https")) {
@@ -145,7 +146,10 @@ public class HTMLPage {
         DisableCertValidation();
         HttpURLConnection.setFollowRedirects(true);
         HttpsURLConnection.setFollowRedirects(true);
-        conn = (HttpURLConnection) url.openConnection();
+        if (proxy != null)
+            conn = (HttpURLConnection) url.openConnection(proxy);
+        else
+            conn = (HttpURLConnection) url.openConnection();
         conn.setAllowUserInteraction(false);
         conn.setRequestProperty("User-agent", USER_AGENT_STRING);
         conn.setConnectTimeout(CONN_TIMEOUT);
@@ -160,7 +164,7 @@ public class HTMLPage {
             String location = conn.getHeaderField("Location");
             url = new URL(location);
             if (url.getProtocol().equalsIgnoreCase("https")) {
-                return request();
+                return request(proxy);
             }
         }
         // only OK

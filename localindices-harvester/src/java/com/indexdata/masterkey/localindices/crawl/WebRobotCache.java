@@ -5,6 +5,7 @@ package com.indexdata.masterkey.localindices.crawl;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +19,14 @@ import org.apache.log4j.Logger;
  * @author heikki
  */
 public class WebRobotCache {
-
     private static Logger logger = 
             Logger.getLogger("com.indexdata.masterkey.localindices.crawl");
-
     private Map<URL, String> cache = new HashMap<URL, String>();
+    private Proxy proxy;
+
+    public WebRobotCache(Proxy proxy) {
+        this.proxy = proxy;
+    }
 
     private synchronized String getRobots(URL robUrl) {
         String robtxt = cache.get(robUrl);
@@ -32,7 +36,7 @@ public class WebRobotCache {
         if (robtxt == null) {
             HTMLPage robpg;
             try {
-                robpg = new HTMLPage(robUrl);
+                robpg = new HTMLPage(robUrl, proxy);
             } catch (IOException ex) {
                 cache.put(robUrl, "");
                 return ""; // no robots.txt, ok to go

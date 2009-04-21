@@ -16,7 +16,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
-import java.util.Properties;
+import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Produces;
 
@@ -61,10 +61,10 @@ public class SearchablesResource {
             
             @QueryParam("max")
             @DefaultValue("100") int max) {
-        Properties props = (Properties) servletContext.getAttribute("harvester.properties");
+        Map config = (Map) servletContext.getAttribute("harvester.config");
         return new SearchablesConverter(dao.retrieveHarvestables(start, max), 
                 context.getAbsolutePath(),
-                props.getProperty("harvester.zebra.host") + ":"
-                + props.getProperty("harvester.zebra.port"));
+                config.get("harvester.zebra.host") + ":"
+                + config.get("harvester.zebra.port"));
     }
 }

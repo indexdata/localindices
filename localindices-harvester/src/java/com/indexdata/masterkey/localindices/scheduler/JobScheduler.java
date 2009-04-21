@@ -11,6 +11,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,9 +31,9 @@ public class JobScheduler {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestableDAO dao;
     private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
-    private Map<String, String> config;
+    private Map<String, Object> config;
 
-    public JobScheduler(Map<String, String> config) {
+    public JobScheduler(Map<String, Object> config) {
         dao = new HarvestablesDAOJPA();
         this.config = config;
     }
@@ -41,7 +42,7 @@ public class JobScheduler {
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt(config.get("harvester.max-jobs")));
+        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt((String)config.get("harvester.max-jobs")));
         if (hbriefs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
         } else {
@@ -77,7 +78,9 @@ public class JobScheduler {
                     } else {
                         Harvestable harv = dao.retrieveFromBrief(hbrief);
                         try {
-                            ji = new JobInstance(harv, HarvestStorageFactory.getStorage(config.get("harvester.dir"), harv));
+                            ji = new JobInstance(harv,
+                                    HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv)
+                                    , (Proxy) config.get("harvester.http.proxy"));
                             jobs.put(id, ji);
                             logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
                         } catch (Exception e) {

@@ -17,6 +17,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.IOException;
+import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
@@ -30,7 +31,7 @@ public class ListSets extends HarvesterVerb {
     /**
      * Mock object constructor (for unit testing purposes)
      */
-    public ListSets() {
+    public ListSets(String baseUrl) {
         super();
     }
     
@@ -41,10 +42,10 @@ public class ListSets extends HarvesterVerb {
      * @exception MalformedURLException the baseURL is bad
      * @exception IOException an I/O error occurred
      */
-    public ListSets(String baseURL)
+    public ListSets(String baseURL, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL));
+        super(getRequestURL(baseURL), proxy);
     }
     
     /**

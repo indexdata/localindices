@@ -76,7 +76,7 @@ public class RawWrite {
                            OutputStream out)
         throws IOException, ParserConfigurationException, HarvesterVerbException, TransformerException,
                NoSuchFieldException {
-        ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
+        ListRecords listRecords = new ListRecords(baseURL, resumptionToken, null);
         while (listRecords != null) {
             NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
@@ -97,7 +97,7 @@ public class RawWrite {
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
             } else {
-                listRecords = new ListRecords(baseURL, resumptionToken);
+                listRecords = new ListRecords(baseURL, resumptionToken, null);
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
@@ -110,14 +110,14 @@ public class RawWrite {
                NoSuchFieldException {
         out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
         out.write("<harvest>\n".getBytes("UTF-8"));
-        out.write(new Identify(baseURL).toString().getBytes("UTF-8"));
+        out.write(new Identify(baseURL, null).toString().getBytes("UTF-8"));
         out.write("\n".getBytes("UTF-8"));
-        out.write(new ListMetadataFormats(baseURL).toString().getBytes("UTF-8"));
+        out.write(new ListMetadataFormats(baseURL, null).toString().getBytes("UTF-8"));
         out.write("\n".getBytes("UTF-8"));
-        out.write(new ListSets(baseURL).toString().getBytes("UTF-8"));
+        out.write(new ListSets(baseURL, null).toString().getBytes("UTF-8"));
         out.write("\n".getBytes("UTF-8"));
         ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
-                                                  metadataPrefix);
+                                                  metadataPrefix, null);
         while (listRecords != null) {
             NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
@@ -138,7 +138,7 @@ public class RawWrite {
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
             } else {
-                listRecords = new ListRecords(baseURL, resumptionToken);
+                listRecords = new ListRecords(baseURL, resumptionToken, null);
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));

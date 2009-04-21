@@ -17,6 +17,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.net.URLEncoder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -45,10 +46,10 @@ public class ListIdentifiers extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public ListIdentifiers(String baseURL, String from, String until,
-            String set, String metadataPrefix)
+            String set, String metadataPrefix, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL, from, until, set, metadataPrefix));
+        super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy);
     }
     
     /**
@@ -60,10 +61,10 @@ public class ListIdentifiers extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListIdentifiers(String baseURL, String resumptionToken)
+    public ListIdentifiers(String baseURL, String resumptionToken, Proxy proxy)
     throws IOException, ParserConfigurationException, HarvesterVerbException,
     TransformerException {
-        super(getRequestURL(baseURL, resumptionToken));
+        super(getRequestURL(baseURL, resumptionToken), proxy);
     }
     
     /**

@@ -10,6 +10,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.entity.*;
 import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.io.IOException;
+import java.net.Proxy;
 import java.util.Calendar;
 import java.util.Date;
 import org.apache.log4j.Level;
@@ -34,7 +35,7 @@ public class JobInstance {
     private String lastStatusMsg;
     public boolean seen; // for checking what has been deleted
 
-    public JobInstance(Harvestable hable, HarvestStorage storage) throws IllegalArgumentException {
+    public JobInstance(Harvestable hable, HarvestStorage storage, Proxy proxy) throws IllegalArgumentException {
         //if cron line is not specified - default to today
         if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
             logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
@@ -52,13 +53,13 @@ public class JobInstance {
                 logger.log(Level.WARN,
                         "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
             }
-            harvestJob = new OAIHarvestJob((OaiPmhResource) hable);
+            harvestJob = new OAIHarvestJob((OaiPmhResource) hable, proxy);
             harvestJob.setStorage(storage);
         } else if (hable instanceof XmlBulkResource) {
-            harvestJob = new BullkHarvestJob((XmlBulkResource) hable);
+            harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
             harvestJob.setStorage(storage);
         } else if (hable instanceof WebCrawlResource) {
-            harvestJob = new WebHarvestJob((WebCrawlResource) hable);
+            harvestJob = new WebHarvestJob((WebCrawlResource) hable, proxy);
             harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");

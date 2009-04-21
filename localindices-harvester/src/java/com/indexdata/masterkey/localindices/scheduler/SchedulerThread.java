@@ -23,7 +23,7 @@ public class SchedulerThread implements Runnable {
     private boolean keepRunning;
     private JobScheduler scheduler;
 
-    public SchedulerThread(Map<String, String> config) {
+    public SchedulerThread(Map<String, Object> config) {
         scheduler = new JobScheduler(config);
     }
 
