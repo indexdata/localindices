@@ -104,12 +104,10 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
         //http proxy settings
         String proxyHost = props.getProperty("harvester.http.proxyHost");
-        String proxyPort = props.getProperty("harvester.http.proxyHost");
+        String proxyPort = props.getProperty("harvester.http.proxyPort");
         if (proxyPort != null && proxyHost != null) {
             Proxy proxy = new Proxy(Proxy.Type.HTTP,
-                InetSocketAddress.createUnresolved(
-                props.getProperty("harvester.http.proxyHost"),
-                Integer.parseInt(props.getProperty("harvester.http.proxyPort"))));
+                InetSocketAddress.createUnresolved(proxyHost, Integer.parseInt(proxyPort)));
                 config.put("harvester.http.proxy", proxy);
         }
 
