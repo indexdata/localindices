@@ -4,8 +4,8 @@
         <listener-class>com.indexdata.masterkey.localindices.scheduler.SchedulerUpDownListener</listener-class>
     </listener>
     <context-param>
-        <param-name>HARVEST_DIR</param-name>
-        <param-value>/var/cache/harvested</param-value>
+        <param-name>USER_CONFIG_PATH</param-name>
+        <param-value>/var/cache/harvested/harvester.properties</param-value>
     </context-param>
     <servlet>
         <servlet-name>SchedulerStatusServlet</servlet-name>

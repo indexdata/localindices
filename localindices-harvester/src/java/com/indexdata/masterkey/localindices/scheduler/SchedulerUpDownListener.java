@@ -42,13 +42,43 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         logger.log(Level.INFO, "Harvester context is being initialized...");
-        ServletContext ctx = servletContextEvent.getServletContext();
-        String harvestDirPath = ctx.getInitParameter("HARVEST_DIR");
-        if (harvestDirPath == null) {
-            logger.log(Level.FATAL, "Please specify HARVEST_DIR setting in the web.xml, deployment aborted.");
+        ServletContext ctx = servletContextEvent.getServletContext();        
+        //load default, fallback settings
+        Properties props = null;
+        try {
+            props = loadDefaults(ctx);
+        } catch (IOException ex) {
+            logger.log(Level.FATAL, "Default harvester properties missing from the archive, deployment aborted.");
             return;
         }
+        //override with user settings, if any otherwise try to unpack the defaults
+        String configPath = ctx.getInitParameter("USER_CONFIG_PATH");
+        if (configPath == null) {
+            logger.log(Level.WARN, "CONFIG_PATH not specified, will use only defaults");
+        } else {
+            try {
+                FileInputStream userPropsFis = new FileInputStream(configPath);
+                props.load(userPropsFis);
+                userPropsFis.close();
+            } catch (FileNotFoundException ex) {
+                FileOutputStream fos;
+                try {
+                    fos = new FileOutputStream(configPath);
+                    props.store(fos, "In order for the canges to cause effect, the harvester needs to be redeployed");
+                    fos.close();
+                } catch (FileNotFoundException ex2) {
+                    //very weird
+                    logger.log(Level.WARN, ex2);
+                } catch (IOException ioe) {
+                    logger.log(Level.WARN, ioe);
+                }
+            } catch (IOException ioe) {
+                logger.log(Level.WARN, ioe);
+            }
+        }
+
         //validate harvest dir
+        String harvestDirPath = props.getProperty("harvester.dir");
         File harvestDir = new File(harvestDirPath);
         boolean hasDir = true;
         if (!harvestDir.exists()) {
@@ -60,34 +90,6 @@ public class SchedulerUpDownListener implements ServletContextListener {
                     + harvestDirPath + ", deployment aborted.");
             return;
         }
-        //load default settings
-        Properties props = null;
-        try {
-            props = loadDefaults(ctx);
-        } catch (IOException ex) {
-            logger.log(Level.FATAL, "Default harvester properties missing from the archive, deployment aborted.");
-            return;
-        }
-        //override with user settings, if any otherwise unpack the defaults
-        try {
-            FileInputStream userPropsFis = new FileInputStream(harvestDirPath + "/harvester.properties");
-            props.load(userPropsFis);
-            userPropsFis.close();
-        } catch (FileNotFoundException ex) {
-            FileOutputStream fos;
-            try {
-                fos = new FileOutputStream(harvestDirPath + "/harvester.properties");
-                props.store(fos, "In order for the canges to cause effect, the harvester needs to be redeployed");
-                fos.close();
-            } catch (FileNotFoundException ex2) {
-                //very weird
-                logger.log(Level.WARN, ex2);
-            } catch (IOException ioe) {
-                logger.log(Level.WARN, ioe);
-            }
-        } catch (IOException ioe) {
-            logger.log(Level.WARN, ioe);
-        }
 
         //zebra dirs, configs, etc
         new File(harvestDir, "reg").mkdir();
@@ -96,7 +98,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
         new File(harvestDir, "tmp").mkdir();        
         unpackDir(ctx, "/WEB-INF/stylesheets", harvestDirPath + "/stylesheets");
         unpackDir(ctx, "/WEB-INF/zebra_dom_conf", harvestDirPath);
-        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, "HARVEST_DIR");
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, 
+                "HARVEST_DIR", harvestDirPath);
         startZebraSrv(props);
 
         //load properties to a config
@@ -104,10 +107,15 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
         //http proxy settings
         String proxyHost = props.getProperty("harvester.http.proxyHost");
-        String proxyPort = props.getProperty("harvester.http.proxyPort");
-        if (proxyPort != null && proxyHost != null) {
+        if (proxyHost != null) {
+            int proxyPort = 80;
+            try {
+                proxyPort = Integer.parseInt(props.getProperty("harvester.http.proxyPort"));
+            } catch (NumberFormatException nfe) {
+                logger.log(Level.WARN, "Http proxy port is invalid");
+            }
             Proxy proxy = new Proxy(Proxy.Type.HTTP,
-                InetSocketAddress.createUnresolved(proxyHost, Integer.parseInt(proxyPort)));
+                InetSocketAddress.createUnresolved(proxyHost, proxyPort));
                 config.put("harvester.http.proxy", proxy);
         }
 
@@ -142,7 +150,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
         return props;
     }
     
-    private void unpackResourceWithSubstitute(ServletContext ctx, String source, String dest, String token) {
+    private void unpackResourceWithSubstitute(ServletContext ctx, 
+            String source, String dest, String oldToken, String newToken) {
         File destFile = new File(dest);
         if (!destFile.exists())
             destFile.mkdirs();
@@ -150,7 +159,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
         try {
             InputStream is = ctx.getResourceAsStream(source);
             FileOutputStream os = new FileOutputStream(dest + fileName);
-            TextUtils.copyStreamWithReplace(is, os, token, ctx.getInitParameter(token));
+            TextUtils.copyStreamWithReplace(is, os, oldToken, newToken);
             os.close();
             is.close();
         } catch (IOException ioe) {
