@@ -26,11 +26,19 @@ public class TextUtils {
     }
 
     public static void copyStreamWithReplace(InputStream is, OutputStream os,
-            String from, String to) throws IOException {
+            String[] tokens) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
+        int tokenLen = 0;
+        if (tokens != null) {
+            tokenLen = tokens.length % 2 == 1 ? tokens.length - 1 : tokens.length;
+        }
         for (String line = null; (line = br.readLine()) != null;) {
-            sb.append(line.replaceAll(from, to) + "\n");
+            String replaced = line;
+            for (int i=0; i < tokenLen; i+=2) {
+                replaced = replaced.replaceAll(tokens[i], tokens[i+1]);
+            }
+            sb.append(replaced + "\n");
         }
         br.close();
         os.write(sb.toString().getBytes());

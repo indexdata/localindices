@@ -98,9 +98,19 @@ public class SchedulerUpDownListener implements ServletContextListener {
         new File(harvestDir, "tmp").mkdir();        
         unpackDir(ctx, "/WEB-INF/stylesheets", harvestDirPath + "/stylesheets");
         unpackDir(ctx, "/WEB-INF/zebra_dom_conf", harvestDirPath);
-        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath, 
-                "HARVEST_DIR", harvestDirPath);
+        String [] tokens = {"CONFIG_DIR", harvestDirPath, "HARVEST_DIR", harvestDirPath};
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath + "/zebra.cfg", tokens);
         startZebraSrv(props);
+
+        //unpack the reindexing
+        new File(harvestDir, "reidx").mkdir();
+        new File(harvestDir + "/reidx", "reg").mkdir();
+        new File(harvestDir + "/reidx", "shadow").mkdir();
+        new File(harvestDir + "/reidx", "lock").mkdir();
+        new File(harvestDir + "/reidx", "tmp").mkdir();
+        String[] tokensRe = {"CONFIG_DIR", harvestDirPath, "HARVEST_DIR", harvestDirPath + "/reidx"};
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath + "/zebra-reidx.cfg", tokensRe);
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/reindex.rb", harvestDirPath + "/reindex.rb", null);
 
         //load properties to a config
         Map<String,Object> config = new HashMap(props);
@@ -151,15 +161,14 @@ public class SchedulerUpDownListener implements ServletContextListener {
     }
     
     private void unpackResourceWithSubstitute(ServletContext ctx, 
-            String source, String dest, String oldToken, String newToken) {
-        File destFile = new File(dest);
+            String source, String dest, String[] tokens) {
+        File destFile = new File(dest.substring(0, dest.lastIndexOf('/')));
         if (!destFile.exists())
             destFile.mkdirs();
-        String fileName = source.substring(source.lastIndexOf("/"));
         try {
             InputStream is = ctx.getResourceAsStream(source);
-            FileOutputStream os = new FileOutputStream(dest + fileName);
-            TextUtils.copyStreamWithReplace(is, os, oldToken, newToken);
+            FileOutputStream os = new FileOutputStream(dest);
+            TextUtils.copyStreamWithReplace(is, os, tokens);
             os.close();
             is.close();
         } catch (IOException ioe) {
