@@ -7,7 +7,7 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
   <groupId>com.indexdata</groupId>
-  <artifactId>harvester-admin</artifactId>
+  <artifactId>localindices-admin</artifactId>
   <packaging>war</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>harvester-admin</name>
