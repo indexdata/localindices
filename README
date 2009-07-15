@@ -11,18 +11,24 @@ Having maven installed, type:
 
 mvn install
 
-You can either do it in the top-level ('localindices') dir to build all the submodules or in each submodule dir (e.g 'harvester') - in this case maven will fetch module dependecies from ID maven repo at http://maven.indexdata.com
+You can either do it in the top-level ('localindices') dir to build all the 
+submodules or in each submodule dir (e.g 'harvester') - in this case maven will
+fetch module dependecies from ID's maven repo at http://maven.indexdata.com.
 
 
 -- RUNNING HARVESTER AND HARVESTER-ADMIN
 
 --- Harvester Admin
 
-Admin is a simple JavaServer Faces web application and as such runs out-of-the-box on a compliant JEE 5 Application Server (JSF 1.2 is included) e.g. Glassfish V2.1.
+Admin is a simple JavaServer Faces web application and as such runs out-of-the-
+box on a compliant JEE 5 Application Server (JSF 1.2 is included) e.g. Glassfish
+V2.1.
 
-Admin will also deploy to Tomcat6 as long as JSF jars are bundled within the *.war file (maven's dependency scope 'compile' instead of 'provided').
+Admin will also deploy to Tomcat6 as long as JSF jars are bundled within the 
+*.war file (maven's dependency scope 'compile' instead of 'provided').
 
-Makes sure to deploy the harvester before deploying the admin.
+Makes sure to deploy the harvester before deploying the admin (otherwise there's
+nothing to administer and you will get empty list).
 
 For admin configuration (like he harvester's WS URL) look in the web.xml.
 
@@ -30,7 +36,8 @@ For admin configuration (like he harvester's WS URL) look in the web.xml.
 
 ---- MySQL
 
-Make sure you have mysql installed, configured and running. Then create an empty database and user (using mysql console):
+Make sure you have mysql installed, configured and running. Then create an empty
+database and user (using mysql console):
 
     create database localindices;
     grant all privileges on localindices.* to 'localidxadm'@'localhost' 
@@ -38,7 +45,11 @@ Make sure you have mysql installed, configured and running. Then create an empty
 
 ---- DataSource
 
-f you deploy on a standalone Glassfish, after setting up MySQL DB you have to add the DS definiton using the 'asadmin' utility.
+(You can ignore this if you plan to run the harvester from within Netbeans)
+
+If you plan to deploy on a standalone Glassfish, after setting up the MySQL DB, 
+you have to add the pre-canned DS definiton using the Glassfish's 'asadmin' 
+utility.
 
 asadmin add-resources harvester/setup/sun-resources.xml
 
@@ -48,6 +59,11 @@ asadmin add-resources harvester/setup/sun-resources.xml
 
 This project provides Masterkey specific database and web services connectivity.
 
-The output jar file contains all entity definitions (JavaBeans), abstracted database access objects (DAO) and a generic RESTful WS client.
+The output jar file contains all entity (model) definitions (JavaBeans), 
+abstracted database access (DAOs) and a generic RESTful WS client.
 
-The RDBMS-based DAO implementation requires javax.persistence (JPA) and javax.transaction (JTA) packages, part of JEE5 specs. Those APIs are implemented as a part of Application Servers so for the time being it is not possible to deploy the harvester to Tomcat/Jetty, this will be fixed by providing third-pary JPA library.
+The RDBMS-based DAO implementation requires javax.persistence (JPA) and 
+javax.transaction (JTA) packages, part of JEE5 specs. Those APIs are implemented
+as a part of any Application Server and for the time being it is not possible to
+deploy the harvester to non-JEE container like Tomcat/Jetty. This will be fixed 
+soon by providing third-pary JPA library (hibernate, toplink) and dropping JTA.
