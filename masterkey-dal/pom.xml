@@ -31,6 +31,7 @@
               <version>1.0-alpha-2</version>
               <configuration>
                 <factory>net.sf.jelly.apt.freemarker.FreemarkerProcessorFactory</factory>
+                <executable>${java.home}/../bin/apt</executable>
                 <fork>true</fork>
                 <options>
                   <value>template=${basedir}/src/main/freemarker/jaxb-index.fmt</value>
