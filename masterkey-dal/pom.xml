@@ -86,14 +86,16 @@
         </dependency>
         <dependency>
             <!--
-            this dependency should have a 'provided' scope and be skipped
-            by dependent modules (non-transitive) but unfortunatelly there is
-            a bug in JDK that prevents that
+            this dependency has a 'provided' since it is required only
+            during compile time. However, because of this bug in JDK:
             http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6550655
+            all submodules need to include it in the classpath for compilation
+            (again 'provided' scope).
             -->
             <groupId>javax.persistence</groupId>
             <artifactId>persistence-api</artifactId>
             <version>1.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
