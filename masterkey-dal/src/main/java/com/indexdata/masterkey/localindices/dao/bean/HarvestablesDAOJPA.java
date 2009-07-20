@@ -9,13 +9,12 @@ package com.indexdata.masterkey.localindices.dao.bean;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import com.indexdata.utils.persistence.EntityUtil;
 import java.util.ArrayList;
 import java.util.List;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
-import javax.transaction.UserTransaction;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
@@ -24,117 +23,55 @@ import org.apache.log4j.Level;
  * Java Persistence API implementation of the DAO
  * @author jakub
  */
-//@PersistenceContext(name = "persistence/localindicesPU", unitName = "localindicesPU")
 public class HarvestablesDAOJPA implements HarvestableDAO {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
     
-    /* *Persistence stuff*
-     * There are two ways of doing persistence:
-     * - container-managed transactions
-     * - bean-managed transactions (or application-managed tx)
-     * 
-     * CMT:
-     * requires JTA transaction-type (persistrence.xml)
-     * uses injected/looked-up EntityManager (through @PersistenceContext)
-     * uses injected/looked-up UserTransaction (through @Resource)
-     * EntityManger is nerver closed in the finally block
-     * 
-     * BMT:
-     * here we have two more options:
-     * -JTA transaction-type (UserTransaction API):
-     * -- injected EntityManagerFactory (through @PersistenceUnit)
-     * -- injected UserTransaction (throough @Resource)
-     * -- EM has to be closes when needed
-     * (through )
-     * -RESOURCE_LOCAL transaction-type (EntityTransaction API):
-     * -- EntityManagerFactory has to be created ( Persistence.createEntityManagerFactory(PU) )
-     *    - expensive - and EntityManager has to be managed through some 
-     *     thread-safe patterns like thread-local session.
-     * -- uses EntityTransaction, retrieved from EM by getTransaction
-     * -- EM has to be closed when needed
-     */
-
-    // JTA bean-managed transactions (emf/utx injected)
-//    @PersistenceUnit(unitName = "localindicesPU")
-//    private EntityManagerFactory emf;
-//
-//    private EntityManager getEntityManager() {
-//        return emf.createEntityManager();
-//    }
-//    @Resource
-//    private UserTransaction utx;
-//
-//    private UserTransaction getUserTransaction() {
-//        return this.utx;
-//    }
-
-    // container-managed transactions (em/utx looked-up)
     private EntityManager getEntityManager() {
-        EntityManager em = null;
-        try {
-            em = (EntityManager) new InitialContext().lookup("java:comp/env/persistence/localindicesPU");
-        } catch (NamingException e) {
-            logger.log(Level.DEBUG, e);
-        }
-        return em;
-    }
-
-    private UserTransaction getUserTransaction() {
-        UserTransaction utx = null;
-        try {
-            utx = (UserTransaction) new InitialContext().lookup("java:comp/UserTransaction");
-        } catch (NamingException e) {
-            logger.log(Level.DEBUG, e);
-        }
-        return utx;
+        return EntityUtil.createManager();
     }
     
     public void createHarvestable(Harvestable harvestable) {
         EntityManager em = getEntityManager();
-        UserTransaction utx = getUserTransaction();
+        EntityTransaction tx = em.getTransaction();
         try {
-            utx.begin();
-            em.joinTransaction();
+            tx.begin();
             em.persist(harvestable);
-            utx.commit();
+            tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
             try {
-                utx.rollback();
+                tx.rollback();
             } catch (Exception e) {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            //em.close();
+            em.close();
         }    
     }
 
     public Harvestable retrieveHarvestableById(Long id) {
         EntityManager em = getEntityManager();
-        //try {
-            return em.find(Harvestable.class, id);
-        //} catch () {
-          //  throw new WebApplicationException(new Throwable("Resource for " + context.getAbsolutePath() + " does not exist."), 404);
-        //}
+        Harvestable hable = em.find(Harvestable.class, id);
+        em.close();
+        return hable;
     }
 
     public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable) {
         EntityManager em = getEntityManager();
-        UserTransaction utx = getUserTransaction();
+        EntityTransaction tx = em.getTransaction();
         try {
-            utx.begin();
-            em.joinTransaction();
+            tx.begin();
             harvestable = em.merge(updHarvestable);
-            utx.commit();
+            tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
             try {
-                utx.rollback();
+                tx.rollback();
             } catch (Exception e) {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-        //em.close();
+            em.close();
         }
         return harvestable;    
     }
@@ -145,46 +82,44 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     public void deleteHarvestable(Harvestable harvestable) {
         EntityManager em = getEntityManager();
-        UserTransaction utx = getUserTransaction();
+        EntityTransaction tx = em.getTransaction();
         try {
-            utx.begin();
-            em.joinTransaction();
+            tx.begin();
             harvestable = em.merge(harvestable);
             em.remove(harvestable);
-            utx.commit();
+            tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
             try {
-                utx.rollback();
+                tx.rollback();
             } catch (Exception e) {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-        //em.close();
+            em.close();
         }    
     }
 
     public List<Harvestable> retrieveHarvestables(int start, int max) {
         EntityManager em = getEntityManager();
-        UserTransaction utx = getUserTransaction();
+        EntityTransaction tx = em.getTransaction();
         List<Harvestable> hables = null;
         try {
-            utx.begin();
-            em.joinTransaction();
+            tx.begin();
             Query q = em.createQuery("select object(o) from Harvestable as o");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
-            utx.commit();
+            tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
             try {
-                utx.rollback();
+                tx.rollback();
             } catch (Exception e) {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            //em.close();
+            em.close();
         }
         return hables;
     }
@@ -195,7 +130,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             int count = ((Long) em.createQuery("select count(o) from Harvestable as o").getSingleResult()).intValue();
             return count;
         } finally {
-            //em.close();
+            em.close();
         }    
     }
 
