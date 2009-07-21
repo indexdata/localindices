@@ -27,7 +27,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
     
     private EntityManager getEntityManager() {
-        return EntityUtil.createManager();
+        return EntityUtil.getManager();
     }
     
     public void createHarvestable(Harvestable harvestable) {
@@ -45,14 +45,14 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            em.close();
+            //em.close();
         }    
     }
 
     public Harvestable retrieveHarvestableById(Long id) {
         EntityManager em = getEntityManager();
         Harvestable hable = em.find(Harvestable.class, id);
-        em.close();
+        //em.close();
         return hable;
     }
 
@@ -71,7 +71,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            em.close();
+            //em.close();
         }
         return harvestable;    
     }
@@ -96,7 +96,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            em.close();
+            //em.close();
         }    
     }
 
@@ -119,7 +119,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
                 logger.log(Level.DEBUG, e);
             }
         } finally {
-            em.close();
+            //em.close();
         }
         return hables;
     }
@@ -130,7 +130,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             int count = ((Long) em.createQuery("select count(o) from Harvestable as o").getSingleResult()).intValue();
             return count;
         } finally {
-            em.close();
+            //em.close();
         }    
     }
 

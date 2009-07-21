@@ -75,21 +75,33 @@ import javax.persistence.EntityManager;
 */
 
 public class EntityUtil {
-    public final static String UNIT_NAME = "localindicesPU";
-
-    private static class LazyInstance {
-        static final EntityManagerFactory emf = Persistence.createEntityManagerFactory(UNIT_NAME);
-    }
-
-    private static final ThreadLocal<EntityManager> perThread = new ThreadLocal<EntityManager>();
+    private static EntityManagerFactory emf;
+    private static ThreadLocal<EntityManager> perThread;
 
     /**
-     * Create an application-manager entity manager. The manager should be closed
-     * after performing any action on it.
-     * @return fresh instance of an entity manager
+     * This method creates underlying EntityManagerFactory and should be called
+     * before any other action takes place (e.g at the begining of the application
+     * deployment). Further calls are no-ops.
+     * @param unitName
      */
-    public static EntityManager createManager() {
-        return LazyInstance.emf.createEntityManager();
+    static synchronized void initialize (String unitName) {
+        if (emf == null) {
+            emf = Persistence.createEntityManagerFactory(unitName);
+            perThread = new ThreadLocal<EntityManager>();
+        }
+    }
+
+    /**
+     * This method closes underlying EntityManagerFactory instance, and allows
+     * for new initialization. It should be called at the end of the appplication
+     * lifecycle.
+     */
+    static synchronized void terminate () {
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+            emf = null;
+            perThread = null;
+        }
     }
 
     /**
@@ -99,12 +111,24 @@ public class EntityUtil {
      * @return entity manager associated with the current thread
      */
     public static EntityManager getManager() {
+        if (emf == null) throw new IllegalStateException("EntitityUtil not initialized.");
         EntityManager manager = perThread.get();
         if (manager == null || !manager.isOpen()) {
-            manager = createManager();
+            manager = emf.createEntityManager();
             perThread.set(manager);
         }
         return manager;
     }
 
+    /**
+     * Closes EntitymManager associated with current thread (if any).
+     */
+    public static void closeManager() {
+        if (emf == null) throw new IllegalStateException("EntitityUtil not initialized.");
+        EntityManager manager = perThread.get();
+        if (manager != null) {
+            if (manager.isOpen()) manager.close();
+            perThread.set(null);
+        }
+    }
 }
