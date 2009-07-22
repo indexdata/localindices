@@ -6,7 +6,16 @@
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
             <property name="toplink.ddl-generation" value="create-tables"/>
-            <property name="toplink.cache.type.default" value="NONE"/>
+            <!--<property name="toplink.cache.type.default" value="NONE"/>-->
+            <!--
+              direct non-DataSource connection is possible but is generally
+              not safe:
+              <property name="toplink.jdbc.driver" value="com.mysql.jdbc.Driver"/>
+              <property name="toplink.jdbc.url" value="jdbc:mysql://localhost:3306/localindices?autoReconnect=true"/>
+              <property name="toplink.jdbc.user" value="localidxadm"/>
+              <property name="toplink.jdbc.password" value="localidxadmpass"/>
+              <property name="toplink.logging.level" value="CONFIG"/>
+              -->
         </properties>
     </persistence-unit>
 </persistence>
