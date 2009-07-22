@@ -11,8 +11,9 @@
                 </property>
             </activation>
             <properties>
-                <netbeans.deployment.server.id>[/home/jakub/glassfish-v2ur2]deployer:Sun:AppServer::localhost:4848</netbeans.deployment.server.id>
+                <netbeans.deployment.server.id>tomcat60:home=/home/jakub/bin/apache-tomcat-6.0.18:base=apache-tomcat-6.0.18_base</netbeans.deployment.server.id>
             </properties>
         </profile>
     </profiles>
 </profilesXml>
+
