@@ -6,9 +6,11 @@
 
 package com.indexdata.masterkey.localindices.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
@@ -23,13 +25,10 @@ import java.util.regex.Pattern;
  * @author jakub
  */
 public class HarvestableLog {
-    // charset and decoder for ISO-8859-15
-    private static Charset charset = Charset.forName("ISO-8859-15");
-    private static CharsetDecoder decoder = charset.newDecoder();
-    // pattern used to parse lines
+    //log file
     private static File logFile = new File("/var/cache/harvested/harvester.log");
 
-    // break the charBuffer into lines
+    // not used but shows the concept of matching against the whole buffer
     private static void readLines(Pattern lp, CharBuffer in, StringBuilder out) {
         Matcher lm = lp.matcher(in);	// Line matcher
         int lines = 0;
@@ -43,24 +42,18 @@ public class HarvestableLog {
 
 
     public static String getHarvestableLog(long jobId) throws FileNotFoundException, IOException {
-        // Open the file and then get a channel from the stream
-        FileInputStream fis = new FileInputStream(logFile);
-        FileChannel fc = fis.getChannel();
-
-        // Get the file's size and then map it into memory
-        int sz = (int)fc.size();
-        MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-
-        // Decode the file into a char buffer
-        CharBuffer cb = decoder.decode(bb);
-
-        // Perform filtering
+        BufferedReader r = new BufferedReader(new FileReader(logFile));
+        //build what we need
         StringBuilder sb = new StringBuilder(1024);
-        Pattern lp = Pattern.compile(".*JOB#"+jobId+".*\r?\n");
-        readLines(lp, cb ,sb);
-
-        // Close the channel and the stream
-        fc.close();
+        Pattern lp = Pattern.compile("JOB#"+jobId);
+        String line = null;
+        Matcher m = null;
+        while ((line = r.readLine()) != null) {
+            m = lp.matcher(line);
+            if (m.find())
+                sb.append(line + "\n");
+        }
+        r.close();
         return sb.toString();
     }
 
