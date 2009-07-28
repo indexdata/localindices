@@ -96,6 +96,10 @@
                             onclick="return confirm('Are you sure?');">
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
+                        <h:outputText value=" | "/>
+                        <h:commandLink value="View Log" action="#{resourceController.viewJobLog}">
+                            <f:param name="resourceId" value="#{item.id}"/>
+                        </h:commandLink>
                     </h:column>
                 </h:dataTable>
             </h:form>

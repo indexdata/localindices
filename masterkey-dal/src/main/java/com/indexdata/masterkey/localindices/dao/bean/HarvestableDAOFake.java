@@ -10,6 +10,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -122,6 +123,11 @@ public class HarvestableDAOFake implements HarvestableDAO {
     }
 
     public int getHarvestableCount() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public InputStream getHarvestableLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

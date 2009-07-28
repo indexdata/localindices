@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.dao;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -21,7 +22,8 @@ public interface HarvestableDAO {
     public Harvestable updateHarvestable(Harvestable hable);
     public void deleteHarvestable(Harvestable harvestable);
     public List<Harvestable> retrieveHarvestables(int start, int max);
-    public int getHarvestableCount();    
+    public int getHarvestableCount();
+    public InputStream getHarvestableLog(long id);
     /**
      * Retrieve a list of brief (listing) harvestables.
      * @return

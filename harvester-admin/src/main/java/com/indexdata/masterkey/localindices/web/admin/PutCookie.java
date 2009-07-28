@@ -28,6 +28,5 @@ public class PutCookie extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         response.addCookie(new Cookie("admin-superuser", "local-0"));
-    } 
-
+    }
 }

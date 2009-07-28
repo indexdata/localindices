@@ -10,6 +10,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.utils.persistence.EntityUtil;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -145,6 +146,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
         return retrieveHarvestableById(href.getId());
+    }
+
+    @Override
+    public InputStream getHarvestableLog(long id) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

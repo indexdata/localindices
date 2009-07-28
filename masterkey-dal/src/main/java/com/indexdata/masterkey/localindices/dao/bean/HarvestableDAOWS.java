@@ -12,11 +12,15 @@ import com.indexdata.masterkey.localindices.web.service.client.ResourceConnector
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 
 /**
  *
@@ -167,5 +171,19 @@ public class HarvestableDAOWS implements HarvestableDAO {
             return 0;
         }
         
+    }
+
+    @Override
+    public InputStream getHarvestableLog(long id) {
+        String logURL = serviceBaseURL + id + "/" + "log/";
+        try {
+            URL url = new URL(logURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            return conn.getInputStream();
+        } catch (IOException ioe) {
+            logger.log(Level.DEBUG, ioe);
+            return null;
+        }
     }
 }
