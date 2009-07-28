@@ -34,9 +34,7 @@
             <!-- Log file -->
             <h:form>
                 <h3><h:outputText value="Harvester's logfile:" /></h3>
-                <pre>
-                  <h:outputText value="#{resourceController.joLog}" />
-                </pre>
+                <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
             </h:form>
         </f:view>
     </body>

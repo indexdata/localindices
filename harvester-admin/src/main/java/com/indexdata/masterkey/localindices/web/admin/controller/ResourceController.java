@@ -429,7 +429,7 @@ public class ResourceController {
 
     }
 
-    public String getjoLog() {
+    public String getjobLog() {
         return jobLog;
     }
     //</editor-fold>
