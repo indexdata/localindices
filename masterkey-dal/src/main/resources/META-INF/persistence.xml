@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
-    <persistence-unit name="localindicesPU" transaction-type="JTA">
+    <persistence-unit name="localindicesPU" transaction-type="RESOURCE_LOCAL">
         <provider>oracle.toplink.essentials.PersistenceProvider</provider>
-        <jta-data-source>localindicesDS</jta-data-source>
+        <non-jta-data-source>localindicesDS</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
             <property name="toplink.ddl-generation" value="create-tables"/>
-            <property name="toplink.cache.type.default" value="NONE"/>
+            <!--<property name="toplink.cache.type.default" value="NONE"/>-->
+            <!--
+              direct non-DataSource connection is possible but is generally
+              not safe:
+              <property name="toplink.jdbc.driver" value="com.mysql.jdbc.Driver"/>
+              <property name="toplink.jdbc.url" value="jdbc:mysql://localhost:3306/localindices?autoReconnect=true"/>
+              <property name="toplink.jdbc.user" value="localidxadm"/>
+              <property name="toplink.jdbc.password" value="localidxadmpass"/>
+              <property name="toplink.logging.level" value="CONFIG"/>
+              -->
         </properties>
     </persistence-unit>
 </persistence>

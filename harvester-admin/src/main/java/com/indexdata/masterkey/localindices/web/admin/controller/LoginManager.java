@@ -32,7 +32,7 @@ public class LoginManager {
     private String password;
     private String displayName;
     private boolean loggedIn = false;
-    private String id;    
+    private String id;
     
     /** Creates a new instance of LoginManager */
     public LoginManager() {     

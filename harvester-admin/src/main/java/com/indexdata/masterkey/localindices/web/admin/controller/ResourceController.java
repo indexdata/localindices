@@ -14,6 +14,11 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -393,6 +398,39 @@ public class ResourceController {
             else
                 longDate = false;
         }
+    }
+
+    private String jobLog;
+
+    public String viewJobLog() {
+        String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
+        Long id = new Long(param);
+        //slurp that damn log to string, before I figure how to cleanly get handle
+        //of the InputStream in the view
+        StringBuilder sb = new StringBuilder(1024);
+        InputStream is = dao.getHarvestableLog(id);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            logger.log(Level.ERROR, e);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                logger.log(Level.ERROR, e);
+            }
+        }
+        jobLog = sb.toString();
+        return "harvester_log";
+
+    }
+
+    public String getjoLog() {
+        return jobLog;
     }
     //</editor-fold>
 

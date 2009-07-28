@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.web.service;
 
+import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import javax.ws.rs.GET;
@@ -13,8 +14,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.core.UriInfo;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * REST Web service (reource) that maps to a Harvestable entity.
@@ -69,5 +75,22 @@ public class HarvestableResource {
     @DELETE
     public void delete() {
         dao.deleteHarvestable(dao.retrieveHarvestableById(id));
+    }
+
+    /**
+     * Entry point to the Harvestable log file.
+     *
+     */
+    @Path("log/")
+    @GET
+    @Produces("text/plain")
+    public String getHarvestableLog() {
+        try {
+            return HarvestableLog.getHarvestableLog(id);
+        } catch (FileNotFoundException fnf) {
+            throw new WebApplicationException(fnf);
+        } catch (IOException io) {
+            throw new WebApplicationException(io);
+        }
     }
 }

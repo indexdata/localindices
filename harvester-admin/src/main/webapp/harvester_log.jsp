@@ -34,13 +34,9 @@
             <!-- Log file -->
             <h:form>
                 <h3><h:outputText value="Harvester's logfile:" /></h3>
-                <pre><%
-                    FileInputStream data = new FileInputStream("/var/cache/harvested/harvester.log");
-                    BufferedInputStream file = new BufferedInputStream(data);
-                    int c = -1;
-                    while((c = file.read()) != -1) out.write(c);
-                    file.close();
-                %></pre>
+                <pre>
+                  <h:outputText value="#{resourceController.joLog}" />
+                </pre>
             </h:form>
         </f:view>
     </body>

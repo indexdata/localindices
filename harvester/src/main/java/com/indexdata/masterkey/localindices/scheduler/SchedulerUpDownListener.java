@@ -111,6 +111,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
         String[] tokensRe = {"CONFIG_DIR", harvestDirPath, "HARVEST_DIR", harvestDirPath + "/reidx"};
         unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath + "/zebra-reidx.cfg", tokensRe);
         unpackResourceWithSubstitute(ctx, "/WEB-INF/reindex.rb", harvestDirPath + "/reindex.rb", null);
+        unpackResourceWithSubstitute(ctx, "/WEB-INF/addlexis.rb", harvestDirPath + "/addlexis.rb", null);
 
         //load properties to a config
         Map<String,Object> config = new HashMap(props);
