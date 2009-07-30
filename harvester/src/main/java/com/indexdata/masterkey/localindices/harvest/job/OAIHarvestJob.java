@@ -40,8 +40,27 @@ public class OAIHarvestJob implements HarvestJob {
     private boolean die = false;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
-    private final static int MAX_ERROR_RETRY = 3; // If this is > 0, harvester will retry requests on errors
+    private final static int MAX_ERROR_RETRY = 3; // If this is > 0, harvester will retry requests on errorNodes
     private final static int ERROR_SLEEP = 60 * 1000; // Sleep for awhile if there is an error
+
+    private class OAIError {
+        private String code;
+        private String message;
+
+        OAIError(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+    }
 
     private synchronized boolean isKillSendt() {
         if (die) {
@@ -165,7 +184,7 @@ public class OAIHarvestJob implements HarvestJob {
                 logger.log(Level.ERROR, "Storage commit failed.");
             }
         } else {
-            status = HarvestStatus.WAITING;
+            if (status.equals(HarvestStatus.KILLED)) status = HarvestStatus.WAITING;
             logger.log(Level.INFO, "JOB#"+resource.getId()+" OAI harvest killed/faced error " +
                     "- rolling back. Next from param: " + resource.getFromDate());
             try {
@@ -179,8 +198,6 @@ public class OAIHarvestJob implements HarvestJob {
     private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec,
             OutputStream out) throws IOException {
-        out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
-        out.write(("<harvest from=\"" + from + "\" until=\"" + until + "\">\n").getBytes("UTF-8"));
         //out.write(new Identify(baseURL).toString().getBytes("UTF-8"));
         //out.write("\n".getBytes("UTF-8"));
         //out.write(new ListMetadataFormats(baseURL).toString().getBytes("UTF-8"));
@@ -201,36 +218,34 @@ public class OAIHarvestJob implements HarvestJob {
             throw new IOException(e);
         }
 
-        int errorCount = 0;
+        boolean dataStart = true;
         String resumptionToken = null;
         while (listRecords != null && !isKillSendt()) {
-            NodeList errors = null;
+            NodeList errorNodes = null;
             try {
-                errors = listRecords.getErrors();
+                errorNodes = listRecords.getErrors();
             } catch (TransformerException te) {
                 throw new IOException("Cannot read OAI-PMH protocol errors.", te);
             }
-            String error = null;
-            if ((error = checkError(errors)) != null) {
+            OAIError[] errors = null;
+            if ((errors = getErrors(errorNodes)) != null) {
                 //the error msg has been logged, but print out the full record
                 logger.log(Level.DEBUG, "JOB#"+resource.getId()+" OAI error response: \n"
                         + listRecords.toString());
-                if (++errorCount > MAX_ERROR_RETRY)
-                   throw new IOException("Too many OAI errors, last was:" + error);
-                else
-                {
-                    try {
-                        Thread.sleep(ERROR_SLEEP);
-                    } catch (InterruptedException e)
-                    {
-                        throw new IOException(e);
-                    }
-                    logger.log(Level.INFO, "JOB#"+resource.getId()+" Retrying after delay");
+                //no new records, no sense to continue
+                if (errors.length == 1 &&
+                    errors[0].getCode().equalsIgnoreCase("noRecordsMatch") &&
+                    errors[0].getMessage().contains("criteria")) {
+                    status = HarvestStatus.KILLED;
+                    return;
+                } else throw new IOException("OAI error "
+                        + errors[0].code + ": " + errors[0].message);
+            } else {
+                if (dataStart) {
+                    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
+                    out.write(("<harvest from=\"" + from + "\" until=\"" + until + "\">\n").getBytes("UTF-8"));
+                    dataStart = false;
                 }
-            }
-            else
-            {
-                errorCount = 0;
                 out.write(listRecords.toString().getBytes("UTF-8"));
                 out.write("\n".getBytes("UTF-8"));
                 try {
@@ -241,7 +256,7 @@ public class OAIHarvestJob implements HarvestJob {
             }
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
-                listRecords = null;
+                break;
             } else {
                 logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
                 try {
@@ -269,8 +284,8 @@ public class OAIHarvestJob implements HarvestJob {
             NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken);
         while (listRecords != null && !isKillSendt()) {
-            NodeList errors = listRecords.getErrors();
-            if (checkError(errors)) {
+            NodeList errorNodes = listRecords.getErrors();
+            if (getErrors(errorNodes)) {
                 logger.log(Level.ERROR, "OAI job's error record: " + listRecords.toString());
                 break;
             }
@@ -290,16 +305,19 @@ public class OAIHarvestJob implements HarvestJob {
 
      */
 
-    private String checkError(NodeList errors) {
-        if (errors != null && errors.getLength() > 0) {
-            int length = errors.getLength();
-            String error = "";
+    private OAIError[] getErrors(NodeList errorNodes) {
+        if (errorNodes != null && errorNodes.getLength() > 0) {
+            int length = errorNodes.getLength();
+            OAIError[] errors = new OAIError[length];
             for (int i = 0; i < length; ++i) {
-                Node item = errors.item(i);
-                error += item.getTextContent();
+                Node item = errorNodes.item(i);
+                String code = item.getAttributes().getNamedItem("code").getNodeValue();
+                String message = item.getTextContent();
+                errors[i] = new OAIError(code, message);
+                logger.log(Level.WARN, "JOB#"+resource.getId() + " OAI harvest error - " +
+                        code + ": " + message);
             }
-            logger.log(Level.WARN, "JOB#"+resource.getId() + " OAI harvest error: " + error);
-            return error;
+            return errors;
         }
         return null;
     }
