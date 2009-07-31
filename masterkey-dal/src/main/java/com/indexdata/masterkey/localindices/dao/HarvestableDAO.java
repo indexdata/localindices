@@ -18,7 +18,6 @@ import java.util.List;
 public interface HarvestableDAO {
     public void createHarvestable(Harvestable harvestable);
     public Harvestable retrieveHarvestableById(Long id);
-    public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable);
     public Harvestable updateHarvestable(Harvestable hable);
     public void deleteHarvestable(Harvestable harvestable);
     public List<Harvestable> retrieveHarvestables(int start, int max);

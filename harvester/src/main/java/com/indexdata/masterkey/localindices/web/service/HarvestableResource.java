@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.web.service;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
@@ -65,7 +66,10 @@ public class HarvestableResource {
     @PUT
     @Consumes("application/xml")
     public void put(HarvestableConverter data) {
-        dao.updateHarvestable(dao.retrieveHarvestableById(id), data.getEntity());
+        Harvestable entity = data.getEntity();
+        entity.setCurrentStatus("NEW");
+        entity.setMessage(null);
+        dao.updateHarvestable(entity);
     }
 
     /**

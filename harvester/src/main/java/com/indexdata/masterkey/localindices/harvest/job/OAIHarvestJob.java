@@ -22,6 +22,7 @@ import java.net.Proxy;
 import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import org.apache.log4j.Priority;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used
@@ -42,6 +43,7 @@ public class OAIHarvestJob implements HarvestJob {
     private String currentDateFormat;
     private final static int MAX_ERROR_RETRY = 3; // If this is > 0, harvester will retry requests on errorNodes
     private final static int ERROR_SLEEP = 60 * 1000; // Sleep for awhile if there is an error
+    private boolean initialRun = true;
 
     private class OAIError {
         private String code;
@@ -89,14 +91,12 @@ public class OAIHarvestJob implements HarvestJob {
         } else {
             currentDateFormat = DEFAULT_DATE_FORMAT;
         }
-        this.resource = resource;     
+        this.resource = resource;
         this.proxy = proxy;
-        String persistedStatus = resource.getCurrentStatus();
-        if (persistedStatus == null)
-            this.status = HarvestStatus.NEW;
-        else
-            this.status = HarvestStatus.WAITING;
-        this.resource.setMessage(null);
+        this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
+        if (this.status.equals(HarvestStatus.NEW) || this.status.equals(HarvestStatus.ERROR))
+            this.initialRun = true;
+        //this.resource.setMessage(null);
     }
 
     public void kill() {
@@ -133,18 +133,17 @@ public class OAIHarvestJob implements HarvestJob {
     }
     
     public void run() {
+        status = HarvestStatus.RUNNING;
+        this.resource.setMessage(null);
         // where are we?
         Date nextFrom = null;
         if (resource.getUntilDate() != null)
             logger.log(Level.INFO, "JOB#"+resource.getId()+
                     " OAI harvest: until param will be overwritten to yesterday.");
         resource.setUntilDate(yesterday());
-        nextFrom = new Date();
-        
+        nextFrom = new Date();        
         logger.log(Level.INFO, "JOB#"+resource.getId()+ " OAI harvest started. Harvesting from: "
-                + resource.getFromDate() + " until: " + resource.getUntilDate());
-        
-        status = HarvestStatus.RUNNING; 
+                + resource.getFromDate() + " until: " + resource.getUntilDate());        
         try {
             storage.begin();
             OutputStream out = storage.getOutputStream();
@@ -166,8 +165,7 @@ public class OAIHarvestJob implements HarvestJob {
             resource.setMessage(e.getMessage());
             logger.log(Level.DEBUG, e);
         }
-        // if there was an error do not move the time marker
-        // - we'll try havesting data next time
+        // if there was no error we move the time marker
         if (status != HarvestStatus.ERROR && status != HarvestStatus.KILLED) {
             //TODO persist until and from
             resource.setFromDate(nextFrom);
@@ -176,6 +174,7 @@ public class OAIHarvestJob implements HarvestJob {
             logger.log(Level.INFO, "JOB#"+resource.getId()+
                     " OAI harvest finished OK. Next from: "
                     + resource.getFromDate());
+            initialRun = false;
             try {
                 storage.commit();
             } catch (IOException ioe) {
@@ -184,7 +183,7 @@ public class OAIHarvestJob implements HarvestJob {
                 logger.log(Level.ERROR, "Storage commit failed.");
             }
         } else {
-            if (status.equals(HarvestStatus.KILLED)) status = HarvestStatus.WAITING;
+            if (status.equals(HarvestStatus.KILLED)) status = HarvestStatus.FINISHED;
             logger.log(Level.INFO, "JOB#"+resource.getId()+" OAI harvest killed/faced error " +
                     "- rolling back. Next from param: " + resource.getFromDate());
             try {
@@ -232,10 +231,12 @@ public class OAIHarvestJob implements HarvestJob {
                 //the error msg has been logged, but print out the full record
                 logger.log(Level.DEBUG, "JOB#"+resource.getId()+" OAI error response: \n"
                         + listRecords.toString());
-                //no new records, no sense to continue
+                //if this is noRecordsMatch and inital run, something is wrong
                 if (errors.length == 1 &&
                     errors[0].getCode().equalsIgnoreCase("noRecordsMatch") &&
-                    errors[0].getMessage().contains("criteria")) {
+                    !this.initialRun) {
+                    logger.log(Level.INFO, "JOB#"+resource.getId()+
+                            " noRecordsMatch experienced for non-initial harvest - ignoring");
                     status = HarvestStatus.KILLED;
                     return;
                 } else throw new IOException("OAI error "

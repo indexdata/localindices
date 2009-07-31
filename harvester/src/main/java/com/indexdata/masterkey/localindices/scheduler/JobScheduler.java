@@ -57,7 +57,8 @@ public class JobScheduler {
                 if (ji != null) {
                     // and seetings has changed
                     if (!ji.getHarvestable().getLastUpdated().equals(hbrief.getLastUpdated())) {
-                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " parameters changed (LU " + hbrief.getLastUpdated() + "), stopping thread and destroying job");
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
+                                + " parameters changed (LU " + hbrief.getLastUpdated() + "), stopping thread and destroying job");
                         ji.stop();
                         ji = null; // signal to create a new one
                     // should we remove it from the list?

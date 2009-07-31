@@ -127,9 +127,9 @@ public class WebHarvestJob implements HarvestJob {
         this.resource = resource;
         this.proxy = proxy;
         robotCache = new WebRobotCache(proxy);
-        this.status = HarvestStatus.NEW;
         logger.setLevel(Level.ALL);  // While debugging
         this.error = null;
+        this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
     }
 
     private synchronized boolean isKillSendt() {

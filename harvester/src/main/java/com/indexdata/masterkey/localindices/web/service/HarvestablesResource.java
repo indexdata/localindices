@@ -84,6 +84,7 @@ public class HarvestablesResource {
     @Consumes("application/xml")
     public Response post(HarvestableConverter data) {
         Harvestable entity = data.getEntity();
+        entity.setCurrentStatus("NEW");
         dao.createHarvestable(entity);
         return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }

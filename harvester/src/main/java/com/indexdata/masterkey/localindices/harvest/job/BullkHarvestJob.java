@@ -37,12 +37,7 @@ public class BullkHarvestJob implements HarvestJob {
     public BullkHarvestJob(XmlBulkResource resource, Proxy proxy) {
         this.proxy = proxy;
         this.resource = resource;
-        String persistedStatus = resource.getCurrentStatus();
-        if (persistedStatus == null) {
-            this.status = HarvestStatus.NEW;
-        } else {
-            this.status = HarvestStatus.WAITING;
-        }
+        this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
         this.resource.setMessage(null);
     }
 

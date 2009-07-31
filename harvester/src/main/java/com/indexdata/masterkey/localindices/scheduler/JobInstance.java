@@ -65,9 +65,7 @@ public class JobInstance {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }
         harvestable = hable;
-        if (hable.getCurrentStatus() != null) {
-            lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
-        }
+        lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
         lastStatusMsg = hable.getMessage();
         seen = false;
     }

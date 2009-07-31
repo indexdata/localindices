@@ -39,6 +39,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
+    @Override
     public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
@@ -61,6 +62,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * @param href harvestableRef entity
      * @return harvesatble entity
      */
+    @Override
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
@@ -79,6 +81,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
      * PUT harvestable to the Web Service
      * @param harvestable entity to be put
      */
+    @Override
     public Harvestable updateHarvestable(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
@@ -95,6 +98,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
         return harvestable;
     } // updateJob
 
+    @Override
     public void createHarvestable(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -110,6 +114,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
         }
     }
 
+    @Override
     public Harvestable retrieveHarvestableById(Long id) {
         Harvestable hable = null;
         try {
@@ -125,10 +130,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
         return hable;    
     }
 
-    public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+    @Override
     public void deleteHarvestable(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
@@ -142,6 +144,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
         }
     }
 
+    @Override
     public List<Harvestable> retrieveHarvestables(int start, int max) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
@@ -156,6 +159,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
        return hables;    
     }
 
+    @Override
     public int getHarvestableCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
