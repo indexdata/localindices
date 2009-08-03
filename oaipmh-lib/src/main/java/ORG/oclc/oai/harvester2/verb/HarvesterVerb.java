@@ -64,6 +64,9 @@ import org.apache.log4j.Level;
  */
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
+
+    private final static int HTTP_MAX_RETRIES = 10;
+    private final static int HTTP_RETRY_TIMEOUT = 100;
     
     /* Primary OAI namespaces */
     public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
@@ -213,7 +216,10 @@ public abstract class HarvesterVerb {
         URL url = new URL(requestURL);
         HttpURLConnection con = null;
         int responseCode = 0;
+        boolean retry;
+        int totalRetries = 0;
         do {
+            retry = false;
             if (proxy != null)
                 con = (HttpURLConnection) url.openConnection(proxy);
             else
@@ -225,34 +231,48 @@ public abstract class HarvesterVerb {
                 responseCode = con.getResponseCode();
                 logger.log(Level.INFO,"responseCode=" + responseCode);
             } catch (FileNotFoundException e) {
-                // response is majorly broken assume it's 503 and try to retry
+                // response is majorly broken, retry nevertheless
                 logger.log(Level.INFO, requestURL, e);
-                responseCode = HttpURLConnection.HTTP_UNAVAILABLE;
+                responseCode = -1;
             }
             //for some responses the server will tell us when to retry
-            if (responseCode == HttpURLConnection.HTTP_UNAVAILABLE
-                || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE) {
+            //for others we'll use the defaults
+            if (responseCode == -1
+             || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+             || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
+             || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
+             || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
+             || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+             || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT) {
                 long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
                 if (retrySeconds == -1) {
-                    //this is because in HTTP date may be alreadt parsed
+                    //this is because in HTTP date may be already parsed as seconds
                     long now = (new Date()).getTime();
                     long retryDate = con.getHeaderFieldDate("Retry-After", now);
                     retrySeconds = retryDate - now;
                 }
-                if (retrySeconds == 0) { // Apparently, it's a bad URL
-                    throw new BrokenHttpResponseException("Could not read HTTP response code. Bad URL?");
+                if (retrySeconds == 0) { //header not specified
+                    retrySeconds = HTTP_RETRY_TIMEOUT;
+                    logger.log(Level.INFO,"Server response code '"+responseCode
+                            + "' retrying in "+ retrySeconds);
+                } else {
+                    logger.log(Level.INFO,"Server response code '"+responseCode
+                            + "' Retry-After: "+ retrySeconds);
                 }
-                logger.log(Level.INFO,"Server response: Retry-After="
-                        + retrySeconds);
                 if (retrySeconds > 0) {
                     try {
                         Thread.sleep(retrySeconds * 1000);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        throw new IOException("Interrupted while retrying HTTP connection.");
                     }
                 }
+                retry = ++totalRetries < HTTP_MAX_RETRIES;
             }
-        } while (responseCode == HttpURLConnection.HTTP_UNAVAILABLE);
+        } while (retry);
+
+        if (responseCode == -1) {
+            throw new BrokenHttpResponseException("Could not read HTTP response code. Bad URL?");
+        }
 
         //stop for non-recoverable HTTP client/server errrors
         if (responseCode >= 400 && responseCode < 600) {
