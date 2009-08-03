@@ -100,7 +100,7 @@ public class OAIHarvestJob implements HarvestJob {
     }
 
     public void kill() {
-        if (status != HarvestStatus.FINISHED) {
+        if (status == HarvestStatus.RUNNING) {
             status = HarvestStatus.KILLED;
             onKillSendt();
         }

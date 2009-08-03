@@ -45,65 +45,56 @@ public class JobScheduler {
         Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt((String)config.get("harvester.max-jobs")));
         if (hbriefs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
-        } else {
-            // mark all job so we know what to remove
-            for (JobInstance j : jobs.values()) {
-                j.seen = false;
-            }
-            for (HarvestableBrief hbrief : hbriefs) {
-                Long id = hbrief.getId();
-                JobInstance ji = jobs.get(id);
-                // corresponding job is in the current list
-                if (ji != null) {
-                    // and seetings has changed
-                    if (!ji.getHarvestable().getLastUpdated().equals(hbrief.getLastUpdated())) {
-                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-                                + " parameters changed (LU " + hbrief.getLastUpdated() + "), stopping thread and destroying job");
-                        ji.stop();
-                        ji = null; // signal to create a new one
-                    // should we remove it from the list?
-                    }
-                    //but it's been disabled
-                    if (!hbrief.isEnabled()) {
-                        logger.log(Level.INFO, "JOB#" + id + " has been disabled");
-                        if (ji != null) {
-                            ji.stop();
-                        }
-                        jobs.remove(id);
-                    }
-                }
-                // crate new job
-                if (ji == null) {
-                    if (!hbrief.isEnabled()) {
-                        //logger.log(Level.INFO, "New JOB#" + hbrief.getId() + " is disabled, nothing will be created");
-                    } else {
-                        Harvestable harv = dao.retrieveFromBrief(hbrief);
-                        try {
-                            ji = new JobInstance(harv,
-                                    HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv)
-                                    , (Proxy) config.get("harvester.http.proxy"));
-                            jobs.put(id, ji);
-                            logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
-                        } catch (Exception e) {
-                            logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
-                            logger.log(Level.DEBUG, e);
-                        }
-                    }
-                }
-                if (ji != null) {
-                    ji.seen = true;
+            return;
+        }
+        // mark all job so we know what to remove
+        for (JobInstance j : jobs.values()) {
+            j.seen = false;
+        }
+        for (HarvestableBrief hbrief : hbriefs) {
+            Long id = hbrief.getId();
+            JobInstance ji = jobs.get(id);
+            // corresponding job is in the current list and is enabled
+            if (ji != null) {
+                //has been re-configured (also dis-/enabled)
+                if (!ji.getHarvestable().getLastUpdated().equals(hbrief.getLastUpdated())) {
+                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
+                            + " parameters changed (LU " + hbrief.getLastUpdated() + "), stopping thread and destroying job");
+                    //stop and signal to create new one
+                    ji.stop();
+                    jobs.remove(id);
+                    ji = null;
                 }
             }
+            // no corresponding job in the list, crate new one
+            if (ji == null) {
+                Harvestable harv = dao.retrieveFromBrief(hbrief);
+                try {
+                    ji = new JobInstance(harv,
+                            HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv)
+                            , (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
+                    jobs.put(id, ji);
+                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
+                    if (!hbrief.isEnabled())
+                        logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " will be disabled.");
+                } catch (IllegalArgumentException e) {
+                    logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
+                    logger.log(Level.DEBUG, e);
+                    continue;
+                }
+            }            
+            ji.seen = true;
+        }
 
-            // kill jobs with no entities in the WS
-            for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
-                JobInstance ji = it.next();
-                if (!ji.seen) {
-                    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " no longer in the DB. Deleting from list.");
-                    //ji.stop();
-                    ji.destroy();
-                    it.remove();
-                }
+        // kill jobs with no entities in the WS
+        for (Iterator<JobInstance> it = jobs.values().iterator(); it.hasNext();) {
+            JobInstance ji = it.next();
+            if (!ji.seen) {
+                logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
+                        + " no longer in the DB. Deleting from list.");
+                //ji.stop();
+                ji.destroy();
+                it.remove();
             }
         }
     }
@@ -126,7 +117,7 @@ public class JobScheduler {
                 case NEW:     // ask if time to run
                 case WAITING:
                     // should check harvested until?
-                    if (ji.timeToRun()) {
+                    if (ji.isEnabled() && ji.timeToRun()) {
                         ji.start();
                     }
                     break;
