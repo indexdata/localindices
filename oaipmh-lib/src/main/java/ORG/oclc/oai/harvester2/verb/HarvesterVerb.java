@@ -15,6 +15,8 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
+import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import com.sun.org.apache.xpath.internal.XPathAPI;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -223,20 +225,22 @@ public abstract class HarvesterVerb {
                 responseCode = con.getResponseCode();
                 logger.log(Level.INFO,"responseCode=" + responseCode);
             } catch (FileNotFoundException e) {
-                // assume it's a 503 response
+                // response is majorly broken assume it's 503 and try to retry
                 logger.log(Level.INFO, requestURL, e);
                 responseCode = HttpURLConnection.HTTP_UNAVAILABLE;
             }
-            
-            if (responseCode == HttpURLConnection.HTTP_UNAVAILABLE) {
+            //for some responses the server will tell us when to retry
+            if (responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+                || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE) {
                 long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
                 if (retrySeconds == -1) {
+                    //this is because in HTTP date may be alreadt parsed
                     long now = (new Date()).getTime();
                     long retryDate = con.getHeaderFieldDate("Retry-After", now);
                     retrySeconds = retryDate - now;
                 }
                 if (retrySeconds == 0) { // Apparently, it's a bad URL
-                    throw new FileNotFoundException("Bad URL?");
+                    throw new BrokenHttpResponseException("Could not read HTTP response code. Bad URL?");
                 }
                 logger.log(Level.INFO,"Server response: Retry-After="
                         + retrySeconds);
@@ -249,6 +253,18 @@ public abstract class HarvesterVerb {
                 }
             }
         } while (responseCode == HttpURLConnection.HTTP_UNAVAILABLE);
+
+        //stop for non-recoverable HTTP client/server errrors
+        if (responseCode >= 400 && responseCode < 600) {
+            String statusMessage = null;
+            try {
+                statusMessage = con.getResponseMessage();
+            } catch (IOException ioe) {
+                statusMessage = "<couldn't parse status message>";
+            }
+            throw new HttpErrorException(responseCode, statusMessage, requestURL);
+        }
+
         String contentEncoding = con.getHeaderField("Content-Encoding");
         logger.log(Level.INFO, "contentEncoding=" + contentEncoding);
         if ("compress".equals(contentEncoding)) {

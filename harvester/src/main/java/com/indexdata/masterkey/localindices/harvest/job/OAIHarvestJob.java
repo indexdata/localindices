@@ -160,7 +160,7 @@ public class OAIHarvestJob implements HarvestJob {
                         out);
             //}
             
-        } catch (Exception e) {
+        } catch (IOException e) {
             status = HarvestStatus.ERROR;
             resource.setMessage(e.getMessage());
             logger.log(Level.DEBUG, e);
@@ -213,6 +213,8 @@ public class OAIHarvestJob implements HarvestJob {
             logger.log(Level.DEBUG, "JOB#"+resource.getId() + msg + " Erroneous respponse:\n"
                     + TextUtils.readStream(hve.getResponseStream()));
             throw new IOException(msg, hve);
+        } catch (IOException io) {
+            throw io;
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -268,6 +270,8 @@ public class OAIHarvestJob implements HarvestJob {
                     logger.log(Level.ERROR, msg + " Erroneous respponse:\n" 
                             + TextUtils.readStream(hve.getResponseStream()));
                     throw new IOException(msg, hve);
+                } catch (IOException io) {
+                    throw io;
                 } catch (Exception e) {
                   throw new IOException(e);
                 }
