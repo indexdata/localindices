@@ -16,6 +16,7 @@
 
 package ORG.oclc.oai.harvester2.app;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.*;
 import java.lang.NoSuchFieldException;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class RawWrite {
 
     public static void run(String baseURL, String resumptionToken,
                            OutputStream out)
-        throws IOException, ParserConfigurationException, HarvesterVerbException, TransformerException,
+        throws IOException, ParserConfigurationException, ResponseParsingException, TransformerException,
                NoSuchFieldException {
         ListRecords listRecords = new ListRecords(baseURL, resumptionToken, null);
         while (listRecords != null) {
@@ -106,7 +107,7 @@ public class RawWrite {
     public static void run(String baseURL, String from, String until,
                            String metadataPrefix, String setSpec,
                            OutputStream out)
-        throws IOException, ParserConfigurationException, HarvesterVerbException, TransformerException,
+        throws IOException, ParserConfigurationException, ResponseParsingException, TransformerException,
                NoSuchFieldException {
         out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
         out.write("<harvest>\n".getBytes("UTF-8"));

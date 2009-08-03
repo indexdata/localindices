@@ -15,6 +15,7 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
 import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import com.sun.org.apache.xpath.internal.XPathAPI;
@@ -195,7 +196,7 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public HarvesterVerb(String requestURL, Proxy proxy) throws IOException,
-    ParserConfigurationException, TransformerException, HarvesterVerbException {
+    ParserConfigurationException, TransformerException, ResponseParsingException {
         harvest(requestURL, proxy);
     }
     
@@ -209,7 +210,7 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public void harvest(String requestURL, Proxy proxy) throws IOException,
-    ParserConfigurationException, TransformerException, HarvesterVerbException {
+    ParserConfigurationException, TransformerException, ResponseParsingException {
         this.requestURL = requestURL;
         logger.log(Level.INFO, "requestURL=" + requestURL);
         InputStream in = null;
@@ -314,7 +315,7 @@ public abstract class HarvesterVerb {
             doc = builder.parse(data);
         } catch (SAXException saxe) {
             bin.reset();
-            throw new HarvesterVerbException("Cannot parse response: " + saxe.getMessage(),
+            throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
                     saxe, bin, requestURL);
         }
         

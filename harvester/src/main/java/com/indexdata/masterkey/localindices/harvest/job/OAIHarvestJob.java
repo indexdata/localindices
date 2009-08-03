@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import ORG.oclc.oai.harvester2.verb.*;
 import java.text.SimpleDateFormat;
@@ -207,7 +208,7 @@ public class OAIHarvestJob implements HarvestJob {
         try {
             listRecords = new ListRecords(baseURL, from, until, setSpec,
                 metadataPrefix, proxy);
-        } catch (HarvesterVerbException hve) {
+        } catch (ResponseParsingException hve) {
             String msg = "ListRecords (" + hve.getRequestURL() + ") failed. "
                     + hve.getMessage();
             logger.log(Level.DEBUG, "JOB#"+resource.getId() + msg + " Erroneous respponse:\n"
@@ -264,7 +265,7 @@ public class OAIHarvestJob implements HarvestJob {
                 logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
                 try {
                     listRecords = new ListRecords(baseURL, resumptionToken, proxy);
-                } catch (HarvesterVerbException hve) {
+                } catch (ResponseParsingException hve) {
                     String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " 
                             + hve.getMessage();
                     logger.log(Level.ERROR, msg + " Erroneous respponse:\n" 

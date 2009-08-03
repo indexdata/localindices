@@ -16,6 +16,7 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.URLEncoder;
@@ -48,7 +49,7 @@ public class ListRecords extends HarvesterVerb {
      */
     public ListRecords(String baseURL, String from, String until,
             String set, String metadataPrefix, Proxy proxy)
-    throws IOException, ParserConfigurationException, HarvesterVerbException,
+    throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
         super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy);
     }
@@ -63,7 +64,7 @@ public class ListRecords extends HarvesterVerb {
      * @throws TransformerException
      */
     public ListRecords(String baseURL, String resumptionToken, Proxy proxy)
-    throws IOException, ParserConfigurationException, HarvesterVerbException,
+    throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
         super(getRequestURL(baseURL, resumptionToken), proxy);
     }
