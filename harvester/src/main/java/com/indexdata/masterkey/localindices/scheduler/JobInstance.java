@@ -167,14 +167,14 @@ public class JobInstance {
      */
     public boolean statusMsgChanged() {
         boolean changed;
-        if (lastStatusMsg == null && harvestJob.getError() == null) {
+        if (lastStatusMsg == null && harvestJob.getMessage() == null) {
             changed = false;
         } else if (lastStatusMsg == null) {
             changed = true;
         } else {
-            changed = !(lastStatusMsg.equals(harvestJob.getError()));
+            changed = !(lastStatusMsg.equals(harvestJob.getMessage()));
         }
-        lastStatusMsg = harvestJob.getError();
+        lastStatusMsg = harvestJob.getMessage();
         return changed;
     }
 
@@ -184,6 +184,14 @@ public class JobInstance {
      */
     public HarvestStatus getStatus() {
         return harvestJob.getStatus();
+    }
+
+    public boolean shallPersist() {
+        if (harvestJob.isUpdated()) {
+            harvestJob.clearUpdated();
+            return true;
+        }
+        return false;
     }
 
 }

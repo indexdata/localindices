@@ -10,7 +10,6 @@ import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -126,17 +125,23 @@ public class JobScheduler {
                 case KILLED: //zombie thread
                     break;
             }
+            //TODO change the whole thing into an observer pattern
+            boolean needsUpdate = false;
             if (ji.statusChanged()) {
                 logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                         + " status updated to " + ji.getStatus());
                 ji.getHarvestable().setCurrentStatus(ji.getStatus().name());
-                dao.updateHarvestable(ji.getHarvestable());
+                needsUpdate = true;
             }
             if (ji.statusMsgChanged()) {
                 logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                         + " - status message updated - " + ji.getHarvestable().getMessage());
-                dao.updateHarvestable(ji.getHarvestable());
+                needsUpdate = true;
             }
+            if (ji.shallPersist()) {
+                needsUpdate = true;
+            }
+            if (needsUpdate) dao.updateHarvestable(ji.getHarvestable());
         }
     }
 

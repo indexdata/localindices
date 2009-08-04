@@ -191,7 +191,7 @@ public class WebHarvestJob implements HarvestJob {
         }
     }
 
-    public synchronized String getError() {
+    public synchronized String getMessage() {
         return error;
     }
 
@@ -455,5 +455,14 @@ public class WebHarvestJob implements HarvestJob {
             }
         }
     } // run()
+
+    @Override
+    public boolean isUpdated() {
+        return false;
+    }
+
+    @Override
+    public void clearUpdated() {
+    }
 } // class WebHarvestJob
 
