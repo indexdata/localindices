@@ -16,6 +16,7 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
 import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,7 +45,7 @@ public class Identify extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public Identify(String baseURL, Proxy proxy)
-    throws IOException, ParserConfigurationException, HarvesterVerbException,
+    throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
         super(getRequestURL(baseURL), proxy);
     }

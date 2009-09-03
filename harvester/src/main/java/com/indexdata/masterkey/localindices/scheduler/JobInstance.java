@@ -34,8 +34,10 @@ public class JobInstance {
     private HarvestStatus lastHarvestStatus;
     private String lastStatusMsg;
     public boolean seen; // for checking what has been deleted
+    private boolean enabled = true;
 
-    public JobInstance(Harvestable hable, HarvestStorage storage, Proxy proxy) throws IllegalArgumentException {
+    public JobInstance(Harvestable hable, HarvestStorage storage, Proxy proxy, boolean enabled) throws IllegalArgumentException {
+        this.enabled = enabled;
         //if cron line is not specified - default to today
         if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
             logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
@@ -65,15 +67,17 @@ public class JobInstance {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
         }
         harvestable = hable;
-        if (hable.getCurrentStatus() != null) {
-            lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
-        }
+        lastHarvestStatus = HarvestStatus.valueOf(hable.getCurrentStatus());
         lastStatusMsg = hable.getMessage();
-        seen = false;
+        seen = false;        
     }
 
     public Harvestable getHarvestable() {
         return harvestable;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
@@ -163,14 +167,14 @@ public class JobInstance {
      */
     public boolean statusMsgChanged() {
         boolean changed;
-        if (lastStatusMsg == null && harvestJob.getError() == null) {
+        if (lastStatusMsg == null && harvestJob.getMessage() == null) {
             changed = false;
         } else if (lastStatusMsg == null) {
             changed = true;
         } else {
-            changed = !(lastStatusMsg.equals(harvestJob.getError()));
+            changed = !(lastStatusMsg.equals(harvestJob.getMessage()));
         }
-        lastStatusMsg = harvestJob.getError();
+        lastStatusMsg = harvestJob.getMessage();
         return changed;
     }
 
@@ -180,6 +184,14 @@ public class JobInstance {
      */
     public HarvestStatus getStatus() {
         return harvestJob.getStatus();
+    }
+
+    public boolean shallPersist() {
+        if (harvestJob.isUpdated()) {
+            harvestJob.clearUpdated();
+            return true;
+        }
+        return false;
     }
 
 }

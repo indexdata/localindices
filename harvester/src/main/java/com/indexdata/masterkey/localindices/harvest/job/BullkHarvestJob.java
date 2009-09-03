@@ -37,12 +37,7 @@ public class BullkHarvestJob implements HarvestJob {
     public BullkHarvestJob(XmlBulkResource resource, Proxy proxy) {
         this.proxy = proxy;
         this.resource = resource;
-        String persistedStatus = resource.getCurrentStatus();
-        if (persistedStatus == null) {
-            this.status = HarvestStatus.NEW;
-        } else {
-            this.status = HarvestStatus.WAITING;
-        }
+        this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
         this.resource.setMessage(null);
     }
 
@@ -80,7 +75,7 @@ public class BullkHarvestJob implements HarvestJob {
         status = HarvestStatus.WAITING;
     }
 
-    public String getError() {
+    public String getMessage() {
         return error;
     }
 
@@ -206,5 +201,14 @@ public class BullkHarvestJob implements HarvestJob {
         }
         logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes (" + ((double) copied / (double) total * 100) + "%)");
         os.flush();
+    }
+
+    @Override
+    public boolean isUpdated() {
+        return false;
+    }
+
+    @Override
+    public void clearUpdated() {
     }
 }

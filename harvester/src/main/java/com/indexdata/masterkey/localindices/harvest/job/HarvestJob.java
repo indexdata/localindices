@@ -49,6 +49,10 @@ public interface HarvestJob extends Runnable {
      * Get last harvesting error.
      * @return
      */
-    public String getError();
+    public String getMessage();
+
+    public boolean isUpdated();
+
+    public void clearUpdated();
     
 }

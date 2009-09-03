@@ -127,9 +127,9 @@ public class WebHarvestJob implements HarvestJob {
         this.resource = resource;
         this.proxy = proxy;
         robotCache = new WebRobotCache(proxy);
-        this.status = HarvestStatus.NEW;
         logger.setLevel(Level.ALL);  // While debugging
         this.error = null;
+        this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
     }
 
     private synchronized boolean isKillSendt() {
@@ -191,7 +191,7 @@ public class WebHarvestJob implements HarvestJob {
         }
     }
 
-    public synchronized String getError() {
+    public synchronized String getMessage() {
         return error;
     }
 
@@ -455,5 +455,14 @@ public class WebHarvestJob implements HarvestJob {
             }
         }
     } // run()
+
+    @Override
+    public boolean isUpdated() {
+        return false;
+    }
+
+    @Override
+    public void clearUpdated() {
+    }
 } // class WebHarvestJob
 

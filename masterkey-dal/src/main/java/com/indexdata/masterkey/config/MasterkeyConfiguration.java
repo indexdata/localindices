@@ -33,11 +33,9 @@ public class MasterkeyConfiguration {
     private boolean cacheConfigParams = true;    
 
     private ConcurrentHashMap<String,Properties> configParametersCache = new ConcurrentHashMap();
-    private String servletName = null;
     ConfigFileLocation configFileLocation = null;
 
-    private MasterkeyConfiguration(String servletName, ServletContext servletContext, String hostName) throws ServletException {                
-        this.servletName = servletName;                
+    private MasterkeyConfiguration(String servletName, ServletContext servletContext, String hostName) throws IOException {
         cacheConfigParams = areConfigParamsCached(servletContext.getInitParameter(MASTERKEY_CONFIG_LIFE_TIME_PARAM));
         configFileLocation = new ConfigFileLocation(servletContext, hostName);
     }
@@ -58,7 +56,7 @@ public class MasterkeyConfiguration {
      * @param servletContext Needed to pick up init parameters regarding the location of config files
      * @param hostName Used for resolving the path to config files.
      */
-    public static MasterkeyConfiguration getInstance (String servletName, ServletContext servletContext, String hostName) throws ServletException {
+    public static MasterkeyConfiguration getInstance (String servletName, ServletContext servletContext, String hostName) throws IOException {
         MasterkeyConfiguration cfg = null;
         String cfgKey = servletContext.getContextPath() + "/" + servletName +"@"+hostName;
         if (configLocationCache.containsKey(cfgKey)) {
@@ -81,7 +79,7 @@ public class MasterkeyConfiguration {
      * @return
      * @throws javax.servlet.ServletException
      */
-    private boolean areConfigParamsCached(String configLifeTime) throws ServletException {
+    private boolean areConfigParamsCached(String configLifeTime) {
         boolean setting = true;
         if (configLifeTime == null || configLifeTime.length() == 0) {
             logger.warn(MASTERKEY_CONFIG_LIFE_TIME_PARAM + " init parameter not defined in deployment descriptor. Can be 'REQUEST' or 'SERVLET'. Defaulting to 'SERVLET'.");
@@ -103,15 +101,15 @@ public class MasterkeyConfiguration {
      * @return
      * @throws javax.servlet.ServletException
      */
-    private Enumeration getConfigParameterNames() throws ServletException {
+    private Enumeration getConfigParameterNames(String prefix) throws IOException {
         Properties prop = getComponentProperties(configFileLocation.getConfigFilePath());
         Hashtable<String, String> keyList = new Hashtable<String, String>();
         Iterator keysIter = prop.keySet().iterator();
         int i = 0;
         while (keysIter.hasNext()) {
             String key = (String) keysIter.next();
-            if (key.startsWith(servletName)) {
-                key = key.replace(servletName + ".", "");
+            if (key.startsWith(prefix)) {
+                key = key.replace(prefix + ".", "");
                 keyList.put("" + (i++), key);
             }
         }
@@ -124,9 +122,9 @@ public class MasterkeyConfiguration {
      * @return
      * @throws javax.servlet.ServletException
      */
-    public String getConfigParameter(String name) throws ServletException {
+    public String getConfigParameter(String prefix, String name) throws IOException {
         Properties prop = getComponentProperties(configFileLocation.getConfigFilePath());
-        String propertyValue = (String) prop.get(servletName + "." + name);
+        String propertyValue = (String) prop.get(prefix + "." + name);
         if (propertyValue == null || propertyValue.length() == 0) {
             logger.error("Could not find value for key '" + name + "'");
         } else {
@@ -143,7 +141,7 @@ public class MasterkeyConfiguration {
      * @return
      * @throws javax.servlet.ServletException
      */
-    private Properties getComponentProperties(String configFilePath) throws ServletException {
+    private Properties getComponentProperties(String configFilePath) throws IOException {
         Properties componentProperties = null;
         if (cacheConfigParams && configParametersCache.containsKey(configFilePath)) {
             componentProperties = configParametersCache.get(configFilePath);
@@ -158,7 +156,7 @@ public class MasterkeyConfiguration {
                 configFileLocation.evaluate();
             } catch (IOException ioe) {
                 logger.error(ioe + "Could not load property file '" + configFilePath + "'");
-                throw new ServletException("Could not load property file '" + configFilePath + "'" + ioe.getMessage());
+                throw new IOException("Could not load property file '" + configFilePath + "'" + ioe.getMessage());
             }
             if (cacheConfigParams) {
                configParametersCache.put(configFilePath, componentProperties);
@@ -174,12 +172,12 @@ public class MasterkeyConfiguration {
      * @return
      * @throws javax.servlet.ServletException
      */
-    public Map<String, String> getConfigParamsAsMap() throws ServletException {
+    public Map<String, String> getConfigParamsAsMap(String prefix) throws IOException {
         Map<String, String> paramMap = new HashMap<String, String>();
-        Enumeration paramNames = getConfigParameterNames();
+        Enumeration paramNames = getConfigParameterNames(prefix);
         while (paramNames.hasMoreElements()) {
             String paramName = (String) paramNames.nextElement();
-            paramMap.put(paramName, getConfigParameter(paramName));
+            paramMap.put(paramName, getConfigParameter(prefix, paramName));
         }
         return paramMap;
     }

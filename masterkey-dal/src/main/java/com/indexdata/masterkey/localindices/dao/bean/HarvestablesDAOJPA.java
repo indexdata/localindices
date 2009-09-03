@@ -31,11 +31,13 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         return EntityUtil.getManager();
     }
     
+    @Override
     public void createHarvestable(Harvestable harvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
+            harvestable.setCurrentStatus("NEW");
             em.persist(harvestable);
             tx.commit();
         } catch (Exception ex) {
@@ -50,6 +52,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
+    @Override
     public Harvestable retrieveHarvestableById(Long id) {
         EntityManager em = getEntityManager();
         Harvestable hable = em.find(Harvestable.class, id);
@@ -57,9 +60,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         return hable;
     }
 
-    public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable) {
+    @Override
+    public Harvestable updateHarvestable(Harvestable updHarvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
+        Harvestable harvestable = null;
         try {
             tx.begin();
             harvestable = em.merge(updHarvestable);
@@ -75,12 +80,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.close();
         }
         return harvestable;    
-    }
-    
-    public Harvestable updateHarvestable(Harvestable harvestable) {
-        return updateHarvestable(harvestable, harvestable);
-    }
+    }    
 
+    @Override
     public void deleteHarvestable(Harvestable harvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -101,6 +103,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
+    @Override
     public List<Harvestable> retrieveHarvestables(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -125,6 +128,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         return hables;
     }
 
+    @Override
     public int getHarvestableCount() {
         EntityManager em = getEntityManager();
         try {
@@ -135,6 +139,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
+    @Override
     public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : retrieveHarvestables(start, max)) {
@@ -144,6 +149,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         return hrefs;
     }
 
+    @Override
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
         return retrieveHarvestableById(href.getId());
     }

@@ -18,8 +18,6 @@
         <!--
         <h:outputText value="Metadata Schema URI: "/>
         <h:inputText value="#{resourceController.resource.schemaURI}"/>
-        <h:outputText value="Normalization Filter: "/>
-        <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
         -->
         <h:outputText value="Use long date format:"/>
         <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
@@ -27,5 +25,7 @@
         <h:inputText value="#{resourceController.resource.fromDate}" size="8">
             <f:convertDateTime pattern="dd/MM/yyyy" />
         </h:inputText>
+        <h:outputText value="Resumption token: (overrrides date)"/>
+        <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
     </h:panelGrid>
 </f:subview>
