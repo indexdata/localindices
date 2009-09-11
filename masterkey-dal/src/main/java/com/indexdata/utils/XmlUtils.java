@@ -29,31 +29,41 @@ import org.xml.sax.SAXException;
 
 /**
  * Some XML helper methods to hide DOM complexity.
+ * Uses thread local variables to create Builders once per thread.
  * @author jakub
  */
 public class XmlUtils {
-    private static DocumentBuilder builder;
-    private static Transformer transformer;
-    
-    private static DocumentBuilder getBuilder() throws ParserConfigurationException {
-        if (builder == null) {
+    private static final ThreadLocal<DocumentBuilder> builderLocal =
+    new ThreadLocal<DocumentBuilder>() {
+        @Override
+        protected DocumentBuilder initialValue() {
+          try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setIgnoringElementContentWhitespace(true);
-            builder = factory.newDocumentBuilder();
+            return factory.newDocumentBuilder();
+          } catch (ParserConfigurationException pce) {
+            throw new Error(pce);
+          }
         }
-        return builder;
-    }
-    
-    private static Transformer getTransformer() throws TransformerConfigurationException {
-        if (transformer == null) {
-            TransformerFactory factory = TransformerFactory.newInstance();
-            transformer = factory.newTransformer();
+    };
+
+    private static final ThreadLocal<Transformer> transformerLocal =
+    new ThreadLocal<Transformer>() {
+        @Override
+        protected Transformer initialValue() {
+          try {
+            return TransformerFactory.newInstance().newTransformer();
+          } catch (TransformerConfigurationException tce) {
+            throw new Error(tce);
+          }
         }
-        return transformer;
-    }
+    };
+
+    private XmlUtils() {
+    }    
 
     public static Document newDoc(String rootNode) throws ParserConfigurationException {
-        Document doc = getBuilder().newDocument();
+        Document doc = builderLocal.get().newDocument();
         Element root = doc.createElement(rootNode);
         doc.appendChild(root);
         return doc;
@@ -61,20 +71,20 @@ public class XmlUtils {
     
     public static Document parse(InputStream source) 
             throws ParserConfigurationException, SAXException, IOException {
-        return getBuilder().parse(source);
+        return builderLocal.get().parse(source);
     }
     
     public static Document parse(String path) 
             throws ParserConfigurationException, SAXException, IOException {
-        return getBuilder().parse(path);
+        return builderLocal.get().parse(path);
     }
     
     public static Document parse(StringReader reader) throws ParserConfigurationException, SAXException, IOException {
-        return getBuilder().parse(new InputSource(reader));
+        return builderLocal.get().parse(new InputSource(reader));
     }
     
     public static void serialize(Document doc, OutputStream dest) throws TransformerConfigurationException, TransformerException {
-        getTransformer().transform(new DOMSource(doc), new StreamResult(dest));
+        transformerLocal.get().transform(new DOMSource(doc), new StreamResult(dest));
     }
 
     /**
