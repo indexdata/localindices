@@ -8,7 +8,7 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.client.ResourceConnector;
+import com.indexdata.rest.client.ResourceConnector;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;

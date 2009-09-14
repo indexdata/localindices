@@ -6,10 +6,10 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import com.indexdata.masterkey.localindices.web.service.client.ResourceConnectionException;
-import com.indexdata.masterkey.localindices.web.service.client.ResourceConnector;
+import com.indexdata.rest.client.ResourceConnectionException;
+import com.indexdata.rest.client.ResourceConnector;
 import com.indexdata.torus.Records;
-import com.indexdata.torus.layerbean.IdentityTypeLayer;
+import com.indexdata.torus.layer.IdentityTypeLayer;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -119,7 +119,7 @@ public class LoginManager {
     private IdentityTypeLayer retrieveLayer(String query) throws UnsupportedEncodingException, MalformedURLException, ResourceConnectionException {
         String url = idTorusURI + "?query=" + URLEncoder.encode(query, "UTF-8");
         logger.log(Level.INFO, "Connecting to the identity torus - " + url);
-        ResourceConnector<Records> torusConn = new ResourceConnector<Records>(new URL(url), "com.indexdata.torus.layerbean" + ":com.indexdata.torus");
+        ResourceConnector<Records> torusConn = new ResourceConnector<Records>(new URL(url), "com.indexdata.torus.layer" + ":com.indexdata.torus");
         Records records = torusConn.get();
         if (records.getRecords() == null || records.getRecords().isEmpty()) {
             return null;

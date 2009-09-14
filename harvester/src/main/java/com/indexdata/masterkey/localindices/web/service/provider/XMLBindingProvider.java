@@ -38,7 +38,7 @@ public class XMLBindingProvider implements MessageBodyWriter<Object>, MessageBod
     private static String entityPackage = 
             "com.indexdata.masterkey.localindices.entity" +
             ":com.indexdata.masterkey.localindices.web.service.converter" +
-            ":com.indexdata.torus";
+            ":com.indexdata.torus:com.indexdata.torus.layer";
     
     private static JAXBContext jaxbCtx;
     // context creation is expensive, and since our classes don't change we can cache it

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.indexdata</groupId>
 		<artifactId>localindices</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>0.0.1</version>
 	</parent>
     <groupId>com.indexdata</groupId>
     <artifactId>harvester</artifactId>
@@ -24,7 +24,7 @@
             </dependencies>
         </profile>
     </profiles>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>harvester</name>
     <build>
         <finalName>localindices-harvester</finalName>
@@ -100,12 +100,12 @@
         <dependency>
             <groupId>com.indexdata</groupId>
             <artifactId>masterkey-dal</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.indexdata</groupId>
             <artifactId>oaipmh-lib</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

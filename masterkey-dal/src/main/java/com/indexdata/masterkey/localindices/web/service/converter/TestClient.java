@@ -4,10 +4,10 @@
  * See the file LICENSE for details.
  */
 
-package com.indexdata.masterkey.localindices.web.service.client;
+package com.indexdata.masterkey.localindices.web.service.converter;
 
+import com.indexdata.rest.client.*;
 import com.indexdata.masterkey.localindices.entity.*;
-import com.indexdata.masterkey.localindices.web.service.converter.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
