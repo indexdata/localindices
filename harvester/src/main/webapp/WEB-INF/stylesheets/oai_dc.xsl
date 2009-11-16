@@ -8,7 +8,8 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
     xmlns:oai="http://www.openarchives.org/OAI/2.0/"
-    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:dcterms="http://purl.org/dc/terms/">
 
  <xsl:output indent="yes"
         method="xml"
@@ -71,6 +72,12 @@
         <pz:metadata type="medium">
 	  <xsl:value-of select="."/>
 	</pz:metadata>
+      </xsl:for-each>
+      
+      <xsl:for-each select="dcterms:bibliographicCitation">
+        <pz:metadata type="citation">
+          <xsl:value-of select="."/>
+        </pz:metadata>
       </xsl:for-each>
 
 
