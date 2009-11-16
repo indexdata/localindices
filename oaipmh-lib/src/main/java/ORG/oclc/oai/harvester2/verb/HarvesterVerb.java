@@ -67,7 +67,7 @@ public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
     private final static int HTTP_MAX_RETRIES = 10;
-    private final static int HTTP_RETRY_TIMEOUT = 100;
+    private final static int HTTP_RETRY_TIMEOUT = 600; //secs
     
     /* Primary OAI namespaces */
     public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
@@ -255,7 +255,7 @@ public abstract class HarvesterVerb {
                 if (retrySeconds == 0) { //header not specified
                     retrySeconds = HTTP_RETRY_TIMEOUT;
                     logger.log(Level.INFO,"Server response code '"+responseCode
-                            + "' retrying in "+ retrySeconds);
+                            + "' retrying in "+ retrySeconds + " secs");
                 } else {
                     logger.log(Level.INFO,"Server response code '"+responseCode
                             + "' Retry-After: "+ retrySeconds);
