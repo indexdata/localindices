@@ -1,0 +1,14 @@
+<record xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<header><identifier>oai:heinonline.org:hein.aallar-aallnl0001.3</identifier><datestamp>2009-11-03T18:29:17Z</datestamp><setSpec>uberjournals:articles</setSpec><setSpec>wshjournals:articles</setSpec><setSpec>usjournals:articles</setSpec><setSpec>journals:articles</setSpec><setSpec>aallar:articles</setSpec></header><metadata>
+		<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+			<dc:title>Issue 2</dc:title>
+			<dc:creator/>
+			<dc:date>April 1970</dc:date>
+			<dc:identifier>http://heinonline.org/HOL/Page?handle=hein.aallar/aallnl0001&amp;id=41&amp;set_as_cursor=clear</dc:identifier>
+			<dc:type>notes</dc:type>
+			<dc:description>                     AMERICAN ASSOCIATION OF LAW LIBRARIES NEWSLETTER      Vol. 1 April 1970 No. 2       Contents     1970 Annual Meeting ................ ................. 3  Scholarship Winner ................ ................. 4  Institutes for Law Librarians ................... 4  Discussion with Publishers and Dealers ..... ....... 6  Statistics ................. ... ..................... 7  Tenure of Law Librarians ............. .............. 8  Letters to the Editor .......... ................ 11  Membership News .............. ................... 13  Late News ................ ...................... 16  Placement List ............... ................... 17  Positions Wanted ............. .................. 18  Committee Assignments and Association   Representatives for 1970   1971 ... ......... 19       William B. Stern, President   Los Angeles County Law Library   301 W. First Street   Los Angeles, California 90012     Mario P. Goderich, Editor   University of Miami   Law School Library   Coral Gables, Florida 33124       </dc:description>
+			<dcterms:bibliographicCitation>1 AALL Newsl. 1 (1970)</dcterms:bibliographicCitation>
+		</oai_dc:dc>
+	</metadata>
+</record>
+
