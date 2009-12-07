@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>com.indexdata</groupId>
 		<artifactId>localindices</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>0.0.1</version>
 	</parent>
   <groupId>com.indexdata</groupId>
   <artifactId>masterkey-dal</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>masterkey-dal</name>
   <url>http://maven.apache.org</url>
     <build>

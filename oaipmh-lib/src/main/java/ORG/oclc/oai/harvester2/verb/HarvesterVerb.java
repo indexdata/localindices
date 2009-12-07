@@ -15,6 +15,9 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
+import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import com.sun.org.apache.xpath.internal.XPathAPI;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -62,6 +65,9 @@ import org.apache.log4j.Level;
  */
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
+
+    private final static int HTTP_MAX_RETRIES = 10;
+    private final static int HTTP_RETRY_TIMEOUT = 600; //secs
     
     /* Primary OAI namespaces */
     public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
@@ -190,7 +196,7 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public HarvesterVerb(String requestURL, Proxy proxy) throws IOException,
-    ParserConfigurationException, TransformerException, HarvesterVerbException {
+    ParserConfigurationException, TransformerException, ResponseParsingException {
         harvest(requestURL, proxy);
     }
     
@@ -204,14 +210,17 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
     public void harvest(String requestURL, Proxy proxy) throws IOException,
-    ParserConfigurationException, TransformerException, HarvesterVerbException {
+    ParserConfigurationException, TransformerException, ResponseParsingException {
         this.requestURL = requestURL;
         logger.log(Level.INFO, "requestURL=" + requestURL);
         InputStream in = null;
         URL url = new URL(requestURL);
         HttpURLConnection con = null;
         int responseCode = 0;
+        boolean retry;
+        int totalRetries = 0;
         do {
+            retry = false;
             if (proxy != null)
                 con = (HttpURLConnection) url.openConnection(proxy);
             else
@@ -223,32 +232,60 @@ public abstract class HarvesterVerb {
                 responseCode = con.getResponseCode();
                 logger.log(Level.INFO,"responseCode=" + responseCode);
             } catch (FileNotFoundException e) {
-                // assume it's a 503 response
+                // response is majorly broken, retry nevertheless
                 logger.log(Level.INFO, requestURL, e);
-                responseCode = HttpURLConnection.HTTP_UNAVAILABLE;
+                responseCode = -1;
             }
-            
-            if (responseCode == HttpURLConnection.HTTP_UNAVAILABLE) {
+            //for some responses the server will tell us when to retry
+            //for others we'll use the defaults
+            if (responseCode == -1
+             || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+             || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
+             || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
+             || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
+             || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+             || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT) {
                 long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
                 if (retrySeconds == -1) {
+                    //this is because in HTTP date may be already parsed as seconds
                     long now = (new Date()).getTime();
                     long retryDate = con.getHeaderFieldDate("Retry-After", now);
                     retrySeconds = retryDate - now;
                 }
-                if (retrySeconds == 0) { // Apparently, it's a bad URL
-                    throw new FileNotFoundException("Bad URL?");
+                if (retrySeconds == 0) { //header not specified
+                    retrySeconds = HTTP_RETRY_TIMEOUT;
+                    logger.log(Level.INFO,"Server response code '"+responseCode
+                            + "' retrying in "+ retrySeconds + " secs");
+                } else {
+                    logger.log(Level.INFO,"Server response code '"+responseCode
+                            + "' Retry-After: "+ retrySeconds);
                 }
-                logger.log(Level.INFO,"Server response: Retry-After="
-                        + retrySeconds);
                 if (retrySeconds > 0) {
                     try {
                         Thread.sleep(retrySeconds * 1000);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        throw new IOException("Interrupted while retrying HTTP connection.");
                     }
                 }
+                retry = ++totalRetries < HTTP_MAX_RETRIES;
             }
-        } while (responseCode == HttpURLConnection.HTTP_UNAVAILABLE);
+        } while (retry);
+
+        if (responseCode == -1) {
+            throw new BrokenHttpResponseException("Could not read HTTP response code. Bad URL?");
+        }
+
+        //stop for non-recoverable HTTP client/server errrors
+        if (responseCode >= 400 && responseCode < 600) {
+            String statusMessage = null;
+            try {
+                statusMessage = con.getResponseMessage();
+            } catch (IOException ioe) {
+                statusMessage = "<couldn't parse status message>";
+            }
+            throw new HttpErrorException(responseCode, statusMessage, requestURL);
+        }
+
         String contentEncoding = con.getHeaderField("Content-Encoding");
         logger.log(Level.INFO, "contentEncoding=" + contentEncoding);
         if ("compress".equals(contentEncoding)) {
@@ -278,7 +315,7 @@ public abstract class HarvesterVerb {
             doc = builder.parse(data);
         } catch (SAXException saxe) {
             bin.reset();
-            throw new HarvesterVerbException("Cannot parse response: " + saxe.getMessage(),
+            throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
                     saxe, bin, requestURL);
         }
         

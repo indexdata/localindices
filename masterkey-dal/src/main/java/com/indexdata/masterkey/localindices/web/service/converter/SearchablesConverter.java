@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
+import com.indexdata.torus.layer.SearchableTypeLayer;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.torus.Layer;

@@ -4,19 +4,20 @@
  *  See the file LICENSE for details.
  */
 
-package ORG.oclc.oai.harvester2.verb;
+package ORG.oclc.oai.harvester2.transport;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
  *
  * @author jakub
  */
-public class HarvesterVerbException extends Exception {
+public class ResponseParsingException extends IOException {
     InputStream responseStream;
     String requestURL;
 
-    public HarvesterVerbException(String msg, Throwable cause, InputStream responseStream, String requestURL) {
+    public ResponseParsingException(String msg, Throwable cause, InputStream responseStream, String requestURL) {
         super(msg, cause);
         this.requestURL = requestURL;
         this.responseStream = responseStream;

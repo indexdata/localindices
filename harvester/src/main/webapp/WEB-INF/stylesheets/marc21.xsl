@@ -42,13 +42,10 @@
     <pz:record>
       <xsl:attribute name="mergekey">
         <xsl:text>title </xsl:text>
-	<xsl:value-of select="marc:datafield[@tag='245']/marc:subfield[@code='a']"/>
-	<xsl:text> author </xsl:text>
-	<xsl:value-of select="marc:datafield[@tag='100']/marc:subfield[@code='a']"/>
-	<xsl:text> medium </xsl:text>
-	<xsl:value-of select="$medium"/>
+        <xsl:value-of select="marc:datafield[@tag='245']/marc:subfield[@code='a']"/>
+        <xsl:text> author </xsl:text>
+        <xsl:value-of select="marc:datafield[@tag='100']/marc:subfield[@code='a']"/>
       </xsl:attribute>
-
       
       <xsl:for-each select="marc:controlfield[@tag='001']">
         <pz:metadata type="id">
