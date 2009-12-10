@@ -28,8 +28,6 @@
                 Hello, <h:outputText value="#{loginManager.displayName}" />!
                 <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
                 -->
-                <h:outputText value=" | " />
-                <h:commandLink value="View Logfile" action="harvester_log" />
             </h:form>
             <h:form>
                 <h3><h:outputText value="Available resources:" /></h3>
