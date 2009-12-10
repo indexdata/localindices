@@ -151,10 +151,12 @@ public class BullkHarvestJob implements HarvestJob {
                             continue;
                         }
                     }
-                    if (proper == 0) 
-                        throw new Exception("No proper links found at " + url.toString() + 
+                    if (proper == 0) {
+                      logger.log(Level.ERROR, "No proper links found at " + url.toString() +
                                 ", trash links: " + recursive +
                                 ", dead links: " + dead);
+                       throw new Exception("No MARC files found at "+url.toString());
+                    }
                 //assume marc file, TODO text/plain                    
                 } else {
                     store(conn.getInputStream(), contentLenght);
