@@ -28,13 +28,6 @@
   <xsl:template match="*">
     <pz:record>
 
-      <xsl:attribute name="mergekey">
-        <xsl:text>title </xsl:text>
-        <xsl:value-of select="dc:Title[1]"/>
-        <xsl:text> author </xsl:text>
-        <xsl:value-of select="dc:creator[1]"/>
-      </xsl:attribute>
-
       <pz:metadata type="id">
         <xsl:value-of select="dc:identifier[@type='document.number']"/>
       </pz:metadata>
