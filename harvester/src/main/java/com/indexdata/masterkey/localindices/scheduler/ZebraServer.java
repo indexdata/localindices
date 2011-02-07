@@ -6,13 +6,12 @@
 
 package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.masterkey.localindices.util.*;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.util.ProcessUtils;
 
 /**
  * Wrapper class around zebrasrv.

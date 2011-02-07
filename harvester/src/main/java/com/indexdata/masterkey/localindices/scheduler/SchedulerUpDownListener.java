@@ -114,7 +114,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
         unpackResourceWithSubstitute(ctx, "/WEB-INF/addlexis.rb", harvestDirPath + "/addlexis.rb", null);
 
         //load properties to a config
-        Map<String,Object> config = new HashMap(props);
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+		Map<String,Object> config = new HashMap(props);
 
         //http proxy settings
         String proxyHost = props.getProperty("harvester.http.proxyHost");
@@ -204,9 +205,11 @@ public class SchedulerUpDownListener implements ServletContextListener {
         }
     }
 
-    private Map<String, String> getInitParamsAsMap(ServletContext ctx) {
+    @SuppressWarnings("unused")
+	private Map<String, String> getInitParamsAsMap(ServletContext ctx) {
         Map<String, String> paramMap = new HashMap<String, String>();
-        Enumeration paramNames = ctx.getInitParameterNames();
+        @SuppressWarnings("rawtypes")
+		Enumeration paramNames = ctx.getInitParameterNames();
         while (paramNames.hasMoreElements()) {
             String paramName = (String) paramNames.nextElement();
             paramMap.put(paramName, ctx.getInitParameter(paramName));

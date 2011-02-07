@@ -8,15 +8,10 @@ package com.indexdata.masterkey.localindices.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.CharBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +24,8 @@ public class HarvestableLog {
     private static File logFile = new File("/var/cache/harvested/harvester.log");
 
     // not used but shows the concept of matching against the whole buffer
-    private static void readLines(Pattern lp, CharBuffer in, StringBuilder out) {
+    @SuppressWarnings("unused")
+	private static void readLines(Pattern lp, CharBuffer in, StringBuilder out) {
         Matcher lm = lp.matcher(in);	// Line matcher
         int lines = 0;
         while (lm.find()) {

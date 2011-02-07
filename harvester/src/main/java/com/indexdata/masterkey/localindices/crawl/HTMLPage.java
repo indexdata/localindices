@@ -41,7 +41,8 @@ public class HTMLPage {
     private URL url;
     private String error = "";
     private String contentType;
-    private int contentLength;
+	@SuppressWarnings("unused")
+	private int contentLength;
     private String content = ""; // the whole thing
     private List<URL> links = new Vector<URL>();
     private String plainText = "";
@@ -337,12 +338,12 @@ public class HTMLPage {
     } //read
 
     //this should be faster but does not appear so
-    private void read2(InputStream is) throws IOException {
+	@SuppressWarnings("unused")
+	private void read2(InputStream is) throws IOException {
         char[] b = new char[READ_BLOCK_SIZE];
         Reader r = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
-        int charsRead = -1;
-        while ((charsRead = r.read(b)) != -1 && sb.length() < MAX_READ_SIZE) {
+        while ((r.read(b)) != -1 && sb.length() < MAX_READ_SIZE) {
             sb.append(b);
         }
         r.close();

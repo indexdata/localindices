@@ -6,13 +6,16 @@
 
 package com.indexdata.masterkey.localindices.scheduler;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import java.io.*;
-import java.net.*;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
 
 /**
  * A simple harvest scheduler status Web Service.
@@ -20,7 +23,12 @@ import javax.servlet.http.*;
  */
 public class SchedulerStatusServlet extends HttpServlet {
 
-    /** 
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4732437758098313248L;
+
+	/** 
      * Handles the HTTP <code>GET</code> method.
      * @param request servlet request
      * @param response servlet response
