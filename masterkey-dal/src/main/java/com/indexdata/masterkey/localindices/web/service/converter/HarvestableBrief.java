@@ -6,22 +6,22 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
+
 import javax.xml.bind.annotation.XmlAttribute;
-//import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 
 /**
  * 
  * @author jakub
  */
 @XmlRootElement(name = "harvestableBrief")
-public class HarvestableBrief implements Comparable {
+public class HarvestableBrief implements Comparable<Object> {
     private Long id;
     private URI uri;
     private String name;

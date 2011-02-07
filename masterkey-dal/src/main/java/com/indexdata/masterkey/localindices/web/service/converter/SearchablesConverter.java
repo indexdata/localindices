@@ -6,17 +6,18 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.torus.layer.SearchableTypeLayer;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.torus.Layer;
 import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.indexdata.torus.layer.SearchableTypeLayer;
 
 
 /**

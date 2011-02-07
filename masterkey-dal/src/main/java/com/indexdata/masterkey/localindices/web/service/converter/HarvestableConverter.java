@@ -6,13 +6,14 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.masterkey.localindices.entity.*;
 import java.net.URI;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
+
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 
 
 /**
