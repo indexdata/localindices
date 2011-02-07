@@ -6,25 +6,14 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
-import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
@@ -32,6 +21,17 @@ import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 /**
  * The cotroller for the admin interface, implements all the buisness logic and
@@ -46,7 +46,8 @@ public class ResourceController {
     private Boolean longDate;
     private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
-    private List resources;
+    @SuppressWarnings("rawtypes")
+	private List resources;
 
     public Boolean getLongDate() {
         return longDate;
@@ -350,7 +351,8 @@ public class ResourceController {
         return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
     }
     /* list resources */
-    public DataModel getResources() {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public DataModel getResources() {
         //check if new request
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
