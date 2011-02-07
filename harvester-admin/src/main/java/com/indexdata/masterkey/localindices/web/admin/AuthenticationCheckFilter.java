@@ -84,7 +84,8 @@ public class AuthenticationCheckFilter implements Filter {
         return null;
     }
 
-    private void removeCookieByName(HttpServletResponse res, String name) {
+    @SuppressWarnings("unused")
+	private void removeCookieByName(HttpServletResponse res, String name) {
         Cookie rotten = new Cookie(name, "");
         rotten.setMaxAge(0);
         res.addCookie(rotten);        

@@ -7,7 +7,7 @@
 package com.indexdata.masterkey.localindices.web.admin;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -20,7 +20,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PutCookie extends HttpServlet {  
 
-    /** 
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8807654103376003733L;
+
+	/** 
     * Handles the HTTP <code>GET</code> method.
     * @param request servlet request
     * @param response servlet response
