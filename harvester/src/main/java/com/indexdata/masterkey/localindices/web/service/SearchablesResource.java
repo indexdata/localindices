@@ -61,7 +61,8 @@ public class SearchablesResource {
             
             @QueryParam("max")
             @DefaultValue("100") int max) {
-        Map config = (Map) servletContext.getAttribute("harvester.config");
+        @SuppressWarnings("rawtypes")
+		Map config = (Map) servletContext.getAttribute("harvester.config");
         return new SearchablesConverter(dao.retrieveHarvestables(start, max), 
                 context.getAbsolutePath(),
                 config.get("harvester.zebra.host") + ":"

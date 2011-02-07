@@ -6,22 +6,25 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
-import ORG.oclc.oai.harvester2.verb.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Proxy;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+
+import javax.xml.transform.TransformerException;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+import ORG.oclc.oai.harvester2.verb.ListRecords;
+
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.util.TextUtils;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Proxy;
-import java.util.Calendar;
-import javax.xml.transform.TransformerException;
-import org.apache.log4j.Priority;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used
@@ -57,7 +60,8 @@ public class OAIHarvestJob extends AbstractHarvestJob {
             return code;
         }
 
-        public String getMessage() {
+        @SuppressWarnings("unused")
+		public String getMessage() {
             return message;
         }
 

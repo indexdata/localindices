@@ -234,9 +234,6 @@ public class WebHarvestJob implements HarvestJob {
             if (lnk != null) {
                 try {
                     linkUrl = new URL(pgUrl, lnk);
-                    if (linkUrl == null) {
-                        logger.log(Level.TRACE, "OOPS Got a null URL");
-                    }
                     logger.log(Level.TRACE, "Found link '" + lnk + "' " +
                             "-> '" + linkUrl.toString() + "'");
                     /* NOTE - Vector.contains() is awfully slow - so we don't deduplicate here

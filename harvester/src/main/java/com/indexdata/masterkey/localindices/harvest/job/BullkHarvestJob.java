@@ -29,7 +29,8 @@ public class BullkHarvestJob implements HarvestJob {
     private HarvestStorage storage;
     private HarvestStatus status;
     private String error;
-    private List<URL> urls = new ArrayList<URL>();
+    @SuppressWarnings("unused")
+	private List<URL> urls = new ArrayList<URL>();
     private XmlBulkResource resource;
     private Proxy proxy;
     private boolean die = false;
