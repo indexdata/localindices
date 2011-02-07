@@ -16,12 +16,14 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.Proxy;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.xml.sax.SAXException;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 /**
  * This class represents an Identify response on either the server or

@@ -18,6 +18,7 @@ package ORG.oclc.oai.harvester2.verb;
 
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.Proxy;
 import java.net.URLEncoder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -108,12 +109,13 @@ public class ListIdentifiers extends HarvesterVerb {
      * @param baseURL
      * @param resumptionToken
      * @return
+     * @throws UnsupportedEncodingException 
      */
     private static String getRequestURL(String baseURL,
-            String resumptionToken) {
+            String resumptionToken) throws UnsupportedEncodingException {
         StringBuffer requestURL =  new StringBuffer(baseURL);
         requestURL.append("?verb=ListIdentifiers");
-        requestURL.append("&resumptionToken=").append(URLEncoder.encode(resumptionToken));
+        requestURL.append("&resumptionToken=").append(URLEncoder.encode(resumptionToken, "UTF-8"));
         return requestURL.toString();
     }
 }

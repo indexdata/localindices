@@ -16,28 +16,35 @@
 
 package ORG.oclc.oai.harvester2.app;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
-import java.io.*;
-import java.lang.NoSuchFieldException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import ORG.oclc.oai.harvester2.verb.*;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+import ORG.oclc.oai.harvester2.verb.Identify;
+import ORG.oclc.oai.harvester2.verb.ListMetadataFormats;
+import ORG.oclc.oai.harvester2.verb.ListRecords;
+import ORG.oclc.oai.harvester2.verb.ListSets;
 
 public class RawWrite {
     public static void main(String[] args) {
 	try {
 	    System.out.println(new Date());
 	    
-            HashMap options = getOptions(args);
-            List rootArgs = (List)options.get("rootArgs");
-	    String baseURL = null;
+            HashMap<String, Object> options = getOptions(args);
+            @SuppressWarnings("unchecked")
+			List<String> rootArgs = (List<String>)options.get("rootArgs");
+            String baseURL = null;
             if (rootArgs.size() > 0) {
                 baseURL = (String)rootArgs.get(0);
             } else {
@@ -145,9 +152,9 @@ public class RawWrite {
         out.write("</harvest>\n".getBytes("UTF-8"));
     }
 
-    private static HashMap getOptions(String[] args) {
-        HashMap options = new HashMap();
-        ArrayList rootArgs = new ArrayList();
+    private static HashMap<String, Object> getOptions(String[] args) {
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        ArrayList<String> rootArgs = new ArrayList<String>();
         options.put("rootArgs", rootArgs);
         
         for (int i=0; i<args.length; ++i) {

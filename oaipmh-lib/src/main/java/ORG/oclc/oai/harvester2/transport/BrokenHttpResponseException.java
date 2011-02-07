@@ -14,7 +14,12 @@ import java.io.IOException;
  */
 public class BrokenHttpResponseException extends IOException {
 
-    public BrokenHttpResponseException(String message) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2485467522857437062L;
+
+	public BrokenHttpResponseException(String message) {
         super(message);
     }
 

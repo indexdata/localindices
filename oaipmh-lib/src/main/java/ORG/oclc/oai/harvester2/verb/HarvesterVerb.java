@@ -80,7 +80,7 @@ public abstract class HarvesterVerb {
     private Document doc = null;
     private String schemaLocation = null;
     private String requestURL = null;
-    private static HashMap builderMap = new HashMap();
+    private static HashMap<Thread, DocumentBuilder> builderMap = new HashMap<Thread, DocumentBuilder>();
     private static Element namespaceElement = null;
     private static DocumentBuilderFactory factory = null;
     

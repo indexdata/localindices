@@ -14,7 +14,11 @@ import java.io.InputStream;
  * @author jakub
  */
 public class ResponseParsingException extends IOException {
-    InputStream responseStream;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4509192622653512403L;
+	InputStream responseStream;
     String requestURL;
 
     public ResponseParsingException(String msg, Throwable cause, InputStream responseStream, String requestURL) {

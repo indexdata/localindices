@@ -13,7 +13,11 @@ import java.io.IOException;
  * @author jakub
  */
 public class HttpErrorException extends IOException {
-    private int statusCode;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -7330728337544637691L;
+	private int statusCode;
     private String statusMessage;
     private String url;
 
