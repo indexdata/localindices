@@ -18,7 +18,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement(name="webCrawl")
 public class WebCrawlResource extends Harvestable implements Serializable {
-    // spce-delimited list
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -666382563970829160L;
+	// spce-delimited list
     @Column(length=16384)
     private String startUrls;
     private String filetypeMasks;

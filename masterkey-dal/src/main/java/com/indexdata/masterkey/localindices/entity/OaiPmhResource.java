@@ -20,7 +20,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement(name = "oaiPmh")
 public class OaiPmhResource extends Harvestable implements Serializable {
-    private String url;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3980532198473557541L;
+	private String url;
     private String oaiSetName;
     private String metadataPrefix;
     private String schemaURI;

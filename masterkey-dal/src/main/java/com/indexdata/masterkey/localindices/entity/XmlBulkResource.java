@@ -18,7 +18,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement(name="xmlBulk")
 public class XmlBulkResource extends Harvestable implements Serializable {
-    @Column(length=16384)
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6751028242629873367L;
+	@Column(length=16384)
     private String url;
     private String expectedSchema;
     private String normalizationFilter;

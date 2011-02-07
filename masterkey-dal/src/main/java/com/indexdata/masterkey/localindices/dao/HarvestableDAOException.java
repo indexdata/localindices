@@ -12,7 +12,12 @@ package com.indexdata.masterkey.localindices.dao;
  */
 public class HarvestableDAOException extends Exception {
 
-    public HarvestableDAOException(String msg) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8190922003489241944L;
+
+	public HarvestableDAOException(String msg) {
         super(msg);
     }
 
