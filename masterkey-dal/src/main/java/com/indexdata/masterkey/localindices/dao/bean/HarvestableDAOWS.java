@@ -6,21 +6,22 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.rest.client.ResourceConnector;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
+
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
+import com.indexdata.rest.client.ResourceConnector;
 
 /**
  *

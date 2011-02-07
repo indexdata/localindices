@@ -103,7 +103,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public List<Harvestable> retrieveHarvestables(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
