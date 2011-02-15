@@ -105,7 +105,7 @@ public class MultiFileStorage implements HarvestStorage {
      * Closes and commits the output file 
      * Makes sure the committed directory exists
      * Moves the harvested file into the committed dir
-     * Removes the direcotry from incoming
+     * Removes the directory from incoming
      * 
      * @throws java.io.IOException
      */
