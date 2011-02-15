@@ -27,7 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class LoginManager {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
-    private String idTorusURI = "http://ussadmin1.indexdata.com/torus/uss-admin/records/wizard/";
+    // Not flexible! 
+    private String idTorusURI = "http://mk2-test.indexdata.com/torus/identity/records/USERS/";
     private String username;
     private String password;
     private String displayName;
