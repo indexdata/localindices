@@ -30,6 +30,9 @@ public class HarvestStorageFactory {
         } else if (harvestable instanceof XmlBulkResource) {
             st = new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
             st.setOverwriteMode(true);
+        } else if (harvestable instanceof SolrXmlBulkResource) {
+            st = new SolrStorage(storageDir, harvestable);
+            st.setOverwriteMode(true);
         } else if (harvestable instanceof WebCrawlResource) {
             st = new ZebraFileStorage(storageDir, harvestable, "pz-pz.xml");
             st.setOverwriteMode(true);
