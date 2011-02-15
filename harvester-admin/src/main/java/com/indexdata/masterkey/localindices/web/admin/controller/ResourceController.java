@@ -30,12 +30,13 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 /**
- * The cotroller for the admin interface, implements all the buisness logic and
- * controlls data access through DAO object
+ * The controller for the Admin interface, implements all the business logic and
+ * controls data access through DAO object
  * @author jakub
  */
 public class ResourceController {
@@ -315,6 +316,12 @@ public class ResourceController {
         return "new_xmlbulk";
     }
 
+    public String prepareSolrBulkResourceToAdd() {
+        resource = new SolrXmlBulkResource();
+        return "new_solrxmlbulk";
+    }
+
+    
     public String addResource() {
         prePersist();
         dao.createHarvestable(resource);
