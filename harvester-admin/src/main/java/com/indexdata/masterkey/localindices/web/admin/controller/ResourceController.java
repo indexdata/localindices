@@ -72,6 +72,7 @@ public class ResourceController {
         this.resource = resource;
     }
     
+    // Is this used?
     public List<SelectItem> getMetadataPrefixes() {
         List<SelectItem> list = new ArrayList<SelectItem>();
         
@@ -84,7 +85,12 @@ public class ResourceController {
         selectItem.setLabel("MARC21/USMARC");
         selectItem.setValue("marc21");
         list.add(selectItem);
-        
+
+        selectItem = new SelectItem();
+        selectItem.setLabel("PP2");
+        selectItem.setValue("pp2-solr");
+        list.add(selectItem);
+
         return list;
     }
 
@@ -340,6 +346,8 @@ public class ResourceController {
             return "edit_webcrawl";
         } else if (resource instanceof XmlBulkResource) {
             return "edit_xmlbulk";
+        } else if (resource instanceof SolrXmlBulkResource) {
+            return "edit_solrxmlbulk";
         } else {
             logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
             return "failure";
