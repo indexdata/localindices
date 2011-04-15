@@ -129,7 +129,7 @@ public class SolrStorage implements HarvestStorage {
 	public void commit() throws IOException  
 	{
 		SolrXmlParser parser = new SolrXmlParser();
-		SolrXmlContext context = new SolrXmlContext();
+		SolrXmlHandler context = new SolrXmlHandler();
 		try {
 			parser.parse(output.toString(), context);
 		} catch (XMLStreamException e) {
