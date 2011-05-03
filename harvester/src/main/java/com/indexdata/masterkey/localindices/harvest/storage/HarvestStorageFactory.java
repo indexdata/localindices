@@ -5,6 +5,22 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLFilter;
+import org.xml.sax.XMLReader;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
@@ -20,16 +36,34 @@ public class HarvestStorageFactory {
     public HarvestStorageFactory() {
     }
 
-    public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
+	static String[] marc21 = { "oai2marc.xsl", "marc21.xsl", "pz2solr.xsl"};
+	static String[] dc     = { "oaidc.xsl", 				 "pz2solr.xsl"};
+
+	public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         HarvestStorage st = null;
+        SolrStorage storage = new SolrStorage(storageDir, harvestable);
+        
         if (harvestable instanceof OaiPmhResource) {
-            if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21")) {
-                st = new ZebraFileStorage(storageDir, harvestable, "oaimarc21-pz.xml");
-            } else {
-                st = new ZebraFileStorage(storageDir, harvestable, "oaidc-pz.xml");
-            }
+        	String[] chain = null;
+        	if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21"))
+            	chain = marc21;
+            else	
+            	chain = dc;
+            
+	        try {
+	        	XMLReader xmlFilter = createXMLFilter(chain);
+				st = new TransformationChainStorageProxy(storage, xmlFilter);
+			} catch (TransformerConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				throw new RuntimeException("Configuration error", e);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				throw new RuntimeException("IOException error while creating Storage", e);
+			}
         } else if (harvestable instanceof XmlBulkResource) {
-            st = new ZebraFileStorage(storageDir, harvestable, "marc-pz.xml");
+            st = new ZebraFileStorage(storageDir, harvestable, "");
             st.setOverwriteMode(true);
         } else if (harvestable instanceof SolrXmlBulkResource) {
             st = new SolrStorage(storageDir, harvestable);
@@ -40,4 +74,45 @@ public class HarvestStorageFactory {
         }
         return st;
     }
+
+	public static XMLFilter createXMLFilter(String[] stylesheets) throws TransformerConfigurationException {
+		// Set up to read the input file
+		SAXParserFactory spf = SAXParserFactory.newInstance();
+		spf.setNamespaceAware(true);
+		XMLReader reader;
+		SAXParser parser;
+		try {
+			parser = spf.newSAXParser();
+			reader = parser.getXMLReader();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new TransformerConfigurationException("Parser Configuration Error", e);
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new TransformerConfigurationException("SAX Exception", e);
+		}
+		// Create the filters
+		// --SAXTransformerFactory is an interface
+		// --TransformerFactory is a concrete class
+		// --TransformerFactory actually returns a SAXTransformerFactory instance
+		// --We didn't care about that before, because we didn't use the
+		// --SAXTransformerFactory extensions. But now we do, so we cast the result.
+		SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+		XMLFilter filter = null;
+		XMLReader parent = reader; 
+		int index = 0;
+		try {
+			while (index < stylesheets.length ) {
+				filter = stf.newXMLFilter(new StreamSource(new FileInputStream(stylesheets[index]) ));
+				filter.setParent(parent);
+				parent = filter;
+				index++;
+			}
+		} catch (FileNotFoundException fnfe) {
+			throw new TransformerConfigurationException("Stylesheet not found: " + stylesheets[index] + ". " + fnfe.getMessage(), fnfe);
+		}
+		return filter;
+}
 }
