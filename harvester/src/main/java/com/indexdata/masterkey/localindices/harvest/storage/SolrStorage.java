@@ -113,15 +113,17 @@ public class SolrStorage implements HarvestStorage {
 	 */
 	public SolrStorage(URL solrUrl, Harvestable harvestable) {
 		this.solrUrl = solrUrl;
+/*
 		warn("Make sure your XML documents are encoded in " + POST_ENCODING
 				+ ", other encodings are not currently supported");
+*/
 	}
 
 	@Override
 	public void begin() throws IOException {
 
 		documentList = new LinkedList<SolrInputDocument>();
-		output = new ByteArrayOutputStream();
+		output.reset();
 		
 	}
 
@@ -133,7 +135,8 @@ public class SolrStorage implements HarvestStorage {
 		try {
 			parser.parse(output.toString(), context);
 		} catch (XMLStreamException e) {
-			throw new IOException("Error in SOLR XML parse", e);
+			e.printStackTrace();
+			throw new IOException("Error in SOLR XML parse: " + e.getMessage(), e);
 		}
 		try {
 			System.out.println(context.getDocuments());
