@@ -7,17 +7,15 @@ import java.io.Writer;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
-
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
 public class TestSolrStorage extends TestCase {
 	Harvestable harvestable = new  SolrXmlBulkResource();
-	HarvestStorage storage = new SolrStorage(harvestable);
+	// SOLR Server in container on 8080
+	HarvestStorage storage = new SolrStorage("http://localhost:8080/solr/", harvestable);
 	String testXml 
 	  = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
 		"<add>" +
