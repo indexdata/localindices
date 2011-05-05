@@ -44,12 +44,12 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 public class SolrStorage implements HarvestStorage {
 	public  String POST_ENCODING = "UTF-8";
 	public  String VERSION_OF_THIS_TOOL = "1.2";
-	private String url = "http://localhost:8983/solr/";
-	private CommonsHttpSolrServer server;
-	private Harvestable harvestable;
-	private Logger logger = Logger.getLogger(this.getClass());
+	protected String url = "http://localhost:8983/solr/";
+	protected CommonsHttpSolrServer server;
+	protected Harvestable harvestable;
+	protected Logger logger = Logger.getLogger(this.getClass());
 	ByteArrayOutputStream output = new ByteArrayOutputStream();
-	Collection<SolrInputDocument> documentList = null;
+	protected Collection<SolrInputDocument> documentList = null;
 	protected URL solrUrl;
 	private boolean override = false;
 
@@ -153,9 +153,8 @@ public class SolrStorage implements HarvestStorage {
 		try {
 			server.rollback();
 		} catch (SolrServerException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new IOException("Error in SOLR Rollback", e);
+			throw new RuntimeException("Solr Server Exception in SOLR Rollback: " + e.getMessage(), e);
 		}
 	}
 
