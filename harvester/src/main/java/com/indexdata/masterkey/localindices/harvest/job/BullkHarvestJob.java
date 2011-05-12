@@ -84,7 +84,7 @@ public class BullkHarvestJob implements HarvestJob {
         try {
             status = HarvestStatus.RUNNING;
             //db drop mode on
-            this.storage.setOverwriteMode(true);
+            storage.setOverwriteMode(true);
             downloadList(resource.getUrl().split(" "));
             status = HarvestStatus.FINISHED;
         } catch (Exception e) {
@@ -143,7 +143,7 @@ public class BullkHarvestJob implements HarvestJob {
                             } else {
                                 logger.log(Level.INFO, "Found file at " + link.toString());
                                 store(conn.getInputStream(), contentLenght);
-                                this.storage.setOverwriteMode(false);
+                                storage.setOverwriteMode(false);
                                 proper++;
                             }
                         } else {
@@ -161,7 +161,7 @@ public class BullkHarvestJob implements HarvestJob {
                 //assume marc file, TODO text/plain                    
                 } else {
                     store(conn.getInputStream(), contentLenght);
-                    this.storage.setOverwriteMode(false);
+                    storage.setOverwriteMode(false);
                     return;
                 }
             } else {
