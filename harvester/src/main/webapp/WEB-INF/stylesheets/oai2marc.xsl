@@ -18,8 +18,7 @@
         version="1.0"
         encoding="UTF-8"/>
 
-
-  <xsl:template match="oai:record">
+  <xsl:template match="//oai:record">
 
       <xsl:variable name="oai-id">
           <xsl:value-of select="oai:header/oai:identifier"/>
