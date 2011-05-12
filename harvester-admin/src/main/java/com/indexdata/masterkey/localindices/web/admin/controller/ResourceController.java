@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.faces.context.FacesContext;
@@ -49,7 +50,8 @@ public class ResourceController {
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
     @SuppressWarnings("rawtypes")
 	private List resources;
-
+    private String transformation; 
+    
     public Boolean getLongDate() {
         return longDate;
     }
@@ -464,4 +466,26 @@ public class ResourceController {
             }
             return o;
     }
+
+    public String getTransformation() {
+    	return transformation;
+    }
+
+	public void setTransformation(String transformation) {
+		this.transformation = transformation;
+	}
+
+	public List<SelectItem> getTransformations() {
+		List<SelectItem> list = new LinkedList<SelectItem>();
+        SelectItem selectItem = new SelectItem();
+        selectItem.setLabel("OAI(DC) to SOLR");
+        selectItem.setValue("oai_dc2solr");
+        list.add(selectItem);
+
+        selectItem = new SelectItem();
+        selectItem.setLabel("OAI(MARCXML) to SOLR");
+        selectItem.setValue("oai_marcxml2solr");
+    	return list;
+    }
+
 }
