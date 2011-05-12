@@ -5,6 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,8 +37,8 @@ public class HarvestStorageFactory {
     public HarvestStorageFactory() {
     }
 
-	static String[] marc21 = { "oai2marc.xsl", "marc21.xsl", "pz2solr.xsl"};
-	static String[] dc     = { "oaidc.xsl", 				 "pz2solr.xsl"};
+	static String[] marc21 = { "oai2marc.xsl", "marc21.xsl", "pz2-solr.xsl"};
+	static String[] dc     = { "oai_dc.xsl", 				 "pz2-solr.xsl"};
 
 	public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         HarvestStorage st = null;
@@ -111,7 +112,8 @@ public class HarvestStorageFactory {
 				index++;
 			}
 		} catch (FileNotFoundException fnfe) {
-			throw new TransformerConfigurationException("Stylesheet not found: " + stylesheets[index] + ". " + fnfe.getMessage(), fnfe);
+			File file = new File(".");
+			throw new TransformerConfigurationException("Stylesheet not found in " + file.getAbsoluteFile() + ": " + stylesheets[index] + ". " + fnfe.getMessage(), fnfe);
 		}
 		return filter;
 }
