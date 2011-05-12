@@ -46,5 +46,13 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.harvestImmediately}"/>
         <h:outputText value="Harvest job enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
+        <!-- List box of Transformations pipeline-->
+        <h:selectOneMenu value="#{resourceController.transformation}">
+              <f:selectItems value="#{resourceController.transformations}" />
+        </h:selectOneMenu>
+        <!-- List box of Storages -->
+        <h:selectOneMenu>
+        </h:selectOneMenu>
+
     </h:panelGrid>
 </f:subview>
