@@ -1,0 +1,84 @@
+package com.indexdata.masterkey.localindices.web.service.converter;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.indexdata.masterkey.localindices.entity.Storage;
+
+@XmlRootElement(name = "storageBrief")
+public class StorageBrief {
+    private Long id;
+    private String name;
+    private String description;
+
+    private URI uri; 
+    
+    public StorageBrief(Storage entity) {
+        setId(entity.getId());
+        setName(entity.getName());
+        entity.getDescription();
+    }
+
+    /* TODO Verify */ 
+    public StorageBrief(Storage entity, URI uri, boolean isUriExtendable) {
+        this(entity);
+        if (isUriExtendable) {
+            try {
+                this.uri = new URI(uri.toString() + entity.getId() + "/");
+            } catch (URISyntaxException urie) {              
+            }
+        }
+    }
+
+    
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+    
+    /**
+     * Returns the URI associated with this reference converter.
+     *
+     * @return the converted uri
+     */
+    @XmlAttribute(name = "uri")
+    
+    public URI getResourceUri() {
+        return uri;
+    }
+
+    /**
+     * Sets the URI for this reference converter.
+     *
+     * @param uri resource uri
+     */
+    public void setResourceUri(URI uri) {
+        this.uri = uri;
+    }
+
+	
+
+}
