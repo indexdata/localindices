@@ -16,6 +16,10 @@ public class StorageBrief {
 
     private URI uri; 
     
+    public StorageBrief() {
+    }
+
+    	
     public StorageBrief(Storage entity) {
         setId(entity.getId());
         setName(entity.getName());
