@@ -7,9 +7,10 @@
 		<version>0.0.1</version>
 	</parent>
   <groupId>com.indexdata</groupId>
+  <description>Data Abstraction Layer</description>
   <artifactId>masterkey-dal</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.2</version>
+  <version>0.0.3-SNAPSHOT</version>
   <name>masterkey-dal</name>
   <url>http://maven.apache.org</url>
     <build>
