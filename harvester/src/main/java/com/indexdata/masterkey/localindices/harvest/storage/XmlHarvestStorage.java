@@ -2,8 +2,6 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.util.Map;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
 public interface XmlHarvestStorage {
@@ -19,9 +17,6 @@ public interface XmlHarvestStorage {
 
 	void beginElement(String name, Map<String, String> attributes);
 	void endElement();
-
-	void beginSet(String name, Map<String, String> attributes);
-	void endSet();
 	
 	void store(Node node);
 	
