@@ -46,7 +46,7 @@ public class TestTransformationChainStorage extends TestCase {
 
 		public void testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException 
 		{
-			String[] stylesheets = { /* oaidc_pmh_xsl , pz2solr_xsl */} ;
+			String[] stylesheets = { oaidc_pmh_xsl , pz2solr_xsl } ;
 			XMLReader xmlReader = createTransformChain(stylesheets);
 			HarvestStorage transformStorage  = new TransformationChainStorageProxy(new ConsoleStorage(), xmlReader);
 			transformStorage.begin();
