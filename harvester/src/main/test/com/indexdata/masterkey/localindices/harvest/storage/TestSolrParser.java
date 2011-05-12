@@ -65,6 +65,9 @@ public class TestSolrParser extends TestCase
 		} catch (XMLStreamException e) {
 			e.printStackTrace();
 		}
+		// Parsed again, updated but same count
+		assertTrue("Document size is not 4: " + documents.size(), documents.size() == 4); 
+		iterator = documents.iterator();
 		while (iterator.hasNext()) {
 			SolrInputDocument doc = iterator.next();
 			System.out.print(doc.entrySet());
