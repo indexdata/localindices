@@ -24,8 +24,8 @@ import javax.servlet.ServletContextListener;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.indexdata.masterkey.localindices.harvest.storage.backend.StorageBackend;
-import com.indexdata.masterkey.localindices.harvest.storage.backend.ZebraStorageBackend;
+//import com.indexdata.masterkey.localindices.harvest.storage.backend.StorageBackend;
+//import com.indexdata.masterkey.localindices.harvest.storage.backend.ZebraStorageBackend;
 
 /**
  * Context listener for the scheduler application.
@@ -39,8 +39,10 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
     private Thread th;
     private SchedulerThread st;
+/*    
     private StorageBackend storageBackend;
     private StorageBackend reindexStorageBackend;
+*/
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {
@@ -81,15 +83,18 @@ public class SchedulerUpDownListener implements ServletContextListener {
         }
 
         /* Refactor for multiple backends and types of backends */
+        /* Disable ZebraStorage for now
+
         String harvestDirPath = props.getProperty("harvester.dir");
         storageBackend = new ZebraStorageBackend(harvestDirPath, "idx");
         storageBackend.init(props);
-
         storageBackend.start();
+        */
         /* TODO: re-index should be hidden behind the StorageBackend */  
+        /*
         reindexStorageBackend = new ZebraStorageBackend(harvestDirPath, "reidx");
         reindexStorageBackend.init(props);
-
+         */
         //load properties to a config
         @SuppressWarnings({ "rawtypes", "unchecked" })
 		Map<String,Object> config = new HashMap(props);
@@ -127,10 +132,16 @@ public class SchedulerUpDownListener implements ServletContextListener {
             logger.log(Level.INFO, "Interrupting the scheduler...");
             th.interrupt();
         }
+        /*
         if (storageBackend != null) {
             logger.log(Level.INFO, "Shutting down Storage Backend...");
             storageBackend.stop();
         }
+        if (reindexStorageBackend != null) {
+            logger.log(Level.INFO, "Shutting down Storage Backend...");
+            reindexStorageBackend.stop();
+        }
+         */
         logger.log(Level.INFO, "Harvester context destroyed.");
     }
 
