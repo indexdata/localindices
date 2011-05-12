@@ -41,8 +41,9 @@ public class TestSolrStorage extends TestCase {
 		"   </doc>\n" + 
 		"</add>";
 	
-	
+
 	public TestSolrStorage() {
+		
 		
 	}
 	public void testSimplePost() throws IOException 
