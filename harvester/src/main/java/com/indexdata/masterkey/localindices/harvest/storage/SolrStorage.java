@@ -69,7 +69,7 @@ public class SolrStorage implements HarvestStorage {
 			server.setParser(new XMLResponseParser());	
 
 		} catch (MalformedURLException e) {
-			throw new RuntimeException("System Property 'url' is not a valid URL: " + System.getProperty("url", url), e);
+			throw new RuntimeException("'url' is not a valid URL: " + System.getProperty("url", url), e);
 		}
 		
 	}
@@ -141,8 +141,10 @@ public class SolrStorage implements HarvestStorage {
 		try {
 			System.out.println(context.getDocuments());
 			UpdateResponse response = server.add(context.getDocuments());
-			logger.debug(response.getStatus() + " " + response.getResponse());
-			server.commit();
+			logger.debug("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
+			response = server.commit();
+			logger.debug("CommitResponse: " + response.getStatus() + " " + response.getResponse());
+			
 		} catch (SolrServerException e) {
 			throw new IOException("Error in SOLR commit", e);
 		}
