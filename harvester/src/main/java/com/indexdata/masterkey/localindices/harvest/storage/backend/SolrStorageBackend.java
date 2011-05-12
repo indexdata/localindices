@@ -11,35 +11,16 @@ public class SolrStorageBackend implements StorageBackend
 	Logger logger =  Logger.getLogger(this.getClass()); 
 	protected File baseDirectory;
 	// Implement as core or ...
-	protected String indexName;
+	protected String url = "http://localhost:8080/solr";
 	private Properties properties;
-	//private SolrServer solrSrv = null; 
 	private Thread serverThread = null;
 
-	public SolrStorageBackend(String file_url, String idxname) {
-		baseDirectory = new File(file_url);
-		indexName = idxname;
+	public SolrStorageBackend(String file_url) {
+		url = new Url(file_url);
 	}
 	
 	@Override
 	public void init(Properties props) {
-		properties = props;
-		boolean hasDir = true;
-        if (!baseDirectory.exists()) {
-            logger.log(Level.INFO, "HARVEST_DIR does not seem to exist, trying to create...");
-            hasDir = baseDirectory.mkdir();
-        }
-        if (!hasDir) {
-            logger.log(Level.FATAL, "Cannot access HARVEST_DIR at"
-                    + baseDirectory.getAbsolutePath() + ", deployment aborted.");
-            return;
-        }
-
-        //zebra dirs, configs, etc
-        new File(baseDirectory, "reg").mkdir();
-        new File(baseDirectory, "shadow").mkdir();
-        new File(baseDirectory, "lock").mkdir();
-        new File(baseDirectory, "tmp").mkdir();        
 	}
 
 	@Override
