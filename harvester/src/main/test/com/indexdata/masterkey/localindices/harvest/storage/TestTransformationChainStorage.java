@@ -26,7 +26,7 @@ import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
 public class TestTransformationChainStorage extends TestCase {
 		Harvestable harvestable = new  SolrXmlBulkResource();
 		// SOLR Server in container on 8080
-		HarvestStorage storage = new SolrStorage("http://localhost:8080/solr/", harvestable);
+		HarvestStorage solrStorage = new ConsoleStorage(); // new SolrStorage("http://localhost:8080/solr/", harvestable);
 
 		public TestTransformationChainStorage() {
 			
@@ -34,67 +34,58 @@ public class TestTransformationChainStorage extends TestCase {
 		public void testSimpleTransformationStorage() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException 
 		{
 			String[] stylesheets = { pz2solr_xsl} ;
-			XMLFilter xmlReader = 
-				createTransformChain(stylesheets);
-			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(storage, xmlReader);
-			try {
-				storage.begin();
-				OutputStream output = transformStorage.getOutputStream();
-				Writer writer = new OutputStreamWriter(output);
-				writer.write(xml);
-				writer.close();
-				storage.commit();
-			} catch (IOException e) {
-				System.out.println("Failure to parse");
-			}
+			XMLReader xmlReader = createTransformChain(stylesheets);
+			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(solrStorage, xmlReader);
+			transformStorage.begin();
+			OutputStream output = transformStorage.getOutputStream();
+			Writer writer = new OutputStreamWriter(output);
+			writer.write(xml);
+			writer.close();
+			transformStorage.commit();
 		}
 
 		public void testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException 
 		{
-			String[] stylesheets = { oaidc_pmh_xsl , pz2solr_xsl} ;
-			XMLFilter xmlReader = 
-				createTransformChain(stylesheets);
-			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(storage, xmlReader);
-			try {
-				storage.begin();
-				OutputStream output = transformStorage.getOutputStream();
-				Writer writer = new OutputStreamWriter(output);
-				writer.write(oai_pmh_oaidc);
-				writer.close();
-				storage.commit();
-			} catch (IOException e) {
-				System.out.println("Failure to parse");
-			}
+			String[] stylesheets = { /* oaidc_pmh_xsl , pz2solr_xsl */} ;
+			XMLReader xmlReader = createTransformChain(stylesheets);
+			HarvestStorage transformStorage  = new TransformationChainStorageProxy(new ConsoleStorage(), xmlReader);
+			transformStorage.begin();
+			OutputStream output = transformStorage.getOutputStream();
+			
+			/*
+			SAXParser parser = spf.newSAXParser();
+			XMLReader reader = parser.getXMLReader();
+			*/
+			
+			Writer writer = new OutputStreamWriter(output);
+			writer.write(oai_pmh_oaidc);
+			writer.close();
+			transformStorage.commit();
 		}
 
 		public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException 
 		{
 			String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl};
-			XMLFilter xmlReader = 
-				createTransformChain(stylesheets);
-			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(storage, xmlReader);
-			try {
-				storage.begin();
-				OutputStream output = transformStorage.getOutputStream();
-				Writer writer = new OutputStreamWriter(output);
-				writer.write(oai_pmh_marcxml);
-				writer.close();
-				storage.commit();
-			} catch (IOException e) {
-				System.out.println("Failure to parse");
-			}
+			XMLReader xmlReader = createTransformChain(stylesheets);
+			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(solrStorage, xmlReader);
+			transformStorage.begin();
+			OutputStream output = transformStorage.getOutputStream();
+			Writer writer = new OutputStreamWriter(output);
+			writer.write(oai_pmh_marcxml);
+			writer.close();
+			transformStorage.commit();
 		}
 
 		
 		
-		public XMLFilter createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException {
+		public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException {
 			// Set up to read the input file
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			spf.setNamespaceAware(true);
 
 			SAXParser parser = spf.newSAXParser();
 			XMLReader reader = parser.getXMLReader();
-
+			
 			// Create the filters
 			// --SAXTransformerFactory is an interface
 			// --TransformerFactory is a concrete class
@@ -102,7 +93,7 @@ public class TestTransformationChainStorage extends TestCase {
 			// --We didn't care about that before, because we didn't use the
 			// --SAXTransformerFactory extensions. But now we do, so we cast the result.
 			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
-			XMLFilter filter = null;
+			XMLFilter filter;
 			XMLReader parent = reader; 
 			int index = 0;
 			while (index < stylesheets.length ) {
@@ -111,7 +102,7 @@ public class TestTransformationChainStorage extends TestCase {
 				parent = filter;
 				index++;
 			}
-			return filter;
+			return parent;
 	}
 
 		String xml = 
