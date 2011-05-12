@@ -16,9 +16,7 @@
         version="1.0"
         encoding="UTF-8"/>
 
-
-
-  <xsl:template match="/oai:record/oai:metadata/*">
+  <xsl:template match="//oai:record/oai:metadata/*">
     <pz:record>
 
       <pz:metadata type="id">
