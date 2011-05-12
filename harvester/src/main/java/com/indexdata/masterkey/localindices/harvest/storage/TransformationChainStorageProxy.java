@@ -22,53 +22,56 @@ public class TransformationChainStorageProxy extends StorageProxy {
 	PipedInputStream input;
 	XMLReader xmlFilter;
 	Thread thread = null;
-	SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+	SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory
+			.newInstance();
 	Transformer transformer;
 	TransformerException transformException = null;
 	IOException rollbackException = null;
-	
-	public TransformationChainStorageProxy(final HarvestStorage storage, final XMLReader xmlFilter) throws IOException, TransformerConfigurationException {
+
+	public TransformationChainStorageProxy(final HarvestStorage storage,
+			final XMLReader xmlFilter) throws IOException,
+			TransformerConfigurationException {
 		this.xmlFilter = xmlFilter;
 		setTarget(storage);
-		  output = new PipedOutputStream();
-		  input = new PipedInputStream(output);
-		  transformer = stf.newTransformer();
-		  thread = new Thread(
-		    new Runnable()
-		    {
-		      public void run()
-		      {
-		    	  processDataFromInputStream(input);
-		      };
+		input = new PipedInputStream();
+		output = new PipedOutputStream(input);
+		transformer = stf.newTransformer();
+		thread = new Thread(new Runnable() {
+			public void run() {
+				processDataFromInputStream(input);
+			};
 
-		      private void processDataFromInputStream(PipedInputStream input)    
-		      {
-		    	  InputSource source = new InputSource(input);
-		    	  StreamResult result = new StreamResult(getTarget().getOutputStream());
-					SAXSource transformSource = new SAXSource(xmlFilter, source);
-					try {
-						transformer.transform(transformSource, result);
-						System.out.println("Result: " + result.toString());
-					} catch (TransformerException e) {
-						// Failed. Throw on Commit.
-						transformException = e;
-					}
-		      };
-		   }
-		  );
-		  thread.start();
-		  System.out.println("started");
+			private void processDataFromInputStream(PipedInputStream input) {
+				InputSource source = new InputSource(input);
+				StreamResult result = new StreamResult(getTarget()
+						.getOutputStream());
+				SAXSource transformSource = new SAXSource(xmlFilter, source);
+				try {
+					transformer.transform(transformSource, result);
+				} catch (TransformerException e) {
+					e.printStackTrace();
+					transformException = e;
+				}
+			};
+		});
+		thread.start();
 	}
-	@Override
 
+	@Override
 	public void commit() throws IOException {
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if (transformException != null) {
 			throw new IOException("Transformation failed", transformException);
 		}
 	}
-	
+
 	public OutputStream getOutputStream() {
-		return output; 
+		return output;
 	}
 
 }
