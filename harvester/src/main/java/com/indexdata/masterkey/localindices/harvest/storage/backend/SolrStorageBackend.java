@@ -16,7 +16,7 @@ public class SolrStorageBackend implements StorageBackend
 	private Thread serverThread = null;
 
 	public SolrStorageBackend(String file_url) {
-		url = new Url(file_url);
+		url = file_url;
 	}
 	
 	@Override
@@ -26,7 +26,7 @@ public class SolrStorageBackend implements StorageBackend
 	@Override
 	public int start() {
         int portNum = Integer.parseInt(properties.getProperty("harvester.zebra.port"));
-        logger.log(Level.INFO, "Starting zebrasrv at port " + portNum);
+        logger.log(Level.INFO, "Starting SOLR at port " + portNum);
         //solrSrv = new SolrServer(properties.getProperty("harvester.dir"), portNum);
         serverThread = new Thread(new Runnable() {
 			@Override
