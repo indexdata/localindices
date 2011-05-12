@@ -232,7 +232,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
     @Override
     public boolean equals(Object object) {
-        // change that so that it check the reall class
+        // change that so that it check the real class
         if (!(object instanceof Harvestable)) {
             return false;
         }
