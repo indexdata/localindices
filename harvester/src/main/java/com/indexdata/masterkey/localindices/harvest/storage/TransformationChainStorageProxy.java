@@ -60,6 +60,13 @@ public class TransformationChainStorageProxy extends StorageProxy {
 	@Override
 	public void commit() throws IOException {
 		try {
+			// Close the output so the PipedInputStream will get the EOF. 
+			output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// Ensure that the PipedInputStream has read it all and the transformation has finished
+		try {
 			thread.join();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -68,6 +75,7 @@ public class TransformationChainStorageProxy extends StorageProxy {
 		if (transformException != null) {
 			throw new IOException("Transformation failed", transformException);
 		}
+		super.commit();
 	}
 
 	public OutputStream getOutputStream() {
