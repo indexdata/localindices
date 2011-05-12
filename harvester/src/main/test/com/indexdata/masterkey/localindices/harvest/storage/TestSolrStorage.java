@@ -20,7 +20,7 @@ public class TestSolrStorage extends TestCase {
 	  = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
 		"<add>" +
 		"  <doc>\n" + 
-		"      <field name=\"id\">6688</field>\n" + 
+		"      <field name=\"id\">6690</field>\n" + 
 		"      <field name=\"author\">Eliot, George, 1819-1880</field>\n" + 
 		"      <field name=\"author-title\"></field>\n" + 
 		"      <field name=\"author-date\"/>\n" + 
@@ -30,7 +30,7 @@ public class TestSolrStorage extends TestCase {
 		"      <other name=\"other\"></other>\n" +
 		"   </doc>\n" + 
 		"  <doc>\n" + 
-		"      <field name=\"id\">6689</field>\n" +
+		"      <field name=\"id\">6691</field>\n" +
 		"      <field name=\"author\">Eliot, George, 1819-1880</field>\n" + 
 		"      <field name=\"author-title\"></field>\n" + 
 		"      <field name=\"author-date\"/>\n" + 
