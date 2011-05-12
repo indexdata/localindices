@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public interface MessageConsumer extends Step {
 	
-	StepResult consume(StepVisitor stepVisitor) throws IOException;
+	StepResult consume(StepVisitor source) throws IOException;
 
 }
