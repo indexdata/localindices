@@ -138,7 +138,8 @@ public class OAIHarvestJob extends AbstractHarvestJob {
                     + resource.getFromDate());
             initialRun = false;
             try {
-                getStorage().commit();
+            	// TODO Dont we wanna close the output?
+            	getStorage().commit();
             } catch (IOException ioe) {
                 setStatus(HarvestStatus.ERROR);
                 resource.setMessage(ioe.getMessage());
