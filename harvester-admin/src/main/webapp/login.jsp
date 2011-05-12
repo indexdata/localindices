@@ -15,7 +15,7 @@
     </head>
     <body>
         <f:view>
-            <h3>Welcome to Localindices Admin</h3>
+            <h3>Welcome to Local Unified Index Administration</h3>
             <h:form>
                 <h5><h:outputText value="Please login to use the service: " /></h5>
                 <div id="pager">
