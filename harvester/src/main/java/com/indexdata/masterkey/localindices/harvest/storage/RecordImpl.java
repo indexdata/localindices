@@ -25,8 +25,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public Map<String, Collection<Serializable>> getValues() {
-		// TODO Auto-generated method stub
-		return null;
+		return valueMap;
 	}
 
 	public void setId(String id) {
