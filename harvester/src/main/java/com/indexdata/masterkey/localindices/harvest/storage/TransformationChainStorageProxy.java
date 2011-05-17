@@ -22,8 +22,7 @@ public class TransformationChainStorageProxy extends StorageProxy {
 	PipedInputStream input;
 	XMLReader xmlFilter;
 	Thread thread = null;
-	SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory
-			.newInstance();
+	SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 	Transformer transformer;
 	TransformerException transformException = null;
 	IOException rollbackException = null;
