@@ -44,11 +44,10 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	public void commit() throws IOException {
 		try {
 
+			logger.info("Committing added " + added + " and deleted " + deleted + " records.");
 			UpdateResponse response = server.commit();
 			if (response.getStatus() != 0)
 				logger.error("Error while COMMITING records.");
-			else
-				logger.info("Updates committed: Added " + added + ". Deleted " + deleted + ".");
 		} catch (SolrServerException e) {
 			logger.error("Commit failed when adding " + added + " and deleting " + deleted + ".");
 			e.printStackTrace();
