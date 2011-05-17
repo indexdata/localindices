@@ -12,6 +12,6 @@ public interface RecordStorage extends HarvestStorage {
 	void add(Record record);
 	Record get(String id);
 	// void remove(Collection<String> ids);
-	void remove(String ids);
+	void delete(String id);
 
 }
