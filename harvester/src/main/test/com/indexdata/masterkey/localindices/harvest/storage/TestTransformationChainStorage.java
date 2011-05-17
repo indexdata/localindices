@@ -4,18 +4,27 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
 import junit.framework.TestCase;
 
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
@@ -25,8 +34,12 @@ import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
 
 public class TestTransformationChainStorage extends TestCase {
 		Harvestable harvestable = new  SolrXmlBulkResource();
+		
 		// SOLR Server in container on 8080
-		HarvestStorage solrStorage = new ConsoleStorage(); // new SolrStorage("http://localhost:8080/solr/", harvestable);
+		String solrUrl = "http://localhost:8080/solr/";
+		HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestable);
+		RecordStorage recordStorage = new SolrRecordStorage(solrUrl, harvestable);
+		RecordStorage bulkStorage = new BulkSolrRecordStorage(solrUrl, harvestable);
 
 		public TestTransformationChainStorage() {
 			
@@ -48,7 +61,7 @@ public class TestTransformationChainStorage extends TestCase {
 		{
 			String[] stylesheets = { oaidc_pmh_xsl , pz2solr_xsl } ;
 			XMLReader xmlReader = createTransformChain(stylesheets);
-			HarvestStorage transformStorage  = new TransformationChainStorageProxy(new ConsoleStorage(), xmlReader);
+			HarvestStorage transformStorage  = new TransformationChainStorageProxy(solrStorage, xmlReader);
 			transformStorage.begin();
 			OutputStream output = transformStorage.getOutputStream();
 			
@@ -78,7 +91,7 @@ public class TestTransformationChainStorage extends TestCase {
 
 		
 		
-		public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException {
+		public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException, UnsupportedEncodingException {
 			// Set up to read the input file
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			spf.setNamespaceAware(true);
@@ -97,13 +110,48 @@ public class TestTransformationChainStorage extends TestCase {
 			XMLReader parent = reader; 
 			int index = 0;
 			while (index < stylesheets.length ) {
-				filter = stf.newXMLFilter(new StreamSource(new ByteArrayInputStream(stylesheets[index].getBytes())));
+				filter = stf.newXMLFilter(new StreamSource(new ByteArrayInputStream(stylesheets[index].getBytes("UTF-8"))));
 				filter.setParent(parent);
 				parent = filter;
 				index++;
 			}
 			return parent;
-	}
+		}
+		
+		public void testDOM2SAXRecordStorage() throws TransformerException, ParserConfigurationException, SAXException, IOException {
+			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+			try {
+				Transformer transfomer = stf.newTransformer();
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
+				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(recordStorage);
+				Result result = new SAXResult(contentHandler);
+				transfomer.transform(new DOMSource(doc), result);
+				recordStorage.commit();
+			} catch (TransformerConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		public void testDOM2SAXBulkRecordStorage() throws TransformerException, ParserConfigurationException, SAXException, IOException {
+			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+			try {
+				Transformer transfomer = stf.newTransformer();
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
+				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(bulkStorage);
+				Result result = new SAXResult(contentHandler);
+				transfomer.transform(new DOMSource(doc), result);
+				bulkStorage.commit();
+			} catch (TransformerConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 
 		String xml = 
 		"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" + 
@@ -209,7 +257,7 @@ public class TestTransformationChainStorage extends TestCase {
 			"  </marc:datafield>\n" + 
 			"</marc:record>";
 		
-		String oai_pmh_start_record = 
+		String oai_pmh_records_start = 
 			"<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\"\n " + 
 			"         xmlns:oai=\"http://www.openarchives.org/OAI/2.0/\"\n " +
 			"	      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + 
@@ -218,7 +266,9 @@ public class TestTransformationChainStorage extends TestCase {
 			"		  http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">\n" + 
 			"	<responseDate>2011-05-03T06:42:57Z</responseDate>\n" + 
 			"	<request verb=\"ListRecords\" from=\"2010-01-01\" metadataPrefix=\"marcxml\">http://ijict.org/index.php/ijoat/oai</request>\n" + 
-			"	<ListRecords>\n" + 
+			"	<ListRecords>\n";
+
+		String record_add = 
 			"		<record>\n" + 
 			"			<header>\n" + 
 			"				<identifier>oai:ojs.ijict.org:article/156</identifier>\n" + 
@@ -226,10 +276,23 @@ public class TestTransformationChainStorage extends TestCase {
 			"				<setSpec>ijoat:EA</setSpec>\n" + 
 			"			</header>" + 
 			"           <metadata>";
+
+		
+		
+		String record_delete = 
+			"		<record status=\"deleted\">\n" + 
+			"			<header>\n" + 
+			"				<identifier>oai:ojs.ijict.org:article/156</identifier>\n" + 
+			"				<datestamp>2010-10-11T05:39:24Z</datestamp>\n" + 
+			"				<setSpec>ijoat:EA</setSpec>\n" + 
+			"			</header>" + 
+			"           <metadata>";
+
+		String record_end =
+			"			</metadata>\n" + 
+			"		</record>\n"; 
 		
 		String oai_pmh_end_record = 
-			"			</metadata>\n" + 
-			"		</record>\n" + 
 			"	</ListRecords>\n" + 
 			"</OAI-PMH>";
 		
@@ -263,15 +326,21 @@ public class TestTransformationChainStorage extends TestCase {
 		
 		
 		String oai_pmh_marcxml = 
-			oai_pmh_start_record +
+			oai_pmh_records_start +
+			record_add +
 			marcxml +
+			record_end +
 			oai_pmh_end_record;
 
 		String oai_pmh_oaidc = 
-			oai_pmh_start_record +
+			oai_pmh_records_start +
+			record_add +
 			oai_dc +
+			record_end +
+			record_delete +
+			oai_dc +
+			record_end +
 			oai_pmh_end_record;
-
 		
 		String pz2solr_xsl =  
 			"<?xml version=\"1.0\"?>\n" + 
