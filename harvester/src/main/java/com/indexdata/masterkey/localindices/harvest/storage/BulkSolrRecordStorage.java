@@ -48,7 +48,6 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 				logger.error("Exception while adding documents");
 				throw ste;
 			}
-			logger.info("Added " + no_docs + " records.");
 			if (response.getStatus() != 0)
 				logger.error("Error adding documents");
 			else
@@ -74,8 +73,6 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 				logger.error("Exception while deleting documents after adding " + added + "and deleting " + deleted);
 				throw ste;
 			}
-			logger.info("Deleted " + no_docs + " records.");
-			
 			if (response.getStatus() != 0)
 				logger.error("Error deleting documents");
 			else
