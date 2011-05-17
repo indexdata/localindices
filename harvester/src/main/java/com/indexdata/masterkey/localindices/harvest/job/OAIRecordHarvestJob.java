@@ -7,16 +7,19 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.sax.SAXTransformerFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -27,6 +30,8 @@ import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.storage.OaiPmhDcContentHandler;
+import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 
@@ -45,6 +50,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
     private boolean initialRun = true;
+	TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 
     @Override
     public String getMessage() {
@@ -157,7 +163,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
     private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec, String resumptionToken,
-            RecordStorage store) throws IOException {
+            RecordStorage storage) throws IOException {
 
         Map<String, String> map = new HashMap<String, String>();
         map.put("from", from);
@@ -183,10 +189,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
             }
             OAIError[] errors = null;
             if ((errors = getErrors(errorNodes)) != null) {
-                //the error msg has been logged, but print out the full record
+                // The error message has been logged, but print out the full record
                 logger.log(Level.DEBUG, "JOB#"+resource.getId()+" OAI error response: \n"
                         + listRecords.toString());
-                //if this is noRecordsMatch and inital run, something is wrong
+                // if this is noRecordsMatch and initial run, something is wrong
                 if (errors.length == 1 &&
                     errors[0].getCode().equalsIgnoreCase("noRecordsMatch") &&
                     !this.initialRun) {
@@ -198,7 +204,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
                         + errors[0].code + ": " + errors[0].message);
             } else {
                 if (!dataStart) {
-                    store.databaseStart(map);
+                    storage.databaseStart(map);
                     dataStart = true;
                 }
                 NodeList list;
@@ -206,12 +212,24 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 					list = listRecords.getNodeList("/");
 					for (int index = 0; index < list.getLength(); index++) {
 						Node node = list.item(index);
-						store.add(createRecord(node)); 
+						Record record = createRecord(node);
+						// TODO the createRecord add the record to the storage.
+						// Alway null
+						if (record != null) {
+							if (isDelete(record))
+								storage.delete(record.getId());
+							else
+								storage.add(record);
+						}
 					}
                     resumptionToken = listRecords.getResumptionToken();
-				} catch (Exception e) {
-                    throw new IOException("Cannot read the resumption token");
-                }
+                } catch (TransformerException e) {
+					e.printStackTrace();
+					throw new IOException("Transformation Exception: " + e.getMessage(), e);
+				} catch (NoSuchFieldException e) {
+					e.printStackTrace();
+					throw new IOException("NoSuchFieldException: " + e.getMessage(), e);
+				}
             }
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
@@ -227,8 +245,18 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
             getStorage().databaseEnd();
     }
 
-    private Map<String, Collection<Serializable>> createRecord(Node node) {
-		// TODO Auto-generated method stub
+	private boolean isDelete(Record node) {
+		// TODO Implement
+		return false;
+	}
+
+	private Record createRecord(Node node) throws TransformerException {
+
+		DOMSource xmlSource = new DOMSource(node); 
+		
+		SAXResult outputTarget = new SAXResult(new OaiPmhDcContentHandler(getStorage()));
+		Transformer transformer = stf.newTransformer();
+		transformer.transform(xmlSource, outputTarget);
 		return null;
 	}
 
