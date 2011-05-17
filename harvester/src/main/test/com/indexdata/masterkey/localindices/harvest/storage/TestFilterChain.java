@@ -249,8 +249,7 @@ public class TestFilterChain extends TestCase {
 			// --TransformerFactory actually returns a SAXTransformerFactory instance
 			// --We didn't care about that before, because we didn't use the
 			// --SAXTransformerFactory extensions. But now we do, so we cast the result.
-			SAXTransformerFactory stf =
-				(SAXTransformerFactory) TransformerFactory.newInstance();
+			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 			XMLFilter filter = null;
 			XMLReader parent = reader; 
 			int index = 1;
@@ -308,7 +307,7 @@ public class TestFilterChain extends TestCase {
 			// Parser with specified options can't be built
 			pce.printStackTrace();
 		} // doTest
-	}
+	}	
 	
 	static void main(String argv[]) {
 		new TestFilterChain().doTest(argv);
