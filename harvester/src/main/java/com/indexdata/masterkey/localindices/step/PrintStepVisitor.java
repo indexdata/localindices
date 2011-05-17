@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
 public class PrintStepVisitor implements StepVisitor {
 
 	private InputStream input;
@@ -39,7 +35,7 @@ public class PrintStepVisitor implements StepVisitor {
 	{
 		System.out.println("Transform Step");
 		//new StreamResult(output);
-		TransformResult result = step.transform(new StreamSource(this.getInputStream()), null);
+		// TransformResult result = step.transform(new StreamSource(this.getInputStream()), null);
 		// TODO react on the result
 		return this;
 	}
