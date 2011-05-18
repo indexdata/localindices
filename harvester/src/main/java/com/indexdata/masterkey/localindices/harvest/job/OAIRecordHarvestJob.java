@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 import java.text.SimpleDateFormat;
@@ -14,12 +15,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -31,7 +36,7 @@ import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.OaiPmhDcContentHandler;
+import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.util.TextUtils;
@@ -44,14 +49,16 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  * 
  * @author jakub
  */
-public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
+public class OAIRecordHarvestJob extends AbstractRecordHarvestJob 
+{
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private OaiPmhResource resource;
     private Proxy proxy;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
     private boolean initialRun = true;
-	TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+	private TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+	private Templates[] templates; 
 
     @Override
     public String getMessage() {
@@ -108,6 +115,16 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         //figure out harvesting period, eventhough we may end up using
         //resumptionTokens from the DB
         Date nextFrom = null;
+        String[] template_filenames = { "oai_dc.xsl", ""};
+        
+        try {
+			templates = getTemplates(template_filenames);
+		} catch (TransformerConfigurationException e1) {
+            setStatus(HarvestStatus.ERROR);
+            resource.setMessage(e1.getMessage());
+            logger.log(Level.ERROR, "Error creating normalization transformation.");
+            return ;
+		} 
         
         if (resource.getUntilDate() != null)
             logger.log(Level.INFO, "JOB#"+resource.getId()+
@@ -162,7 +179,18 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         }
     }
 
-    private void harvest(String baseURL, String from, String until,
+    private Templates[] getTemplates(String[] filenames) throws TransformerConfigurationException {
+    	
+    	Templates[] templates = new Templates[filenames.length];
+    	int index = 0;
+    	for (String filename : filenames) {
+    		templates[index] = stf.newTemplates(new StreamSource(new File(filename)));
+    		index++;
+    	}
+		return templates;
+	}
+
+	private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec, String resumptionToken,
             RecordStorage storage) throws IOException {
 
@@ -251,12 +279,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 		return false;
 	}
 
-	private Record createRecord(Node node) throws TransformerException {
+	protected Record createRecord(Node node) throws TransformerException {
 
 		DOMSource xmlSource = new DOMSource(node); 
 		
-		SAXResult outputTarget = new SAXResult(new OaiPmhDcContentHandler(getStorage()));
-		Transformer transformer = stf.newTransformer();
+		SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource.getId().toString()));
+		Transformer transformer; 
+		for (Templates template : templates ) {
+			transformer = template.newTransformer();
+			DOMResult result = new DOMResult();
+			transformer.transform(xmlSource, result);
+			xmlSource = new DOMSource(result.getNode());
+		}
+		transformer = stf.newTransformer();
 		transformer.transform(xmlSource, outputTarget);
 		return null;
 	}
