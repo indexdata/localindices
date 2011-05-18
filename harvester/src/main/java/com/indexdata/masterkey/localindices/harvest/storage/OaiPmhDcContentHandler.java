@@ -22,9 +22,11 @@ public class OaiPmhDcContentHandler implements ContentHandler {
 	private boolean inHeader = false;
 	private boolean inMetadata = false;
 	private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
-
-	public OaiPmhDcContentHandler(RecordStorage storage) {
+	private String databaseId; 
+	
+	public OaiPmhDcContentHandler(RecordStorage storage, String database) {
 		store = storage;
+		databaseId = database;
 	}
 	
 	@Override
@@ -66,6 +68,7 @@ public class OaiPmhDcContentHandler implements ContentHandler {
 		if (localName.equals("record")) {
 			keyValues = new HashMap<String, Collection<Serializable>>();
 			record = new RecordImpl(keyValues);
+			record.setDatabase(databaseId);
 		}
 		if (record != null && localName.equals("header")) {
 			inHeader = true; 
