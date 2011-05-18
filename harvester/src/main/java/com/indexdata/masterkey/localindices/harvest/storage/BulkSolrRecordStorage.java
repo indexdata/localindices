@@ -45,7 +45,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 			try {
 				 response = server.add(docs);
 			} catch (SolrServerException ste) {
-				logger.error("Exception while adding documents");
+				logger.error("Exception while adding documents. Outstanding adds: " + added + ". Deletes: " + deleted);
 				throw ste;
 			}
 			if (response.getStatus() != 0)
