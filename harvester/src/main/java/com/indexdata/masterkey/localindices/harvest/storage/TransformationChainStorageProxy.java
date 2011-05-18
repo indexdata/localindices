@@ -42,8 +42,7 @@ public class TransformationChainStorageProxy extends StorageProxy {
 
 			private void processDataFromInputStream(PipedInputStream input) {
 				InputSource source = new InputSource(input);
-				StreamResult result = new StreamResult(getTarget()
-						.getOutputStream());
+				StreamResult result = new StreamResult(getTarget().getOutputStream());
 				SAXSource transformSource = new SAXSource(xmlFilter, source);
 				try {
 					transformer.transform(transformSource, result);
