@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,7 +31,9 @@ import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 
 public class TestTransformationChainStorage extends TestCase {
 		Harvestable harvestable = new  SolrXmlBulkResource();
@@ -125,7 +128,7 @@ public class TestTransformationChainStorage extends TestCase {
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
-				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(recordStorage);
+				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(recordStorage, "test");
 				Result result = new SAXResult(contentHandler);
 				transfomer.transform(new DOMSource(doc), result);
 				recordStorage.commit();
@@ -142,7 +145,7 @@ public class TestTransformationChainStorage extends TestCase {
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
-				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(bulkStorage);
+				OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(bulkStorage, "test");
 				Result result = new SAXResult(contentHandler);
 				transfomer.transform(new DOMSource(doc), result);
 				bulkStorage.commit();
@@ -150,6 +153,36 @@ public class TestTransformationChainStorage extends TestCase {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+
+		String resourceUrl = "http://ir.ub.rug.nl/oai/";
+
+		public void TestOutputStreamToRecordHarvestJob() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException {
+			String[] stylesheets = { oaidc_pmh_xsl };
+			OaiPmhResource resource = new OaiPmhResource();
+			resource.setEnabled(true);
+			// Approx X days back
+			Date fromDate = new Date(new Date().getTime()-1000*60*60*24*10l );
+			resource.setFromDate(fromDate);
+			resource.setMetadataPrefix("oai_dc");
+			resource.setUrl(resourceUrl);
+			setName(resourceUrl);
+			resource.setCurrentStatus("NEW");
+			OAIHarvestJob job = new OAIHarvestJob(resource, null);
+			BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+			XMLReader xmlFilter = createTransformChain(stylesheets); 
+			TransformationChainRecordStorageProxy storageProxy = new TransformationChainRecordStorageProxy(recordStorage, xmlFilter, new Pz2SolrRecordContentHandler(recordStorage, "test"));
+			// Clean database completely
+			storageProxy.purge();
+			//storageProxy.commit();
+			// Really purge everything
+			//recordStorage.setDatabase(resourceUrl);
+			//recordStorage.purge();
+			//recordStorage.commit();
+			
+			//recordStorage.setOverwriteMode(true); 
+			job.setStorage(storageProxy);
+			job.run();
 		}
 
 
