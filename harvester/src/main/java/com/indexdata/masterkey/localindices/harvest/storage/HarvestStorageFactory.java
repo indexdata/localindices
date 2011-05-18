@@ -43,26 +43,30 @@ public class HarvestStorageFactory {
 	public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         HarvestStorage st = null;
         SolrStorage storage = new SolrStorage(storageDir, harvestable);
-        
+        SolrRecordStorage recordStorage = new BulkSolrRecordStorage(storageDir, harvestable);
+        boolean useRecordStorage = true;
         if (harvestable instanceof OaiPmhResource) {
-        	String[] chain = null;
-        	if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21"))
-            	chain = marc21;
-            else	
-            	chain = dc;
-            
-	        try {
-	        	XMLReader xmlFilter = createXMLFilter(chain);
-				st = new TransformationChainStorageProxy(storage, xmlFilter);
-			} catch (TransformerConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				throw new RuntimeException("Configuration error", e);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				throw new RuntimeException("IOException error while creating Storage", e);
-			}
+            if (useRecordStorage)
+            	return recordStorage;
+            else {
+            	String[] chain = null;
+                if (((OaiPmhResource) harvestable).getMetadataPrefix().equalsIgnoreCase("marc21"))
+                	chain = marc21;
+                else       
+                	chain = dc;
+	            try {
+		        	XMLReader xmlFilter = createXMLFilter(chain);
+					st = new TransformationChainStorageProxy(storage, xmlFilter);
+				} catch (TransformerConfigurationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException("Configuration error", e);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException("IOException error while creating Storage", e);
+				}
+            }
         } else if (harvestable instanceof XmlBulkResource) {
             st = new ZebraFileStorage(storageDir, harvestable, "");
             st.setOverwriteMode(true);
