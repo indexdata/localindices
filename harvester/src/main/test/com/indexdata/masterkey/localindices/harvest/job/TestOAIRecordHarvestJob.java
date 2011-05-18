@@ -3,12 +3,18 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.xml.transform.TransformerConfigurationException;
+
+import org.xml.sax.XMLFilter;
+
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 public class TestOAIRecordHarvestJob extends TestCase {
 	
@@ -67,8 +73,4 @@ public class TestOAIRecordHarvestJob extends TestCase {
 		job.setStorage(recordStorage);
 		job.run();
 	}
-
-	
-	
-	
 }
