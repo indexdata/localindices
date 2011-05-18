@@ -22,6 +22,7 @@ public class OaiPmhMarcXMLContentHandler implements ContentHandler {
 	private boolean inHeader = false;
 	private boolean inMetadata = false;
 	private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
+	private boolean inControlfield;
 
 	public OaiPmhMarcXMLContentHandler(RecordStorage storage) {
 		store = storage;
@@ -63,6 +64,7 @@ public class OaiPmhMarcXMLContentHandler implements ContentHandler {
 			Attributes atts) throws SAXException {
 		textBuffers.add(currentText);
 		currentText = new StringBuffer();
+		/* OAI-PMH record */
 		if (localName.equals("record")) {
 			keyValues = new HashMap<String, Collection<Serializable>>();
 			record = new RecordImpl(keyValues);
@@ -71,8 +73,12 @@ public class OaiPmhMarcXMLContentHandler implements ContentHandler {
 			inHeader = true; 
 			isDeleted = getDeleteStatus(atts);
 		}
-		if (record != null && localName.equals("dc"))
+		if (record != null && localName.equals("record"))
 			inMetadata = true; 
+		if (inMetadata && localName.equals("controlfield")) {
+			inControlfield = true; 
+			
+		}
 		
 	}
 
