@@ -45,7 +45,8 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 		try {
 
 			logger.info("Committing added " + added + " and deleted " + deleted + " records.");
-			UpdateResponse response = server.commit();
+			// TODO Testing waitFlush=false, waitSearcher=false. Not good for indexes with searchers
+			UpdateResponse response = server.commit(false, false);
 			if (response.getStatus() != 0)
 				logger.error("Error while COMMITING records.");
 		} catch (SolrServerException e) {
