@@ -13,7 +13,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
  * 
  * @author jakub
  */
-public interface RecordHarvestJob extends Runnable {
+public interface RecordHarvestJob extends HarvestJob {
     
     /** 
      * Stop the current job and rollback the current harvest, 
