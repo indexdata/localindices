@@ -28,8 +28,11 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     private String oaiSetName;
     private String metadataPrefix;
     private String schemaURI;
-    private String normalizationFilter;
     // resumption token
+    private String resumptionToken;
+    // NormalizationFilter (id? Load from other table)
+    private String normalizationFilter;
+    
     @Temporal(TemporalType.DATE)
     private Date fromDate;
     @Temporal(TemporalType.DATE)
@@ -100,7 +103,15 @@ public class OaiPmhResource extends Harvestable implements Serializable {
         this.schemaURI = schemaURI;
     }
 
-    @Override
+	public String getResumptionToken() {
+		return resumptionToken;
+	}
+
+	public void setResumptionToken(String resumptionToken) {
+		this.resumptionToken = resumptionToken;
+	}
+
+	@Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof OaiPmhResource)) {
@@ -112,4 +123,5 @@ public class OaiPmhResource extends Harvestable implements Serializable {
         }
         return true;
     }
+
 }
