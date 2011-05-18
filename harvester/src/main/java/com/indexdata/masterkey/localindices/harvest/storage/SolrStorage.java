@@ -57,7 +57,7 @@ public class SolrStorage implements HarvestStorage {
 		try {
 			
 			server = new CommonsHttpSolrServer( url );
-			server.setSoTimeout(1000);  // socket read timeout
+			//server.setSoTimeout(1000);  // socket read timeout
 			server.setConnectionTimeout(100);
 			server.setDefaultMaxConnectionsPerHost(100);
 			server.setMaxTotalConnections(100);
