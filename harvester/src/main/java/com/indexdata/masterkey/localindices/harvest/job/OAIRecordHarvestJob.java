@@ -30,6 +30,7 @@ import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.OaiPmhDcContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -315,4 +316,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         if (date == null) return null;
         return new SimpleDateFormat(currentDateFormat).format(date);
     }
+
+	@Override
+	public void setStorage(HarvestStorage storage) {
+		if (!(storage instanceof RecordStorage))
+			throw new RuntimeException("Requires a RecordStorage");
+		setStorage((RecordStorage) storage);
+	}
 }
