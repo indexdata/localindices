@@ -45,8 +45,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
 		OaiPmhResource resource = new OaiPmhResource();
 		resource.setEnabled(true);
 		// Approx X days back
-		Date fromDate = new Date(new Date().getTime()-1000*60*60*24*600l );
-		resource.setUntilDate(fromDate);
+		//Date fromDate = new Date(new Date().getTime()-1000*60*60*24*600l );
+		//resource.setUntilDate(fromDate);
 		resource.setMetadataPrefix("oai_dc");
 		resource.setUrl(resourceUrl);
 		setName(resourceUrl);
@@ -66,11 +66,6 @@ public class TestOAIRecordHarvestJob extends TestCase {
 		//recordStorage.setOverwriteMode(true); 
 		job.setStorage(recordStorage);
 		job.run();
-
-		resource.setUntilDate(null);
-		resource.setFromDate(fromDate);
-		job.run();
-		
 	}
 
 	
