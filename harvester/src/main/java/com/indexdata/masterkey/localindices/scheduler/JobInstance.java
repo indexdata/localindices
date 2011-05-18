@@ -7,6 +7,7 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import com.indexdata.utils.CronLine;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.entity.*;
 import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.io.IOException;
@@ -55,13 +56,19 @@ public class JobInstance {
                 logger.log(Level.WARN,
                         "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
             }
-            harvestJob = new OAIHarvestJob((OaiPmhResource) hable, proxy);
-            harvestJob.setStorage(storage);
+            if (storage instanceof RecordStorage) {
+            	harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
+            	harvestJob.setStorage((RecordStorage) storage);
+            }
+            else {
+            	harvestJob = new OAIHarvestJob((OaiPmhResource) hable, proxy);
+            	harvestJob.setStorage(storage);
+            }
         } else if (hable instanceof XmlBulkResource) {
-            harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
-            harvestJob.setStorage(storage);
+        	harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
+            harvestJob.setStorage(storage);            
         } else if (hable instanceof WebCrawlResource) {
-            harvestJob = new WebHarvestJob((WebCrawlResource) hable, proxy);
+        	harvestJob = new WebHarvestJob((WebCrawlResource) hable, proxy);
             harvestJob.setStorage(storage);
         } else {
             throw new IllegalArgumentException("Cannot create instance of the harvester.");
