@@ -2,6 +2,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public class RecordImpl implements Record {
@@ -9,6 +10,10 @@ public class RecordImpl implements Record {
 	Map<String, Collection<Serializable>> valueMap;
 	String id; 
 	String database; 
+	public RecordImpl() {
+		valueMap = new HashMap<String, Collection<Serializable>>();
+	}
+
 	public RecordImpl(Map<String, Collection<Serializable>> values) {
 		valueMap = values;
 	}
