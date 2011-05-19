@@ -58,7 +58,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
     private String currentDateFormat;
     private boolean initialRun = true;
 	private TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
-	private Templates[] templates; 
+	private String[] oai_dc_pz = { "oai_dc.xsl"}; 
+	private String[] oai_marc21_pz = { "oai_marc.xsl", "marc21.xsl" }; 
+    private Templates[] templates = {};
 
     @Override
     public String getMessage() {
@@ -112,20 +114,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
     public void run() {
         setStatus(HarvestStatus.RUNNING);
         this.resource.setMessage(null);
-        //figure out harvesting period, eventhough we may end up using
+        
+        //figure out harvesting period, even though we may end up using
         //resumptionTokens from the DB
         Date nextFrom = null;
-        String[] template_filenames = { "oai_dc.xsl", ""};
-        
-        try {
-			templates = getTemplates(template_filenames);
-		} catch (TransformerConfigurationException e1) {
-            setStatus(HarvestStatus.ERROR);
-            resource.setMessage(e1.getMessage());
-            logger.log(Level.ERROR, "Error creating normalization transformation.");
-            return ;
-		} 
-        
         if (resource.getUntilDate() != null)
             logger.log(Level.INFO, "JOB#"+resource.getId()+
                     " OAI harvest: until param will be overwritten to yesterday.");
@@ -200,6 +192,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
         map.put("metadataprefix", metadataPrefix);
         map.put("oaisetname", setSpec);
         map.put("normalizationfilter", resource.getNormalizationFilter());
+        // TODO from normalization filter (id) get the templates used. 
+        try {
+        	if ("oai_dc".equals(metadataPrefix))
+        		templates = getTemplates(oai_dc_pz);
+        	else if ("oai_marc".equals(metadataPrefix))
+        		templates = getTemplates(oai_marc21_pz);
+        		
+		} catch (TransformerConfigurationException e1) {
+            setStatus(HarvestStatus.ERROR);
+            resource.setMessage(e1.getMessage());
+            logger.log(Level.ERROR, "Error creating normalization transformation.");
+            return ;
+		} 
 
     	ListRecords listRecords = null;
         //resumption Token present in DB?
@@ -232,8 +237,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
                 } else throw new IOException("OAI error "
                         + errors[0].code + ": " + errors[0].message);
             } else {
-                if (!dataStart) {
-                    storage.databaseStart(map);
+                if (!dataStart) {                	
+                    storage.databaseStart(resource.getId().toString(), null);
+                    if (storage.getOverwriteMode())
+                    	storage.purge();
                     dataStart = true;
                 }
                 NodeList list;
@@ -290,6 +297,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 			DOMResult result = new DOMResult();
 			transformer.transform(xmlSource, result);
 			xmlSource = new DOMSource(result.getNode());
+			/* Debug 
+			StreamResult debug = new StreamResult(System.out);
+			stf.newTransformer().transform(xmlSource, debug);
+			*/
 		}
 		transformer = stf.newTransformer();
 		transformer.transform(xmlSource, outputTarget);
