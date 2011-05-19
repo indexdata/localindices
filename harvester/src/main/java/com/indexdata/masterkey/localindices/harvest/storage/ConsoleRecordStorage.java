@@ -9,7 +9,7 @@ import java.util.Map;
 public class ConsoleRecordStorage implements RecordStorage {
 
 	private boolean overrideMode;
-
+	private String database = null;
 	@Override
 	public void begin() throws IOException {
 		System.out.println("Begin");
@@ -47,13 +47,15 @@ public class ConsoleRecordStorage implements RecordStorage {
 	}
 
 	@Override
-	public void databaseStart(Map<String, String> properties) {
-		System.out.println("databaseStart");
+	public void databaseStart(String database, Map<String, String> properties) {
+		this.database = database;
+		System.out.println("Start database: " + database);
 	}
 
 	@Override
 	public void databaseEnd() {
-		System.out.println("databaseEnd");
+		System.out.println("database End: " + database);
+		database = null;
 	}
 
 	@Override
