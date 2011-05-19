@@ -17,12 +17,12 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 	RecordStorage store; 
 	private RecordImpl record = null;
 	private Map<String, Collection<Serializable>> keyValues = null;
-	private Boolean isDeleted = null;
 	private StringBuffer currentText = null;
 	private boolean inHeader = false;
 	private boolean inMetadata = false;
 	private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
 	private String databaseId;
+	private String type;
 
 	public Pz2SolrRecordContentHandler(RecordStorage storage, String database) {
 		store = storage;
@@ -66,22 +66,22 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 			Attributes atts) throws SAXException {
 		textBuffers.add(currentText);
 		currentText = new StringBuffer();
-		/* First record  tag (OAI-PMH or pz:record */
-		if (record == null && localName.equals("record")) {
+		if (record == null && qName.equals("pz:record")) {
+			inMetadata = true; 
 			keyValues = new HashMap<String, Collection<Serializable>>();
 			record = new RecordImpl(keyValues);
 			record.setDatabase(databaseId);
 		}
-		if (record != null && localName.equals("header")) {
+		if (record == null && localName.equals("delete")) {
 			inHeader = true; 
-			isDeleted = getDeleteStatus(atts);
+			record = new RecordImpl();
+			record.setDatabase(databaseId);
+			record.setId(getAttributeValue(atts, "id"));
 		}
-		if (record != null && localName.equals("record")) {
-			inMetadata = true; 
-			// No header has checked for isDeleted status
-			if (isDeleted == null)
-				isDeleted = "deleted".equals(getAttributeValue(atts, "status"));
+		if (inMetadata && qName.equals("pz:metadata")) {
+				type = getAttributeValue(atts, "type");
 		}
+
 	}
 private String getAttributeValue(Attributes atts, String name) 
 {
@@ -91,12 +91,7 @@ private String getAttributeValue(Attributes atts, String name)
 		return null;
 	}
 
-
-	private Boolean getDeleteStatus(Attributes atts) {
-		return "deleted".equals(getAttributeValue(atts,"status")); 
-	}
-
-	@Override
+@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		if (record != null) {
 			if (inHeader && localName.equals("identifier")) {
@@ -107,23 +102,23 @@ private String getAttributeValue(Attributes atts, String name)
 			if (localName.equals("record")) 
 				inMetadata = false; 
 			if (inMetadata) {
-				Collection<Serializable> values = keyValues.get(localName);
+				Collection<Serializable> values = keyValues.get(type);
 				
 				if (values == null) {
 					values = new LinkedList<Serializable>();
-					keyValues.put(localName, values);
+					keyValues.put(type, values);
 				}
 				values.add(currentText);
-				if ("id".equals(localName))
+				if ("id".equals(type))
 					record.setId(currentText.toString());
 			}
 		}
 		/* This should work both with and without OAI-PMH headers */
-		if (record != null && localName.equals("record")) {
-			if (isDeleted)
-				store.delete(record.getId());
-			else 
-				store.add(record);
+		if (record != null && localName.equals("delete")) {
+			store.delete(record.getId());
+		}
+		if (record != null && qName.equals("pz:record")) {
+			store.add(record);
 			record = null; 
 		}
 		currentText = textBuffers.pop();
