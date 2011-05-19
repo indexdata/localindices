@@ -6,7 +6,7 @@ import java.util.Map;
 
 public interface RecordStorage extends HarvestStorage {
 	
-	void databaseStart(Map<String ,String> properties);
+	void databaseStart(String database, Map<String ,String> properties);
 	void databaseEnd();
 	void add(Map<String, Collection<Serializable>> keyValues);
 	void add(Record record);
