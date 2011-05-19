@@ -21,8 +21,8 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 public class SolrRecordStorage extends SolrStorage implements RecordStorage 
 {
 	Collection<String> deleteIds = new LinkedList<String>();
-	private String idField;
-	private String databaseField;
+	private String idField = "id";
+	private String databaseField = "database";
 	private String database;
 	@SuppressWarnings("unused")
 	private Map<String, String> databaseProperties;
@@ -70,10 +70,10 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	@Override
 	public void purge() throws IOException {
 		try {
-			if (database != null) 
-				server.deleteByQuery("database:" + database);
+			if (database != null ) 
+				server.deleteByQuery(databaseField + ":" + database);
 			else {
-				// TODO Remove here, but enable somehow.
+				logger.warn("No database defined. Deleting FULL database!!!");
 				server.deleteByQuery("*:*");
 			}
 		} catch (SolrServerException e) {
@@ -89,27 +89,25 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	}
 
 	@Override
-	public void databaseStart(Map<String, String> properties) {
+	public void databaseStart(String database, Map<String, String> properties) {
+		this.database = database; 
 		databaseProperties = properties;
+		/*
 		if (properties.get(databaseField) != null)
 			database = properties.get(databaseField); 
 		if (database == null)
-			logger.warn("No database field (" + databaseField + ") found in properties"); 
+			logger.warn("No database field (" + databaseField + ") found in properties");
+		*/ 
 	}
 
 	// @Deprecated createDocument Use Record method
 	protected SolrInputDocument createDocument(Map<String, Collection<Serializable>> keyValues) {
-		boolean foundIdField = false;
 		SolrInputDocument document = new SolrInputDocument();
 		for (String key : keyValues.keySet()) {
 			for (Serializable value : keyValues.get(key)) {
-				if (key.equals(idField)) 
-					foundIdField = true;
 				document.addField(key, value);
 			}
 		}
-		if (foundIdField) 
-			throw new RuntimeException("No identifier found.");
 		return document;
 	}
 
@@ -117,11 +115,14 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 		SolrInputDocument document = createDocument(record.getValues());
 		if (idField != null)
 			document.setField(idField, record.getId());
-		else 
-			document.setField("id", record.getId());
-		if (database != null)
-			document.setField("database", record.getDatabase());  
+		if (databaseField != null)
+			document.setField(databaseField, record.getDatabase());  
 		return document;
+	}
+
+	protected Record createRecord(SolrDocument doc) {
+		Record record = null;
+		return record;
 	}
 
 	public void add(SolrInputDocument document) {
