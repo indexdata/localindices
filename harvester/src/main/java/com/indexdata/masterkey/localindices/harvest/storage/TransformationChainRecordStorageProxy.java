@@ -17,28 +17,24 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
-public class TransformationChainRecordStorageProxy extends StorageProxy {
-
+public class TransformationChainRecordStorageProxy extends StorageProxy 
+{
 	private PipedOutputStream output;
 	private PipedInputStream input;
-	private XMLReader xmlFilter;
 	private Thread thread = null;
 	private SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 	private Transformer transformer;
 	private TransformerException transformException = null;
-	private IOException rollbackException = null;
-	private String database;
-	private ContentHandler storageHandler;
 
 	public TransformationChainRecordStorageProxy(final RecordStorage storage,
 			final XMLReader xmlFilter, final ContentHandler storageHandler) throws IOException,
 			TransformerConfigurationException {
-		this.xmlFilter = xmlFilter;
+		//this.xmlFilter = xmlFilter;
 		setTarget(storage);
 		input = new PipedInputStream();
 		output = new PipedOutputStream(input);
 		transformer = stf.newTransformer();
-		this.storageHandler = storageHandler;  
+		//this.storageHandler = storageHandler;  
 		thread = new Thread(new Runnable() {
 			public void run() {
 				processDataFromInputStream(input);
