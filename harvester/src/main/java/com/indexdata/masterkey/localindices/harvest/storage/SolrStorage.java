@@ -113,10 +113,6 @@ public class SolrStorage implements HarvestStorage {
 	 */
 	public SolrStorage(URL solrUrl, Harvestable harvestable) {
 		this.solrUrl = solrUrl;
-/*
-		warn("Make sure your XML documents are encoded in " + POST_ENCODING
-				+ ", other encodings are not currently supported");
-*/
 	}
 
 	@Override
