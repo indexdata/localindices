@@ -12,8 +12,18 @@
       http://www.loc.gov/marc/bibliographic/ecbdhome.html
 -->  
   <xsl:include href="pz2-ourl-marc21.xsl" />
+
+  <xsl:template match="/">
+    <pz:collection> 
+      <xsl:apply-templates />
+    </pz:collection>
+  </xsl:template> 		       
   
-  <xsl:template match="/marc:record">
+  <xsl:template match="//delete">
+	<xsl:copy-of select="."/>                                                                                                                                                                               
+  </xsl:template> 		       
+  
+  <xsl:template match="//marc:record">
     <xsl:variable name="title_medium" select="marc:datafield[@tag='245']/marc:subfield[@code='h']"/>
     <xsl:variable name="journal_title" select="marc:datafield[@tag='773']/marc:subfield[@code='t']"/>
     <xsl:variable name="electronic_location_url" select="marc:datafield[@tag='856']/marc:subfield[@code='u']"/>
