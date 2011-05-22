@@ -31,7 +31,7 @@ public interface HarvestableDAO {
     /**
      * Retrieves a harvestable using it's listing reference (brief)
      * @param hbrief brief (listing) harvestable
-     * @return harvesatble detailed harvestable
+     * @return harvestable detailed harvestable
      */
     Harvestable retrieveFromBrief(HarvestableBrief hbrief);
 }
