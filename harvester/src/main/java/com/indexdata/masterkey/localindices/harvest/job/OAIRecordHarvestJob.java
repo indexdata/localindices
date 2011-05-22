@@ -49,6 +49,7 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  * 
  * @author jakub
  */
+@SuppressWarnings("unused")
 public class OAIRecordHarvestJob extends AbstractRecordHarvestJob 
 {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
@@ -59,7 +60,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
     private boolean initialRun = true;
 	private TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 	private String[] oai_dc_pz = { "oai_dc.xsl"}; 
-	private String[] oai_marc21_pz = { "oai_marc.xsl", "marc21.xsl" }; 
+	private String[] oai_marc21_pz = { "oai2marc.xsl", "marc21.xsl" }; 
     private Templates[] templates = {};
 
     @Override
@@ -80,11 +81,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
             return code;
         }
 
-        @SuppressWarnings("unused")
-		public String getMessage() {
+        public String getMessage() {
             return message;
         }
-
     }
 
     public OAIRecordHarvestJob(OaiPmhResource resource, Proxy proxy) {
@@ -132,7 +131,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 	                formatDate(resource.getUntilDate()), 
 	                resource.getMetadataPrefix(), 
 	                resource.getOaiSetName(),
-	                resource.getNormalizationFilter(),
+	                resource.getResumptionToken(),
 	                getStorage());
             //}
             
@@ -196,7 +195,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
         try {
         	if ("oai_dc".equals(metadataPrefix))
         		templates = getTemplates(oai_dc_pz);
-        	else if ("oai_marc".equals(metadataPrefix))
+        	else if ("marc21".equals(metadataPrefix))
         		templates = getTemplates(oai_marc21_pz);
         		
 		} catch (TransformerConfigurationException e1) {
@@ -297,10 +296,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 			DOMResult result = new DOMResult();
 			transformer.transform(xmlSource, result);
 			xmlSource = new DOMSource(result.getNode());
-			/* Debug 
+/*
 			StreamResult debug = new StreamResult(System.out);
 			stf.newTransformer().transform(xmlSource, debug);
-			*/
+*/
 		}
 		transformer = stf.newTransformer();
 		transformer.transform(xmlSource, outputTarget);
