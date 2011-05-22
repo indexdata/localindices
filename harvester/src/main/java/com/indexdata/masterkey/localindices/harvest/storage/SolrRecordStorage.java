@@ -31,6 +31,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	
 	public SolrRecordStorage(String url_string, Harvestable harvestable) {
 		super(url_string, harvestable);
+		database = harvestable.getId().toString();
 	}
 
 	@Override 
@@ -44,13 +45,13 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	public void commit() throws IOException {
 		try {
 
-			logger.info("Committing added " + added + " and deleted " + deleted + " records.");
+			logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
 			// TODO Testing waitFlush=false, waitSearcher=false. Not good for indexes with searchers
 			UpdateResponse response = server.commit(false, false);
 			if (response.getStatus() != 0)
 				logger.error("Error while COMMITING records.");
 		} catch (SolrServerException e) {
-			logger.error("Commit failed when adding " + added + " and deleting " + deleted + ".");
+			logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database);
 			e.printStackTrace();
 			throw new RuntimeException("Commit failed: " + e.getMessage(), e);
 		}
@@ -70,12 +71,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	@Override
 	public void purge() throws IOException {
 		try {
-			if (database != null ) 
-				server.deleteByQuery(databaseField + ":" + database);
-			else {
-				logger.warn("No database defined. Deleting FULL database!!!");
-				server.deleteByQuery("*:*");
-			}
+			server.deleteByQuery(databaseField + ":" + database);
 		} catch (SolrServerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -90,14 +86,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 
 	@Override
 	public void databaseStart(String database, Map<String, String> properties) {
-		this.database = database; 
 		databaseProperties = properties;
-		/*
-		if (properties.get(databaseField) != null)
-			database = properties.get(databaseField); 
-		if (database == null)
-			logger.warn("No database field (" + databaseField + ") found in properties");
-		*/ 
 	}
 
 	// @Deprecated createDocument Use Record method
@@ -114,7 +103,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	protected SolrInputDocument createDocument(Record record) {
 		SolrInputDocument document = createDocument(record.getValues());
 		if (idField != null)
-			document.setField(idField, record.getId());
+			document.setField(idField, database);
 		if (databaseField != null)
 			document.setField(databaseField, record.getDatabase());  
 		return document;
@@ -173,8 +162,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	public Record get(String id) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set(idField, id);
-		if (database != null) 
-			params.set(databaseField, database);
+		params.set(databaseField, database);
 		
 		try {
 			QueryResponse response = server.query(params);
