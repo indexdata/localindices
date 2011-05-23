@@ -103,9 +103,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	protected SolrInputDocument createDocument(Record record) {
 		SolrInputDocument document = createDocument(record.getValues());
 		if (idField != null)
-			document.setField(idField, database);
+			document.setField(idField, record.getId());
 		if (databaseField != null)
-			document.setField(databaseField, record.getDatabase());  
+			document.setField(databaseField, database);  
 		return document;
 	}
 
