@@ -11,13 +11,13 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Add a new OAI-PMH resource</title>
+        <title>Add new OAI-PMH resource</title>
     </head>
     <body>
         <f:view>
             <h:form>
                 <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
-                <h3>New OAI-PMH resource: </h3>
+                <h3>New OAI-PMH resource:</h3>
                 <%@ include file="fragments/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/oaipmh_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addResource}"/>
