@@ -11,13 +11,15 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available resources</title>
+        <title>Local Unified Index</title>
     </head>
     <body>
         <f:view>
             <h:form>
                 <h:commandLink value="Resources" action="#{resourceController.listResources}" />
-                <h:commandLink value="Storages"  action="#{storageController.listResources}" />
+                <br>
+                <h:commandLink value="Storages"  action="#{storageController.listStorages}" />
+                 <br>
 <!-- 
                 <h:commandLink value="Transformations" action="#{transformationController.listResources}" />
  -->
