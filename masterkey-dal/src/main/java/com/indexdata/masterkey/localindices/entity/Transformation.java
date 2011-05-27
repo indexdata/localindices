@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 import java.util.List;
+//import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,7 +21,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
 /**
- * @author Dennis
+ * @author Dennis Schafroth
  */
 @Entity
 @NamedQueries({@NamedQuery(name = "Transformation.findById", query = "SELECT o FROM Transformation o WHERE o.id = :id")})
@@ -36,11 +37,7 @@ public abstract class Transformation implements Serializable, Cloneable {
     @Column(length=4096)
     protected String description;
     protected Boolean enabled;
-    @Column(length=4096)
-    protected String currentStatus;
-    @Column(length=4096)
-    protected String message;
-    protected List<TransformationStep> steps;
+    //protected List<TransformationStep> steps;
     
     public String getDescription() {
         return description;
@@ -50,23 +47,6 @@ public abstract class Transformation implements Serializable, Cloneable {
         this.description = description;
     }
     
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getCurrentStatus() {
-        return currentStatus;
-    }
-
-    public void setCurrentStatus(String currentStatus) {
-        this.currentStatus = currentStatus;
-    }
-
     public Boolean getEnabled() {
         return enabled;
     }
