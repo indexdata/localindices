@@ -11,7 +11,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Add new resource</title>
+        <title>Edit OAI-PMH resource</title>
     </head>
     <body>
         <f:view>
