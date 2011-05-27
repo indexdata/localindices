@@ -39,6 +39,8 @@ public abstract class Storage implements Serializable, Cloneable {
     protected String currentStatus;
     @Column(length=4096)
     protected String message;
+    @Column(length=100)
+    protected String transformation;
     
     public String getDescription() {
         return description;
@@ -118,4 +120,12 @@ public abstract class Storage implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+	public String getTransformation() {
+		return transformation;
+	}
+
+	public void setTransformation(String transformation) {
+		this.transformation = transformation;
+	}
 }
