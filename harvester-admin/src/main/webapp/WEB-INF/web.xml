@@ -11,6 +11,24 @@
         <!--<param-value>http://localhost:8109/localindices-harvester/records/harvestables/</param-value>  -->
     </context-param>
     <context-param>
+        <param-name>com.indexdata.masterkey.localindices.StorageDAO</param-name>
+        <param-value>StorageDAOFake</param-value>
+    </context-param>
+    <context-param>
+        <param-name>com.indexdata.masterkey.localindices.StorageDAO.WS_BASE_URL</param-name>
+        <param-value>http://localhost:8080/localindices-harvester/records/storages/</param-value>
+        <!--<param-value>http://localhost:8109/localindices-harvester/records/storages/</param-value>  -->
+    </context-param>
+     <context-param>
+        <param-name>com.indexdata.masterkey.localindices.TransformationDAO</param-name>
+        <param-value>TransformationDAOFake</param-value>
+    </context-param>
+   <context-param>
+        <param-name>com.indexdata.masterkey.localindices.TransformationDAO.WS_BASE_URL</param-name>
+        <param-value>http://localhost:8080/localindices-harvester/records/transformations/</param-value>
+        <!--<param-value>http://localhost:8109/localindices-harvester/records/tranformations/</param-value>  -->
+    </context-param>
+   <context-param>
         <param-name>com.sun.faces.verifyObjects</param-name>
         <param-value>false</param-value>
     </context-param>
