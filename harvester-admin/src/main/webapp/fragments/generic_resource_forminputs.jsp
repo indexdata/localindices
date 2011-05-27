@@ -47,11 +47,14 @@
         <h:outputText value="Harvest job enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
         <!-- List box of Transformations pipeline-->
+        <h:outputText value="Transformation Pipeline:"/>
         <h:selectOneMenu value="#{resourceController.transformation}">
               <f:selectItems value="#{resourceController.transformations}" />
         </h:selectOneMenu>
         <!-- List box of Storages -->
-        <h:selectOneMenu>
+        <h:outputText value="Storage:"/>
+        <h:selectOneMenu value="#{resourceController.storage}">
+              <f:selectItems value="#{storageController.storageItems}" />
         </h:selectOneMenu>
 
     </h:panelGrid>
