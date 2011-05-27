@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 
 @XmlRootElement(name = "transformationBrief")
-public class TransformationBrief {
+public class TransformationBrief implements Comparable<Object> {
     private Long id;
     private String name;
     private String description;
@@ -83,6 +83,23 @@ public class TransformationBrief {
         this.uri = uri;
     }
 
-	
 
+	@Override
+	public int compareTo(Object o) {
+        return this.getName().compareTo(((TransformationBrief)o).getName());
+	}
+
+    public boolean equals(Object brief) {
+        if (brief instanceof TransformationBrief) {
+            return (this.getName().equals(((TransformationBrief)brief).getName()));
+        } else {
+            return false;
+        }             
+    }
+    
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
+
+	
 }
