@@ -16,6 +16,7 @@
     <body>
         <f:view>
             <h:form>
+                <h:commandLink value="Back" action="#{resourceController.back}" />
                 <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
                 <h:outputText value=" | Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
@@ -82,7 +83,7 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabled}"></h:outputText>
+                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
