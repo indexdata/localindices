@@ -9,10 +9,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.indexdata.masterkey.localindices.entity.Storage;
 
 @XmlRootElement(name = "storageBrief")
-public class StorageBrief {
+public class StorageBrief implements Comparable<Object> {
     private Long id;
     private String name;
     private String description;
+    private String enabled;
 
     private URI uri; 
     
@@ -23,7 +24,11 @@ public class StorageBrief {
     public StorageBrief(Storage entity) {
         setId(entity.getId());
         setName(entity.getName());
-        entity.getDescription();
+        setDescription(entity.getDescription());
+        if (entity.getEnabled() != null)
+        	setEnabled((entity.getEnabled() ? "Yes": ""));
+        else 
+        	setEnabled("");
     }
 
     /* TODO Verify */ 
@@ -83,6 +88,35 @@ public class StorageBrief {
         this.uri = uri;
     }
 
-	
 
+	@Override
+	public int compareTo(Object storage) {
+        return this.getName().compareTo(((StorageBrief)storage).getName());
+	}
+    
+    public boolean equals(Object storage) {
+        if (storage instanceof StorageBrief) {
+            return (this.getName().equals(((HarvestableBrief)storage).getName()));
+        } else {
+            return false;
+        }             
+    }
+
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
+
+
+	public String getEnabled() {
+		return enabled;
+	}
+
+	public boolean isEnabled() {
+		return "Yes".equals(enabled);
+	}
+
+
+	public void setEnabled(String enabled) {
+		this.enabled = enabled;
+	}
 }
