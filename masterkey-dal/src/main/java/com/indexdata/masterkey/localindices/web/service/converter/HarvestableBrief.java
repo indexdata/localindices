@@ -114,11 +114,17 @@ public class HarvestableBrief implements Comparable<Object> {
         this.lastUpdated = lastUpdated;
     }
 
-    @XmlElement(name="enabled")
-    public boolean isEnabled() {
-        return enabled;
+    public String getEnabledDisplay() {
+    	String display = "";
+    	if (isEnabled())
+        	display = "Yes";
+    	return display;
     }
 
+    public boolean isEnabled() {
+    	return enabled;
+    }
+    
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
