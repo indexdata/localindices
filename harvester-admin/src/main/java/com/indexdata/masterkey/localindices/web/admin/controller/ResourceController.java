@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
@@ -51,6 +52,11 @@ public class ResourceController {
     @SuppressWarnings("rawtypes")
 	private List resources;
     private String transformation; 
+    private String jobLog;
+	Stack<String> backActions = new Stack<String>();
+	String homeAction = "home";
+    private String storage; 
+
     
     public Boolean getLongDate() {
         return longDate;
@@ -74,7 +80,6 @@ public class ResourceController {
         this.resource = resource;
     }
     
-    // Is this used?
     public List<SelectItem> getMetadataPrefixes() {
         List<SelectItem> list = new ArrayList<SelectItem>();
         
@@ -419,8 +424,6 @@ public class ResourceController {
         }
     }
 
-    private String jobLog;
-
     public String viewJobLog() {
         String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
         Long id = new Long(param);
@@ -487,5 +490,28 @@ public class ResourceController {
         selectItem.setValue("oai_marcxml2solr");
     	return list;
     }
-
+	public String stackBackAction(String newAction) {
+		return backActions.push(newAction);
+	}
+	public String back() {
+		if (backActions.isEmpty())
+			return homeAction;
+		return backActions.pop();
+	}
+	public String home() {
+		return homeAction;
+	}
+	public String getHomeAction() {
+		return homeAction;
+	}
+	public void setHomeAction(String homeAction) {
+		this.homeAction = homeAction;
+	}
+	public String getStorage() {
+		return storage;
+	}
+	public void setStorage(String storage) {
+		this.storage = storage;
+	}
+	
 }

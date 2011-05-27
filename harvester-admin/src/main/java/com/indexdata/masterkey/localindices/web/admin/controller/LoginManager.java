@@ -102,7 +102,7 @@ public class LoginManager {
             displayName = layer.getDisplayName();
             loggedIn = true;
             setCookie("admin-superuser", id, false);
-            return "list_resources";
+            return "overview";
         } catch (Exception ex) {
             loggedIn = false;
             logger.log(Level.INFO, "Login failed because of the backend error", ex);

@@ -6,16 +6,15 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,21 +26,25 @@ import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.entity.SolrStorage;
 import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 
 /**
  * The controller for the Admin interface for storages, implements all the business logic and
  * controls data access through DAO object
  * @author Dennis 
  */
-public class StorageController {
+public class StorageController  {
     private Logger logger = Logger.getLogger(getClass());
     // Storage
     private StorageDAO dao;
-    private Storage resource;
+    private Storage storage;
     
     private DataModel model;
-    @SuppressWarnings("rawtypes")
-	private List resources;
+	private List<StorageBrief> storages;
+    private String jobLog;
+	Stack<String> backActions = new Stack<String>();
+	String homeAction = "home";
+
     
     public StorageController() {
         try {
@@ -51,11 +54,11 @@ public class StorageController {
         }
     }
 
-    public Storage getResource() {
-        return resource;
+    public Storage getStorage() {
+        return storage;
     }
-    public void setResource(Storage resource) {
-        this.resource = resource;
+    public void setStorage(Storage storage) {
+        this.storage = storage;
     }
     
     
@@ -91,7 +94,7 @@ public class StorageController {
         if (firstItem + batchSize < getItemCount()) {
             firstItem += batchSize;
         }
-        return listResources();
+        return listStorages();
     }
 
     public String prev() {
@@ -99,11 +102,11 @@ public class StorageController {
         if (firstItem < 0) {
             firstItem = 0;
         }
-        return listResources();
+        return listStorages();
     }
 
-    public String listResources() {
-        resources = null;
+    public String listStorages() {
+        storages = null;
         itemCount = -1;
         return "list_storages";
     }
@@ -112,41 +115,41 @@ public class StorageController {
     // <editor-fold defaultstate="collapsed" desc="DAO methods">
     /* add new resource */
     public String prepareSolrStorageToAdd() {
-        resource = new SolrStorage();
+        storage = new SolrStorage();
         return "new_solrstorage";
     }
 
     /* TODO Fix */
     public String prepareZebraStorageToAdd() {
-        resource = new SolrStorage();
+        storage = new SolrStorage();
         return "new_zebrastorage";
     }
 
     public String prepareXmlStorageToAdd() {
-        resource = new SolrStorage();
+        storage = new SolrStorage();
         return "new_xmlstorage";
     }
 
     public String prepareConsoleStorageToAdd() {
-        resource = new SolrStorage();
+        storage = new SolrStorage();
         return "new_consolestorage";
     }
 
     
-    public String addResource() {
+    public String addStorage() {
         prePersist();
-        dao.createStorage(resource);
-        resource = null;
-        return listResources();
+        dao.createStorage(storage);
+        storage = null;
+        return listStorages();
     }
 
     /* update resource */
-    public String prepareResourceToEdit() {
-        resource = getResourceFromRequestParam();
+    public String prepareStorageToEdit() {
+        storage = getResourceFromRequestParam();
         postDePersist();
-        logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
-        if (resource instanceof SolrStorage) {
-            return "edit_solr";
+        logger.log(Level.INFO, "Retrieved persisted resource of type " + storage.getClass().getName());
+        if (storage instanceof SolrStorage) {
+            return "edit_solrstorage";
         } 
         /* 
         else if (resource instanceof ZebraStorage) {
@@ -162,45 +165,47 @@ public class StorageController {
         }
     }
 
-    public String saveResource() {
+    public String saveStorage() {
         prePersist();
-        resource = dao.updateStorage(resource);
-        resource = null;
-        return listResources();
+        storage = dao.updateStorage(storage);
+        storage = null;
+        return listStorages();
     }
 
-    private boolean isPb() {
+	private boolean isPb() {
         FacesContext ctx = FacesContext.getCurrentInstance();
         return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
     }
-    /* list resources */
+
+    /* list storages */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public DataModel getResources() {
+	public DataModel getStorages() {
         //check if new request
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
-        if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
+        if (storages == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
             req.setAttribute("listRequestSeen", "yes");
-            resources = (List) dao.retrieveStorageBriefs(firstItem, batchSize);
+            storages = (List) dao.retrieveStorageBriefs(firstItem, batchSize);
         }
-        if (resources != null)
-            Collections.sort(resources);
-        return new ListDataModel(resources);
+        if (storages != null)
+            Collections.sort(storages);
+        return new ListDataModel(storages);
     }
 
-    public String deleteResource() {
-        resource = getResourceFromRequestParam();
-        dao.deleteStorage(resource);
-        resource = null;
-        return listResources();
+    public String deleteStorage() {
+        storage = getResourceFromRequestParam();
+        dao.deleteStorage(storage);
+        storage = null;
+        return listStorages();
     }
     
     public String saveAndPurge() {
-        dao.deleteStorage(resource);
+    	
+    	dao.deleteStorage(storage);
         prePersist();
-        resource.setId(null);
-        dao.createStorage(resource);
-        resource = null;
-        return listResources();
+        storage.setId(null);
+        dao.createStorage(storage);
+        storage = null;
+        return listStorages();
     }
     
     private void prePersist() {        
@@ -211,32 +216,10 @@ public class StorageController {
 
     }
 
-    private String jobLog;
-
-    public String viewJobLog() {
-        String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
-        Long id = new Long(param);
-        //slurp that damn log to string, before I figure how to cleanly get handle
-        //of the InputStream in the view
-        StringBuilder sb = new StringBuilder(1024);
-        InputStream is = dao.getStorageLog(id);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            logger.log(Level.ERROR, e);
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                logger.log(Level.ERROR, e);
-            }
-        }
-        jobLog = sb.toString();
-        return "harvester_log";
+    public String viewStorageLog() {
+    	
+    	jobLog = "http://localhost:8080/solr/admin/";
+        return "storage_log";
 
     }
 
@@ -252,10 +235,52 @@ public class StorageController {
                 o = (Storage) model.getRowData();
                 //o = em.merge(o);
             } else {
-                String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
+                String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("storageId");
                 Long id = new Long(param);
                 o = dao.retrieveStorageById(id);
             }
             return o;
     }
+
+	public String stackBackAction(String newAction) {
+		return backActions.push(newAction);
+	}
+
+	public String back() {
+		if (backActions.isEmpty())
+			return homeAction;
+		return backActions.pop();
+	}
+
+	public String home() {
+		return homeAction;
+	}
+
+	public String getHomeAction() {
+		return homeAction;
+	}
+
+	public void setHomeAction(String homeAction) {
+		this.homeAction = homeAction;
+	}
+	
+	public List<SelectItem> getStorageItems() {
+		List<SelectItem> list = new LinkedList<SelectItem>();
+		if (storages == null) {
+			/* TODO We need all (enabled) storages. Not just a window */
+			getStorages();
+		}
+			
+		for (StorageBrief storage : (List<StorageBrief>) storages) {
+			if (storage.isEnabled()) {
+				SelectItem selectItem = new SelectItem();
+				selectItem.setLabel(storage.getName());
+				selectItem.setValue(storage.getId());
+				list.add(selectItem);
+			}
+		}
+    	return list;
+    }
+
+
 }

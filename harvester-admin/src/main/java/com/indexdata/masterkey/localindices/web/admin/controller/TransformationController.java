@@ -6,12 +6,15 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,17 +31,20 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
  * controls data access through DAO object
  * @author Dennis 
  */
-public class TransformationsController {
+public class TransformationController {
     private Logger logger = Logger.getLogger(getClass());
     // Transformation
     private TransformationDAO dao;
-    private Transformation resource;
+    private Transformation current;
     
     private DataModel model;
     @SuppressWarnings("rawtypes")
 	private List resources;
-    
-    public TransformationsController() {
+
+	Stack<String> backActions = new Stack<String>();
+	String homeAction = "home";
+
+    public TransformationController() {
         try {
             dao = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
         } catch (DAOException ex) {
@@ -46,11 +52,11 @@ public class TransformationsController {
         }
     }
 
-    public Transformation getResource() {
-        return resource;
+    public Transformation getCurrent() {
+        return current;
     }
-    public void setResource(Transformation resource) {
-        this.resource = resource;
+    public void setCurrent(Transformation resource) {
+        this.current = resource;
     }
     
     
@@ -134,17 +140,17 @@ public class TransformationsController {
     
     public String addResource() {
         prePersist();
-        dao.createTransformation(resource);
-        resource = null;
+        dao.createTransformation(current);
+        current = null;
         return listResources();
     }
 
     /* update resource */
     public String prepareResourceToEdit() {
-        resource = getResourceFromRequestParam();
+        current = getResourceFromRequestParam();
         postDePersist();
-        logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
-        if (resource instanceof Transformation) {
+        logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
+        if (current instanceof Transformation) {
             return "edit_transformation";
         } 
         /* 
@@ -163,8 +169,8 @@ public class TransformationsController {
 
     public String saveResource() {
         prePersist();
-        resource = dao.updateTransformation(resource);
-        resource = null;
+        current = dao.updateTransformation(current);
+        current = null;
         return listResources();
     }
 
@@ -172,9 +178,10 @@ public class TransformationsController {
         FacesContext ctx = FacesContext.getCurrentInstance();
         return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
     }
+
     /* list resources */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public DataModel getResources() {
+	public DataModel getTransformations() {
         //check if new request
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
@@ -185,20 +192,35 @@ public class TransformationsController {
             Collections.sort(resources);
         return new ListDataModel(resources);
     }
+    
+    /* TODO Mock up of transformations */
+    public List<SelectItem> getSelectItems() {
+    	List<SelectItem> list = new ArrayList<SelectItem>();
+        for (int i = 0 ; i < 10; i++) {
+            SelectItem selectItem = new SelectItem();
+            String key = "Transformation " + String.valueOf(i);
+            Integer value = i;
+            selectItem.setLabel(key);
+            selectItem.setValue(value);
+            list.add(selectItem);
+        }
+        return list;
+    }
+    
 
     public String deleteResource() {
-        resource = getResourceFromRequestParam();
-        dao.deleteTransformation(resource);
-        resource = null;
+        current = getResourceFromRequestParam();
+        dao.deleteTransformation(current);
+        current = null;
         return listResources();
     }
     
     public String saveAndPurge() {
-        dao.deleteTransformation(resource);
+        dao.deleteTransformation(current);
         prePersist();
-        resource.setId(null);
-        dao.createTransformation(resource);
-        resource = null;
+        current.setId(null);
+        dao.createTransformation(current);
+        current = null;
         return listResources();
     }
     
@@ -225,4 +247,26 @@ public class TransformationsController {
             }
             return o;
     }
+
+	public String stackBackAction(String newAction) {
+		return backActions.push(newAction);
+	}
+
+	public String back() {
+		if (backActions.isEmpty())
+			return homeAction;
+		return backActions.pop();
+	}
+
+	public String home() {
+		return homeAction;
+	}
+
+	public String getHomeAction() {
+		return homeAction;
+	}
+
+	public void setHomeAction(String homeAction) {
+		this.homeAction = homeAction;
+	}
 }
