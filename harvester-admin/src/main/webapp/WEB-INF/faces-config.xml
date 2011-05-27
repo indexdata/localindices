@@ -40,14 +40,30 @@
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
+            <from-outcome>overview</from-outcome>
+            <to-view-id>/overview.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>home</from-outcome>
+            <to-view-id>/overview.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
             <from-outcome>list_resources</from-outcome>
             <to-view-id>/list_resources.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
+            <from-outcome>list_storages</from-outcome>
+            <to-view-id>/list_storages.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
             <from-outcome>harvester_log</from-outcome>
-            <to-view-id>/harvester_log.jsp</to-view-id>
+            <to-view-id>/storage_log.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
@@ -75,6 +91,52 @@
         <navigation-case>
             <from-outcome>edit_webcrawl</from-outcome>
             <to-view-id>/edit_webcrawl.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/list_storages.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>new_solrstorage</from-outcome>
+            <to-view-id>/add_solrstorage.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>new_zebrastorage</from-outcome>
+            <to-view-id>/add_zebra.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_xmlstorage</from-outcome>
+            <to-view-id>/edit_xmlstorage.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>new_consolestorage</from-outcome>
+            <to-view-id>/add_console.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_solrstorage</from-outcome>
+            <to-view-id>/edit_solrstorage.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_zebrastorage</from-outcome>
+            <to-view-id>/edit_zebrastorage.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_xmlstorage</from-outcome>
+            <to-view-id>/edit_xmlstorage.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_consolestorage</from-outcome>
+            <to-view-id>/edit_consolestorage.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/list_transformations.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>new_xslt_tranformation</from-outcome>
+            <to-view-id>/add_xslt_transformation.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_xslt_transformation</from-outcome>
+            <to-view-id>/edit_xslt_transformation.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>
