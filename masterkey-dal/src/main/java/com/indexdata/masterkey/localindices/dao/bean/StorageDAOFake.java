@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.dao.bean;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,25 +26,32 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
  * @author jakub
  */
 public class StorageDAOFake implements StorageDAO {
-    private Map<Long, Storage> storages;
+	private Map<Long, Storage> storages;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
     
     public StorageDAOFake() {
     	storages = new HashMap<Long, Storage>();
 
     	SolrStorage storage = new SolrStorage();
-		storage.setId(new Long(1));
-		storage.setName("Test Local Index");
-		storage.setUrl("http://localhost:8983");
-		
+		storage.setId(newStorageId());
+		storage.setName("Local Index");
+		storage.setUrl("http://localhost:8080/solr");
+		storage.setEnabled(true);
 		storages.put(storage.getId(), storage);
 		
-		Storage storage2 = new SolrStorage();
-		storage2.setId(new Long(2));
-		storage2.setName("University of Groningen");
-//            storage2.setUrl("http://ir.ub.rug.nl/oai/");
-		
+		SolrStorage storage2 = new SolrStorage();
+		storage2.setId(newStorageId());
+		storage2.setName("Staging Index");
+		storage2.setUrl("http://test.indexdata.com/solr");
+		storage.setEnabled(true);
 		storages.put(storage2.getId(), storage2);
+
+		SolrStorage storage3 = new SolrStorage();
+		storage3.setId(newStorageId());
+		storage3.setName("Production Index");
+		storage3.setUrl("http://zookeeper.indexdata.com/solr");
+		storage.setEnabled(false);
+		storages.put(storage3.getId(), storage3);
     }
 
     public List<StorageBrief> retrieveStorageBriefs(int start, int max) {
@@ -64,7 +72,18 @@ public class StorageDAOFake implements StorageDAO {
         }
         return null;
     }
-
+    
+    synchronized private Long newStorageId() 
+    {
+    	long index = 1l;    	
+    	for (Storage storage : storages.values()) {
+			if (index <= storage.getId()) {
+				index = storage.getId() + 1l;
+    		}
+    	}
+		return index;
+	}
+    
     public Storage updateStorage(Storage storage) { 
         Storage hclone = null;
         try {
@@ -72,32 +91,39 @@ public class StorageDAOFake implements StorageDAO {
         } catch (CloneNotSupportedException cle) {
             logger.log(Level.DEBUG, cle);                    
         }
+        if (hclone.getId() == null)
+        	hclone.setId(newStorageId());
         storages.put(hclone.getId(), hclone);
         return hclone;
     }
 
     public void createStorage(Storage storage) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (storage.getId() == null)
+        	storage.setId(newStorageId());
+    	storages.put(storage.getId(), storage);    	
     }
 
     public Storage retrieveStorageById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return storages.get(id);
     }
 
     public Storage updateStorage(Storage storage, Storage updStorage) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return storages.put(storage.getId(), updStorage);
     }
 
     public void deleteStorage(Storage storage) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	storages.remove(storage.getId());
     }
 
     public List<Storage> retrieveStorages(int start, int max) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	List<Storage> list = new LinkedList<Storage>();
+    	for (Storage storage : storages.values()) 
+    		list.add(storage);
+    	return list;
     }
 
     public int getStorageCount() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return storages.values().size();
     }
 
     @Override

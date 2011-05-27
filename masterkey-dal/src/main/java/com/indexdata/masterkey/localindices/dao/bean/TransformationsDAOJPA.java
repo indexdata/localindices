@@ -39,7 +39,6 @@ public class TransformationsDAOJPA implements TransformationDAO {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            transformation.setCurrentStatus("NEW");
             em.persist(transformation);
             tx.commit();
         } catch (Exception ex) {

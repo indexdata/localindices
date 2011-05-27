@@ -26,12 +26,14 @@ public class StorageDAOFactory {
     public static StorageDAO getStorageDAO(ServletContext ctx) throws DAOException {
         //class identifier, here simply a package name
         String daoParamValue = lookupContext(ctx, "com.indexdata.masterkey.localindices.StorageDAO");
-        if (daoParamValue.equals("StorageDAOJPA")) {
+        if (daoParamValue == null)
+            throw new DAOException("No StorageDAO parameter in Context");
+        if ("StorageDAOJPA".equals(daoParamValue)) {
             return new StoragesDAOJPA();
-        } else if (daoParamValue.equals("StorageDAOWS")) {
+        } else if ("StorageDAOWS".equals(daoParamValue)) {
             String baseUrl = lookupContext(ctx, "com.indexdata.masterkey.localindices.StorageDAO.WS_BASE_URL");
             return new StorageDAOWS(baseUrl);
-        } else if (daoParamValue.equals("StorageDAOFake")) {
+        } else if ("StorageDAOFake".equals(daoParamValue)) {
             return new StorageDAOFake();
         }
         throw new DAOException("Cannot create StorageDAO for corresponding parameter " + daoParamValue);
