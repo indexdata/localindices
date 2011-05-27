@@ -16,9 +16,12 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Refresh List" action="#{storageController.listResources}" />
+                <h:commandLink value="Back" action="#{storageController.back}" />
+                <h:commandLink value="Refresh List" action="#{storageController.listStorages}" />
                 <h:outputText value=" | Add new storage: "/>
-                <h:commandLink value="SOLR" action="#{storageController.prepareSOLRStorageToAdd}" />                
+                <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
+                <h:outputText value=", "/>
+                <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
                 <h:outputText value=", "/>
                 <h:commandLink value="Zebra2" action="#{storageController.prepareZebraStorageToAdd}" />       
                 <h:outputText value=" "/>
@@ -32,7 +35,7 @@
                     <h:commandLink action="#{storageController.next}" value="Remaining #{storageController.itemCount - storageController.lastItem}"
                                    rendered="#{storageController.lastItem < storageController.itemCount && storageController.lastItem + storageController.batchSize > storageController.itemCount}"/>
                 </div>               
-                <h:dataTable value="#{storageController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+                <h:dataTable value="#{storageController.storages}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="ID" />
@@ -44,31 +47,6 @@
                             <h:outputText value="Name" />
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Status" />
-                        </f:facet> 
-                        <h:outputText value="#{item.currentStatus}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Status Msg" />
-                        </f:facet> 
-                        <h:outputText value="#{item.message}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Last Harvested" />
-                        </f:facet>                        
-                        <h:outputText rendered="#{item.lastHarvestFinished != null}" value="#{item.lastHarvestFinished}"/>
-                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attempted on #{item.lastHarvestStarted}"/>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Next Scheduled Harvest" />
-                        </f:facet> 
-                        <h:outputText value="#{item.nextHarvestSchedule}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
