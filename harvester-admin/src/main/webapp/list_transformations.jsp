@@ -11,31 +11,27 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available Tranformations</title>
+        <title>Available Transformations</title>
     </head>
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Back" action="#{storageController.back}" />
-                <h:commandLink value="Refresh List" action="#{storageController.listStorages}" />
-                <h:outputText value=" | Add new storage: "/>
-                <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
-                <h:outputText value=", "/>
-                <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
-                <h:outputText value=", "/>
-                <h:commandLink value="Zebra2" action="#{storageController.prepareZebraStorageToAdd}" />       
+                <h:commandLink value="Back" action="#{transformationController.back}" />
+                <h:commandLink value="Refresh List" action="#{transformationController.list}" />
+                <h:outputText value=" | Add new transformation: "/>
+                <h:commandLink value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
             <h:form>
-                <h3><h:outputText value="Available Storages:" /></h3>
+                <h3><h:outputText value="Available Transformations:" /></h3>
                 <div id="pager">
-                    <h:outputText value="Item #{storageController.firstItem + 1}..#{storageController.lastItem} of #{storageController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{storageController.prev}" value="Previous #{storageController.batchSize}" rendered="#{storageController.firstItem >= storageController.batchSize}"/>&nbsp;
-                    <h:commandLink action="#{storageController.next}" value="Next #{storageController.batchSize}" rendered="#{storageController.lastItem + storageController.batchSize <= storageController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{storageController.next}" value="Remaining #{storageController.itemCount - storageController.lastItem}"
-                                   rendered="#{storageController.lastItem < storageController.itemCount && storageController.lastItem + storageController.batchSize > storageController.itemCount}"/>
+                    <h:outputText value="Item #{transformationController.firstItem + 1}..#{transformationController.lastItem} of #{transformationController.itemCount}"/>&nbsp;
+                    <h:commandLink action="#{transformationController.prev}" value="Previous #{transformationController.batchSize}" rendered="#{transformationController.firstItem >= transformationController.batchSize}"/>&nbsp;
+                    <h:commandLink action="#{transformationController.next}" value="Next #{transformationController.batchSize}" rendered="#{transformationController.lastItem + transformationController.batchSize <= transformationController.itemCount}"/>&nbsp;
+                    <h:commandLink action="#{transformationController.next}" value="Remaining #{transformationController.itemCount - transformationController.lastItem}"
+                                   rendered="#{transformationController.lastItem < transformationController.itemCount && transformationController.lastItem + transformationController.batchSize > transformationController.itemCount}"/>
                 </div>               
-                <h:dataTable value="#{storageController.storages}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+                <h:dataTable value="#{transformationController.transformations}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="ID" />
@@ -58,17 +54,13 @@
                         <f:facet name="header">
                             <h:outputText value="Available Actions" />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="#{storageController.prepareStorageToEdit}">
-                            <f:param name="storageId" value="#{item.id}"/>
+                        <h:commandLink value="Edit" action="#{transformationController.prepareToEdit}">
+                            <f:param name="id" value="#{item.id}"/>
                         </h:commandLink>
                         <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{storageController.deleteStorage}"
+                        <h:commandLink value="Delete" action="#{transformationController.delete}"
                             onclick="return confirm('Are you sure?');">
-                            <f:param name="storageId" value="#{item.id}"/>
-                        </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="View Log" action="#{storageController.viewStorageLog}">
-                            <f:param name="storageId" value="#{item.id}"/>
+                            <f:param name="id" value="#{item.id}"/>
                         </h:commandLink>
                     </h:column>
                 </h:dataTable>

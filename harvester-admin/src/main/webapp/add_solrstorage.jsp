@@ -18,8 +18,8 @@
             <h:form>
                 <h:commandLink value="Resource List" action="#{storageController.listStorages}" />
                 <h3>New Solr Storage: </h3>
-                <%@ include file="fragments/generic_storage_forminputs.jsp" %>
-                <%@ include file="fragments/solr_forminputs.jsp" %>
+                <%@ include file="fragments/storage/generic_storage_forminputs.jsp" %>
+                <%@ include file="fragments/storage/solr_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{storageController.addStorage}"/>
             </h:form>
         </f:view>

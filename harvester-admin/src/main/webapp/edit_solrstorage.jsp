@@ -18,9 +18,9 @@
             <h:form>
                 <h:commandLink value="Storage List" action="#{storageController.listStorages}" />
                 <h3>Edit Solr Storage: </h3>
-                <%@ include file="fragments/generic_storage_forminputs.jsp" %>
-                <%@ include file="fragments/solr_forminputs.jsp" %>
-                <%@ include file="fragments/generic_storage_buttons.jsp" %>
+                <%@ include file="fragments/storage/generic_storage_forminputs.jsp" %>
+                <%@ include file="fragments/storage/solr_forminputs.jsp" %>
+                <%@ include file="fragments/storage/generic_storage_buttons.jsp" %>
             </h:form>
         </f:view>
     </body>

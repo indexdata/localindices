@@ -18,8 +18,8 @@
             <h:form>
                 <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
                 <h3>New PP2-SOLR bulk resource:</h3>
-                <%@ include file="fragments/generic_resource_forminputs.jsp" %>
-                <%@ include file="fragments/solrxmlbulk_forminputs.jsp" %>
+                <%@ include file="fragments/resource/generic_resource_forminputs.jsp" %>
+                <%@ include file="fragments/resource/solrxmlbulk_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addResource}"/>
             </h:form>
         </f:view>

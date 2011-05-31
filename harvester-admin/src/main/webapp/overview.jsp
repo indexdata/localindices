@@ -20,9 +20,7 @@
                 <br>
                 <h:commandLink value="Storages"  action="#{storageController.listStorages}" />
                  <br>
-<!-- 
-                <h:commandLink value="Transformations" action="#{transformationController.listResources}" />
- -->
+                <h:commandLink value="Transformations" action="#{transformationController.list}" />
             </h:form>
         </f:view>
     </body>  
