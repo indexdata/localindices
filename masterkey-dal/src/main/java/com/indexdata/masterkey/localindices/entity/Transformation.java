@@ -37,7 +37,7 @@ public abstract class Transformation implements Serializable, Cloneable {
     @Column(length=4096)
     protected String description;
     protected Boolean enabled;
-    //protected List<TransformationStep> steps;
+    protected List<TransformationStep> steps;
     
     public String getDescription() {
         return description;
@@ -100,4 +100,12 @@ public abstract class Transformation implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+	public List<TransformationStep> getSteps() {
+		return steps;
+	}
+
+	public void setSteps(List<TransformationStep> steps) {
+		this.steps = steps;
+	}
 }
