@@ -43,14 +43,14 @@ public class StorageDAOFake implements StorageDAO {
 		storage2.setId(newStorageId());
 		storage2.setName("Staging Index");
 		storage2.setUrl("http://test.indexdata.com/solr");
-		storage.setEnabled(true);
+		storage2.setEnabled(true);
 		storages.put(storage2.getId(), storage2);
 
 		SolrStorage storage3 = new SolrStorage();
 		storage3.setId(newStorageId());
 		storage3.setName("Production Index");
 		storage3.setUrl("http://zookeeper.indexdata.com/solr");
-		storage.setEnabled(false);
+		storage3.setEnabled(false);
 		storages.put(storage3.getId(), storage3);
     }
 

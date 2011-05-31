@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,9 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
+import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
+import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
 /**
@@ -33,28 +36,38 @@ public class TransformationDAOFake implements TransformationDAO {
 			private static final long serialVersionUID = 1L;
     	};
 		transformation.setId(new Long(1));
-		transformation.setName("Test Local Index");
-		//transformation.setUrl("http://localhost:8983");
-		
+		transformation.setName("OAI(DC) to SOLR");
+		List<TransformationStep> steps = new LinkedList<TransformationStep>();
+		steps.add(new BasicTransformationStep("OAI-RECORD", "Extract OAI-RECORD", ""));
+		steps.add(new BasicTransformationStep("OAI-DC to OAI/PZ", "Transform to OAI/PZ", ""));
+		steps.add(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""));
+		transformation.setSteps(steps);
+		transformation.setEnabled(true);
+		transformations.put(transformation.getId(), transformation);
+
+		transformation = new Transformation() {
+			private static final long serialVersionUID = 1L;
+    	};
+		transformation.setId(new Long(2));
+		transformation.setName("OAI(MARCXML) to SOLR");
+		steps = new LinkedList<TransformationStep>();
+		steps.add(new BasicTransformationStep("OAI(bulk) to OAI-RECORD", "Extract OAI-RECORD", ""));
+		steps.add(new BasicTransformationStep("OAI-RECORD to PZ", "OAI-RECORD/DC to MARCXML", ""));
+		steps.add(new BasicTransformationStep("MARCXML to OAI/PZ", "Transform to OAI/PZ", ""));
+		steps.add(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""));
+		transformation.setSteps(steps);
+		transformation.setEnabled(true);
 		transformations.put(transformation.getId(), transformation);
 		
-		/*
-		Transformation transform2 ; // = new Transformation();
-		transform2.setId(new Long(2));
-		transform2.setName("University of Groningen");
-//            transform2.setUrl("http://ir.ub.rug.nl/oai/");
-		
-		transformations.put(transform2.getId(), transform2);
-		*/
     }
 
 	@Override
     public List<TransformationBrief> retrieveTransformationBriefs(int start, int max) {
         List<TransformationBrief> srefs = new ArrayList<TransformationBrief>();
-        for (Transformation storage : transformations.values()) {
-            TransformationBrief sref = new TransformationBrief(storage);
+        for (Transformation transformation : transformations.values()) {
+            TransformationBrief brief = new TransformationBrief(transformation);
 			//sref.setResourceUri(new URI("http://localhost/harvestables/" + sref.getId() + "/)"));
-			srefs.add(sref);
+			srefs.add(brief);
         }
         return srefs;
     }
@@ -75,10 +88,10 @@ public class TransformationDAOFake implements TransformationDAO {
         return null;
     }
 
-    public Transformation updateTransformation(Transformation storage) { 
+    public Transformation updateTransformation(Transformation transformation) { 
         Transformation hclone = null;
         try {
-            hclone = (Transformation) storage.clone();
+            hclone = (Transformation) transformation.clone();
         } catch (CloneNotSupportedException cle) {
             logger.log(Level.DEBUG, cle);                    
         }
@@ -86,27 +99,41 @@ public class TransformationDAOFake implements TransformationDAO {
         return hclone;
     }
 
-    public void createTransformation(Transformation storage) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void createTransformation(Transformation transformation) {
+    	long newId = 1; 
+    	for (Long id : transformations.keySet()) {
+    		if (id != null) 
+    			if (newId <= id) 
+    				newId = id + 1; 
+    	}
+    	transformation.setId(newId);
+    	transformations.put(newId, transformation);
     }
+    
 
     public Transformation retrieveTransformationById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return transformations.get(id);
+    }
+    
+    
+
+    public Transformation updateTransformation(Transformation transformation, Transformation updTransformation) {
+    	return transformations.put(updTransformation.getId(), updTransformation);
     }
 
-    public Transformation updateTransformation(Transformation storage, Transformation updTransformation) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public void deleteTransformation(Transformation storage) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void deleteTransformation(Transformation transformation) {
+    	transformations.remove(transformation);
     }
 
     public List<Transformation> retrieveTransformations(int start, int max) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	List<Transformation> list = new LinkedList<Transformation>();
+    	/* TODO filter right records */
+    	for (Transformation transform: transformations.values()) 
+    		list.add(transform);
+    	return list;
     }
 
     public int getTransformationCount() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	return transformations.size();
     }
 }
