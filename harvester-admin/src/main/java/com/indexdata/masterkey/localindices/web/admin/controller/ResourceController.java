@@ -478,6 +478,7 @@ public class ResourceController {
 		this.transformation = transformation;
 	}
 
+	/* Mock-up function */ 
 	public List<SelectItem> getTransformations() {
 		List<SelectItem> list = new LinkedList<SelectItem>();
         SelectItem selectItem = new SelectItem();
@@ -488,6 +489,7 @@ public class ResourceController {
         selectItem = new SelectItem();
         selectItem.setLabel("OAI(MARCXML) to SOLR");
         selectItem.setValue("oai_marcxml2solr");
+        list.add(selectItem);
     	return list;
     }
 	public String stackBackAction(String newAction) {
