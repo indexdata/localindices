@@ -62,6 +62,12 @@
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
+            <from-outcome>list_transformations</from-outcome>
+            <to-view-id>/list_transformations.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
             <from-outcome>harvester_log</from-outcome>
             <to-view-id>/storage_log.jsp</to-view-id>
         </navigation-case>
@@ -131,12 +137,12 @@
     <navigation-rule>
         <from-view-id>/list_transformations.jsp</from-view-id>
         <navigation-case>
-            <from-outcome>new_xslt_tranformation</from-outcome>
-            <to-view-id>/add_xslt_transformation.jsp</to-view-id>
+            <from-outcome>new_xsl_transformation</from-outcome>
+            <to-view-id>/add_xsl_transformation.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
-            <from-outcome>edit_xslt_transformation</from-outcome>
-            <to-view-id>/edit_xslt_transformation.jsp</to-view-id>
+            <from-outcome>edit_xsl_transformation</from-outcome>
+            <to-view-id>/edit_xsl_transformation.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>
