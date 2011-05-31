@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.web.admin.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -24,7 +25,10 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
+import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
+import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
 /**
  * The controller for the Admin interface for Transformations, implements all the business logic and
@@ -39,8 +43,14 @@ public class TransformationController {
     
     private DataModel model;
     @SuppressWarnings("rawtypes")
-	private List resources;
+	/* Transformations */
+    private List resources;
+	/* Steps for current transformations */
+	@SuppressWarnings("rawtypes")
+	private List steps = null; 
 
+    private TransformationStep currentStep;
+   
 	Stack<String> backActions = new Stack<String>();
 	String homeAction = "home";
 
@@ -52,11 +62,12 @@ public class TransformationController {
         }
     }
 
-    public Transformation getCurrent() {
+    public Transformation getTransformation() {
         return current;
     }
-    public void setCurrent(Transformation resource) {
+    public void setTransformation(Transformation resource) {
         this.current = resource;
+        currentStep = current.getSteps().get(0);
     }
     
     
@@ -92,7 +103,7 @@ public class TransformationController {
         if (firstItem + batchSize < getItemCount()) {
             firstItem += batchSize;
         }
-        return listResources();
+        return list();
     }
 
     public String prev() {
@@ -100,58 +111,46 @@ public class TransformationController {
         if (firstItem < 0) {
             firstItem = 0;
         }
-        return listResources();
+        return list();
     }
 
-    public String listResources() {
+    public String list() {
         resources = null;
         itemCount = -1;
-        return "list_Transformations";
+        return "list_transformations";
     }
 
     //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="DAO methods">
     /* add new resource */
-    public String prepareSolrTransformationToAdd() {
+    public String prepareXsltTransformationToAdd() {
         // TODO 
     	// resource = new SolrTransformation();
-        return "new_solrTransformation";
+        return "new_xsl_transformation";
     }
 
-    /* TODO Fix */
-    public String prepareZebraTransformationToAdd() {
+    public String prepareCrossMapTransformationToAdd() {
         // TODO 
     	// resource = new SolrTransformation();
-        return "new_zebraTransformation";
+        return "new_crossmap_transformation";
     }
-
-    public String prepareXmlTransformationToAdd() {
-        // TODO 
-    	// resource = new SolrTransformation();
-        return "new_xmlTransformation";
-    }
-
-    public String prepareConsoleTransformationToAdd() {
-        // TODO 
-    	// resource = new SolrTransformation();
-        return "new_consoleTransformation";
-    }
-
     
-    public String addResource() {
+    public String add() {
         prePersist();
         dao.createTransformation(current);
         current = null;
-        return listResources();
+        currentStep = null;
+        steps = null;
+        return list();
     }
 
     /* update resource */
-    public String prepareResourceToEdit() {
+    public String prepareToEdit() {
         current = getResourceFromRequestParam();
         postDePersist();
         logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
         if (current instanceof Transformation) {
-            return "edit_transformation";
+            return "edit_xsl_transformation";
         } 
         /* 
         else if (resource instanceof ZebraTransformation) {
@@ -167,11 +166,11 @@ public class TransformationController {
         }
     }
 
-    public String saveResource() {
+    public String save() {
         prePersist();
         current = dao.updateTransformation(current);
         current = null;
-        return listResources();
+        return list();
     }
 
     private boolean isPb() {
@@ -193,26 +192,33 @@ public class TransformationController {
         return new ListDataModel(resources);
     }
     
-    /* TODO Mock up of transformations */
-    public List<SelectItem> getSelectItems() {
-    	List<SelectItem> list = new ArrayList<SelectItem>();
-        for (int i = 0 ; i < 10; i++) {
+    /* TODO Mock up of transformations steps 
+    public List<SelectItem> getSelectTransformationSteps() {
+    	List<SelectItem> list = new ArrayList<SelectItem>();    	
+    	for (TransformationStep step : current.getSteps()) {
             SelectItem selectItem = new SelectItem();
-            String key = "Transformation " + String.valueOf(i);
-            Integer value = i;
-            selectItem.setLabel(key);
-            selectItem.setValue(value);
+            //Integer value = i;
+            selectItem.setLabel(step.getName());
+            selectItem.setValue(step.getId());
             list.add(selectItem);
         }
         return list;
     }
-    
+     * */
 
-    public String deleteResource() {
+    @SuppressWarnings("rawtypes")
+	public DataModel getTransformationSteps() {
+        if (current != null)
+        	steps = (List) current.getSteps();        
+        return new ListDataModel(steps);
+    }
+
+
+    public String delete() {
         current = getResourceFromRequestParam();
         dao.deleteTransformation(current);
         current = null;
-        return listResources();
+        return list();
     }
     
     public String saveAndPurge() {
@@ -221,7 +227,7 @@ public class TransformationController {
         current.setId(null);
         dao.createTransformation(current);
         current = null;
-        return listResources();
+        return list();
     }
     
     private void prePersist() {        
@@ -241,7 +247,7 @@ public class TransformationController {
                 o = (Transformation) model.getRowData();
                 //o = em.merge(o);
             } else {
-                String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
+                String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("id");
                 Long id = new Long(param);
                 o = dao.retrieveTransformationById(id);
             }
@@ -269,4 +275,72 @@ public class TransformationController {
 	public void setHomeAction(String homeAction) {
 		this.homeAction = homeAction;
 	}
+
+	private void setupStep() {
+        String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("id");
+        try {
+        	Integer id = new Integer(param);
+        	currentStep = current.getSteps().get(id);
+        } catch (Exception e) {
+        	logger.error("Unable to Step from parameter 'id' " + param);
+        }
+		if (currentStep == null) {
+			logger.error("Called without a valid selected step. Param: " + param);
+			BasicTransformationStep step = new BasicTransformationStep();
+			step.setDescription("");
+			step.setScript("");
+			step.setName("");
+			step.setPosition(1);
+			currentStep = step;
+		}
+	}
+	
+	public void addStep() {
+		setupStep();
+	}
+
+	public void editStep() {
+		setupStep();
+	}
+
+	public void upStep() {
+		setupStep();
+	}
+
+	public void downStep() {
+		setupStep();
+	}
+
+	public void deleteStep() {
+		setupStep();
+	}
+
+	public TransformationStep getTransformationStep() {
+		setupStep();
+		return currentStep;
+	}
+
+	public void setTransformationStep(TransformationStep currentStep) {
+		this.currentStep = currentStep;
+	}
+
+	
+	public List<SelectItem> getTransformationItems() {
+		List<SelectItem> list = new LinkedList<SelectItem>();
+		if (resources == null) {
+			/* TODO We need all (enabled) storages. Not just a window */
+			getTransformations();
+		}
+			
+		for (TransformationBrief transformation : (List<TransformationBrief>) resources) {
+			if (transformation.isEnabled()) {
+				SelectItem selectItem = new SelectItem();
+				selectItem.setLabel(transformation.getName());
+				selectItem.setValue(transformation.getId());
+				list.add(selectItem);
+			}
+		}
+    	return list;
+    }
+
 }
