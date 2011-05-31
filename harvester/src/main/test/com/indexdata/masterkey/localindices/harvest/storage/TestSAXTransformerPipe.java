@@ -21,7 +21,7 @@ public class TestSAXTransformerPipe extends TestCase {
 	}
 
 	@SuppressWarnings("unused")
-	private void notestPipedTranformer() throws TransformerConfigurationException, SAXException {
+	private void notestPipedTransformer() throws TransformerConfigurationException, SAXException {
 		TransformerFactory tFactory = TransformerFactory.newInstance();
 
 		//TransformerFactory tFactory = TransformerFactory.newInstance();
