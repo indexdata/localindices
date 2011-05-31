@@ -13,6 +13,7 @@ public class TransformationBrief implements Comparable<Object> {
     private Long id;
     private String name;
     private String description;
+    private boolean enabled = false;
 
     private URI uri; 
     
@@ -24,6 +25,10 @@ public class TransformationBrief implements Comparable<Object> {
         setId(entity.getId());
         setName(entity.getName());
         entity.getDescription();
+        if (entity.getEnabled() != null)
+        	setEnabled(entity.getEnabled());
+        else
+        	setEnabled(false);
     }
 
     /* TODO Verify */ 
@@ -100,6 +105,16 @@ public class TransformationBrief implements Comparable<Object> {
     public int hashCode() {
         return this.getName().hashCode();
     }
+
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+
+	public boolean isEnabled() {
+		return enabled;
+	}
 
 	
 }
