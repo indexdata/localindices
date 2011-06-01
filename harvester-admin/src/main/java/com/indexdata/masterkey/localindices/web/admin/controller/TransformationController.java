@@ -6,7 +6,6 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
