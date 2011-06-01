@@ -3,25 +3,31 @@
     <context-param>
         <param-name>com.indexdata.masterkey.localindices.HarvestableDAO</param-name>
         <param-value>HarvestableDAOWS</param-value>
-        <!--<param-value>HarvestableDAOJPA</param-value>-->
+        <!--
+        <param-value>HarvestableDAOJPA</param-value>
+        -->
     </context-param>
     <context-param>
         <param-name>com.indexdata.masterkey.localindices.HarvestableDAO.WS_BASE_URL</param-name>
         <param-value>http://localhost:8080/localindices-harvester/records/harvestables/</param-value>
-        <!--<param-value>http://localhost:8109/localindices-harvester/records/harvestables/</param-value>  -->
+        <!--
+        <param-value>http://localhost:8109/localindices-harvester/records/harvestables/</param-value>  
+        -->
     </context-param>
     <context-param>
         <param-name>com.indexdata.masterkey.localindices.StorageDAO</param-name>
-        <param-value>StorageDAOFake</param-value>
+        <param-value>StorageDAOWS</param-value>
     </context-param>
     <context-param>
         <param-name>com.indexdata.masterkey.localindices.StorageDAO.WS_BASE_URL</param-name>
         <param-value>http://localhost:8080/localindices-harvester/records/storages/</param-value>
-        <!--<param-value>http://localhost:8109/localindices-harvester/records/storages/</param-value>  -->
+        <!--
+        <param-value>http://localhost:8109/localindices-harvester/records/storages/</param-value>  
+        -->
     </context-param>
      <context-param>
         <param-name>com.indexdata.masterkey.localindices.TransformationDAO</param-name>
-        <param-value>TransformationDAOFake</param-value>
+        <param-value>TransformationDAOWS</param-value>
     </context-param>
    <context-param>
         <param-name>com.indexdata.masterkey.localindices.TransformationDAO.WS_BASE_URL</param-name>
