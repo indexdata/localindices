@@ -22,7 +22,7 @@ import com.indexdata.rest.client.ResourceConnector;
 
 /**
  *
- * @author jakub
+ * @author Dennis
  */
 public class TransformationDAOWS implements TransformationDAO {
 
@@ -169,7 +169,7 @@ public class TransformationDAOWS implements TransformationDAO {
             TransformationsConverter tc = rc.get();
             return tc.getCount();
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.log(Level.ERROR, male);
             return 0;
         }
         
