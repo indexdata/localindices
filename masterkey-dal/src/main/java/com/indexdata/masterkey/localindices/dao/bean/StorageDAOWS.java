@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.StoragesConverter;
@@ -165,12 +164,12 @@ public class StorageDAOWS implements StorageDAO {
     public int getStorageCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
-            ResourceConnector<HarvestablesConverter> harvestablesConnector =
-                    new ResourceConnector<HarvestablesConverter>(
+            ResourceConnector<StoragesConverter> storagesConnector =
+                    new ResourceConnector<StoragesConverter>(
                     new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            HarvestablesConverter hc = harvestablesConnector.get();
+            StoragesConverter hc = storagesConnector.get();
             return hc.getCount();
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
