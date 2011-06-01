@@ -20,7 +20,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageConvert
 
 /**
  * REST Web service (resource) that maps to a Storage entity.
- * @author jakub
+ * @author Dennis
  */
 public class StorageResource {
     private StorageDAO dao = new StoragesDAOJPA();
