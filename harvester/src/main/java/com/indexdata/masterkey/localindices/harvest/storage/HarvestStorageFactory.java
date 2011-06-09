@@ -22,6 +22,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
+import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
@@ -40,8 +42,20 @@ public class HarvestStorageFactory {
 	static String[] marc21 = { "oai2marc.xsl", "marc21.xsl", "pz2-solr.xsl"};
 	static String[] dc     = { "oai_dc.xsl", 				 "pz2-solr.xsl"};
 
+	public static HarvestStorage getStorage(Harvestable harvestable) {
+		HarvestStorage harvestStorage = null;
+		if (harvestable.getStorage() instanceof com.indexdata.masterkey.localindices.entity.SolrStorage) {
+			com.indexdata.masterkey.localindices.entity.SolrStorage entity = (com.indexdata.masterkey.localindices.entity.SolrStorage) harvestable.getStorage();
+				return new BulkSolrRecordStorage(entity.getUrl(), harvestable);
+		}
+		
+		return harvestStorage; 
+	}
+
+	
 	public static HarvestStorage getStorage(String storageDir, Harvestable harvestable) {
         HarvestStorage st = null;
+        
         SolrStorage storage = new SolrStorage(storageDir, harvestable);
         SolrRecordStorage recordStorage = new BulkSolrRecordStorage(storageDir, harvestable);
         boolean useRecordStorage = true;
