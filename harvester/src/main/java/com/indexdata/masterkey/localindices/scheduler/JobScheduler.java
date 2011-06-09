@@ -8,7 +8,9 @@ package com.indexdata.masterkey.localindices.scheduler;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import java.net.Proxy;
 import java.util.ArrayList;
@@ -69,8 +71,9 @@ public class JobScheduler {
             if (ji == null) {
                 Harvestable harv = dao.retrieveFromBrief(hbrief);
                 try {
-                    ji = new JobInstance(harv,
-                            HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv)
+                	HarvestStorage storage = selectHarvestStorage(harv);
+                	ji = new JobInstance(harv,
+                			storage
                             , (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
                     jobs.put(id, ji);
                     logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
@@ -98,7 +101,14 @@ public class JobScheduler {
         }
     }
 
-    /**
+    private HarvestStorage selectHarvestStorage(Harvestable harv) {
+    	if (harv.getStorage() != null) {
+    		return HarvestStorageFactory.getStorage(harv);
+    	}
+		return  HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv);
+	}
+
+	/**
      * Start, report status and error of the scheduled jobs.
      */
     public void checkJobs() {
