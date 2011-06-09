@@ -16,9 +16,10 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Back" action="#{storageController.back}" />
+                <h:commandLink value="Overview" action="#{storageController.back}" />
                 <h:commandLink value="Refresh List" action="#{storageController.listStorages}" />
-                <h:outputText value=" | Add new storage: "/>
+                <br/>
+                <h:outputText value="Add new storage: "/>
                 <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
