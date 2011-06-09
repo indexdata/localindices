@@ -48,11 +48,11 @@ public abstract class Storage implements Serializable, Cloneable {
     protected String transformation;
 
     @OneToMany(cascade=CascadeType.ALL)
-    @JoinTable(name = "HarvestStorage", joinColumns = {
-    @JoinColumn(name="storageId", unique = true) 
+    @JoinTable(name="HARVEST_STORAGE", joinColumns = {
+    @JoinColumn(name="STORAGE_ID", unique = true) 
     },
     inverseJoinColumns = {
-    @JoinColumn(name="harvestId")
+    @JoinColumn(name="HARVEST_ID")
     }
     )
     private Set<Harvestable> harvestables;
