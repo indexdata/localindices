@@ -78,9 +78,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
     
     @ManyToOne(optional=true)
-    @JoinTable(name = "HarvestStorage", 
-    		joinColumns = { @JoinColumn(name="harvestId")},
-    		inverseJoinColumns = { @JoinColumn(name="storageId")}
+    @JoinTable(name = "HARVEST_STORAGE", 
+    		joinColumns = { @JoinColumn(name="HARVEST_ID")},
+    		inverseJoinColumns = { @JoinColumn(name="STORAGE_ID")}
     )
     protected Storage storage;
     
