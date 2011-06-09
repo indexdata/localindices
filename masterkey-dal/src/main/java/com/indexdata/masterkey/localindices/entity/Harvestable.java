@@ -18,6 +18,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
@@ -26,7 +29,8 @@ import javax.persistence.Transient;
 
 /**
  * Corresponds to version 1 update
- * @author jakub
+ * @author Jakub
+ * @author Dennis
  */
 @Entity
 @NamedQueries({@NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id")})
@@ -71,6 +75,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
     protected String message;
     @Column(nullable=false)
     protected Boolean harvestImmediately;
+
+    
+    @ManyToOne(optional=true)
+    @JoinTable(name = "HarvestStorage", 
+    		joinColumns = { @JoinColumn(name="harvestId")},
+    		inverseJoinColumns = { @JoinColumn(name="storageId")}
+    )
+    protected Storage storage;
     
     public String getDescription() {
         return description;
@@ -252,4 +264,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+	public Storage getStorage() {
+		return storage;
+	}
+
+	public void setStorage(Storage storage) {
+		this.storage = storage;
+	}
 }
