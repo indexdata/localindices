@@ -270,7 +270,7 @@ public class StorageController  {
 			/* TODO We need all (enabled) storages. Not just a window */
 			getStorages();
 		}
-			
+		list.add(new SelectItem("", "<Select Storage>"));
 		for (StorageBrief storage : (List<StorageBrief>) storages) {
 			if (storage.isEnabled()) {
 				SelectItem selectItem = new SelectItem();
