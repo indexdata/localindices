@@ -53,7 +53,7 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabled}"></h:outputText>
+                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
