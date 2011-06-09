@@ -15,6 +15,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -35,7 +36,7 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     @Column(length=4096)
     protected String description;
     protected Boolean enabled;
-    @Column(length=100000)
+    @Lob
     protected String script = 
 		"<?xml version=\"1.0\"?>\n" + 
 		"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" \n" + 
