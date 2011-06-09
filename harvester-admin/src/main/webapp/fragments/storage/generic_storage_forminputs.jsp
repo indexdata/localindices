@@ -14,8 +14,5 @@
         <h:outputText value="Enabled:"/>
         <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
         <!-- List box of Transformations pipeline-->
-        <h:selectOneMenu value="#{storageController.storage.transformation}">
-              <f:selectItems value="#{transformationController.transformationItems}" />
-        </h:selectOneMenu>
     </h:panelGrid>
 </f:subview>
