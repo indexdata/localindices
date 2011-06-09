@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -27,9 +26,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
+import com.indexdata.masterkey.localindices.dao.StorageDAO;
+import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
@@ -55,7 +57,6 @@ public class ResourceController {
     private String jobLog;
 	Stack<String> backActions = new Stack<String>();
 	String homeAction = "home";
-    private String storage; 
 
     
     public Boolean getLongDate() {
@@ -496,10 +497,22 @@ public class ResourceController {
 		this.homeAction = homeAction;
 	}
 	public String getStorage() {
-		return storage;
+		if (resource != null && resource.getStorage() != null)
+			return resource.getStorage().getId().toString();
+		else	
+			return "";
 	}
 	public void setStorage(String storage) {
-		this.storage = storage;
+		try {
+			if (storage != null && resource != null) {
+					Long id = new Long(storage);
+		            StorageDAO storageDAO = StorageDAOFactory.getStorageDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
+		            resource.setStorage(storageDAO.retrieveStorageById(id));
+			}
+        } catch (DAOException ex) {
+            logger.log(Level.FATAL, "Exception when updating Storage", ex);
+            ex.printStackTrace();
+        }
 	}
 	
 }
