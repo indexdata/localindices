@@ -13,7 +13,7 @@ public class StorageBrief implements Comparable<Object> {
     private Long id;
     private String name;
     private String description;
-    private String enabled;
+    private boolean enabled;
 
     private URI uri; 
     
@@ -25,10 +25,11 @@ public class StorageBrief implements Comparable<Object> {
         setId(entity.getId());
         setName(entity.getName());
         setDescription(entity.getDescription());
-        if (entity.getEnabled() != null)
-        	setEnabled((entity.getEnabled() ? "Yes": ""));
+        if (entity.getEnabled() != null && entity.getEnabled())
+        	setEnabled(true);
         else 
-        	setEnabled("");
+        	setEnabled(false);
+        	
     }
 
     /* TODO Verify */ 
@@ -107,16 +108,18 @@ public class StorageBrief implements Comparable<Object> {
     }
 
 
-	public String getEnabled() {
-		return enabled;
+	public String getEnabledDisplay() {
+        if (enabled)
+        	return	"Yes";
+        return "";
 	}
 
 	public boolean isEnabled() {
-		return "Yes".equals(enabled);
+		return enabled;
 	}
 
 
-	public void setEnabled(String enabled) {
+	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 }
