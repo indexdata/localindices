@@ -16,9 +16,10 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Back" action="#{transformationController.back}" />
+                <h:commandLink value="Overview" action="#{transformationController.back}" />
                 <h:commandLink value="Refresh List" action="#{transformationController.list}" />
-                <h:outputText value=" | Add new transformation: "/>
+                <br/>
+                <h:outputText value="Add new transformation: "/>
                 <h:commandLink value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
