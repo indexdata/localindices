@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
+import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -123,14 +124,13 @@ public class TransformationController {
     // <editor-fold defaultstate="collapsed" desc="DAO methods">
     /* add new resource */
     public String prepareXsltTransformationToAdd() {
-        // TODO 
-    	// resource = new SolrTransformation();
+    	current = new BasicTransformation();
         return "new_xsl_transformation";
     }
 
     public String prepareCrossMapTransformationToAdd() {
         // TODO 
-    	// resource = new SolrTransformation();
+    	// current = new CrossMapTransformation();
         return "new_crossmap_transformation";
     }
     
@@ -191,20 +191,6 @@ public class TransformationController {
         return new ListDataModel(resources);
     }
     
-    /* TODO Mock up of transformations steps 
-    public List<SelectItem> getSelectTransformationSteps() {
-    	List<SelectItem> list = new ArrayList<SelectItem>();    	
-    	for (TransformationStep step : current.getSteps()) {
-            SelectItem selectItem = new SelectItem();
-            //Integer value = i;
-            selectItem.setLabel(step.getName());
-            selectItem.setValue(step.getId());
-            list.add(selectItem);
-        }
-        return list;
-    }
-     * */
-
     @SuppressWarnings("rawtypes")
 	public DataModel getTransformationSteps() {
         if (current != null)
@@ -276,12 +262,13 @@ public class TransformationController {
 	}
 
 	private void setupStep() {
-        String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("id");
+		String idName = "stepId";
+        String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(idName);
         try {
         	Integer id = new Integer(param);
         	currentStep = current.getSteps().get(id);
         } catch (Exception e) {
-        	logger.error("Unable to Step from parameter 'id' " + param);
+        	logger.error("Unable to get Step from parameter '" + idName + "' " + param + ". Error: " + e.getMessage());
         }
 		if (currentStep == null) {
 			logger.error("Called without a valid selected step. Param: " + param);
@@ -296,6 +283,7 @@ public class TransformationController {
 	
 	public void addStep() {
 		setupStep();
+		
 	}
 
 	public void editStep() {
@@ -324,21 +312,23 @@ public class TransformationController {
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	public List<SelectItem> getTransformationItems() {
 		List<SelectItem> list = new LinkedList<SelectItem>();
 		if (resources == null) {
 			/* TODO We need all (enabled) storages. Not just a window */
 			getTransformations();
 		}
-			
-		for (TransformationBrief transformation : (List<TransformationBrief>) resources) {
-			if (transformation.isEnabled()) {
-				SelectItem selectItem = new SelectItem();
-				selectItem.setLabel(transformation.getName());
-				selectItem.setValue(transformation.getId());
-				list.add(selectItem);
+		list.add(new SelectItem("", "<Select Transformation>"));
+		if (resources != null)
+			for (TransformationBrief transformation : (List<TransformationBrief>) resources) {
+				if (transformation.isEnabled()) {
+					SelectItem selectItem = new SelectItem();
+					selectItem.setLabel(transformation.getName());
+					selectItem.setValue(transformation.getId());
+					list.add(selectItem);
+				}
 			}
-		}
     	return list;
     }
 
