@@ -37,49 +37,7 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     protected String description;
     protected Boolean enabled;
     @Lob
-    protected String script = 
-		"<?xml version=\"1.0\"?>\n" + 
-		"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" \n" + 
-		"                xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" >\n" + 		"\n" + 
-		"  <xsl:param name=\"medium\" />\n" + 
-		"  <xsl:template  match=\"/\">\n" + 
-		"      <xsl:apply-templates></xsl:apply-templates>\n" + 
-		"  </xsl:template>\n" + 
-		"  <xsl:template match=\"doc\">\n" + 
-		"    <pz:record>\n" + 
-		"      <xsl:apply-templates></xsl:apply-templates>\n" + 
-		"    </pz:record>\n" + 
-		"  </xsl:template>\n" + 
-		"  <xsl:template match=\"str[@name]\">\n" + 
-		"    <pz:metadata>\n" + 
-		"        <xsl:attribute  name=\"type\">\n" + 
-		"          <xsl:value-of select=\"@name\"/>\n" + 
-		"        </xsl:attribute>\n" + 
-		"        <xsl:value-of select=\".\"/>\n" + 
-		"    </pz:metadata>\n" + 
-		"  </xsl:template>\n" + 
-		"  <xsl:template match=\"arr\">\n" + 
-		"    <xsl:for-each select=\"str\">\n" + 
-		"      <xsl:call-template name=\"string\"/>\n" + 
-		"    </xsl:for-each>\n" + 
-		"  </xsl:template>\n" + 
-		"  <xsl:template name=\"string\">\n" + 
-		"      <pz:metadata>\n" + 
-		"        <xsl:attribute  name=\"type\">\n" + 
-		"          <xsl:value-of select=\"../@name\"/>\n" + 
-		"        </xsl:attribute>\n" + 
-		"        <xsl:choose>\n" + 
-		"          <xsl:when test=\"../@name = 'medium' and string-length($medium) > 0\">\n" + 
-		"            <xsl:value-of select=\"$medium\"/>\n" + 
-		"          </xsl:when>\n" + 
-		"          <xsl:otherwise>\n" + 
-		"            <xsl:value-of select=\".\"/>\n" + 
-		"          </xsl:otherwise>\n" + 
-		"        </xsl:choose>\n" + 
-		"      </pz:metadata>\n" + 
-		"  </xsl:template>\n" + 
-		"</xsl:stylesheet>";
-    	
+    protected String script ="";    	
     protected Integer position;
     
     public String getDescription() {
