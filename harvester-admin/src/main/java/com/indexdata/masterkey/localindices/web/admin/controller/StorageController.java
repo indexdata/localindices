@@ -271,14 +271,15 @@ public class StorageController  {
 			getStorages();
 		}
 		list.add(new SelectItem("", "<Select Storage>"));
-		for (StorageBrief storage : (List<StorageBrief>) storages) {
-			if (storage.isEnabled()) {
-				SelectItem selectItem = new SelectItem();
-				selectItem.setLabel(storage.getName());
-				selectItem.setValue(storage.getId());
-				list.add(selectItem);
+		if (storages != null)
+			for (StorageBrief storage : (List<StorageBrief>) storages) {
+				if (storage.isEnabled()) {
+					SelectItem selectItem = new SelectItem();
+					selectItem.setLabel(storage.getName());
+					selectItem.setValue(storage.getId());
+					list.add(selectItem);
+				}
 			}
-		}
     	return list;
     }
 
