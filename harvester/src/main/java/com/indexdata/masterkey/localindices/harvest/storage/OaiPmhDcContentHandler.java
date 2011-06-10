@@ -17,7 +17,6 @@ public class OaiPmhDcContentHandler implements ContentHandler {
 	RecordStorage store; 
 	private RecordImpl record = null;
 	private Map<String, Collection<Serializable>> keyValues = null;
-	private Boolean isDeleted = null;
 	private StringBuffer currentText = null;
 	private boolean inHeader = false;
 	private boolean inMetadata = false;
@@ -72,7 +71,7 @@ public class OaiPmhDcContentHandler implements ContentHandler {
 		}
 		if (record != null && localName.equals("header")) {
 			inHeader = true; 
-			isDeleted = getDeleteStatus(atts);
+			record.setDeleted(getDeleteStatus(atts));
 		}
 		if (record != null && localName.equals("dc"))
 			inMetadata = true; 
@@ -108,7 +107,7 @@ public class OaiPmhDcContentHandler implements ContentHandler {
 			}
 		}
 		if (localName.equals("record")) {
-			if (isDeleted)
+			if (record.isDeleted())
 				store.delete(record.getId());
 			else 
 				store.add(record);
