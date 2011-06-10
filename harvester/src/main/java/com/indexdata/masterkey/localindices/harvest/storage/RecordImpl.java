@@ -10,6 +10,8 @@ public class RecordImpl implements Record {
 	Map<String, Collection<Serializable>> valueMap;
 	String id; 
 	String database; 
+	boolean isDeleted;
+	
 	public RecordImpl() {
 		valueMap = new HashMap<String, Collection<Serializable>>();
 	}
@@ -39,6 +41,16 @@ public class RecordImpl implements Record {
 
 	public void setDatabase(String database) {
 		this.database = database;
+	}
+
+	@Override
+	public boolean isDeleted() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
 	}
 
 }
