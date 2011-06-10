@@ -32,9 +32,12 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
+import com.indexdata.masterkey.localindices.dao.TransformationDAO;
+import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
+import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
@@ -53,7 +56,6 @@ public class ResourceController {
     private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
     @SuppressWarnings("rawtypes")
 	private List resources;
-    private String transformation; 
     private String jobLog;
 	Stack<String> backActions = new Stack<String>();
 	String homeAction = "home";
@@ -472,11 +474,31 @@ public class ResourceController {
     }
 
     public String getTransformation() {
-    	return transformation;
+    	if (resource != null && resource.getTransformation() != null)
+    		return resource.getTransformation().getId().toString();
+    	return "";
     }
 
-	public void setTransformation(String transformation) {
-		this.transformation = transformation;
+	public void setTransformation(String transformationId) {
+		try {
+			if (transformationId != null && resource != null) {
+				if (transformationId.equals("")) 
+					resource.setTransformation(null);	
+				else {
+					Long id = new Long(transformationId);
+					TransformationDAO transformationDAO = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
+					Transformation transformation = transformationDAO.retrieveTransformationById(id);
+					if (transformation == null) {
+						logger.warn("No Transformation found for ID: " + id);
+					}
+					resource.setTransformation(transformation);
+				}
+			}
+        } catch (DAOException ex) {
+            logger.log(Level.FATAL, "Exception when updating Storage", ex);
+            ex.printStackTrace();
+        }
+
 	}
 
 	public String stackBackAction(String newAction) {
