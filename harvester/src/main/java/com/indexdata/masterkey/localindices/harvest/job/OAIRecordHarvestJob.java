@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
@@ -35,6 +36,8 @@ import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.Transformation;
+import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
@@ -170,17 +173,37 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
         }
     }
 
-    private Templates[] getTemplates(String[] filenames) throws TransformerConfigurationException {
+    private Templates[] getTemplates(File[] files) throws TransformerConfigurationException {
     	
-    	Templates[] templates = new Templates[filenames.length];
+    	Templates[] templates = new Templates[files.length];
     	int index = 0;
-    	for (String filename : filenames) {
-    		templates[index] = stf.newTemplates(new StreamSource(new File(filename)));
+    	for (File file : files) {
+    		templates[index] = stf.newTemplates(new StreamSource(file));
     		index++;
     	}
 		return templates;
 	}
 
+    private Templates[] getTemplates(String[] stringTemplates) throws TransformerConfigurationException {
+    	StreamSource[] streamSources = new StreamSource[stringTemplates.length];
+    	int index = 0;
+    	for (String template: stringTemplates) {
+    		streamSources[index] = new StreamSource(new CharArrayReader(template.toCharArray()));
+    		index++;
+    	}
+    	return getTemplates(streamSources);
+    }
+    private Templates[] getTemplates(StreamSource[] sourceTemplates) throws TransformerConfigurationException {
+    	
+    	Templates[] templates = new Templates[sourceTemplates.length];
+    	int index = 0;
+    	for (StreamSource source: sourceTemplates) {
+    		templates[index] = stf.newTemplates(source);
+    		index++;
+    	}
+		return templates;
+    }
+    
 	private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec, String resumptionToken,
             RecordStorage storage) throws IOException {
@@ -191,13 +214,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
         map.put("metadataprefix", metadataPrefix);
         map.put("oaisetname", setSpec);
         map.put("normalizationfilter", resource.getNormalizationFilter());
-        // TODO from normalization filter (id) get the templates used. 
         try {
-        	if ("oai_dc".equals(metadataPrefix))
-        		templates = getTemplates(oai_dc_pz);
-        	else if ("marc21".equals(metadataPrefix))
-        		templates = getTemplates(oai_marc21_pz);
-        		
+        	if (resource.getTransformation() != null) {
+        		templates = lookupTransformationTemplates(resource.getTransformation());
+        	}
+        	else { 
+	        	getStaticTransformation(metadataPrefix);
+        	}
 		} catch (TransformerConfigurationException e1) {
             setStatus(HarvestStatus.ERROR);
             resource.setMessage(e1.getMessage());
@@ -206,7 +229,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 		} 
 
     	ListRecords listRecords = null;
-        //resumption Token present in DB?
         if (resumptionToken == null || "".equals(resumptionToken)) {
             listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
         } else {
@@ -226,15 +248,20 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
                 logger.log(Level.DEBUG, "JOB#"+resource.getId()+" OAI error response: \n"
                         + listRecords.toString());
                 // if this is noRecordsMatch and initial run, something is wrong
+                logger.log(Level.DEBUG, "JOB#"+resource.getId() 
+                		+ " Parsed errors: #Errors: " + errors.length 
+                        + " First ErrorCode: " + errors[0].getCode()
+                        + " initialRun: " + initialRun);
                 if (errors.length == 1 &&
                     errors[0].getCode().equalsIgnoreCase("noRecordsMatch") &&
-                    !this.initialRun) {
+                    !this.initialRun) 
+                {
                     logger.log(Level.INFO, "JOB#"+resource.getId()+
                             " noRecordsMatch experienced for non-initial harvest - ignoring");
                     setStatus(HarvestStatus.KILLED);
                     return;
-                } else throw new IOException("OAI error "
-                        + errors[0].code + ": " + errors[0].message);
+                } else 
+                	throw new IOException("OAI error " + errors[0].code + ": " + errors[0].message);
             } else {
                 if (!dataStart) {                	
                     storage.databaseStart(resource.getId().toString(), null);
@@ -247,15 +274,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 					list = listRecords.getNodeList("/");
 					for (int index = 0; index < list.getLength(); index++) {
 						Node node = list.item(index);
-						Record record = createRecord(node);
-						// TODO the createRecord add the record to the storage.
-						// Alway null
-						if (record != null) {
-							if (isDelete(record))
-								storage.delete(record.getId());
-							else
-								storage.add(record);
-						}
+						Node newNode = transformNode(node);
+						Record record = convert(newNode);
+						storeRecord(record);
 					}
                     resumptionToken = listRecords.getResumptionToken();
                 } catch (TransformerException e) {
@@ -280,17 +301,66 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
             getStorage().databaseEnd();
     }
 
+	private void getStaticTransformation(String metadataPrefix)
+			throws TransformerConfigurationException {
+		if ("oai_dc".equals(metadataPrefix))
+			templates = getTemplates(filenamesToStreamSources(oai_dc_pz));
+		else if ("marc21".equals(metadataPrefix))
+			templates = getTemplates(filenamesToStreamSources(oai_marc21_pz));
+	}
+
+	private StreamSource[] filenamesToStreamSources(String[] filenames) {
+		StreamSource[] streamSources = new StreamSource[filenames.length];
+		for (int index = 0; index < filenames.length; index++) {
+			streamSources[index] = new StreamSource(new File(filenames[index]));
+		}
+		return streamSources;
+	}
+
+	private void storeRecord(Record record) {
+		if (record != null) {
+			if (isDelete(record))
+				getStorage().delete(record.getId());
+			else
+				getStorage().add(record);
+		}
+	}
+
+	private Record convert(Node node) throws TransformerException 
+	{
+		// TODO Need to handle other RecordStore types. 
+		SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource.getId().toString()));
+		Transformer transformer = stf.newTransformer();
+		DOMSource xmlSource = new DOMSource(node);
+		transformer.transform(xmlSource, outputTarget);
+		return null;
+	}
+
+	private Templates[] lookupTransformationTemplates(Transformation transformation) throws TransformerConfigurationException {
+		if (transformation.getSteps() == null)
+			return new Templates[0];
+			
+		StreamSource[] templates = new StreamSource[transformation.getSteps().size()];
+		int index = 0;
+		for (TransformationStep step : transformation.getSteps()) {
+			templates[index] = new StreamSource(new CharArrayReader(step.getScript().toCharArray()));
+			index++;
+		}
+		return getTemplates(templates);
+	}
+
 	private boolean isDelete(Record node) {
 		// TODO Implement
 		return false;
 	}
 
-	protected Record createRecord(Node node) throws TransformerException {
+	protected Node transformNode(Node node) throws TransformerException {
 
 		DOMSource xmlSource = new DOMSource(node); 
 		
-		SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource.getId().toString()));
 		Transformer transformer; 
+		if (templates == null)
+			return node;
 		for (Templates template : templates ) {
 			transformer = template.newTransformer();
 			DOMResult result = new DOMResult();
@@ -301,9 +371,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 			stf.newTransformer().transform(xmlSource, debug);
 */
 		}
-		transformer = stf.newTransformer();
-		transformer.transform(xmlSource, outputTarget);
-		return null;
+		return xmlSource.getNode();
 	}
 
 	private ListRecords listRecords(String baseURL, String from, String until, String setSpec, String metadataPrefix) throws IOException {
