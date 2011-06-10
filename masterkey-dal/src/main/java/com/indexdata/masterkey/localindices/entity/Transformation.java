@@ -7,9 +7,12 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 //import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,8 +20,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 
 /**
  * @author Dennis Schafroth
@@ -38,6 +44,21 @@ public abstract class Transformation implements Serializable, Cloneable {
     protected String description;
     protected Boolean enabled;
     protected List<TransformationStep> steps;
+
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinTable(name="HARVEST_TRANSFORMATION", joinColumns = {
+    @JoinColumn(name="TRANSFORMATION_ID", unique = true) 
+    },
+    inverseJoinColumns = {
+    @JoinColumn(name="HARVEST_ID")
+    }
+    )
+    
+    private Set<Harvestable> harvestables;
+
+    protected Transformation() {
+		steps = new LinkedList<TransformationStep>();
+    }
     
     public String getDescription() {
         return description;
@@ -107,5 +128,13 @@ public abstract class Transformation implements Serializable, Cloneable {
 
 	public void setSteps(List<TransformationStep> steps) {
 		this.steps = steps;
+	}
+
+	public void setHarvestables(Set<Harvestable> harvestables) {
+		this.harvestables = harvestables;
+	}
+
+	public Set<Harvestable> getHarvestables() {
+		return harvestables;
 	}
 }
