@@ -83,6 +83,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
     		inverseJoinColumns = { @JoinColumn(name="STORAGE_ID")}
     )
     protected Storage storage;
+
+    @ManyToOne(optional=true)
+    @JoinTable(name = "HARVEST_TRANSFORMATION", 
+    		joinColumns = { @JoinColumn(name="TRANSFORMATION_ID")},
+    		inverseJoinColumns = { @JoinColumn(name="STORAGE_ID")}
+    )
+    protected Transformation transformation;
+
     
     public String getDescription() {
         return description;
@@ -271,5 +279,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
 	public void setStorage(Storage storage) {
 		this.storage = storage;
+	}
+
+	public Transformation getTransformation() {
+		return transformation;
+	}
+
+	public void setTransformation(Transformation transformation) {
+		this.transformation = transformation;
 	}
 }
