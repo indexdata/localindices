@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.transform.Templates;
@@ -193,6 +194,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
     	}
     	return getTemplates(streamSources);
     }
+
+    private Templates getTemplates(StreamSource source) throws TransformerConfigurationException {
+		return stf.newTemplates(source);
+    }
+
     private Templates[] getTemplates(StreamSource[] sourceTemplates) throws TransformerConfigurationException {
     	
     	Templates[] templates = new Templates[sourceTemplates.length];
@@ -340,13 +346,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 		if (transformation.getSteps() == null)
 			return new Templates[0];
 			
-		StreamSource[] templates = new StreamSource[transformation.getSteps().size()];
-		int index = 0;
-		for (TransformationStep step : transformation.getSteps()) {
-			templates[index] = new StreamSource(new CharArrayReader(step.getScript().toCharArray()));
-			index++;
+		List<TransformationStep> steps = transformation.getSteps();
+		Templates[] templates = new Templates[steps.size()];
+		for (int index = 0; index < steps.size(); index++ ) {
+			TransformationStep step = steps.get(index);
+			try {
+				logger.debug("Creating template for step: " + step.getName());
+				templates[index] = getTemplates(new StreamSource(new CharArrayReader(step.getScript().toCharArray())));
+			} catch (TransformerConfigurationException te) {
+				logger.error("Error creating template for step: " + step.getName() + ". Message: " + te.getMessage());
+				throw te;
+			}
 		}
-		return getTemplates(templates);
+		return templates;
 	}
 
 	private boolean isDelete(Record node) {
