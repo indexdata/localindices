@@ -63,6 +63,7 @@ import org.apache.log4j.Level;
  * 
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
+@SuppressWarnings("restriction")
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
