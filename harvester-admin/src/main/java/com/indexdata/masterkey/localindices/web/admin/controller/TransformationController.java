@@ -46,9 +46,8 @@ public class TransformationController {
 	/* Transformations */
     private List resources;
 	/* Steps for current transformations */
-	@SuppressWarnings("rawtypes")
-	private List steps = null; 
-
+	private List<TransformationStep> steps = null; 
+	private String stepMode = "hideEditStep();"; // which JS function should be called on load
     private TransformationStep currentStep;
    
 	Stack<String> backActions = new Stack<String>();
@@ -191,7 +190,7 @@ public class TransformationController {
         return new ListDataModel(resources);
     }
     
-    @SuppressWarnings("rawtypes")
+	@SuppressWarnings("unchecked")
 	public DataModel getTransformationSteps() {
         if (current != null)
         	steps = (List) current.getSteps();        
@@ -262,48 +261,77 @@ public class TransformationController {
 	}
 
 	private void setupStep() {
-		String idName = "stepId";
+		String idName = "stepID";
         String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(idName);
-        try {
-        	Integer id = new Integer(param);
-        	currentStep = current.getSteps().get(id);
-        } catch (Exception e) {
-        	logger.error("Unable to get Step from parameter '" + idName + "' " + param + ". Error: " + e.getMessage());
+        if (param != null && !"null".equals(param)) {
+	        try {
+	        	Long id = new Long(param);
+	        	currentStep = lookupStepByID(current.getSteps(), id);
+	        } catch (Exception e) {
+	        	logger.error("Unable to get Step from parameter '" + idName + "' " + param + ". Error: " + e.getMessage());
+	        }
         }
 		if (currentStep == null) {
-			logger.error("Called without a valid selected step. Param: " + param);
+			logger.error("Setting up new step.");
 			BasicTransformationStep step = new BasicTransformationStep();
-			step.setDescription("");
-			step.setScript("");
-			step.setName("");
-			step.setPosition(1);
+			step.setDescription("<Description>");
+			step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+			step.setPosition(current.getSteps().size()+1);
+			step.setName("<New step " + step.getPosition() + ">");
 			currentStep = step;
 		}
 	}
 	
-	public void addStep() {
+	private TransformationStep lookupStepByID(List<TransformationStep> steps, Long id) {
+		for (TransformationStep step: steps) {
+			if (step.getId().equals(id)) 
+				return step;
+		}
+		return null;
+	}
+
+	public String addStep() {
+		setupStep();	
+		stepMode = "showEditStep();";
+		return "new_step";
+	}
+
+	public String editStep() {
 		setupStep();
+		stepMode = "showEditStep();";
+		return "edit_step";
+	}
+
+	public String upStep() {
+		setupStep();
+		upDownStep(currentStep.getId(), -1);
+		stepMode = "hideEditStep();";
+		return "up_step";
+	}
+
+	private void upDownStep(Long id, int i) {
 		
+		for (TransformationStep step: steps) {
+			
+		}
 	}
 
-	public void editStep() {
+	public String downStep() {
 		setupStep();
+		upDownStep(currentStep.getId(), 1);
+		stepMode = "hideEditStep();";
+		return "down_step";
 	}
 
-	public void upStep() {
+	public String deleteStep() {
 		setupStep();
-	}
-
-	public void downStep() {
-		setupStep();
-	}
-
-	public void deleteStep() {
-		setupStep();
+		stepMode = "hideEditStep();";
+		return "delete_step";
 	}
 
 	public TransformationStep getTransformationStep() {
-		setupStep();
+		if (currentStep == null)
+			setupStep();
 		return currentStep;
 	}
 
@@ -331,5 +359,13 @@ public class TransformationController {
 			}
     	return list;
     }
+
+	public String getStepMode() {
+		return stepMode;
+	}
+
+	public void setStepMode(String stepMode) {
+		this.stepMode = stepMode;
+	}
 
 }
