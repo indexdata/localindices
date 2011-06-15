@@ -1,9 +1,10 @@
 
+delete from TRANSFORMATION_TRANSFORMATIONSTEP where TRANSFORMATION_ID = 10;
 delete from TRANSFORMATION where ID = 10;
-insert into TRANSFORMATION (ID, NAME, ENABLED, DESCRIPTION) values (10, 'OAI-PMH(DC) to PZ', 1, 'Converting from OAI-PMH(DC) to PZ');
+insert into TRANSFORMATION (ID, DTYPE, NAME, ENABLED, DESCRIPTION) values (10, 'BasicTransformation', 'OAI-PMH(DC) to PZ', 1, 'Converting from OAI-PMH(DC) to PZ');
 
 delete from TRANSFORMATIONSTEP where ID = 10;
-insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 10, 'OAIPMH-DC to PZ', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 10, 'BasicTransformationStep', 'OAIPMH-DC to PZ', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     This stylesheet expects oai/dc records
@@ -100,11 +101,12 @@ insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 10
 
 insert into TRANSFORMATION_TRANSFORMATIONSTEP (TRANSFORMATION_ID, STEPS_ID) values (10, 10);
 
+delete from TRANSFORMATION_TRANSFORMATIONSTEP where TRANSFORMATION_ID = 20;
 delete from TRANSFORMATION where ID = 20;
-insert into TRANSFORMATION (ID, NAME, ENABLED, DESCRIPTION) values (20, 'OAI-PMH(MARCXML) to PZ', 1, 'Converting from OAI-PMH(MARCXML) to PZ');
+insert into TRANSFORMATION (ID, DTYPE, NAME, ENABLED, DESCRIPTION) values (20, 'BasicTransformation', 'OAI-PMH(MARCXML) to PZ', 1, 'Converting from OAI-PMH(MARCXML) to PZ');
 
 delete from TRANSFORMATIONSTEP where ID = 20;
-insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 20, 'OAIPMH-MARC to MARC21', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 20, 'BasicTransformationStep', 'OAIPMH-MARC to MARC21', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     This stylesheet pulls out marc records from the oai-pmh response
@@ -158,8 +160,7 @@ insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 20
 </xsl:stylesheet>');
 
 delete from TRANSFORMATIONSTEP where ID = 22;
-insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 22, 'MARC21 to PZ', 1, 2, '<?xml version="1.0" encoding="UTF-8"?>
-<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 22, 'BasicTransformationStep', 'MARC21 to PZ', 1, 2, '<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet
     version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -178,11 +179,11 @@ insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 22
     <pz:collection> 
       <xsl:apply-templates />
     </pz:collection>
-  </xsl:template> 		       
+  </xsl:template>        
   
   <xsl:template match="//delete">
 	<xsl:copy-of select="."/>                                                                                                                                                                               
-  </xsl:template> 		       
+  </xsl:template> 
   
   <xsl:template match="//marc:record">
     <xsl:variable name="title_medium" select="marc:datafield[@tag=\'245\']/marc:subfield[@code=\'h\']"/>
@@ -358,8 +359,7 @@ insert into TRANSFORMATIONSTEP (ID, NAME, ENABLED, POSITION, SCRIPT) values ( 22
 	</pz:metadata>
       </xsl:for-each>
 
-      <xsl:for-each select="marc:datafield[@tag = \'500\' or @tag = \'505\' or
-      		@tag = \'518\' or @tag = \'520\' or @tag = \'522\']">
+      <xsl:for-each select="marc:datafield[@tag = \'500\' or @tag = \'505\' or @tag = \'518\' or @tag = \'520\' or @tag = \'522\']">
 	<pz:metadata type="description">
             <xsl:value-of select="*/text()"/>
         </pz:metadata>
