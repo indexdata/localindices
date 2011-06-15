@@ -8,12 +8,8 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Add Transformation Pipeline</title>
-    </head>
-    <body>
+    <%@ include file="fragments/transformation/generic_transformation_head.jsp" %>
+    <body onload="hideEditStep();">
         <f:view>
             <h:form>
                 <h:commandLink value="Transformations List" action="#{transformationController.list}" />
