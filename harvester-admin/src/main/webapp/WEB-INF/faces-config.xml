@@ -145,4 +145,27 @@
             <to-view-id>/edit_xsl_transformation.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/edit_transformations.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>new_step</from-outcome>
+            <to-view-id>/add_xsl_transformationstep.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_xsl_transformationstep</from-outcome>
+            <to-view-id>/edit_xsl_transformationstep.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>up_xsl_transformationstep</from-outcome>
+            <to-view-id>/up_xsl_transformationstep.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>down_xsl_transformationstep</from-outcome>
+            <to-view-id>/down_xsl_transformationstep.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>delete_xsl_transformationstep</from-outcome>
+            <to-view-id>/delete_xsl_transformationstep.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
 </faces-config>
