@@ -22,6 +22,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -43,21 +44,15 @@ public abstract class Transformation implements Serializable, Cloneable {
     @Column(length=4096)
     protected String description;
     protected Boolean enabled;
-    protected List<TransformationStep> steps;
 
-    @OneToMany(cascade=CascadeType.ALL)
-    @JoinTable(name="HARVEST_TRANSFORMATION", joinColumns = {
-    @JoinColumn(name="TRANSFORMATION_ID", unique = true) 
-    },
-    inverseJoinColumns = {
-    @JoinColumn(name="HARVEST_ID")
-    }
-    )
-    
+    @OneToMany
+    protected List<TransformationStepAssociation> stepAssociations;
+
+    @OneToMany
     private Set<Harvestable> harvestables;
 
     protected Transformation() {
-		steps = new LinkedList<TransformationStep>();
+		stepAssociations = new LinkedList<TransformationStepAssociation>();
     }
     
     public String getDescription() {
@@ -123,11 +118,23 @@ public abstract class Transformation implements Serializable, Cloneable {
     }
 
 	public List<TransformationStep> getSteps() {
+		List<TransformationStep> steps = new LinkedList<TransformationStep>();
+		for (TransformationStepAssociation association : stepAssociations) {
+			steps.add(association.getStep()); 
+		}
 		return steps;
 	}
 
-	public void setSteps(List<TransformationStep> steps) {
-		this.steps = steps;
+	public void addStep(TransformationStep step, int position) {
+		TransformationStepAssociation association = new TransformationStepAssociation();
+		association.setTransformation(this);
+		association.setStep(step);
+		association.setPosition(position);
+		stepAssociations.add(association);
+	}
+
+	public void deleteStep(int associationId) {
+		stepAssociations.remove(associationId);
 	}
 
 	public void setHarvestables(Set<Harvestable> harvestables) {
@@ -136,5 +143,14 @@ public abstract class Transformation implements Serializable, Cloneable {
 
 	public Set<Harvestable> getHarvestables() {
 		return harvestables;
+	}
+
+	public List<TransformationStepAssociation> getStepAssociations() {
+		return stepAssociations;
+	}
+
+	public void setStepAssociations(
+			List<TransformationStepAssociation> stepAssociations) {
+		this.stepAssociations = stepAssociations;
 	}
 }
