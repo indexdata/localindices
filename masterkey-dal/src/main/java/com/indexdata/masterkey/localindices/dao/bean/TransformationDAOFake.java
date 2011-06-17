@@ -38,10 +38,9 @@ public class TransformationDAOFake implements TransformationDAO {
 		transformation.setId(new Long(1));
 		transformation.setName("OAI(DC) to SOLR");
 		List<TransformationStep> steps = new LinkedList<TransformationStep>();
-		steps.add(new BasicTransformationStep("OAI-RECORD", "Extract OAI-RECORD", ""));
-		steps.add(new BasicTransformationStep("OAI-DC to OAI/PZ", "Transform to OAI/PZ", ""));
-		steps.add(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""));
-		transformation.setSteps(steps);
+		transformation.addStep(new BasicTransformationStep("OAI-RECORD", "Extract OAI-RECORD", ""),1);
+		transformation.addStep(new BasicTransformationStep("OAI-DC to OAI/PZ", "Transform to OAI/PZ", ""),2);
+		transformation.addStep(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""),3);
 		transformation.setEnabled(true);
 		transformations.put(transformation.getId(), transformation);
 
@@ -51,11 +50,10 @@ public class TransformationDAOFake implements TransformationDAO {
 		transformation.setId(new Long(2));
 		transformation.setName("OAI(MARCXML) to SOLR");
 		steps = new LinkedList<TransformationStep>();
-		steps.add(new BasicTransformationStep("OAI(bulk) to OAI-RECORD", "Extract OAI-RECORD", ""));
-		steps.add(new BasicTransformationStep("OAI-RECORD to PZ", "OAI-RECORD/DC to MARCXML", ""));
-		steps.add(new BasicTransformationStep("MARCXML to OAI/PZ", "Transform to OAI/PZ", ""));
-		steps.add(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""));
-		transformation.setSteps(steps);
+		transformation.addStep(new BasicTransformationStep("OAI(bulk) to OAI-RECORD", "Extract OAI-RECORD", ""), 1);
+		transformation.addStep(new BasicTransformationStep("OAI-RECORD to PZ", "OAI-RECORD/DC to MARCXML", ""), 2);
+		transformation.addStep(new BasicTransformationStep("MARCXML to OAI/PZ", "Transform to OAI/PZ", ""), 3);
+		transformation.addStep(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""), 4);
 		transformation.setEnabled(true);
 		transformations.put(transformation.getId(), transformation);
 		
