@@ -8,12 +8,12 @@
         <script>
         function showEditStep() {
             document.getElementById('editStep').style.display='inline';
-            document.getElementById('addStep').style.display='none';
+            document.getElementById('addStep').style.display='inline';
             return 1;
         }    
         
         function hideEditStep() {
-            document.getElementById('editStep').style.display='none';
+            document.getElementById('editStep').style.display='inline';
             document.getElementById('addStep').style.display='inline';
             return 1;
         }    
