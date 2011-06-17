@@ -25,9 +25,8 @@
 			<f:facet name="header">
 				<h:outputText value="Available Actions" />
 			</f:facet>
-			<h:commandLink value="Edit"
-				action="#{transformationController.editStep}"
-                onclick="return showEditStep());">
+			<h:commandLink value="Edit" action="#{transformationController.editStep}"
+                onclick="return showEditStep();" >
 				<f:param name="stepID" value="#{item.id}" />
 			</h:commandLink>
 			<h:commandLink value="Up" action="#{transformationController.upStep}">
@@ -45,7 +44,30 @@
 			</h:commandLink>
 		</h:column>
 	</h:dataTable>
-    <div id="editStep" style="visibility:visible">
+    <div id="addStep" style="display:inline">  
+           <h:outputText value=" Add: " />
+           <h:commandLink value=" XslStep"
+               action="#{transformationController.addXslStep}"
+                onclick="return showEditStep();">
+               <f:param name="stepID" value="#{item.id}" />
+            </h:commandLink>
+           <h:commandLink value=" Crosswalk"
+               action="#{transformationController.addCrosswalkStep}"
+                onclick="return showEditStep();">
+               <f:param name="stepID" value="#{item.id}" />
+            </h:commandLink>
+           <h:commandLink value=" Validation Step"
+               action="#{transformationController.addValidationStep}"
+                onclick="return showEditStep();">
+               <f:param name="stepID" value="#{item.id}" />
+            </h:commandLink>
+           <h:commandLink value=" Split Step"
+               action="#{transformationController.addSplitStep}"
+                onclick="return showEditStep();">
+               <f:param name="stepID" value="#{item.id}" />
+            </h:commandLink>
+    </div>  
+    <div id="editStep" style="display:inline">
         <h:panelGrid columns="2">
             <h:outputText value="Step Name:" />
             <h:inputText
@@ -56,26 +78,17 @@
 			<h:inputTextarea
 				value="#{transformationController.transformationStep.script}"
 				rows="40" cols="80" />
-            <h:commandLink value="Save"
-                action="#{transformationController.saveStep}"
-                onclick="return hideEditStep();">
-                <f:param name="stepID" value="#{item.id}" />
-            </h:commandLink>
-            <h:commandLink value="Cancel"
-                action="#{transformationController.saveStep}"
-                onclick="return hideEditStep();">
-                <f:param name="stepID" value="#{item.id}" />
-            </h:commandLink>
-		</h:panelGrid>
-    </div>  
-    <div id="addStep" style="vibility:visible">  
-        <h:panelGrid>
-           <h:commandLink value="Add Step"
-               action="#{transformationController.addStep}"
-                onclick="return showEditStep();">
-               <f:param name="stepID" value="#{item.id}" />
-            </h:commandLink>
         </h:panelGrid>
+        <h:outputText value=" Edit Step Action: " />
+        <h:commandLink value=" Save"
+            action="#{transformationController.saveStep}"
+            onclick="return hideEditStep();">
+            <f:param name="stepID" value="#{item.id}" />
+        </h:commandLink>
+        <h:commandLink value=" Cancel"
+            action="#{transformationController.cancelStep}"
+            onclick="return hideEditStep();">
+            <f:param name="stepID" value="#{item.id}" />
+        </h:commandLink>
     </div>  
-        
 </f:subview>
