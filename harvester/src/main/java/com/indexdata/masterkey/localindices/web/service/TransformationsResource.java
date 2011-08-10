@@ -70,7 +70,7 @@ public class TransformationsResource {
         if (max <= 0)
             entities = new ArrayList<Transformation>();
         else
-            entities = dao.retrieveTransformations(start, max);
+            entities = dao.retrieve(start, max);
         return new TransformationsConverter(entities, context.getAbsolutePath(),
                 start, max, dao.getTransformationCount());
     }
@@ -85,7 +85,7 @@ public class TransformationsResource {
     @Consumes("application/xml")
     public Response post(TransformationConverter data) {
         Transformation entity = data.getEntity();
-        dao.createTransformation(entity);
+        dao.create(entity);
         return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }
 
