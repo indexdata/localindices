@@ -82,7 +82,7 @@ public class TransformationConverter {
     }
 
     /**
-     * Returns the Storage entity.
+     * Returns the entity.
      *
      * @return an entity
      */
