@@ -1,10 +1,9 @@
 
-delete from TRANSFORMATION_TRANSFORMATIONSTEP where TRANSFORMATION_ID = 10;
 delete from TRANSFORMATION where ID = 10;
 insert into TRANSFORMATION (ID, DTYPE, NAME, ENABLED, DESCRIPTION) values (10, 'BasicTransformation', 'OAI-PMH(DC) to PZ', 1, 'Converting from OAI-PMH(DC) to PZ');
 
 delete from TRANSFORMATIONSTEP where ID = 10;
-insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 10, 'BasicTransformationStep', 'OAIPMH-DC to PZ', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, SCRIPT) values ( 10, 'BasicTransformationStep', 'OAIPMH-DC to PZ', 1, '<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     This stylesheet expects oai/dc records
@@ -99,14 +98,14 @@ insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) valu
 
 </xsl:stylesheet>');
 
-insert into TRANSFORMATION_TRANSFORMATIONSTEP (TRANSFORMATION_ID, STEPS_ID) values (10, 10);
+delete from TRANSFORMATION_STEP where ID = 1;
+insert into TRANSFORMATION_STEP (ID,TRANSFORMATION_ID, STEP_ID, POSITION) values (1,10, 10, 1);
 
-delete from TRANSFORMATION_TRANSFORMATIONSTEP where TRANSFORMATION_ID = 20;
 delete from TRANSFORMATION where ID = 20;
 insert into TRANSFORMATION (ID, DTYPE, NAME, ENABLED, DESCRIPTION) values (20, 'BasicTransformation', 'OAI-PMH(MARCXML) to PZ', 1, 'Converting from OAI-PMH(MARCXML) to PZ');
 
 delete from TRANSFORMATIONSTEP where ID = 20;
-insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 20, 'BasicTransformationStep', 'OAIPMH-MARC to MARC21', 1, 1, '<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, SCRIPT) values ( 20, 'BasicTransformationStep', 'OAIPMH-MARC to MARC21', 1, '<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     This stylesheet pulls out marc records from the oai-pmh response
@@ -160,7 +159,7 @@ insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) valu
 </xsl:stylesheet>');
 
 delete from TRANSFORMATIONSTEP where ID = 22;
-insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) values ( 22, 'BasicTransformationStep', 'MARC21 to PZ', 1, 2, '<?xml version="1.0" encoding="UTF-8"?>
+insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, SCRIPT) values ( 22, 'BasicTransformationStep', 'MARC21 to PZ', 1, '<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet
     version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -496,5 +495,7 @@ insert into TRANSFORMATIONSTEP (ID, DTYPE, NAME, ENABLED, POSITION, SCRIPT) valu
 
 </xsl:stylesheet>');
 
-insert into TRANSFORMATION_TRANSFORMATIONSTEP (TRANSFORMATION_ID, STEPS_ID) values (20, 20);
-insert into TRANSFORMATION_TRANSFORMATIONSTEP (TRANSFORMATION_ID, STEPS_ID) values (20, 22);
+delete from TRANSFORMATION_STEP where ID = 2;
+insert into TRANSFORMATION_STEP (ID, TRANSFORMATION_ID, STEP_ID, POSITION) values (2, 20, 20, 1);
+delete from TRANSFORMATION_STEP where ID = 3;
+insert into TRANSFORMATION_STEP (ID, TRANSFORMATION_ID, STEP_ID, POSITION) values (3, 20, 22, 2);
