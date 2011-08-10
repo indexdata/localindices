@@ -34,7 +34,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
     
     @Override
-    public void createTransformation(Transformation transformation) {
+    public void create(Transformation transformation) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -54,7 +54,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public Transformation retrieveTransformationById(Long id) {
+    public Transformation retrieveById(Long id) {
         EntityManager em = getEntityManager();
         Transformation hable = em.find(Transformation.class, id);
         em.close();
@@ -62,7 +62,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public Transformation updateTransformation(Transformation updTransformation) {
+    public Transformation update(Transformation updTransformation) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         Transformation transformation = null;
@@ -84,7 +84,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }    
 
     @Override
-    public void deleteTransformation(Transformation transformation) {
+    public void delete(Transformation transformation) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -106,7 +106,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
 
     @SuppressWarnings("unchecked")
 	@Override
-    public List<Transformation> retrieveTransformations(int start, int max) {
+    public List<Transformation> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         List<Transformation> hables = null;
@@ -131,9 +131,9 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public List<TransformationBrief> retrieveTransformationBriefs(int start, int max) {
+    public List<TransformationBrief> retrieveBriefs(int start, int max) {
         List<TransformationBrief> hrefs = new ArrayList<TransformationBrief>();
-        for (Transformation hable : retrieveTransformations(start, max)) {
+        for (Transformation hable : retrieve(start, max)) {
             TransformationBrief href = new TransformationBrief(hable);
             hrefs.add(href);
         }
@@ -142,7 +142,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
 
     @Override
     public Transformation retrieveFromBrief(TransformationBrief href) {
-        return retrieveTransformationById(href.getId());
+        return retrieveById(href.getId());
     }
 
     @Override
