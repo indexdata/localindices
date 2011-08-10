@@ -16,6 +16,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
+import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -32,35 +33,43 @@ public class TransformationDAOFake implements TransformationDAO {
     public TransformationDAOFake() {
     	transformations = new HashMap<Long, Transformation>();
 
-    	Transformation transformation = new Transformation() {
-			private static final long serialVersionUID = 1L;
-    	};
+    	Transformation transformation = new BasicTransformation();
 		transformation.setId(new Long(1));
 		transformation.setName("OAI(DC) to SOLR");
-		List<TransformationStep> steps = new LinkedList<TransformationStep>();
-		transformation.addStep(new BasicTransformationStep("OAI-RECORD", "Extract OAI-RECORD", ""),1);
-		transformation.addStep(new BasicTransformationStep("OAI-DC to OAI/PZ", "Transform to OAI/PZ", ""),2);
-		transformation.addStep(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""),3);
+		TransformationStepDAOFake stepDao = new TransformationStepDAOFake();
+		TransformationStep step = new BasicTransformationStep("OAI-RECORD", "Extract OAI-RECORD", "");
+		stepDao.create(step);
+		transformation.addStep(step,1);
+		step = new BasicTransformationStep("OAI-DC to OAI/PZ", "Transform to OAI/PZ", "");
+		stepDao.create(step);
+		transformation.addStep(step,2);
+		step = new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", "");
+		stepDao.create(step);
+		Long pz2solrStep = step.getId();
+		transformation.addStep(step,3);
 		transformation.setEnabled(true);
 		transformations.put(transformation.getId(), transformation);
 
-		transformation = new Transformation() {
-			private static final long serialVersionUID = 1L;
-    	};
+		transformation = new BasicTransformation();
 		transformation.setId(new Long(2));
 		transformation.setName("OAI(MARCXML) to SOLR");
-		steps = new LinkedList<TransformationStep>();
-		transformation.addStep(new BasicTransformationStep("OAI(bulk) to OAI-RECORD", "Extract OAI-RECORD", ""), 1);
-		transformation.addStep(new BasicTransformationStep("OAI-RECORD to PZ", "OAI-RECORD/DC to MARCXML", ""), 2);
-		transformation.addStep(new BasicTransformationStep("MARCXML to OAI/PZ", "Transform to OAI/PZ", ""), 3);
-		transformation.addStep(new BasicTransformationStep("PZ to SOLR", "Transform to SOLR", ""), 4);
+		step = new BasicTransformationStep("OAI(bulk) to OAI-RECORD", "Extract OAI-RECORD", "");
+		stepDao.create(step);
+		transformation.addStep(step, 1);
+		step = new BasicTransformationStep("OAI-RECORD to PZ", "OAI-RECORD/DC to MARCXML", "");
+		stepDao.create(step);
+		transformation.addStep(step, 2);
+		step = new BasicTransformationStep("MARCXML to OAI/PZ", "Transform to OAI/PZ", "");
+		stepDao.create(step);
+		transformation.addStep(step, 3);
+		step = stepDao.retrieveById(pz2solrStep);
+		transformation.addStep(step, 4);
 		transformation.setEnabled(true);
 		transformations.put(transformation.getId(), transformation);
-		
     }
 
 	@Override
-    public List<TransformationBrief> retrieveTransformationBriefs(int start, int max) {
+    public List<TransformationBrief> retrieveBriefs(int start, int max) {
         List<TransformationBrief> srefs = new ArrayList<TransformationBrief>();
         for (Transformation transformation : transformations.values()) {
             TransformationBrief brief = new TransformationBrief(transformation);
@@ -70,13 +79,6 @@ public class TransformationDAOFake implements TransformationDAO {
         return srefs;
     }
 	
-	/*
-	public List<TransformationBrief> retrieveTranformationBriefs(int start, int max) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	*/
-
     public Transformation retrieveFromBrief(TransformationBrief href) {
         try {
             return (Transformation) transformations.get(href.getId()).clone();
@@ -86,7 +88,7 @@ public class TransformationDAOFake implements TransformationDAO {
         return null;
     }
 
-    public Transformation updateTransformation(Transformation transformation) { 
+    public Transformation update(Transformation transformation) { 
         Transformation hclone = null;
         try {
             hclone = (Transformation) transformation.clone();
@@ -97,7 +99,7 @@ public class TransformationDAOFake implements TransformationDAO {
         return hclone;
     }
 
-    public void createTransformation(Transformation transformation) {
+    public void create(Transformation transformation) {
     	long newId = 1; 
     	for (Long id : transformations.keySet()) {
     		if (id != null) 
@@ -109,7 +111,7 @@ public class TransformationDAOFake implements TransformationDAO {
     }
     
 
-    public Transformation retrieveTransformationById(Long id) {
+    public Transformation retrieveById(Long id) {
     	return transformations.get(id);
     }
     
@@ -119,11 +121,11 @@ public class TransformationDAOFake implements TransformationDAO {
     	return transformations.put(updTransformation.getId(), updTransformation);
     }
 
-    public void deleteTransformation(Transformation transformation) {
+    public void delete(Transformation transformation) {
     	transformations.remove(transformation);
     }
 
-    public List<Transformation> retrieveTransformations(int start, int max) {
+    public List<Transformation> retrieve(int start, int max) {
     	List<Transformation> list = new LinkedList<Transformation>();
     	/* TODO filter right records */
     	for (Transformation transform: transformations.values()) 
