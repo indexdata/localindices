@@ -42,7 +42,6 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable.setScheduleString("* * * * *");
             hable.setUrl("http://heinonline.org/HOL/OAI");
             hable.setMetadataPrefix("oai_dc");
-            
             harvestables.put(hable.getId(), hable);
             
             OaiPmhResource hable2 = new OaiPmhResource();
