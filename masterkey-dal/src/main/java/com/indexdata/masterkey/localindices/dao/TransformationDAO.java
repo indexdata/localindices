@@ -6,19 +6,18 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
 public interface TransformationDAO {
-    public void createTransformation(Transformation transformation);
-    public Transformation retrieveTransformationById(Long id);
-    public Transformation updateTransformation(Transformation tf);
-    public void deleteTransformation(Transformation storage);
-    public List<Transformation> retrieveTransformations(int start, int max);
-/*
-    public InputStream getStorageLog(long id);
-*/
+    public void create(Transformation entity);
+    public Transformation retrieveById(Long id);
+    public Transformation update(Transformation entity);
+    public void delete(Transformation entity);
+    // Is this redudant? 
+    public List<Transformation> retrieve(int start, int max);
+
     /**
      * Retrieve a list of brief (listing) storages.
      * @return
      */
-    List<TransformationBrief> retrieveTransformationBriefs(int start, int max);
+    List<TransformationBrief> retrieveBriefs(int start, int max);
     /**
      * Retrieves a Storage using it's listing reference (brief)
      * @param hbrief brief (listing) Storage
