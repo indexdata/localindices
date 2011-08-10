@@ -6,8 +6,9 @@
         <non-jta-data-source>java:/comp/env/localindicesDS</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
+            <!--
             <property name="toplink.ddl-generation" value="create-tables"/>
-            <!--<property name="toplink.cache.type.default" value="NONE"/>-->
+            <property name="toplink.cache.type.default" value="NONE"/>-->
             <!--
               direct non-DataSource connection is possible but is generally
               not safe
@@ -19,8 +20,8 @@
                 value="jdbc:mysql://localhost:3306/DBNAME?autoReconnect=true"/>
               <property name="toplink.jdbc.user" value=""/>
               <property name="toplink.jdbc.password" value=""/>
-              <property name="toplink.logging.level" value="CONFIG"/>
               -->
+              <property name="toplink.logging.level" value="FINE"/>
         </properties>
     </persistence-unit>
 </persistence>
