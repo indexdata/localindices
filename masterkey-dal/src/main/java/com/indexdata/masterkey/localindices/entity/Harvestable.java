@@ -6,11 +6,10 @@
 
 package com.indexdata.masterkey.localindices.entity;
 
-import com.indexdata.utils.CronLine;
-import com.indexdata.utils.CronLineParseException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,14 +17,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+
+import com.indexdata.utils.CronLine;
+import com.indexdata.utils.CronLineParseException;
 
 /**
  * Corresponds to version 1 update
@@ -78,19 +78,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
     
     @ManyToOne(optional=true)
-/*
-    @JoinTable(name = "HARVEST_STORAGE", 
-    		joinColumns = { @JoinColumn(name="HARVEST_ID")},
-    		inverseJoinColumns = { @JoinColumn(name="STORAGE_ID")}
-    )
-*/
     protected Storage storage;
 
     @ManyToOne(optional=true)
-    @JoinTable(name = "HARVEST_TRANSFORMATION", 
-    		joinColumns = { @JoinColumn(name="TRANSFORMATION_ID")},
-    		inverseJoinColumns = { @JoinColumn(name="STORAGE_ID")}
-    )
     protected Transformation transformation;
 
     
