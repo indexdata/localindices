@@ -25,7 +25,7 @@ import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 
 /**
- * REST Web service (reource) that maps to a Harvestable entity.
+ * REST Web service (resource) that maps to a Harvestable entity.
  * @author jakub
  */
 public class HarvestableResource {
@@ -38,9 +38,9 @@ public class HarvestableResource {
     }
 
     /**
-     * Constructor used for instantiating an instance of the entity refernced by id.
+     * Constructor used for instantiating an instance of the entity referenced by id.
      *
-     * @param id identifier for refernced the entity
+     * @param id identifier for referenced the entity
      * @param context HttpContext inherited from the parent resource
      */
     public HarvestableResource(Long id, UriInfo context) {
@@ -49,7 +49,7 @@ public class HarvestableResource {
     }
 
     /**
-     * Get method for retrieving an instance of refernced Harvestable in XML format.
+     * Get method for retrieving an instance of referenced Harvestable in XML format.
      *
      * @return an instance of HarvestableConverter
      */
@@ -60,7 +60,7 @@ public class HarvestableResource {
     }
 
     /**
-     * Put method for updating an instance of refernced Harvestable, using XML as the input format.
+     * Put method for updating an instance of referenced Harvestable, using XML as the input format.
      *
      * @param data an HarvestableConverter entity that is deserialized from an XML stream
      */
