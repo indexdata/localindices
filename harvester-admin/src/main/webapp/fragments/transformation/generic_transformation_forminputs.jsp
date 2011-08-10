@@ -7,6 +7,8 @@
 <f:subview id="generic_transformation_form_inputs">
     <h5>General information: </h5>
     <h:panelGrid columns="2">
+        <h:outputText value="ID:"/>
+        <h:inputText value="#{transformationController.transformation.id}" size="30"/>
         <h:outputText value="Name:"/>
         <h:inputText value="#{transformationController.transformation.name}" size="30"/>
         <h:outputText value="Description:"/>
