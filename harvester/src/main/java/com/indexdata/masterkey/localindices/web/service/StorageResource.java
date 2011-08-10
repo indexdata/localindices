@@ -27,7 +27,7 @@ public class StorageResource {
     private Long id;
     private UriInfo context;
 
-    /** Creates a new instance of HarvestableResource */
+    /** Creates a new instance of StorageResource */
     public StorageResource() {
     }
 
@@ -54,7 +54,7 @@ public class StorageResource {
     }
 
     /**
-     * Put method for updating an instance of refernced Harvestable, using XML as the input format.
+     * Put method for updating an instance of referenced entity, using XML as the input format.
      *
      * @param data an HarvestableConverter entity that is deserialized from an XML stream
      */
@@ -63,13 +63,13 @@ public class StorageResource {
     public void put(StorageConverter data) {
         Storage entity = data.getEntity();
         // TODO Fix
-        entity.setCurrentStatus("NEW");
+        entity.setCurrentStatus("TODO");
         entity.setMessage(null);
         dao.updateStorage(entity);
     }
 
     /**
-     * Delete method for deleting an instance of referenced Harvestable.
+     * Delete method for deleting an instance of referenced entity.
      *
      */
     @DELETE
