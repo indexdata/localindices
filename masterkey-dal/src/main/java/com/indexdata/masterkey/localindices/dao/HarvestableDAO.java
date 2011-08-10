@@ -16,10 +16,10 @@ import java.util.List;
  * @author jakub
  */
 public interface HarvestableDAO {
-    public void createHarvestable(Harvestable harvestable);
+    public void createHarvestable(Harvestable entity);
     public Harvestable retrieveHarvestableById(Long id);
-    public Harvestable updateHarvestable(Harvestable hable);
-    public void deleteHarvestable(Harvestable harvestable);
+    public Harvestable updateHarvestable(Harvestable entity);
+    public void deleteHarvestable(Harvestable entity);
     public List<Harvestable> retrieveHarvestables(int start, int max);
     public int getHarvestableCount();
     public InputStream getHarvestableLog(long id);
