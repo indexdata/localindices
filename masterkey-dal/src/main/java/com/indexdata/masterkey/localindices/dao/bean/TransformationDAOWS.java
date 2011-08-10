@@ -38,7 +38,7 @@ public class TransformationDAOWS implements TransformationDAO {
      * @return
      */
     @Override
-    public List<TransformationBrief> retrieveTransformationBriefs(int start, int max) {
+    public List<TransformationBrief> retrieveBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<TransformationsConverter> storagesConnector =
@@ -63,12 +63,12 @@ public class TransformationDAOWS implements TransformationDAO {
     @Override
     public Transformation retrieveFromBrief(TransformationBrief href) {
         try {
-            ResourceConnector<TransformationConverter> storageConnector =
+            ResourceConnector<TransformationConverter> connector =
                     new ResourceConnector<TransformationConverter>(
                     href.getResourceUri().toURL(),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            return storageConnector.get().getEntity();
+            return connector.get().getEntity();
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
@@ -80,16 +80,16 @@ public class TransformationDAOWS implements TransformationDAO {
      * @param Transformation entity to be put
      */
     @Override
-    public Transformation updateTransformation(Transformation transformation) {
+    public Transformation update(Transformation transformation) {
         try {
-            ResourceConnector<TransformationConverter> storageConnector =
+            ResourceConnector<TransformationConverter> connector =
                     new ResourceConnector<TransformationConverter>(
                     new URL(serviceBaseURL + transformation.getId() + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            TransformationConverter hc = new TransformationConverter();
-            hc.setEntity(transformation);
-            storageConnector.put(hc);
+            TransformationConverter converter = new TransformationConverter();
+            converter.setEntity(transformation);
+            connector.put(converter);
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
@@ -97,57 +97,57 @@ public class TransformationDAOWS implements TransformationDAO {
     } // updateJob
 
     @Override
-    public void createTransformation(Transformation transformation) {
+    public void create(Transformation transformation) {
         try {
-            ResourceConnector<TransformationsConverter> storagesConnector =
+            ResourceConnector<TransformationsConverter> connector =
                     new ResourceConnector<TransformationsConverter>(
                     new URL(serviceBaseURL),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-        TransformationConverter storageContainer = new TransformationConverter();
-        storageContainer.setEntity(transformation);
-        storagesConnector.postAny(storageContainer);
+        TransformationConverter converter = new TransformationConverter();
+        converter.setEntity(transformation);
+        connector.postAny(converter);
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
     }
 
     @Override
-    public Transformation retrieveTransformationById(Long id) {
-    	Transformation hable = null;
+    public Transformation retrieveById(Long id) {
+    	Transformation entity = null;
         try {
             ResourceConnector<TransformationConverter> storageConnector =
                 new ResourceConnector<TransformationConverter>(
                     new URL(serviceBaseURL + id + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            hable = storageConnector.get().getEntity();
+            entity = storageConnector.get().getEntity();
         } catch (Exception male) {
             logger.log(Level.DEBUG,  male);
         }
-        return hable;    
+        return entity;    
     }
 
     @Override
-    public void deleteTransformation(Transformation transformation) {
+    public void delete(Transformation transformation) {
         try {
-            ResourceConnector<TransformationConverter> storageConnector =
+            ResourceConnector<TransformationConverter> connector =
                 new ResourceConnector<TransformationConverter>(
                     new URL(serviceBaseURL + transformation.getId() + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            storageConnector.delete();
+            connector.delete();
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
     }
 
     @Override
-    public List<Transformation> retrieveTransformations(int start, int max) {
+    public List<Transformation> retrieve(int start, int max) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveStorageBrief instead.");
        List<Transformation> hables = new ArrayList<Transformation>();
-       List<TransformationBrief> hrefs = retrieveTransformationBriefs(start, max);
+       List<TransformationBrief> hrefs = retrieveBriefs(start, max);
        if (hrefs != null) {
             for (TransformationBrief href : hrefs) {
             	Transformation hable = retrieveFromBrief(href);
@@ -161,13 +161,13 @@ public class TransformationDAOWS implements TransformationDAO {
     public int getTransformationCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
-            ResourceConnector<TransformationsConverter> rc =
+            ResourceConnector<TransformationsConverter> connector =
                     new ResourceConnector<TransformationsConverter>(
                     new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            TransformationsConverter tc = rc.get();
-            return tc.getCount();
+            TransformationsConverter converter = connector.get();
+            return converter.getCount();
         } catch (Exception male) {
             logger.log(Level.ERROR, male);
             return 0;
