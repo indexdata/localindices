@@ -47,7 +47,7 @@ public class TransformationController {
 	/* Transformations */
     private List resources;
 	/* Steps for current transformations */
-	private List<TransformationStepAssociation> stepAssociation = null;
+//	private List<TransformationStepAssociation> stepAssociation = null;
 	private String stepMode = "hideEditStep();"; // which JS function should be called on load
     private TransformationStepAssociation currentStepAssociation;
    
@@ -136,16 +136,17 @@ public class TransformationController {
     
     public String add() {
         prePersist();
-        dao.createTransformation(current);
+        dao.create(current);
         current = null;
         currentStepAssociation = null;
-        stepAssociation = null;
+        //stepAssociation = null;
         return list();
     }
 
     /* update resource */
     public String prepareToEdit() {
         current = getResourceFromRequestParam();
+        //stepAssociation = current.getStepAssociations();
         postDePersist();
         logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
         if (current instanceof Transformation) {
@@ -167,7 +168,7 @@ public class TransformationController {
 
     public String save() {
         prePersist();
-        current = dao.updateTransformation(current);
+        current = dao.update(current);
         current = null;
         return list();
     }
@@ -184,14 +185,14 @@ public class TransformationController {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
             req.setAttribute("listRequestSeen", "yes");
-            resources = (List) dao.retrieveTransformationBriefs(firstItem, batchSize);
+            resources = (List) dao.retrieveBriefs(firstItem, batchSize);
         }
         if (resources != null)
             Collections.sort(resources);
         return new ListDataModel(resources);
     }
     
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public DataModel getTransformationSteps() {
 		List<TransformationStep> steps = new LinkedList<TransformationStep>();
         if (current != null)
@@ -202,16 +203,16 @@ public class TransformationController {
 
     public String delete() {
         current = getResourceFromRequestParam();
-        dao.deleteTransformation(current);
+        dao.delete(current);
         current = null;
         return list();
     }
     
     public String saveAndPurge() {
-        dao.deleteTransformation(current);
+        dao.delete(current);
         prePersist();
         current.setId(null);
-        dao.createTransformation(current);
+        dao.create(current);
         current = null;
         return list();
     }
@@ -235,7 +236,7 @@ public class TransformationController {
             } else {
                 String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("id");
                 Long id = new Long(param);
-                o = dao.retrieveTransformationById(id);
+                o = dao.retrieveById(id);
             }
             return o;
     }
@@ -284,19 +285,14 @@ public class TransformationController {
 			BasicTransformationStep step = new BasicTransformationStep();
 			step.setDescription("<Description>");
 			step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-			step.setPosition(current.getSteps().size()+1);
-			step.setName("<New step " + step.getPosition() + ">");
+			currentStepAssociation = new TransformationStepAssociation(); 
 			currentStepAssociation.setStep(step);
+			currentStepAssociation.setTransformation(current);
+			currentStepAssociation.setPosition(current.getSteps().size()+1);
+			step.setName("<New step " + currentStepAssociation.getPosition() + ">");
+			current.addStepAssociation(currentStepAssociation);
 		}
 		return index;
-	}
-	
-	private TransformationStep lookupStepByID(List<TransformationStep> steps, Long id) {
-		for (TransformationStep step: steps) {
-			if (step.getId().equals(id)) 
-				return step;
-		}
-		return null;
 	}
 
 	private int lookupIndexByID(Long id) {
@@ -365,7 +361,7 @@ public class TransformationController {
 		}
 		stepMode = "hideEditStep();";
         prePersist();
-        current = dao.updateTransformation(current);
+        current = dao.update(current);
 		
 		stepMode = "hideEditStep();";
 		return "delete_step";
@@ -375,11 +371,11 @@ public class TransformationController {
 		// TODO persist current step. Not on list, add 
 		if (currentStepAssociation != null && currentStepAssociation.getTransformationId() == null) {
 			// TODO FIX UGLY
-			current.addStep(currentStepAssociation.getStep(), currentStepAssociation.getStep().getPosition());
+			current.addStep(currentStepAssociation.getStep(), currentStepAssociation.getPosition());
 		}
 		stepMode = "hideEditStep();";
         prePersist();
-        current = dao.updateTransformation(current);
+        current = dao.update(current);
 		return "save_step";
 	}
 
