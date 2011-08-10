@@ -27,6 +27,7 @@
 			</f:facet>
 			<h:commandLink value="Edit" action="#{transformationController.editStep}"
                 onclick="return showEditStep();" >
+                <f:param name="ID" value="#{item.id}" />
 				<f:param name="stepID" value="#{item.id}" />
 			</h:commandLink>
 			<h:commandLink value="Up" action="#{transformationController.upStep}">
