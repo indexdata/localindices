@@ -9,7 +9,7 @@
   <groupId>com.indexdata</groupId>
   <artifactId>oaipmh-lib</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1</version>
+  <version>0.0.2-SNAPSHOT</version>
   <name>oaipmh-lib</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -26,6 +26,11 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+        <groupId>com.indexdata.io</groupId>
+        <artifactId>UTF8InputStream</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
