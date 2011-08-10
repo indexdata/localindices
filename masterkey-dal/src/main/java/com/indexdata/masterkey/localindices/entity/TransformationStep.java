@@ -38,7 +38,6 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     protected Boolean enabled;
     @Lob
     protected String script ="";    	
-    protected Integer position;
     
     public String getDescription() {
         return description;
@@ -48,7 +47,6 @@ public abstract class TransformationStep implements Serializable, Cloneable {
         this.description = description;
     }
     
-
     public String getScript() {
         return script;
     }
@@ -110,12 +108,4 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
-
-	public Integer getPosition() {
-		return position;
-	}
-
-	public void setPosition(Integer position) {
-		this.position = position;
-	}
 }
