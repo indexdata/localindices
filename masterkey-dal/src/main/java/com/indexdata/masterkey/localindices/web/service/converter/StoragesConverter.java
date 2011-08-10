@@ -54,7 +54,7 @@ public class StoragesConverter {
      *
      * @return a collection of StorageBrief
      */
-    @XmlElement(name = "harvestableBrief")
+    @XmlElement(name = "storageBrief")
     public List<StorageBrief> getReferences() {
         return references;
     }
