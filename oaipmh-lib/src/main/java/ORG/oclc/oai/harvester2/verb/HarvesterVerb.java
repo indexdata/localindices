@@ -18,6 +18,8 @@ package ORG.oclc.oai.harvester2.verb;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
 import ORG.oclc.oai.harvester2.transport.HttpErrorException;
+
+import com.indexdata.io.FailsafeUTF8InputStream;
 import com.sun.org.apache.xpath.internal.XPathAPI;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -63,7 +65,6 @@ import org.apache.log4j.Level;
  * 
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
-@SuppressWarnings("restriction")
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
@@ -302,7 +303,8 @@ public abstract class HarvesterVerb {
         }
         
         int contentLength = con.getContentLength();
-        InputStream bin = new BufferedInputStream(in);
+        
+        InputStream bin = new BufferedInputStream(new FailsafeUTF8InputStream(in));
         bin.mark(contentLength);
         
         InputSource data = new InputSource(bin);        
