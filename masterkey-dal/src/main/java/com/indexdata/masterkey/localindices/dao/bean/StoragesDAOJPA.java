@@ -58,19 +58,19 @@ public class StoragesDAOJPA implements StorageDAO {
     @Override
     public Storage retrieveStorageById(Long id) {
         EntityManager em = getEntityManager();
-        Storage hable = em.find(Storage.class, id);
+        Storage entity = em.find(Storage.class, id);
         em.close();
-        return hable;
+        return entity;
     }
 
     @Override
-    public Storage updateStorage(Storage updStorage) {
+    public Storage updateStorage(Storage updEntity) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        Storage storage = null;
+        Storage entity = null;
         try {
             tx.begin();
-            storage = em.merge(updStorage);
+            entity = em.merge(updEntity);
             tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
@@ -82,17 +82,17 @@ public class StoragesDAOJPA implements StorageDAO {
         } finally {
             em.close();
         }
-        return storage;    
+        return entity;    
     }    
 
     @Override
-    public void deleteStorage(Storage storage) {
+    public void deleteStorage(Storage entity) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            storage = em.merge(storage);
-            em.remove(storage);
+            entity = em.merge(entity);
+            em.remove(entity);
             tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
