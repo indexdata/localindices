@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-//import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -20,9 +19,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -31,9 +27,10 @@ import javax.persistence.OneToMany;
  * @author Dennis Schafroth
  */
 @Entity
-@NamedQueries({@NamedQuery(name = "Transformation.findById", query = "SELECT o FROM Transformation o WHERE o.id = :id")})
+@NamedQueries({@NamedQuery(name = "Transformation.findById", query = "SELECT object(o) FROM Transformation o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public abstract class Transformation implements Serializable, Cloneable {
+
+public class Transformation implements Serializable, Cloneable {
 
     protected static final long serialVersionUID = 1L;
     // user-set properties
@@ -45,7 +42,8 @@ public abstract class Transformation implements Serializable, Cloneable {
     protected String description;
     protected Boolean enabled;
 
-    @OneToMany
+    // Bi-directional requires ,mappedBy="transformations"
+    @OneToMany(cascade=CascadeType.ALL)
     protected List<TransformationStepAssociation> stepAssociations;
 
     @OneToMany
@@ -125,12 +123,19 @@ public abstract class Transformation implements Serializable, Cloneable {
 		return steps;
 	}
 
+	public void addStepAssociation(TransformationStepAssociation association) {
+		association.setTransformation(this);
+		stepAssociations.add(association);
+	}
+
 	public void addStep(TransformationStep step, int position) {
 		TransformationStepAssociation association = new TransformationStepAssociation();
 		association.setTransformation(this);
 		association.setStep(step);
 		association.setPosition(position);
 		stepAssociations.add(association);
+		// TODO bi-directional? 
+		// step.getTransformations().add(association);
 	}
 
 	public void deleteStep(int associationId) {
