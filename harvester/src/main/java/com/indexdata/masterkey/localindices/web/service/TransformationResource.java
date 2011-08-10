@@ -19,8 +19,8 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationConverter;
 
 /**
- * REST Web service (resource) that maps to a Storage entity.
- * @author jakub
+ * REST Web service (resource) that maps to a Transformation entity.
+ * @author Dennis
  */
 public class TransformationResource {
     private TransformationDAO dao = new TransformationsDAOJPA();
@@ -50,7 +50,7 @@ public class TransformationResource {
     @GET
     @Produces("application/xml")
     public TransformationConverter get() {
-        return new TransformationConverter(dao.retrieveTransformationById(id), context.getAbsolutePath());
+        return new TransformationConverter(dao.retrieveById(id), context.getAbsolutePath());
     }
 
     /**
@@ -63,7 +63,7 @@ public class TransformationResource {
     public void put(TransformationConverter data) {
         Transformation entity = data.getEntity();
         // TODO Fix
-        dao.updateTransformation(entity);
+        dao.update(entity);
     }
 
     /**
@@ -72,7 +72,7 @@ public class TransformationResource {
      */
     @DELETE
     public void delete() {
-        dao.deleteTransformation(dao.retrieveTransformationById(id));
+        dao.delete(dao.retrieveById(id));
     }
 
 }
