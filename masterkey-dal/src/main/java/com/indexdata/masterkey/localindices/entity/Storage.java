@@ -17,8 +17,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinTable;
-import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -48,13 +46,6 @@ public abstract class Storage implements Serializable, Cloneable {
     protected String transformation;
 
     @OneToMany(cascade=CascadeType.ALL)
-    @JoinTable(name="HARVEST_STORAGE", joinColumns = {
-    @JoinColumn(name="STORAGE_ID", unique = true) 
-    },
-    inverseJoinColumns = {
-    @JoinColumn(name="HARVEST_ID")
-    }
-    )
     private Set<Harvestable> harvestables;
 
     
