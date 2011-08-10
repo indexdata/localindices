@@ -6,19 +6,17 @@
 
 package com.indexdata.masterkey.localindices.web.service;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
-import javax.ws.rs.Path;
-import javax.ws.rs.GET;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
-import java.util.Map;
-import javax.servlet.ServletContext;
-import javax.ws.rs.Produces;
 
 /**
  * RESTful WS (resource) that maps to the Searchables collection.
@@ -29,8 +27,6 @@ public class SearchablesResource {
     private HarvestableDAO dao = new HarvestablesDAOJPA();
     @Context
     private UriInfo context;
-    @Context
-    ServletContext servletContext;
 
     /** Creates a new instance of HarvestablesResource */
     public SearchablesResource() {
@@ -55,17 +51,11 @@ public class SearchablesResource {
     @GET
     @Produces("application/xml")
     public SearchablesConverter get(
-            
             @QueryParam("start")
             @DefaultValue("0") int start,
             
             @QueryParam("max")
             @DefaultValue("100") int max) {
-        @SuppressWarnings("rawtypes")
-		Map config = (Map) servletContext.getAttribute("harvester.config");
-        return new SearchablesConverter(dao.retrieveHarvestables(start, max), 
-                context.getAbsolutePath(),
-                config.get("harvester.zebra.host") + ":"
-                + config.get("harvester.zebra.port"));
+        return new SearchablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath());
     }
 }
