@@ -487,7 +487,7 @@ public class ResourceController {
 				else {
 					Long id = new Long(transformationId);
 					TransformationDAO transformationDAO = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
-					Transformation transformation = transformationDAO.retrieveTransformationById(id);
+					Transformation transformation = transformationDAO.retrieveById(id);
 					if (transformation == null) {
 						logger.warn("No Transformation found for ID: " + id);
 					}
