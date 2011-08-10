@@ -33,7 +33,7 @@ public class TransformationsConverter {
     }
 
     /**
-     * Creates a new instance of StoragesConverter.
+     * Creates a new instance of TransformationsConverter.
      *
      * @param entities associated entities
      * @param uri associated uri
@@ -50,19 +50,19 @@ public class TransformationsConverter {
     }
 
     /**
-     * Returns a collection of StorageBrief.
+     * Returns a collection of TransformationBrief.
      *
-     * @return a collection of StorageBrief
+     * @return a collection of TransformationBrief
      */
-    @XmlElement(name = "harvestableBrief")
+    @XmlElement(name = "transformationBrief")
     public List<TransformationBrief> getReferences() {
         return references;
     }
 
     /**
-     * Sets a collection of StorageBrief.
+     * Sets a collection of TransformationBrief.
      *
-     * @param references a collection of StorageBrief to set
+     * @param references a collection of TransformationBrief to set
      */
     public void setReferences(List<TransformationBrief> references) {
         this.references = references;
