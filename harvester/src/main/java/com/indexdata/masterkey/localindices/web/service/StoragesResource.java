@@ -29,7 +29,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.StoragesConver
 
 /**
  * RESTful WS (resource) that maps to the Storage collection.
- * @author jakub
+ * @author Dennis
  */
 @Path("/storages/")
 public class StoragesResource {
