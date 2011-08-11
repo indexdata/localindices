@@ -24,6 +24,8 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
+//import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
+//import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -40,6 +42,7 @@ public class TransformationController {
     private Logger logger = Logger.getLogger(getClass());
     // Transformation
     private TransformationDAO dao;
+    //private TransformationStepAssociationDAO stepDao;
     private Transformation current;
     
     private DataModel model;
@@ -47,7 +50,7 @@ public class TransformationController {
 	/* Transformations */
     private List resources;
 	/* Steps for current transformations */
-//	private List<TransformationStepAssociation> stepAssociation = null;
+	// private List<TransformationStepAssociation> stepAssociation = null;
 	private String stepMode = "hideEditStep();"; // which JS function should be called on load
     private TransformationStepAssociation currentStepAssociation;
    
@@ -57,6 +60,7 @@ public class TransformationController {
     public TransformationController() {
         try {
             dao = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
+            // stepDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
         } catch (DAOException ex) {
             logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
         }
@@ -194,7 +198,7 @@ public class TransformationController {
     
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public DataModel getTransformationSteps() {
-		List<TransformationStep> steps = new LinkedList<TransformationStep>();
+		List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); /* stepDao.retrieveByTransformationId(current.getId());*/
         if (current != null)
         	steps = (List) current.getSteps();        
         return new ListDataModel(steps);
@@ -271,7 +275,7 @@ public class TransformationController {
 	        try {
 	        	Long id = new Long(param);
 	        	index = lookupIndexByID(id);
-	        	if (index > 0)
+	        	if (index >= 0)
 	        		currentStepAssociation = current.getStepAssociations().get(index);
 	        	else 
 	        		currentStepAssociation = null;
@@ -280,18 +284,7 @@ public class TransformationController {
 	        }
         }
     	logger.debug("Step from parameter '" + idName + "'=" + param + ": " + currentStepAssociation + " index: " + index);
-		if (currentStepAssociation == null) {
-			logger.error("Setting up new step.");
-			BasicTransformationStep step = new BasicTransformationStep();
-			step.setDescription("<Description>");
-			step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-			currentStepAssociation = new TransformationStepAssociation(); 
-			currentStepAssociation.setStep(step);
-			currentStepAssociation.setTransformation(current);
-			currentStepAssociation.setPosition(current.getSteps().size()+1);
-			step.setName("<New step " + currentStepAssociation.getPosition() + ">");
-			current.addStepAssociation(currentStepAssociation);
-		}
+    	
 		return index;
 	}
 
@@ -305,6 +298,18 @@ public class TransformationController {
 
 	
 	public String addXslStep() {
+		currentStepAssociation = null;
+		// Step up Xsl Step type and association
+		logger.error("Setting up new XSL step.");
+		BasicTransformationStep step = new BasicTransformationStep();
+		step.setDescription("<Description>");
+		step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+		currentStepAssociation = new TransformationStepAssociation(); 
+		currentStepAssociation.setStep(step);
+		currentStepAssociation.setTransformation(current);
+		currentStepAssociation.setPosition(current.getSteps().size()+1);
+		step.setName("<New step " + currentStepAssociation.getPosition() + ">");
+		//current.addStepAssociation(currentStepAssociation);
 		setupStep();	
 		stepMode = "showEditStep();";
 		return "new_xsl_step";
@@ -369,9 +374,8 @@ public class TransformationController {
 
 	public String saveStep() {
 		// TODO persist current step. Not on list, add 
-		if (currentStepAssociation != null && currentStepAssociation.getTransformationId() == null) {
-			// TODO FIX UGLY
-			current.addStep(currentStepAssociation.getStep(), currentStepAssociation.getPosition());
+		if (!current.getStepAssociations().contains(currentStepAssociation)) {
+			current.addStepAssociation(currentStepAssociation);
 		}
 		stepMode = "hideEditStep();";
         prePersist();
