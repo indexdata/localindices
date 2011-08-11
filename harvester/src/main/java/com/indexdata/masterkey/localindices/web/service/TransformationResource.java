@@ -62,7 +62,6 @@ public class TransformationResource {
     @Consumes("application/xml")
     public void put(TransformationConverter data) {
         Transformation entity = data.getEntity();
-        // TODO Fix
         dao.update(entity);
     }
 
