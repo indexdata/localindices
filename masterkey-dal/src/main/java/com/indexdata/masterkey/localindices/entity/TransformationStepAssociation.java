@@ -16,6 +16,9 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.sun.xml.internal.bind.CycleRecoverable;
 
 @Entity
 @Table(name = "TRANSFORMATION_STEP")
@@ -24,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @UniqueConstraint(columnNames={"TRANSFORMATION_ID","STEP_ID"})
 @XmlRootElement(name = "transformationStepAssociation")
-public class TransformationStepAssociation  implements Serializable, Cloneable {
+public class TransformationStepAssociation  implements Serializable, Cloneable, CycleRecoverable {
 
 	/**
 	 * 
@@ -45,9 +48,11 @@ public class TransformationStepAssociation  implements Serializable, Cloneable {
 	private int position;
 	@ManyToOne
 	@PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
+	@XmlTransient
 	private Transformation transformation;
 	@ManyToOne
 	@PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
+	@XmlTransient
 	private TransformationStep step;
 
 	public void setTransformation(Transformation transformation) {
@@ -106,5 +111,11 @@ public class TransformationStepAssociation  implements Serializable, Cloneable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+	@Override
+	public Object onCycleDetected(Context arg0) {
+
+		return null;
+	}
 
 }
