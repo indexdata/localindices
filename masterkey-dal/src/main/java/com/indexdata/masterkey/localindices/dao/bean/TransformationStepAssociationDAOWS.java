@@ -47,7 +47,7 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
             hc.setEntity(entity);
             connector.put(hc);
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.log(Level.ERROR, male);
         }
         return entity	;
     } // updateJob
@@ -64,7 +64,7 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
         container.setEntity(entity);
         connector.postAny(container);
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.log(Level.ERROR, male);
         }
     }
 
@@ -79,7 +79,7 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             entity = connector.get().getEntity();
         } catch (Exception male) {
-            logger.log(Level.DEBUG,  male);
+            logger.log(Level.ERROR,  male);
         }
         return entity;    
     }
@@ -94,7 +94,7 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             connector.delete();
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.log(Level.ERROR, male);
         }
     }
 
