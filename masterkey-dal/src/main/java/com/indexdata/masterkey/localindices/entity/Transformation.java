@@ -23,6 +23,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
+import com.sun.xml.internal.bind.CycleRecoverable;
+
 /**
  * @author Dennis Schafroth
  */
@@ -30,7 +32,7 @@ import javax.persistence.OneToMany;
 @NamedQueries({@NamedQuery(name = "Transformation.findById", query = "SELECT object(o) FROM Transformation o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 
-public class Transformation implements Serializable, Cloneable {
+public class Transformation implements Serializable, Cloneable, CycleRecoverable {
 
     protected static final long serialVersionUID = 1L;
     // user-set properties
@@ -42,8 +44,7 @@ public class Transformation implements Serializable, Cloneable {
     protected String description;
     protected Boolean enabled;
 
-    // Bi-directional requires ,mappedBy="transformations"
-    @OneToMany(cascade=CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy="transformation")
     protected List<TransformationStepAssociation> stepAssociations;
 
     @OneToMany
@@ -157,5 +158,11 @@ public class Transformation implements Serializable, Cloneable {
 	public void setStepAssociations(
 			List<TransformationStepAssociation> stepAssociations) {
 		this.stepAssociations = stepAssociations;
+	}
+
+	@Override
+	public Object onCycleDetected(Context arg0) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
