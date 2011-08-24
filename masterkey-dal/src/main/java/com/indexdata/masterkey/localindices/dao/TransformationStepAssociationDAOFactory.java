@@ -29,15 +29,15 @@ public class TransformationStepAssociationDAOFactory {
     public  static TransformationStepAssociationDAO getDAO(ServletContext ctx) throws DAOException {
         //class identifier, here simply a package name
         String daoParamValue = lookupContext(ctx, "com.indexdata.masterkey.localindices.TransformationStepAssociationDAO");
-        if (daoParamValue.equals("TransformationStepAssociationDAOJPA")) {
+        if ("TransformationStepAssociationDAOJPA".equals(daoParamValue)) {
             return new TransformationStepAssociationsDAOJPA();
-        } else if (daoParamValue.equals("TransformationStepAssociationDAOWS")) {
+        } else if ("TransformationStepAssociationDAOWS".equals(daoParamValue)) {
             String baseUrl = lookupContext(ctx, "com.indexdata.masterkey.localindices.TransformationStepAssociationDAO.WS_BASE_URL");
             return new TransformationStepAssociationDAOWS(baseUrl);
-        } else if (daoParamValue.equals("TransformationStepAssociationDAOFake")) {
+        } else if ("TransformationStepAssociationDAOFake".equals(daoParamValue)) {
             return new TransformationStepAssociationDAOFake();
         }
-        throw new DAOException("Cannot create TransformationStepAssociationDAO for corresponding parameter " + daoParamValue);
+        throw new DAOException("Cannot create TransformationStepAssociationDAO for corresponding parameter value " + daoParamValue);
     }
     
     /**
