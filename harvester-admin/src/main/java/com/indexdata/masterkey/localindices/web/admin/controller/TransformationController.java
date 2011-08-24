@@ -24,8 +24,8 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
-//import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
-//import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
+import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
+import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -42,7 +42,7 @@ public class TransformationController {
     private Logger logger = Logger.getLogger(getClass());
     // Transformation
     private TransformationDAO dao;
-    //private TransformationStepAssociationDAO stepDao;
+    private TransformationStepAssociationDAO associationDao;
     private Transformation current;
     
     private DataModel model;
@@ -60,7 +60,7 @@ public class TransformationController {
     public TransformationController() {
         try {
             dao = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
-            // stepDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
+            associationDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
         } catch (DAOException ex) {
             logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
         }
@@ -346,6 +346,8 @@ public class TransformationController {
 			swap.setPosition(swap.getPosition()-i);
 			current.getStepAssociations().set(newIndex, cur);
 			current.getStepAssociations().set(index, swap);
+			associationDao.update(cur);
+			associationDao.update(swap);
 		}
 	}
 
