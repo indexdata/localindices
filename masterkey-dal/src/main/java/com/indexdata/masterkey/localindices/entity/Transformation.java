@@ -44,7 +44,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     protected String description;
     protected Boolean enabled;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy="transformation")
+    @OneToMany(cascade = CascadeType.ALL)
     protected List<TransformationStepAssociation> stepAssociations;
 
     @OneToMany
