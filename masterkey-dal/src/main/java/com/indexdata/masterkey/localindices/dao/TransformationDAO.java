@@ -5,7 +5,7 @@ import java.util.List;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
-public interface TransformationDAO {
+public interface TransformationDAO extends CommonDAO<Transformation, TransformationBrief> {
     public void create(Transformation entity);
     public Transformation retrieveById(Long id);
     public Transformation update(Transformation entity);
@@ -25,7 +25,7 @@ public interface TransformationDAO {
      */
     Transformation retrieveFromBrief(TransformationBrief tbrief);
     
-    int getTransformationCount();
+    int getCount();
 	
 	
 
