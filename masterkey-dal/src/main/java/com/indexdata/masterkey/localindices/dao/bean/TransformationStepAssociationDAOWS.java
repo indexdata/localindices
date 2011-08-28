@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
+import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationsConverter;
 import com.indexdata.rest.client.ResourceConnector;
@@ -22,13 +23,50 @@ import com.indexdata.rest.client.ResourceConnector;
  *
  * @author Dennis
  */
-public class TransformationStepAssociationDAOWS implements TransformationStepAssociationDAO {
+public class TransformationStepAssociationDAOWS extends CommonDAOWS implements TransformationStepAssociationDAO {
 
-    private String serviceBaseURL;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
     public TransformationStepAssociationDAOWS(String serviceBaseURL) {
-        this.serviceBaseURL = serviceBaseURL;
+        super(serviceBaseURL);
+    }
+
+    /**
+     * create (POST) entity to the Web Service
+	 * @param TransformationStepAssociation
+     * @return
+     */
+    @Override
+    public void create(TransformationStepAssociation entity) {
+        try {
+            ResourceConnector<TransformationStepAssociationsConverter> connector =
+                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+        TransformationStepAssociationConverter container = new TransformationStepAssociationConverter();
+        container.setEntity(entity);
+        URL url = connector.postAny(container);
+        entity.setId(extractId(url));
+        } catch (Exception male) {
+            logger.log(Level.ERROR, male);
+        }
+    }
+
+    @Override
+    public TransformationStepAssociation retrieveById(Long id) {
+    	TransformationStepAssociation entity = null;
+        try {
+            ResourceConnector<TransformationStepAssociationConverter> connector =
+                new ResourceConnector<TransformationStepAssociationConverter>(
+                    new URL(serviceBaseURL + id + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            entity = connector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.ERROR,  male);
+        }
+        return entity;    
     }
 
     /**
@@ -52,37 +90,6 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
         return entity	;
     } // updateJob
 
-    @Override
-    public void create(TransformationStepAssociation entity) {
-        try {
-            ResourceConnector<TransformationStepAssociationsConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationsConverter>(
-                    new URL(serviceBaseURL),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-        TransformationStepAssociationConverter container = new TransformationStepAssociationConverter();
-        container.setEntity(entity);
-        connector.postAny(container);
-        } catch (Exception male) {
-            logger.log(Level.ERROR, male);
-        }
-    }
-
-    @Override
-    public TransformationStepAssociation retrieveById(Long id) {
-    	TransformationStepAssociation entity = null;
-        try {
-            ResourceConnector<TransformationStepAssociationConverter> connector =
-                new ResourceConnector<TransformationStepAssociationConverter>(
-                    new URL(serviceBaseURL + id + "/"),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            entity = connector.get().getEntity();
-        } catch (Exception male) {
-            logger.log(Level.ERROR,  male);
-        }
-        return entity;    
-    }
 
     @Override
     public void delete(TransformationStepAssociation entity) {
@@ -97,6 +104,29 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
             logger.log(Level.ERROR, male);
         }
     }
+
+	@Override
+	public List<TransformationStepAssociation> retrieve(int start, int max) {
+		return null;
+	}
+
+	@Override
+	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) {
+		return null;
+	}
+
+	@Override
+	public TransformationStepAssociation retrieveFromBrief(
+			TransformationStepAssociationBrief brief) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
 	@Override
 	public List<TransformationStepAssociation> retrieveByTransformationId(Long transformationId) {
@@ -121,5 +151,5 @@ public class TransformationStepAssociationDAOWS implements TransformationStepAss
 		return 0;
 	}
 
-    
+	
 }
