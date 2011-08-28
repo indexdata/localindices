@@ -56,7 +56,7 @@ public class HarvestableResource {
     @GET
     @Produces("application/xml")
     public HarvestableConverter get() {
-        return new HarvestableConverter(dao.retrieveHarvestableById(id), context.getAbsolutePath());
+        return new HarvestableConverter(dao.retrieveById(id), context.getAbsolutePath());
     }
 
     /**
@@ -70,7 +70,7 @@ public class HarvestableResource {
         Harvestable entity = data.getEntity();
         entity.setCurrentStatus("NEW");
         entity.setMessage(null);
-        dao.updateHarvestable(entity);
+        dao.update(entity);
     }
 
     /**
@@ -79,7 +79,7 @@ public class HarvestableResource {
      */
     @DELETE
     public void delete() {
-        dao.deleteHarvestable(dao.retrieveHarvestableById(id));
+        dao.delete(dao.retrieveById(id));
     }
 
     /**
