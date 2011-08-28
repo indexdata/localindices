@@ -288,7 +288,7 @@ public class ResourceController {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
             req.setAttribute("countRequestSeenFlag", "yes");
-            itemCount = dao.getHarvestableCount();
+            itemCount = dao.getCount();
         }
         return itemCount;
     }
@@ -340,7 +340,7 @@ public class ResourceController {
     
     public String addResource() {
         prePersist();
-        dao.createHarvestable(resource);
+        dao.create(resource);
         resource = null;
         return listResources();
     }
@@ -366,7 +366,7 @@ public class ResourceController {
 
     public String saveResource() {
         prePersist();
-        resource = dao.updateHarvestable(resource);
+        resource = dao.update(resource);
         resource = null;
         return listResources();
     }
@@ -382,7 +382,7 @@ public class ResourceController {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
             req.setAttribute("listRequestSeen", "yes");
-            resources = (List) dao.retrieveHarvestableBriefs(firstItem, batchSize);
+            resources = (List) dao.retrieveBriefs(firstItem, batchSize);
         }
         if (resources != null)
             Collections.sort(resources);
@@ -391,16 +391,16 @@ public class ResourceController {
 
     public String deleteResource() {
         resource = getResourceFromRequestParam();
-        dao.deleteHarvestable(resource);
+        dao.delete(resource);
         resource = null;
         return listResources();
     }
     
     public String saveAndPurge() {
-        dao.deleteHarvestable(resource);
+        dao.delete(resource);
         prePersist();
         resource.setId(null);
-        dao.createHarvestable(resource);
+        dao.create(resource);
         resource = null;
         return listResources();
     }
@@ -433,7 +433,7 @@ public class ResourceController {
         //slurp that damn log to string, before I figure how to cleanly get handle
         //of the InputStream in the view
         StringBuilder sb = new StringBuilder(1024);
-        InputStream is = dao.getHarvestableLog(id);
+        InputStream is = dao.getLog(id);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line = null;
         try {
@@ -468,7 +468,7 @@ public class ResourceController {
             } else {
                 String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
                 Long id = new Long(param);
-                o = dao.retrieveHarvestableById(id);
+                o = dao.retrieveById(id);
             }
             return o;
     }
@@ -529,7 +529,7 @@ public class ResourceController {
 			if (storage != null && resource != null) {
 					Long id = new Long(storage);
 		            StorageDAO storageDAO = StorageDAOFactory.getStorageDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext());
-		            resource.setStorage(storageDAO.retrieveStorageById(id));
+		            resource.setStorage(storageDAO.retrieveById(id));
 			}
         } catch (DAOException ex) {
             logger.log(Level.FATAL, "Exception when updating Storage", ex);
