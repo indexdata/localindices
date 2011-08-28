@@ -69,9 +69,9 @@ public class HarvestablesResource {
         if (max <= 0)
             entities = new ArrayList<Harvestable>();
         else
-            entities = dao.retrieveHarvestables(start, max);
+            entities = dao.retrieve(start, max);
         return new HarvestablesConverter(entities, context.getAbsolutePath(),
-                start, max, dao.getHarvestableCount());
+                start, max, dao.getCount());
     }
 
     /**
@@ -85,7 +85,7 @@ public class HarvestablesResource {
     public Response post(HarvestableConverter data) {
         Harvestable entity = data.getEntity();
         entity.setCurrentStatus("NEW");
-        dao.createHarvestable(entity);
+        dao.create(entity);
         return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }
 

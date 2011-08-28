@@ -19,7 +19,7 @@ import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationConverter;
 
 /**
- * REST Web service (resource) that maps to a TranformationStep entity.
+ * REST Web service (resource) that maps to a TranformationStepAssociation entity.
  * @author Dennis
  */
 public class TransformationStepAssociationResource {

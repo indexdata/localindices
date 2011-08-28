@@ -50,7 +50,7 @@ public class StorageResource {
     @GET
     @Produces("application/xml")
     public StorageConverter get() {
-        return new StorageConverter(dao.retrieveStorageById(id), context.getAbsolutePath());
+        return new StorageConverter(dao.retrieveById(id), context.getAbsolutePath());
     }
 
     /**
@@ -65,7 +65,7 @@ public class StorageResource {
         // TODO Fix
         entity.setCurrentStatus("TODO");
         entity.setMessage(null);
-        dao.updateStorage(entity);
+        dao.update(entity);
     }
 
     /**
@@ -74,7 +74,7 @@ public class StorageResource {
      */
     @DELETE
     public void delete() {
-        dao.deleteStorage(dao.retrieveStorageById(id));
+        dao.delete(dao.retrieveById(id));
     }
 
 }

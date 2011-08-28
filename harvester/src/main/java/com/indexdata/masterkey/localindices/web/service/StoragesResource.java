@@ -70,9 +70,9 @@ public class StoragesResource {
         if (max <= 0)
             entities = new ArrayList<Storage>();
         else
-            entities = dao.retrieveStorages(start, max);
+            entities = dao.retrieve(start, max);
         return new StoragesConverter(entities, context.getAbsolutePath(),
-                start, max, dao.getStorageCount());
+                start, max, dao.getCount());
     }
 
     /**
@@ -86,7 +86,7 @@ public class StoragesResource {
     public Response post(StorageConverter data) {
         Storage entity = data.getEntity();
         entity.setCurrentStatus("NEW");
-        dao.createStorage(entity);
+        dao.create(entity);
         return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
     }
 

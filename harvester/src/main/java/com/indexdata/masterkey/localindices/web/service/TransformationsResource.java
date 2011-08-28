@@ -72,7 +72,7 @@ public class TransformationsResource {
         else
             entities = dao.retrieve(start, max);
         return new TransformationsConverter(entities, context.getAbsolutePath(),
-                start, max, dao.getTransformationCount());
+                start, max, dao.getCount());
     }
 
     /**

@@ -56,6 +56,6 @@ public class SearchablesResource {
             
             @QueryParam("max")
             @DefaultValue("100") int max) {
-        return new SearchablesConverter(dao.retrieveHarvestables(start, max), context.getAbsolutePath());
+        return new SearchablesConverter(dao.retrieve(start, max), context.getAbsolutePath());
     }
 }
