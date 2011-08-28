@@ -35,7 +35,7 @@ public class StoragesDAOJPA implements StorageDAO {
     }
     
     @Override
-    public void createStorage(Storage storage) {
+    public void create(Storage storage) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -56,7 +56,7 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
     @Override
-    public Storage retrieveStorageById(Long id) {
+    public Storage retrieveById(Long id) {
         EntityManager em = getEntityManager();
         Storage entity = em.find(Storage.class, id);
         em.close();
@@ -64,7 +64,7 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
     @Override
-    public Storage updateStorage(Storage updEntity) {
+    public Storage update(Storage updEntity) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         Storage entity = null;
@@ -86,7 +86,7 @@ public class StoragesDAOJPA implements StorageDAO {
     }    
 
     @Override
-    public void deleteStorage(Storage entity) {
+    public void delete(Storage entity) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -108,7 +108,7 @@ public class StoragesDAOJPA implements StorageDAO {
 
     @SuppressWarnings("unchecked")
 	@Override
-    public List<Storage> retrieveStorages(int start, int max) {
+    public List<Storage> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         List<Storage> hables = null;
@@ -133,9 +133,9 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
     @Override
-    public List<StorageBrief> retrieveStorageBriefs(int start, int max) {
+    public List<StorageBrief> retrieveBriefs(int start, int max) {
         List<StorageBrief> hrefs = new ArrayList<StorageBrief>();
-        for (Storage hable : retrieveStorages(start, max)) {
+        for (Storage hable : retrieve(start, max)) {
             StorageBrief href = new StorageBrief(hable);
             hrefs.add(href);
         }
@@ -144,11 +144,11 @@ public class StoragesDAOJPA implements StorageDAO {
 
     @Override
     public Storage retrieveFromBrief(StorageBrief href) {
-        return retrieveStorageById(href.getId());
+        return retrieveById(href.getId());
     }
 
     @Override
-    public int getStorageCount() {
+    public int getCount() {
         EntityManager em = getEntityManager();
         try {
             int count = ((Long) em.createQuery("select count(o) from Storage as o").getSingleResult()).intValue();
@@ -160,7 +160,7 @@ public class StoragesDAOJPA implements StorageDAO {
 
 
     @Override
-    public InputStream getStorageLog(long id) {
+    public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

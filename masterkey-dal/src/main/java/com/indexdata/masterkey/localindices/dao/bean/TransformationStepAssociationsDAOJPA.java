@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -17,6 +18,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
+import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationBrief;
 import com.indexdata.utils.persistence.EntityUtil;
 
 
@@ -196,6 +198,34 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
         try {
         	Query query = em.createQuery("select count(o) from TransformationStepAssociation o where o.step.id = :id");
         	query.setParameter("id", id);
+        	int count = ((Long) query.getSingleResult()).intValue();
+            return count;
+        } finally {
+            em.close();
+        }    
+	}
+
+	@Override
+    public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) {
+        List<TransformationStepAssociationBrief> hrefs = new ArrayList<TransformationStepAssociationBrief>();
+        for (TransformationStepAssociation hable : retrieve(start, max)) {
+        	TransformationStepAssociationBrief href = new TransformationStepAssociationBrief(hable);
+            hrefs.add(href);
+        }
+        return hrefs;
+    }
+
+	@Override
+	public TransformationStepAssociation retrieveFromBrief(
+			TransformationStepAssociationBrief brief) {
+        return retrieveById(brief.getId());
+	}
+
+	@Override
+	public int getCount() {
+        EntityManager em = getEntityManager();
+        try {
+        	Query query = em.createQuery("select count(o) from TransformationStepAssociation o");
         	int count = ((Long) query.getSingleResult()).intValue();
             return count;
         } finally {

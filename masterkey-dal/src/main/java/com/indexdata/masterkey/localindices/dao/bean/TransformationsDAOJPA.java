@@ -146,7 +146,7 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public int getTransformationCount() {
+    public int getCount() {
         EntityManager em = getEntityManager();
         try {
             int count = ((Long) em.createQuery("select count(o) from Transformation as o").getSingleResult()).intValue();

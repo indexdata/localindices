@@ -133,7 +133,7 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
     public List<TransformationStepBrief> retrieveBriefs(int start, int max) {
         List<TransformationStepBrief> hrefs = new ArrayList<TransformationStepBrief>();
         for (TransformationStep hable : retrieve(start, max)) {
-            TransformationStepBrief href = new TransformationStepBrief(hable);
+            TransformationStepBrief href = new TransformationStepBrief(hable, null, false);
             hrefs.add(href);
         }
         return hrefs;
