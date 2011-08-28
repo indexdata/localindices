@@ -85,7 +85,7 @@ public class StorageController  {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
             req.setAttribute("countRequestSeenFlag", "yes");
-            itemCount = dao.getStorageCount();
+            itemCount = dao.getCount();
         }
         return itemCount;
     }
@@ -138,7 +138,7 @@ public class StorageController  {
     
     public String addStorage() {
         prePersist();
-        dao.createStorage(storage);
+        dao.create(storage);
         storage = null;
         return listStorages();
     }
@@ -167,7 +167,7 @@ public class StorageController  {
 
     public String saveStorage() {
         prePersist();
-        storage = dao.updateStorage(storage);
+        storage = dao.update(storage);
         storage = null;
         return listStorages();
     }
@@ -184,7 +184,7 @@ public class StorageController  {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (storages == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
             req.setAttribute("listRequestSeen", "yes");
-            storages = (List) dao.retrieveStorageBriefs(firstItem, batchSize);
+            storages = (List) dao.retrieveBriefs(firstItem, batchSize);
         }
         if (storages != null)
             Collections.sort(storages);
@@ -193,17 +193,17 @@ public class StorageController  {
 
     public String deleteStorage() {
         storage = getResourceFromRequestParam();
-        dao.deleteStorage(storage);
+        dao.delete(storage);
         storage = null;
         return listStorages();
     }
     
     public String saveAndPurge() {
     	
-    	dao.deleteStorage(storage);
+    	dao.delete(storage);
         prePersist();
         storage.setId(null);
-        dao.createStorage(storage);
+        dao.create(storage);
         storage = null;
         return listStorages();
     }
@@ -237,7 +237,7 @@ public class StorageController  {
             } else {
                 String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("storageId");
                 Long id = new Long(param);
-                o = dao.retrieveStorageById(id);
+                o = dao.retrieveById(id);
             }
             return o;
     }
