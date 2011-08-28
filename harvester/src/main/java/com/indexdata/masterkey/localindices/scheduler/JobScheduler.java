@@ -43,7 +43,7 @@ public class JobScheduler {
      * Update the current job list to reflect updates in the persistent storage.
      */
     public void updateJobs() {
-        Collection<HarvestableBrief> hbriefs = dao.retrieveHarvestableBriefs(0, Integer.parseInt((String)config.get("harvester.max-jobs")));
+        Collection<HarvestableBrief> hbriefs = dao.retrieveBriefs(0, Integer.parseInt((String)config.get("harvester.max-jobs")));
         if (hbriefs == null) {
             logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
             return;
@@ -119,7 +119,7 @@ public class JobScheduler {
                     ji.notifyFinish();
                     logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
                             + " has finished. Persisting state...");
-                    dao.updateHarvestable(ji.getHarvestable());
+                    dao.update(ji.getHarvestable());
                     //persist from and until
                     break;
                 case ERROR:
@@ -151,7 +151,7 @@ public class JobScheduler {
             if (ji.shallPersist()) {
                 needsUpdate = true;
             }
-            if (needsUpdate) dao.updateHarvestable(ji.getHarvestable());
+            if (needsUpdate) dao.update(ji.getHarvestable());
         }
     }
 
