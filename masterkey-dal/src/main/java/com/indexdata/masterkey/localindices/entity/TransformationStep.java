@@ -39,6 +39,9 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     @Lob
     protected String script ="";    	
     
+    public TransformationStep() {
+    }
+
     public String getDescription() {
         return description;
     }

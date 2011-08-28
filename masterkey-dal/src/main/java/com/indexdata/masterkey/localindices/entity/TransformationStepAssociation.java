@@ -25,13 +25,19 @@ import com.sun.xml.internal.bind.CycleRecoverable;
 @NamedQueries({@NamedQuery(name = "tsa.findById", query = "SELECT o FROM TransformationStepAssociation o WHERE o.id = :id"), 
 			   @NamedQuery(name = "tsa.findStepsByTransformationId", query = "SELECT o FROM TransformationStepAssociation o WHERE o.transformation.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-@UniqueConstraint(columnNames={"TRANSFORMATION_ID","STEP_ID"})
+//@UniqueConstraint(columnNames={"TRANSFORMATION_ID","STEP_ID"})
 @XmlRootElement(name = "transformationStepAssociation")
 public class TransformationStepAssociation  implements Serializable, Cloneable, CycleRecoverable {
 
 	/**
 	 * 
 	 */
+	
+	public TransformationStepAssociation() {
+		step = null;
+		transformation = null;
+		id = null;
+	}
 	private static final long serialVersionUID = -8041896324751041180L;
 
 	@Id

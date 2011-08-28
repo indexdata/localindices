@@ -39,6 +39,10 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     private Date untilDate;
     private String dateFormat;
 
+    public OaiPmhResource() 
+    {
+    };
+    
     public String getDateFormat() {
         return dateFormat;
     }
