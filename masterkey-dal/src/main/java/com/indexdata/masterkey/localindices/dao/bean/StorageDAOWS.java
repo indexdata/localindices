@@ -27,13 +27,50 @@ import com.indexdata.rest.client.ResourceConnector;
  *
  * @author jakub
  */
-public class StorageDAOWS implements StorageDAO {
+public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
 
-    private String serviceBaseURL;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
     public StorageDAOWS(String serviceBaseURL) {
-        this.serviceBaseURL = serviceBaseURL;
+        super(serviceBaseURL);
+    }
+
+    @Override
+    public void create(Storage storage) {
+        try {
+            ResourceConnector<StoragesConverter> storagesConnector =
+                    new ResourceConnector<StoragesConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+        StorageConverter storageContainer = new StorageConverter();
+        storageContainer.setEntity(storage);
+        URL url = storagesConnector.postAny(storageContainer);
+    	storage.setId(extractId(url));
+
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+    }
+
+    /**
+     * GET storage from the Web Service
+     * @param id of entity to be fetched
+     */
+    @Override
+    public Storage retrieveById(Long id) {
+        Storage hable = null;
+        try {
+            ResourceConnector<StorageConverter> storageConnector =
+                new ResourceConnector<StorageConverter>(
+                    new URL(serviceBaseURL + id + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            hable = storageConnector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG,  male);
+        }
+        return hable;    
     }
 
     /**
@@ -41,7 +78,7 @@ public class StorageDAOWS implements StorageDAO {
      * @return
      */
     @Override
-    public List<StorageBrief> retrieveStorageBriefs(int start, int max) {
+    public List<StorageBrief> retrieveBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<StoragesConverter> storagesConnector =
@@ -83,7 +120,7 @@ public class StorageDAOWS implements StorageDAO {
      * @param storage entity to be put
      */
     @Override
-    public Storage updateStorage(Storage storage) {
+    public Storage update(Storage storage) {
         try {
             ResourceConnector<StorageConverter> storageConnector =
                     new ResourceConnector<StorageConverter>(
@@ -100,39 +137,7 @@ public class StorageDAOWS implements StorageDAO {
     } // updateJob
 
     @Override
-    public void createStorage(Storage storage) {
-        try {
-            ResourceConnector<StoragesConverter> storagesConnector =
-                    new ResourceConnector<StoragesConverter>(
-                    new URL(serviceBaseURL),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-        StorageConverter storageContainer = new StorageConverter();
-        storageContainer.setEntity(storage);
-        storagesConnector.postAny(storageContainer);
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
-        }
-    }
-
-    @Override
-    public Storage retrieveStorageById(Long id) {
-        Storage hable = null;
-        try {
-            ResourceConnector<StorageConverter> storageConnector =
-                new ResourceConnector<StorageConverter>(
-                    new URL(serviceBaseURL + id + "/"),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            hable = storageConnector.get().getEntity();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG,  male);
-        }
-        return hable;    
-    }
-
-    @Override
-    public void deleteStorage(Storage storage) {
+    public void delete(Storage storage) {
         try {
             ResourceConnector<StorageConverter> storageConnector =
                 new ResourceConnector<StorageConverter>(
@@ -146,11 +151,11 @@ public class StorageDAOWS implements StorageDAO {
     }
 
     @Override
-    public List<Storage> retrieveStorages(int start, int max) {
+    public List<Storage> retrieve(int start, int max) {
        //TODO this cannot be more stupid
-       logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveStorageBrief instead.");
+       logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveBrief instead.");
        List<Storage> hables = new ArrayList<Storage>();
-       List<StorageBrief> hrefs = retrieveStorageBriefs(start, max);
+       List<StorageBrief> hrefs = retrieveBriefs(start, max);
        if (hrefs != null) {
             for (StorageBrief href : hrefs) {
                 Storage hable = retrieveFromBrief(href);
@@ -161,7 +166,7 @@ public class StorageDAOWS implements StorageDAO {
     }
     
     @Override
-    public int getStorageCount() {
+    public int getCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
             ResourceConnector<StoragesConverter> storagesConnector =
@@ -180,7 +185,7 @@ public class StorageDAOWS implements StorageDAO {
 
 
     @Override
-    public InputStream getStorageLog(long id) {
+    public InputStream getLog(long id) {
         /* TODO Fix */
     	String logURL = serviceBaseURL + id + "/" + "log/";
         try {
