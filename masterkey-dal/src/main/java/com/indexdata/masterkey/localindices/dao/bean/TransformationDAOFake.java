@@ -133,7 +133,7 @@ public class TransformationDAOFake implements TransformationDAO {
     	return list;
     }
 
-    public int getTransformationCount() {
+    public int getCount() {
     	return transformations.size();
     }
 }

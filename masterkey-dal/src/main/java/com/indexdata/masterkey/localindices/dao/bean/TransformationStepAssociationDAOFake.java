@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,29 +16,18 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
+import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationBrief;
 
 /**
  *
  * @author Dennis
  */
 public class TransformationStepAssociationDAOFake implements TransformationStepAssociationDAO {
-    private Map<Long, TransformationStepAssociation> transformationStepAssociations;
+    private Map<Long, TransformationStepAssociation> transformationStepAssociations = new HashMap<Long, TransformationStepAssociation>();
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
-    //List<TransformationStep> steps; 
     
     public TransformationStepAssociationDAOFake() 
     {
-    }
-
-    public TransformationStepAssociation update(TransformationStepAssociation entity) { 
-    	TransformationStepAssociation hclone = null;
-        try {
-            hclone = (TransformationStepAssociation) entity.clone();
-        } catch (CloneNotSupportedException cle) {
-            logger.log(Level.DEBUG, cle);                    
-        }
-        transformationStepAssociations.put(hclone.getId(), hclone);
-        return hclone;
     }
 
 	@Override
@@ -52,10 +42,21 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
     	transformationStepAssociations.put(newId, entity);
     }
     
-    public TransformationStepAssociation retrieveTransformationById(Long id) {
+    public TransformationStepAssociation retrieveById(Long id) {
     	return transformationStepAssociations.get(id);
     }
     
+    public TransformationStepAssociation update(TransformationStepAssociation entity) { 
+    	TransformationStepAssociation hclone = null;
+        try {
+            hclone = (TransformationStepAssociation) entity.clone();
+        } catch (CloneNotSupportedException cle) {
+            logger.log(Level.DEBUG, cle);                    
+        }
+        transformationStepAssociations.put(hclone.getId(), hclone);
+        return hclone;
+    }
+
     public void delete(TransformationStepAssociation entity) {
     	transformationStepAssociations.remove(entity.getId());
     }
@@ -86,11 +87,6 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
     }
 
 	@Override
-	public TransformationStepAssociation retrieveById(Long id) {
-		return transformationStepAssociations.get(id);
-	}
-
-	@Override
 	public int getStepCountByTransformationId(Long id) {
     	int count = 0;
 		for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
@@ -108,4 +104,24 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 		return count;
 	}
 
+	@Override
+	public List<TransformationStepAssociation> retrieve(int start, int max) {
+    	List<TransformationStepAssociation> list = new LinkedList<TransformationStepAssociation>();
+    	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+    		list.add(transform);
+    	return list;
+	}
+
+	@Override
+	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) 
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public TransformationStepAssociation retrieveFromBrief(
+			TransformationStepAssociationBrief brief) {
+		return retrieveById(brief.getId()); 
+	}
 }

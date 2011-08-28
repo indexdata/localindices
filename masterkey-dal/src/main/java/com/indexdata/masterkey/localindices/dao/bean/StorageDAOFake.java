@@ -54,7 +54,7 @@ public class StorageDAOFake implements StorageDAO {
 		storages.put(storage3.getId(), storage3);
     }
 
-    public List<StorageBrief> retrieveStorageBriefs(int start, int max) {
+    public List<StorageBrief> retrieveBriefs(int start, int max) {
         List<StorageBrief> srefs = new ArrayList<StorageBrief>();
         for (Storage storage : storages.values()) {
             StorageBrief sref = new StorageBrief(storage);
@@ -84,7 +84,7 @@ public class StorageDAOFake implements StorageDAO {
 		return index;
 	}
     
-    public Storage updateStorage(Storage storage) { 
+    public Storage update(Storage storage) { 
         Storage hclone = null;
         try {
             hclone = (Storage) storage.clone();
@@ -97,13 +97,13 @@ public class StorageDAOFake implements StorageDAO {
         return hclone;
     }
 
-    public void createStorage(Storage storage) {
+    public void create(Storage storage) {
         if (storage.getId() == null)
         	storage.setId(newStorageId());
     	storages.put(storage.getId(), storage);    	
     }
 
-    public Storage retrieveStorageById(Long id) {
+    public Storage retrieveById(Long id) {
     	return storages.get(id);
     }
 
@@ -111,23 +111,23 @@ public class StorageDAOFake implements StorageDAO {
     	return storages.put(storage.getId(), updStorage);
     }
 
-    public void deleteStorage(Storage storage) {
+    public void delete(Storage storage) {
     	storages.remove(storage.getId());
     }
 
-    public List<Storage> retrieveStorages(int start, int max) {
+    public List<Storage> retrieve(int start, int max) {
     	List<Storage> list = new LinkedList<Storage>();
     	for (Storage storage : storages.values()) 
     		list.add(storage);
     	return list;
     }
 
-    public int getStorageCount() {
+    public int getCount() {
         return storages.values().size();
     }
 
     @Override
-    public InputStream getStorageLog(long id) {
+    public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

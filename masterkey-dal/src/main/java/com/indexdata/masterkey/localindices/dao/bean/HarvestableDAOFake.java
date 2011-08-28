@@ -16,9 +16,12 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -60,19 +63,19 @@ public class HarvestableDAOFake implements HarvestableDAO {
         }
     }
 
-    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+    public void create(Harvestable entity) {
+    	if (entity.getId() == null) {
+    		entity.setId(new Random().nextLong());
+    	}
+    	harvestables.put(entity.getId(), entity);
+    }
+
+    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : harvestables.values()) {
             try {
-                // update the date so it looks like the settings has been changed
-                /*
-                if (hable.getId() == 2) {
-                    hable.setLastUpdated(new Date());
-                    harvestables.put(hable.getId(), hable);
-                }
-                */
                 HarvestableBrief href = new HarvestableBrief(hable);
-                href.setResourceUri(new URI("http://localhost/harvestables/" + href.getId() + "/)"));
+                href.setResourceUri(new URI("http://localhost/records/harvestables/" + href.getId() + "/)"));
                 hrefs.add(href);
             } catch (URISyntaxException urie) {
                 logger.log(Level.DEBUG, urie);
@@ -90,7 +93,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
         return null;
     }
 
-    public Harvestable updateHarvestable(Harvestable harvestable) { 
+    public Harvestable update(Harvestable harvestable) { 
         Harvestable hclone = null;
         try {
             hclone = (Harvestable) harvestable.clone();
@@ -101,32 +104,33 @@ public class HarvestableDAOFake implements HarvestableDAO {
         return hclone;
     }
 
-    public void createHarvestable(Harvestable harvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Harvestable retrieveById(Long id) {
+    	return harvestables.get(id);
     }
 
-    public Harvestable retrieveHarvestableById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void delete(Harvestable harvestable) {
+    	harvestables.remove(harvestable.getId());
     }
 
-    public Harvestable updateHarvestable(Harvestable harvestable, Harvestable updHarvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public List<Harvestable> retrieve(int start, int max) {
+    	List<Harvestable> list = new LinkedList<Harvestable>();
+    	int index = 0; 
+    	for (Harvestable entity : harvestables.values()) {
+    		if (index >= start)
+    			list.add(entity);
+    		if (list.size() >= max)
+    			break;
+    		index++;
+    	}
+    	return list;
     }
 
-    public void deleteHarvestable(Harvestable harvestable) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public List<Harvestable> retrieveHarvestables(int start, int max) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public int getHarvestableCount() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public int getCount() {
+    	return harvestables.size();
     }
 
     @Override
-    public InputStream getHarvestableLog(long id) {
+    public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }
