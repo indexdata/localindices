@@ -11,6 +11,10 @@ public class BasicTransformation extends Transformation {
 	/**
 	 * 
 	 */
+	
+	public BasicTransformation() {
+	};
+	
 	private static final long serialVersionUID = -1789712151621170759L;
 	
 
