@@ -6,14 +6,11 @@
 
 package com.indexdata.masterkey.localindices.dao;
 
+import javax.servlet.ServletContext;
+
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationDAOFake;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationDAOWS;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationsDAOJPA;
-import com.indexdata.masterkey.localindices.dao.bean.TransformationStepDAOFake;
-import com.indexdata.masterkey.localindices.dao.bean.TransformationStepDAOWS;
-import com.indexdata.masterkey.localindices.dao.bean.TransformationStepsDAOJPA;
-
-import javax.servlet.ServletContext;
 
 /**
  * Creates the the StorageDAO object based on the current context.
