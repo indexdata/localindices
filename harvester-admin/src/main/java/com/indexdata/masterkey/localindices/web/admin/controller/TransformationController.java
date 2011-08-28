@@ -98,7 +98,7 @@ public class TransformationController {
         HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
             req.setAttribute("countRequestSeenFlag", "yes");
-            itemCount = dao.getTransformationCount();
+            itemCount = dao.getCount();
         }
         return itemCount;
     }
