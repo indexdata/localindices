@@ -24,13 +24,54 @@ import com.indexdata.rest.client.ResourceConnector;
  *
  * @author Dennis
  */
-public class TransformationDAOWS implements TransformationDAO {
+public class TransformationDAOWS extends CommonDAOWS implements TransformationDAO {
 
-    private String serviceBaseURL;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
     public TransformationDAOWS(String serviceBaseURL) {
-        this.serviceBaseURL = serviceBaseURL;
+        super(serviceBaseURL);
+    }
+
+    /**
+     * create (POST) entity to the Web Service
+	 * @param Transformation
+     * @return
+     */
+    @Override
+    public void create(Transformation transformation) {
+        try {
+            ResourceConnector<TransformationsConverter> connector =
+                    new ResourceConnector<TransformationsConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+        TransformationConverter converter = new TransformationConverter();
+        converter.setEntity(transformation);
+        connector.postAny(converter);
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+    }
+
+    /**
+     * Retrieve (GET) entity from the Web Service
+	 * @param id of the entity
+     * @return Transformation
+     */
+    @Override
+    public Transformation retrieveById(Long id) {
+    	Transformation entity = null;
+        try {
+            ResourceConnector<TransformationConverter> storageConnector =
+                new ResourceConnector<TransformationConverter>(
+                    new URL(serviceBaseURL + id + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            entity = storageConnector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG,  male);
+        }
+        return entity;    
     }
 
     /**
@@ -96,37 +137,6 @@ public class TransformationDAOWS implements TransformationDAO {
         return transformation	;
     } // updateJob
 
-    @Override
-    public void create(Transformation transformation) {
-        try {
-            ResourceConnector<TransformationsConverter> connector =
-                    new ResourceConnector<TransformationsConverter>(
-                    new URL(serviceBaseURL),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-        TransformationConverter converter = new TransformationConverter();
-        converter.setEntity(transformation);
-        connector.postAny(converter);
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
-        }
-    }
-
-    @Override
-    public Transformation retrieveById(Long id) {
-    	Transformation entity = null;
-        try {
-            ResourceConnector<TransformationConverter> storageConnector =
-                new ResourceConnector<TransformationConverter>(
-                    new URL(serviceBaseURL + id + "/"),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            entity = storageConnector.get().getEntity();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG,  male);
-        }
-        return entity;    
-    }
 
     @Override
     public void delete(Transformation transformation) {
@@ -158,7 +168,7 @@ public class TransformationDAOWS implements TransformationDAO {
     }
     
     @Override
-    public int getTransformationCount() {
+    public int getCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
             ResourceConnector<TransformationsConverter> connector =
