@@ -38,9 +38,11 @@ public class StorageBrief implements Comparable<Object> {
         if (isUriExtendable) {
             try {
                 this.uri = new URI(uri.toString() + entity.getId() + "/");
-            } catch (URISyntaxException urie) {              
+            } catch (URISyntaxException urie) {
             }
         }
+        else 
+        	this.uri = uri;
     }
 
     
@@ -75,7 +77,6 @@ public class StorageBrief implements Comparable<Object> {
      * @return the converted uri
      */
     @XmlAttribute(name = "uri")
-    
     public URI getResourceUri() {
         return uri;
     }

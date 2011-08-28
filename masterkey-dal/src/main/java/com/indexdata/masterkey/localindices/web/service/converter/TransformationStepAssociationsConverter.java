@@ -24,7 +24,10 @@ import java.util.ArrayList;
 public class TransformationStepAssociationsConverter {
     private List<TransformationStepAssociationBrief> references;
     private URI uri;
+    private int start;
+    private int max;
     private int count;
+    private Long transformationId;
     
     /** Creates a new instance of StoragesConverter */
     public TransformationStepAssociationsConverter() {
@@ -36,15 +39,31 @@ public class TransformationStepAssociationsConverter {
      * @param entities associated entities
      * @param uri associated uri
      */
-    public TransformationStepAssociationsConverter(List<TransformationStepAssociation> entities, URI uri, int count) {
+    public TransformationStepAssociationsConverter(List<TransformationStepAssociation> entities, URI uri, int start, int max, int count) {
         this.references = new ArrayList<TransformationStepAssociationBrief>();
         for (TransformationStepAssociation entity : entities) {
-            references.add(new TransformationStepAssociationBrief(entity /* TODO fix, uri, true */));
+            references.add(new TransformationStepAssociationBrief(entity, uri, true));
         }
         this.uri = uri;
+        this.start = start;
+        this.max = max;
         this.count = count;
+        this.transformationId = null;
     }
 
+    public TransformationStepAssociationsConverter(List<TransformationStepAssociation> entities, URI uri, long transformationId,  int count) {
+        this.references = new ArrayList<TransformationStepAssociationBrief>();
+        for (TransformationStepAssociation entity : entities) {
+            references.add(new TransformationStepAssociationBrief(entity, uri, true));
+        }
+        this.uri = uri;
+        this.start = -1;
+        this.max   = -1;
+        this.count = count;
+        this.transformationId = transformationId;
+    }
+
+    
     /**
      * Returns a collection of TransformationStepAssociationBrief.
      *
@@ -78,6 +97,24 @@ public class TransformationStepAssociationsConverter {
         this.uri = uri;
     }
     
+    @XmlAttribute(name = "max")
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
+    }
+    
+    @XmlAttribute(name = "start")
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+    
     @XmlAttribute(name = "count")
     public int getCount() {
         return count;
@@ -85,5 +122,14 @@ public class TransformationStepAssociationsConverter {
 
     public void setCount(int count) {
         this.count = count;
+    }    
+    
+    @XmlAttribute(name = "transformationId")
+    public Long getTransformationId() {
+        return transformationId;
+    }
+
+    public void setTransformationId(long id) {
+        this.transformationId = id;
     }    
 }

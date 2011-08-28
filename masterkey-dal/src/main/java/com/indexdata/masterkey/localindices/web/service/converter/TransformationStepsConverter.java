@@ -41,7 +41,7 @@ public class TransformationStepsConverter {
     public TransformationStepsConverter(List<TransformationStep> entities, URI uri, int start, int max, int count) {
         this.references = new ArrayList<TransformationStepBrief>();
         for (TransformationStep entity : entities) {
-            references.add(new TransformationStepBrief(entity /* TODO fix, uri, true */));
+            references.add(new TransformationStepBrief(entity,  uri, true));
         }
         this.uri = uri;
         this.start = start;

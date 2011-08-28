@@ -1,7 +1,9 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -18,10 +20,17 @@ public class TransformationStepBrief implements Comparable<Object> {
     }
 
     	
-    public TransformationStepBrief(TransformationStep entity) {
+    public TransformationStepBrief(TransformationStep entity, URI uri, boolean isUriExtendable) {
         setId(entity.getId());
         setName(entity.getName());
         setDescription(entity.getDescription());
+        if (isUriExtendable) {
+            try {
+                this.uri = new URI(uri.toString() + entity.getId() + "/");
+            } catch (URISyntaxException urie) {              
+            }
+        }
+        
     }
 
 	public void setId(Long id) {
@@ -69,7 +78,12 @@ public class TransformationStepBrief implements Comparable<Object> {
 		this.uri = uri;
 	}
 
-
+    /**
+     * Returns the URI associated with this reference converter.
+     *
+     * @return the converted uri
+     */
+    @XmlAttribute(name = "uri")
 	public URI getResourceUri() {
 		return uri;
 	}

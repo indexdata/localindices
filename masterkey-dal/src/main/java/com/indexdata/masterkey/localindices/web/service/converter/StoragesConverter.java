@@ -41,7 +41,7 @@ public class StoragesConverter {
     public StoragesConverter(List<Storage> entities, URI uri, int start, int max, int count) {
         this.references = new ArrayList<StorageBrief>();
         for (Storage entity : entities) {
-            references.add(new StorageBrief(entity /* TODO fix, uri, true */));
+            references.add(new StorageBrief(entity, uri, true));
         }
         this.uri = uri;
         this.start = start;

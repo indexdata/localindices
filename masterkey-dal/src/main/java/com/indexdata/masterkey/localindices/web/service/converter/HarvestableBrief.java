@@ -23,7 +23,6 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 @XmlRootElement(name = "harvestableBrief")
 public class HarvestableBrief implements Comparable<Object> {
     private Long id;
-    private URI uri;
     private String name;
     private String currentStatus;
     private String message;
@@ -32,6 +31,8 @@ public class HarvestableBrief implements Comparable<Object> {
     private Date nextHarvestSchedule;
     private boolean enabled;
     private Date lastUpdated;
+    /* Resource uri */
+    private URI uri;
 
     /** Creates a new instance of HarvestableBrief */
     public HarvestableBrief() {

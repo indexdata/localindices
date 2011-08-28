@@ -7,7 +7,6 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import java.net.URI;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
@@ -45,7 +44,8 @@ public class TransformationStepAssociationConverter {
      */
     public TransformationStepAssociationConverter(TransformationStepAssociation entity, URI uri) {
         this.entity = entity;
-        this.uri = uri;
+    	this.uri = uri;
+        	
     }
 
     /**
@@ -99,4 +99,6 @@ public class TransformationStepAssociationConverter {
     public void setEntity(TransformationStepAssociation entity) {
         this.entity = entity;
     }
+
+
 }

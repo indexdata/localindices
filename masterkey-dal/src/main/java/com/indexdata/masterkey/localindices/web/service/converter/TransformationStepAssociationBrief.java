@@ -1,17 +1,18 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
 
-@XmlRootElement(name = "transformationStepAssociationBrief")
+@XmlRootElement(name = "tsaBrief")
 public class TransformationStepAssociationBrief implements Comparable<Object> {
     private Long id;
     private Long transformationId; 
-    private TransformationStep step; 
+    private Long stepId; 
     private Long position; 
     
     private URI uri; 
@@ -19,11 +20,23 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
     public TransformationStepAssociationBrief() {
     }
 
-    	
     public TransformationStepAssociationBrief(TransformationStepAssociation entity) {
         setId(entity.getId());
         setTransformationId(entity.getTransformationId());
-        setStep(entity.getStep());
+        setStepId(entity.getStep().getId());
+    }
+
+    	
+    public TransformationStepAssociationBrief(TransformationStepAssociation entity, URI uri, boolean isUriExtendable) {
+    	this(entity);
+    	if (isUriExtendable) {
+            try {
+                this.uri = new URI(uri.toString() + entity.getId() + "/");
+            } catch (URISyntaxException urie) {              
+            }
+        }
+        else 
+        	this.uri = uri;
     }
 
 	public void setId(Long id) {
@@ -40,7 +53,7 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
         int transformCompare = this.getTransformationId().compareTo(o.getTransformationId());
         if (transformCompare != 0)
         	return transformCompare;
-        int stepCompare = this.getStep().getId().compareTo(o.getStep().getId());
+        int stepCompare = this.stepId.compareTo(o.stepId);
         if (stepCompare != 0)
         	return stepCompare;
         return this.getPosition().compareTo(o.getPosition());
@@ -51,7 +64,7 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
         	TransformationStepAssociationBrief brief = (TransformationStepAssociationBrief) object;
             return 
             	(this.getTransformationId().equals(brief.getTransformationId())) &&
-            	(this.getStep().getId().equals(brief.getStep().getId()));
+            	(this.stepId.equals(brief.stepId));
         } else {
             return false;
         }             
@@ -62,6 +75,12 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
 	}
 
 
+    /**
+     * Returns the URI associated with this reference converter.
+     *
+     * @return the converted uri
+     */
+    @XmlAttribute(name = "uri")
 	public URI getResourceUri() {
 		return uri;
 	}
@@ -76,20 +95,13 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
 		return transformationId;
 	}
 
-	public void setStep(TransformationStep step) {
-		this.step = step;
+	public void setStepId(Long step) {
+		this.stepId = step;
 	}
-
-
-	public TransformationStep getStep() {
-		return step;
-	}
-
 
 	public void setPosition(Long position) {
 		this.position = position;
 	}
-
 
 	public Long getPosition() {
 		return position;
