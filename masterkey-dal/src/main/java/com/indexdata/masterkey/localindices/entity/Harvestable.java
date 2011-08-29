@@ -222,7 +222,10 @@ public abstract class Harvestable implements Serializable, Cloneable {
             } catch (CronLineParseException cronLineParseException) {
                 // Error logged by CronLine, don't attempt to return a date to the UI.
                 return null;
-            }
+        	} catch (NumberFormatException numberFormatExceptionException) {
+        		// Error logged by CronLine, don't attempt to return a date to the UI.
+        		return null;
+        	}
         }
         return null;
     }
