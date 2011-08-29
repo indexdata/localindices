@@ -18,12 +18,14 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 /**
  * @author Dennis
  */
 @Entity
 @NamedQueries({@NamedQuery(name = "TransformationStep.findById", query = "SELECT o FROM TransformationStep o WHERE o.id = :id")})
+@Table(name="step")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public abstract class TransformationStep implements Serializable, Cloneable {
 
