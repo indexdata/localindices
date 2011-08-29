@@ -9,7 +9,6 @@ package com.indexdata.masterkey.localindices.entity;
 import java.io.Serializable;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,12 +19,14 @@ import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 /**
  * @author Dennis
  */
 @Entity
 @NamedQueries({@NamedQuery(name = "Storage.findById", query = "SELECT o FROM Storage o WHERE o.id = :id")})
+@Table(name="storage")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public abstract class Storage implements Serializable, Cloneable {
 
@@ -45,7 +46,7 @@ public abstract class Storage implements Serializable, Cloneable {
     @Column(length=100)
     protected String transformation;
 
-    @OneToMany(cascade=CascadeType.ALL)
+    @OneToMany(mappedBy="storage")
     private Set<Harvestable> harvestables;
 
     
