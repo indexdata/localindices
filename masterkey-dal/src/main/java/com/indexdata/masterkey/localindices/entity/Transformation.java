@@ -22,6 +22,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import com.sun.xml.internal.bind.CycleRecoverable;
 
@@ -31,6 +32,7 @@ import com.sun.xml.internal.bind.CycleRecoverable;
 @Entity
 @NamedQueries({@NamedQuery(name = "Transformation.findById", query = "SELECT object(o) FROM Transformation o WHERE o.id = :id")})
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+@Table(name="transformation")
 
 public class Transformation implements Serializable, Cloneable, CycleRecoverable {
 
@@ -44,10 +46,10 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     protected String description;
     protected Boolean enabled;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="transformation")
     protected List<TransformationStepAssociation> stepAssociations;
 
-    @OneToMany
+    @OneToMany(mappedBy="transformation")
     private Set<Harvestable> harvestables;
 
     protected Transformation() {
