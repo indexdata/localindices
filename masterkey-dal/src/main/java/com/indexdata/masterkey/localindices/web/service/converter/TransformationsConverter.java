@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.web.service.converter;
 
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import java.net.URI;
+import java.util.LinkedList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlElement;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 
 @XmlRootElement(name = "tranformations")
 public class TransformationsConverter {
-    private List<TransformationBrief> references;
+    private List<TransformationBrief> references = new LinkedList<TransformationBrief>();
     private URI uri;
     private int start;
     private int max;
