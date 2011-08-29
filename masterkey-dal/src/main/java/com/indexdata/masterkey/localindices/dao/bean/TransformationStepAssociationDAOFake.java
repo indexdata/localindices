@@ -115,8 +115,10 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 	@Override
 	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) 
 	{
-		// TODO Auto-generated method stub
-		return null;
+    	List<TransformationStepAssociationBrief> list = new LinkedList<TransformationStepAssociationBrief>();
+    	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+    		list.add(new TransformationStepAssociationBrief(transform));
+    	return list;
 	}
 
 	@Override
