@@ -42,9 +42,10 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable.setName("HeinOnline");
             hable.setServiceProvider("HeinOnline.org");
             hable.setTechnicalNotes("leading preservation publisher producing long out-of-print legal research materials in reprint and microfilm/fiche format and also became the world's largest distributor of legal periodicals");
-            hable.setScheduleString("* * * * *");
+            hable.setScheduleString("* 1 * * *");
             hable.setUrl("http://heinonline.org/HOL/OAI");
             hable.setMetadataPrefix("oai_dc");
+            hable.setEnabled(false);
             harvestables.put(hable.getId(), hable);
             
             OaiPmhResource hable2 = new OaiPmhResource();
@@ -52,9 +53,10 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable2.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("04/04/2008"));
             hable2.setName("University of Groningen");
             hable2.setServiceProvider("University Digital Archive of the University of Groningen, The Netherlands");
-            hable2.setScheduleString("* * * * *");
+            hable2.setScheduleString("* 1 * * *");
             hable2.setUrl("http://ir.ub.rug.nl/oai/");
             hable2.setMetadataPrefix("oai_dc");
+            hable.setEnabled(true);
             
             harvestables.put(hable2.getId(), hable2);
             
