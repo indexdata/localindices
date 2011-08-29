@@ -29,7 +29,7 @@ public class HarvestableBrief implements Comparable<Object> {
     private Date lastHarvestStarted;
     private Date lastHarvestFinished;
     private Date nextHarvestSchedule;
-    private boolean enabled;
+    private Boolean enabled;
     private Date lastUpdated;
     /* Resource uri */
     private URI uri;
