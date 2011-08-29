@@ -47,7 +47,8 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
                     ":com.indexdata.masterkey.localindices.web.service.converter");
         TransformationConverter converter = new TransformationConverter();
         converter.setEntity(transformation);
-        connector.postAny(converter);
+        URL url = connector.postAny(converter);
+        transformation.setId(extractId(url));
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
