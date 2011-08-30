@@ -27,7 +27,6 @@ public class TransformationStepAssociationsConverter {
     private int start;
     private int max;
     private int count;
-    private Long transformationId;
     
     /** Creates a new instance of StoragesConverter */
     public TransformationStepAssociationsConverter() {
@@ -48,22 +47,8 @@ public class TransformationStepAssociationsConverter {
         this.start = start;
         this.max = max;
         this.count = count;
-        this.transformationId = null;
     }
 
-    public TransformationStepAssociationsConverter(List<TransformationStepAssociation> entities, URI uri, long transformationId,  int count) {
-        this.references = new ArrayList<TransformationStepAssociationBrief>();
-        for (TransformationStepAssociation entity : entities) {
-            references.add(new TransformationStepAssociationBrief(entity, uri, true));
-        }
-        this.uri = uri;
-        this.start = -1;
-        this.max   = -1;
-        this.count = count;
-        this.transformationId = transformationId;
-    }
-
-    
     /**
      * Returns a collection of TransformationStepAssociationBrief.
      *
@@ -122,14 +107,5 @@ public class TransformationStepAssociationsConverter {
 
     public void setCount(int count) {
         this.count = count;
-    }    
-    
-    @XmlAttribute(name = "transformationId")
-    public Long getTransformationId() {
-        return transformationId;
-    }
-
-    public void setTransformationId(long id) {
-        this.transformationId = id;
     }    
 }
