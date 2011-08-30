@@ -2,6 +2,7 @@ package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -54,9 +56,9 @@ public class TransformationStepAssociation  implements Serializable, Cloneable, 
 	private int position;
 	@ManyToOne
 	@PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
-	@XmlTransient
+	
 	private Transformation transformation;
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	@PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
 	@XmlTransient
 	private TransformationStep step;
@@ -65,6 +67,7 @@ public class TransformationStepAssociation  implements Serializable, Cloneable, 
 		this.transformation = transformation;
 	}
 
+	@XmlIDREF
 	public Transformation getTransformation() {
 		return transformation;
 	}
