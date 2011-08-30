@@ -346,6 +346,7 @@ public class TransformationController {
 			swap.setPosition(swap.getPosition()-i);
 			current.getStepAssociations().set(newIndex, cur);
 			current.getStepAssociations().set(index, swap);
+			dao.update(current);
 			associationDao.update(cur);
 			associationDao.update(swap);
 		}
@@ -363,8 +364,10 @@ public class TransformationController {
 		int index = setupStep();
 		if (currentStepAssociation != null && currentStepAssociation.getTransformationId() != null) {
 			currentStepAssociation = current.getStepAssociations().remove(index);
+			associationDao.delete(currentStepAssociation);
 			logger.debug("" + currentStepAssociation + " was removed.");
 			currentStepAssociation = null;
+			//TODO Need reordering! 
 		}
 		stepMode = "hideEditStep();";
         prePersist();
@@ -375,13 +378,19 @@ public class TransformationController {
 	}
 
 	public String saveStep() {
-		// TODO persist current step. Not on list, add 
+		// TODO persist current step and association . Not on list, add 
+		stepMode = "hideEditStep();";
 		if (!current.getStepAssociations().contains(currentStepAssociation)) {
 			current.addStepAssociation(currentStepAssociation);
+	        currentStepAssociation.setTransformation(current);
+	        prePersist();
+	        associationDao.create(currentStepAssociation);
 		}
-		stepMode = "hideEditStep();";
-        prePersist();
-        current = dao.update(current);
+		else {
+	        prePersist();
+			currentStepAssociation.setTransformation(current);
+			currentStepAssociation = associationDao.update(currentStepAssociation);
+		}
 		return "save_step";
 	}
 
