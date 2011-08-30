@@ -22,7 +22,9 @@ import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlID;
 
 import com.sun.xml.internal.bind.CycleRecoverable;
 
@@ -40,6 +42,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     // user-set properties
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+     
     protected Long id;
     protected String name;
     @Column(length=4096)
@@ -47,6 +50,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     protected Boolean enabled;
 
     @OneToMany(mappedBy="transformation")
+    @OrderBy("position")
     protected List<TransformationStepAssociation> stepAssociations;
 
     @OneToMany(mappedBy="transformation")
@@ -74,6 +78,13 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
 
     public Long getId() {
         return id;
+    }
+    
+    @XmlID
+    public String getIdAsString() {
+        if (id != null)
+        	return id.toString();
+        return null;
     }
 
     public void setId(Long id) {
