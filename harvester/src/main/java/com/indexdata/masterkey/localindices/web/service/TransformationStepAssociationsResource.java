@@ -31,7 +31,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
  * RESTful WS (resource) that maps to the Transformation collection.
  * @author Dennis
  */
-@Path("/tsa/")
+@Path("/tsas/")
 public class TransformationStepAssociationsResource {
     private TransformationStepAssociationDAO dao = new TransformationStepAssociationsDAOJPA();
     @Context
@@ -59,7 +59,6 @@ public class TransformationStepAssociationsResource {
      */
     @GET
     @Produces("application/xml")
-	@Path("tsas/")
     public TransformationStepAssociationsConverter get(
             
             @QueryParam("start")
@@ -108,7 +107,7 @@ public class TransformationStepAssociationsResource {
     {
         List<TransformationStepAssociation> entities;
         entities = dao.retrieveByTransformationId(id);
-        return new TransformationStepAssociationsConverter(entities, context.getAbsolutePath(), id, entities.size());
+        return new TransformationStepAssociationsConverter(entities, context.getAbsolutePath(), 0, entities.size(), entities.size());
     }
 
 }
