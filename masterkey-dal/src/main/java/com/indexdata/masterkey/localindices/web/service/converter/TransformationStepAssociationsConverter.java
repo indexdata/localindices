@@ -28,12 +28,12 @@ public class TransformationStepAssociationsConverter {
     private int max;
     private int count;
     
-    /** Creates a new instance of StoragesConverter */
+    /** Creates a new instance of Converter */
     public TransformationStepAssociationsConverter() {
     }
 
     /**
-     * Creates a new instance of TransformationStepsConverter.
+     * Creates a new instance of Converter.
      *
      * @param entities associated entities
      * @param uri associated uri
