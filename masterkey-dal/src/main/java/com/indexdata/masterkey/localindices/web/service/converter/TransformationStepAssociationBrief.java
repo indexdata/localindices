@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
@@ -13,7 +14,7 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
     private Long id;
     private Long transformationId; 
     private Long stepId; 
-    private Long position; 
+    private Integer position; 
     
     private URI uri; 
 
@@ -24,6 +25,7 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
         setId(entity.getId());
         setTransformationId(entity.getTransformationId());
         setStepId(entity.getStep().getId());
+        setPosition(new Integer(entity.getPosition()));
     }
 
     	
@@ -91,19 +93,26 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
 	}
 
 
+    @XmlElement(name = "transformationId")
 	public Long getTransformationId() {
 		return transformationId;
+	}
+
+    @XmlElement(name = "stepId")
+	public Long getStepId() {
+		return stepId;
 	}
 
 	public void setStepId(Long step) {
 		this.stepId = step;
 	}
 
-	public void setPosition(Long position) {
+	public void setPosition(Integer position) {
 		this.position = position;
 	}
 
-	public Long getPosition() {
+    @XmlElement(name = "position")
+	public Integer getPosition() {
 		return position;
 	}
 }
