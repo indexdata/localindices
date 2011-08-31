@@ -7,7 +7,6 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
-import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,8 +17,8 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlID;
 
 /**
  * @author Dennis
@@ -46,9 +45,11 @@ public abstract class Storage implements Serializable, Cloneable {
     @Column(length=100)
     protected String transformation;
 
+/*
     @OneToMany(mappedBy="storage")
+    // try @XmlTransient
     private Set<Harvestable> harvestables;
-
+*/
     
     public String getDescription() {
         return description;
@@ -86,7 +87,14 @@ public abstract class Storage implements Serializable, Cloneable {
     public Long getId() {
         return id;
     }
-
+    
+    @XmlID
+    public String getIdAsString() {
+        if (id != null)
+        	return id.toString();
+        return "";
+    }
+    
     public void setId(Long id) {
         this.id = id;
     }
@@ -137,6 +145,7 @@ public abstract class Storage implements Serializable, Cloneable {
 		this.transformation = transformation;
 	}
 
+/*
 	public void setHarvestables(Set<Harvestable> harvestables) {
 		this.harvestables = harvestables;
 	}
@@ -144,4 +153,5 @@ public abstract class Storage implements Serializable, Cloneable {
 	public Set<Harvestable> getHarvestables() {
 		return harvestables;
 	}
+*/
 }
