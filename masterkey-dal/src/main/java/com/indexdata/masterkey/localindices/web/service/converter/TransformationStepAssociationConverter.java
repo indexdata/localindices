@@ -82,7 +82,7 @@ public class TransformationStepAssociationConverter {
     }
 
     /**
-     * Returns the Storage entity.
+     * Returns the TSA entity.
      *
      * @return an entity
      */
