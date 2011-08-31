@@ -9,7 +9,6 @@ package com.indexdata.masterkey.localindices.entity;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -49,12 +48,13 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     protected String description;
     protected Boolean enabled;
 
-    @OneToMany(mappedBy="transformation")
+    @OneToMany(mappedBy="transformation", cascade=CascadeType.REMOVE)
     @OrderBy("position")
     protected List<TransformationStepAssociation> stepAssociations;
 
-    @OneToMany(mappedBy="transformation")
-    private Set<Harvestable> harvestables;
+    // Causing troubles for the marshaling
+    // @OneToMany(mappedBy="transformation")
+    // private Set<Harvestable> harvestables;
 
     protected Transformation() {
 		stepAssociations = new LinkedList<TransformationStepAssociation>();
@@ -156,6 +156,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
 		stepAssociations.remove(associationId);
 	}
 
+/*
 	public void setHarvestables(Set<Harvestable> harvestables) {
 		this.harvestables = harvestables;
 	}
@@ -163,7 +164,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
 	public Set<Harvestable> getHarvestables() {
 		return harvestables;
 	}
-
+*/
 	public List<TransformationStepAssociation> getStepAssociations() {
 		return stepAssociations;
 	}
