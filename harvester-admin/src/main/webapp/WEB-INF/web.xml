@@ -41,15 +41,15 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8081/localindices-harvester/records/transformationsteps/</param-value>
+		<param-value>http://localhost:8081/localindices-harvester/records/steps/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO</param-name>
-		<param-value>TransformationStepAssociationDAOJPA</param-value>
+		<param-value>TransformationStepAssociationDAOWS</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8081/localindices-harvester/records/tsa/</param-value>
+		<param-value>http://localhost:8081/localindices-harvester/records/tsas/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.sun.faces.verifyObjects</param-name>
@@ -84,7 +84,7 @@
 		<session-timeout>30</session-timeout>
 	</session-config>
 	<welcome-file-list>
-		<welcome-file>list_resources.xhtml</welcome-file>
+		<welcome-file>overview.xhtml</welcome-file>
 	</welcome-file-list>
 	<!-- security stuff -->
 	<filter>
