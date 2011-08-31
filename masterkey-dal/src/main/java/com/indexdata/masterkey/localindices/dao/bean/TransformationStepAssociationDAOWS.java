@@ -107,25 +107,60 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 
 	@Override
 	public List<TransformationStepAssociation> retrieve(int start, int max) {
-		return null;
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+        try {
+            ResourceConnector<TransformationStepAssociationsConverter> connector =
+                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new URL(url),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            TransformationStepAssociationsConverter  hc = connector.get();
+            // TODO implement convertion !!! 
+            hc.getReferences();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+        return null;
 	}
 
 	@Override
 	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) {
-		return null;
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+        try {
+            ResourceConnector<TransformationStepAssociationsConverter> connector =
+                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new URL(url),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            TransformationStepAssociationsConverter  hc = connector.get();
+            return hc.getReferences();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+        return null;
 	}
 
 	@Override
 	public TransformationStepAssociation retrieveFromBrief(
 			TransformationStepAssociationBrief brief) {
-		// TODO Auto-generated method stub
-		return null;
+		return retrieveById(brief.getId());
 	}
 
 	@Override
 	public int getCount() {
-		// TODO Auto-generated method stub
-		return 0;
+        String url = serviceBaseURL + "?start=0&max=0";
+        try {
+            ResourceConnector<TransformationStepAssociationsConverter> connector =
+                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new URL(url),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            TransformationStepAssociationsConverter  hc = connector.get();
+            return hc.getCount();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+        return -1;
 	}
 
 	@Override
