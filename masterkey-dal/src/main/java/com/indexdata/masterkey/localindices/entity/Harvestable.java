@@ -268,7 +268,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
         return super.clone();
     }
 
-	public Storage getStorage() {
+    public Storage getStorage() {
 		return storage;
 	}
 
