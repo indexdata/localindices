@@ -35,9 +35,7 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
     public void create(TransformationStep transformation) {
     	long newId = 1; 
     	for (Long id : steps.keySet()) {
-    		if (id != null) 
-    			if (newId <= id) 
-    				newId = id + 1; 
+    		newId = Math.max(newId, id + 1); 
     	}
     	transformation.setId(newId);
     	steps.put(newId, transformation);
@@ -87,7 +85,7 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
     }
 
     public void delete(TransformationStep transformation) {
-    	steps.remove(transformation);
+	steps.remove(transformation.getId());	
     }
 
     public int getCount() {
