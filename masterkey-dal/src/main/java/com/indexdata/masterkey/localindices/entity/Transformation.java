@@ -23,6 +23,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 
 import com.sun.xml.internal.bind.CycleRecoverable;
@@ -81,6 +82,7 @@ public class Transformation implements Serializable, Cloneable, CycleRecoverable
     }
     
     @XmlID
+    @XmlElement(name="transformationId")
     public String getIdAsString() {
         if (id != null)
         	return id.toString();
