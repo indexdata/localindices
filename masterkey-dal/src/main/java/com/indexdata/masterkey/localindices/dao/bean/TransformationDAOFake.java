@@ -122,8 +122,9 @@ public class TransformationDAOFake implements TransformationDAO {
     }
 
     public void delete(Transformation transformation) {
-    	transformations.remove(transformation);
+		transformations.remove(transformation.getId());
     }
+    
 
     public List<Transformation> retrieve(int start, int max) {
     	List<Transformation> list = new LinkedList<Transformation>();
