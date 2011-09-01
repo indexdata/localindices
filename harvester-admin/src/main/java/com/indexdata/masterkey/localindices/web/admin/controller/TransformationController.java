@@ -26,6 +26,8 @@ import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
+import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
+import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -43,6 +45,7 @@ public class TransformationController {
     // Transformation
     private TransformationDAO dao;
     private TransformationStepAssociationDAO associationDao;
+    private TransformationStepDAO stepDao;
     private Transformation current;
     
     private DataModel model;
@@ -61,6 +64,8 @@ public class TransformationController {
         try {
             dao = TransformationDAOFactory.getTransformationDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
             associationDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
+            stepDao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance().getExternalContext().getContext() );
+
         } catch (DAOException ex) {
             logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
         }
