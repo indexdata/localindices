@@ -94,10 +94,10 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     @Override
     public boolean equals(Object object) {
         // change that so that it check the real class
-        if (!(object instanceof Transformation)) {
+        if (!(object instanceof TransformationStep)) {
             return false;
         }
-        Transformation other = (Transformation) object;
+        TransformationStep other = (TransformationStep) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
