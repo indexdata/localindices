@@ -11,9 +11,5 @@
         <h:inputTextarea cols="100" rows="15" value="#{resourceController.resource.url}"/>
         <h:outputText value="Expected Schema:"/>
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>
-        <!--
-        <h:outputText value="Normalization Filter:"/>
-        <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
-        -->
     </h:panelGrid>
 </f:subview>
