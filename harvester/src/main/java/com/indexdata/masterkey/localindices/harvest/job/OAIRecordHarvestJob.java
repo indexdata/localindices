@@ -6,7 +6,6 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
@@ -14,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.transform.Templates;
@@ -36,9 +34,8 @@ import org.w3c.dom.NodeList;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.Transformation;
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
@@ -56,13 +53,12 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
 @SuppressWarnings("unused")
 public class OAIRecordHarvestJob extends AbstractRecordHarvestJob 
 {
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+    static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private OaiPmhResource resource;
     private Proxy proxy;
     private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private String currentDateFormat;
     private boolean initialRun = true;
-	private TransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 	private String[] oai_dc_pz = { "oai_dc.xsl"}; 
 	private String[] oai_marc21_pz = { "oai2marc.xsl", "marc21.xsl" }; 
     private Templates[] templates = {};
@@ -184,33 +180,26 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
     	}
 		return templates;
 	}
-
-    private Templates[] getTemplates(String[] stringTemplates) throws TransformerConfigurationException {
-    	StreamSource[] streamSources = new StreamSource[stringTemplates.length];
-    	int index = 0;
-    	for (String template: stringTemplates) {
-    		streamSources[index] = new StreamSource(new CharArrayReader(template.toCharArray()));
-    		index++;
-    	}
-    	return getTemplates(streamSources);
-    }
-
-    private Templates getTemplates(StreamSource source) throws TransformerConfigurationException {
-		return stf.newTemplates(source);
-    }
-
-    private Templates[] getTemplates(StreamSource[] sourceTemplates) throws TransformerConfigurationException {
-    	
-    	Templates[] templates = new Templates[sourceTemplates.length];
-    	int index = 0;
-    	for (StreamSource source: sourceTemplates) {
-    		templates[index] = stf.newTemplates(source);
-    		index++;
-    	}
-		return templates;
-    }
     
-	private void harvest(String baseURL, String from, String until,
+    protected boolean setupTransformation(Harvestable resource, String staticConfig) {
+        try {
+        	if (resource.getTransformation() != null) {
+        		templates = lookupTransformationTemplates(resource.getTransformation());
+        	}
+        	else { 
+	        	getStaticTransformation(staticConfig);
+        	}
+        	return true;
+		} catch (TransformerConfigurationException e1) {
+            setStatus(HarvestStatus.ERROR);
+            resource.setMessage(e1.getMessage());
+            logger.log(Level.ERROR, "Error creating normalization transformation.");
+            return false;
+		} 
+
+    }
+
+    private void harvest(String baseURL, String from, String until,
             String metadataPrefix, String setSpec, String resumptionToken,
             RecordStorage storage) throws IOException {
 
@@ -220,20 +209,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
         map.put("metadataprefix", metadataPrefix);
         map.put("oaisetname", setSpec);
         map.put("normalizationfilter", resource.getNormalizationFilter());
-        try {
-        	if (resource.getTransformation() != null) {
-        		templates = lookupTransformationTemplates(resource.getTransformation());
-        	}
-        	else { 
-	        	getStaticTransformation(metadataPrefix);
-        	}
-		} catch (TransformerConfigurationException e1) {
-            setStatus(HarvestStatus.ERROR);
-            resource.setMessage(e1.getMessage());
-            logger.log(Level.ERROR, "Error creating normalization transformation.");
-            return ;
-		} 
 
+        if (!setupTransformation(resource, metadataPrefix))
+        	return ; 
+        
     	ListRecords listRecords = null;
         if (resumptionToken == null || "".equals(resumptionToken)) {
             listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
@@ -340,25 +319,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob
 		DOMSource xmlSource = new DOMSource(node);
 		transformer.transform(xmlSource, outputTarget);
 		return null;
-	}
-
-	private Templates[] lookupTransformationTemplates(Transformation transformation) throws TransformerConfigurationException {
-		if (transformation.getSteps() == null)
-			return new Templates[0];
-			
-		List<TransformationStep> steps = transformation.getSteps();
-		Templates[] templates = new Templates[steps.size()];
-		for (int index = 0; index < steps.size(); index++ ) {
-			TransformationStep step = steps.get(index);
-			try {
-				logger.debug("Creating template for step: " + step.getName());
-				templates[index] = getTemplates(new StreamSource(new CharArrayReader(step.getScript().toCharArray())));
-			} catch (TransformerConfigurationException te) {
-				logger.error("Error creating template for step: " + step.getName() + ". Message: " + te.getMessage());
-				throw te;
-			}
-		}
-		return templates;
 	}
 
 	private boolean isDelete(Record node) {

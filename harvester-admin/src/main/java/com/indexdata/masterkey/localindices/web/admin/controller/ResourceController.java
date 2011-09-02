@@ -36,7 +36,6 @@ import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -332,12 +331,6 @@ public class ResourceController {
         return "new_xmlbulk";
     }
 
-    public String prepareSolrBulkResourceToAdd() {
-        resource = new SolrXmlBulkResource();
-        return "new_solrxmlbulk";
-    }
-
-    
     public String addResource() {
         prePersist();
         dao.create(resource);
@@ -356,8 +349,6 @@ public class ResourceController {
             return "edit_webcrawl";
         } else if (resource instanceof XmlBulkResource) {
             return "edit_xmlbulk";
-        } else if (resource instanceof SolrXmlBulkResource) {
-            return "edit_solrxmlbulk";
         } else {
             logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
             return "failure";

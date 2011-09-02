@@ -31,12 +31,12 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage
 	
 	public SolrRecordStorage(String url_string, Harvestable harvestable) {
 		super(url_string, harvestable);
-		database = harvestable.getId().toString();
 	}
 
 	@Override 
 	public void begin() throws IOException {
 		super.begin();
+		database = harvestable.getId().toString();
 		added = 0;
 		deleted = 0;
 	}

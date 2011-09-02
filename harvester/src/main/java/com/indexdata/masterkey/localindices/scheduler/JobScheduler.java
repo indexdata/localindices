@@ -105,7 +105,8 @@ public class JobScheduler {
     	if (harv.getStorage() != null) {
     		return HarvestStorageFactory.getStorage(harv);
     	}
-		return  HarvestStorageFactory.getStorage((String)config.get("harvester.dir"), harv);
+		logger.error("Not Storage configuration for Harvestable: " + harv.getName());
+    	return  null;
 	}
 
 	/**
