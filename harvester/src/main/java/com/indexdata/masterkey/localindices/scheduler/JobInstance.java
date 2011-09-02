@@ -65,8 +65,15 @@ public class JobInstance {
             	harvestJob.setStorage(storage);
             }
         } else if (hable instanceof XmlBulkResource) {
-        	harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
-            harvestJob.setStorage(storage);            
+            if (storage instanceof RecordStorage) {
+            	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy);
+            	harvestJob.setStorage((RecordStorage) storage);
+            }
+            else {
+            	harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
+                harvestJob.setStorage(storage);            
+            }
+
         } else if (hable instanceof WebCrawlResource) {
         	harvestJob = new WebHarvestJob((WebCrawlResource) hable, proxy);
             harvestJob.setStorage(storage);
