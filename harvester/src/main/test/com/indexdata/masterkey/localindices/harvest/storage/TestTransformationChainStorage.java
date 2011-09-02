@@ -32,11 +32,12 @@ import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 
 public class TestTransformationChainStorage extends TestCase {
-		Harvestable harvestable = new  SolrXmlBulkResource();
+		Harvestable harvestable = new  XmlBulkResource("http://localhost:8080/localindices-harvester/marc.xml");
+		
 		
 		// SOLR Server in container on 8080
 		String solrUrl = "http://localhost:8080/solr/";
@@ -84,6 +85,21 @@ public class TestTransformationChainStorage extends TestCase {
 			String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl};
 			XMLReader xmlReader = createTransformChain(stylesheets);
 			TransformationChainStorageProxy transformStorage  = new TransformationChainStorageProxy(solrStorage, xmlReader);
+			transformStorage.begin();
+			OutputStream output = transformStorage.getOutputStream();
+			Writer writer = new OutputStreamWriter(output);
+			writer.write(oai_pmh_marcxml);
+			writer.close();
+			transformStorage.commit();
+		}
+
+		public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage() throws IOException, TransformerConfigurationException, ParserConfigurationException, SAXException 
+		{
+			String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl};
+			harvestable.setId(1l);
+			//harvestable.setTransformation(transformation)
+			XMLReader xmlReader = createTransformChain(stylesheets);
+			TransformationChainRecordStorageProxy transformStorage  = new TransformationChainRecordStorageProxy(bulkStorage, xmlReader,new Pz2SolrRecordContentHandler(bulkStorage, "test"));
 			transformStorage.begin();
 			OutputStream output = transformStorage.getOutputStream();
 			Writer writer = new OutputStreamWriter(output);
