@@ -10,10 +10,10 @@ import javax.xml.stream.XMLStreamException;
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.SolrXmlBulkResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 public class TestSolrStorage extends TestCase {
-	Harvestable harvestable = new  SolrXmlBulkResource();
+	Harvestable harvestable = new  XmlBulkResource();
 	// SOLR Server in container on 8080
 	HarvestStorage storage = new SolrStorage("http://localhost:8080/solr/", harvestable);
 	String testXml 
