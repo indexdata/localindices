@@ -25,22 +25,19 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 	@Column(length=16384)
     private String url;
     private String expectedSchema;
-    private String normalizationFilter;
 
+	public XmlBulkResource() {
+	}
+
+	public XmlBulkResource(String url) {
+		this.url = url;
+	}
     public String getExpectedSchema() {
         return expectedSchema;
     }
 
     public void setExpectedSchema(String expectedSchema) {
         this.expectedSchema = expectedSchema;
-    }
-
-    public String getNormalizationFilter() {
-        return normalizationFilter;
-    }
-
-    public void setNormalizationFilter(String normalizationFilter) {
-        this.normalizationFilter = normalizationFilter;
     }
 
     public String getUrl() {
