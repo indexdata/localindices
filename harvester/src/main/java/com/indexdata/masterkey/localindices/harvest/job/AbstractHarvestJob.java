@@ -42,12 +42,12 @@ public abstract class AbstractHarvestJob implements HarvestJob {
     }
 
     @Override
-    public final void setStorage(HarvestStorage storage) {
+    public void setStorage(HarvestStorage storage) {
         this.storage = storage;
     }
 
     @Override
-    public final HarvestStorage getStorage() {
+    public HarvestStorage getStorage() {
         return this.storage;
     }
 
