@@ -17,7 +17,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
-public class TransformationChainRecordStorageProxy extends StorageProxy 
+public class TransformationChainRecordStorageProxy extends RecordStorageProxy 
 {
 	private PipedOutputStream output;
 	private PipedInputStream input;
