@@ -25,8 +25,7 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 	@Column(length=16384)
     private String url;
     private String expectedSchema;
-
-	public XmlBulkResource() {
+    public XmlBulkResource() {
 	}
 
 	public XmlBulkResource(String url) {
@@ -54,7 +53,7 @@ public class XmlBulkResource extends Harvestable implements Serializable {
         if (!(object instanceof XmlBulkResource)) {
             return false;
         }
-        XmlBulkResource other = (XmlBulkResource) object;
+        Harvestable other = (Harvestable) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
