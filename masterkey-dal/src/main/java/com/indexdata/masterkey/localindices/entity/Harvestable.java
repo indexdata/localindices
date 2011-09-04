@@ -82,6 +82,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
     @ManyToOne(optional=true)
     protected Transformation transformation;
+	private Boolean overwrite;
 
     
     public String getDescription() {
@@ -282,5 +283,15 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
 	public void setTransformation(Transformation transformation) {
 		this.transformation = transformation;
+	}
+
+	public void setOverwrite(Boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	public Boolean getOverwrite() {
+		if (overwrite != null)
+			return overwrite;
+		return false;
 	}
 }
