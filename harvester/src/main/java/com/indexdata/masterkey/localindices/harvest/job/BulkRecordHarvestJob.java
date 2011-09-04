@@ -98,18 +98,27 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
 
     public void run() {
-        try {
+    	try {
+            // TODO this is different from old behavior. All insert is now done in one commit.  
+    		getStorage().begin();
             setStatus(HarvestStatus.RUNNING);
-            //db drop mode on
-            getStorage().setOverwriteMode(true);
+            if (resource.getOverwrite());
+            	getStorage().purge();
             downloadList(resource.getUrl().split(" "));
             setStatus(HarvestStatus.FINISHED);
-        } catch (Exception e) {
-            setStatus(HarvestStatus.ERROR);
-            error = e.getMessage();
-            resource.setMessage(e.getMessage());
-            logger.log(Level.ERROR, "Download failed.", e);
-        }
+			getStorage().commit();
+        } 
+    	catch (Exception e) {
+    		try {
+    			getStorage().rollback();
+    		} catch (Exception ioe) {
+    	        logger.log(Level.ERROR, "Roll-back failed.", ioe);
+    		}
+	        setStatus(HarvestStatus.ERROR);
+	        error = e.getMessage();
+	        resource.setMessage(e.getMessage());
+	        logger.log(Level.ERROR, "Download failed.", e);
+	    }
     }
 
     private void downloadList(String[] urls) throws Exception {
@@ -160,7 +169,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
                             } else {
                                 logger.log(Level.INFO, "Found file at " + link.toString());
                                 store(conn.getInputStream(), contentLenght);
-                                getStorage().setOverwriteMode(false);
                                 proper++;
                             }
                         } else {
@@ -191,15 +199,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
 
     private void store(InputStream is, int contentLength) throws Exception {
-        try {
-            getStorage().begin();
-			OutputStream output = getStorage().getOutputStream();
-			pipe(is, output, contentLength);
-			getStorage().commit();
-        } catch (IOException ioe) {
-            getStorage().rollback();
-            throw new Exception("Storage write failed. ", ioe);
-        }
+    	OutputStream output = getStorage().getOutputStream();
+    	pipe(is, output, contentLength);
     }
 
 	public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException, UnsupportedEncodingException {
