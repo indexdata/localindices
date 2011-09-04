@@ -21,11 +21,13 @@
                 <br/>
                 <h:outputText value="Add new storage: "/>
                 <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
+<!-- 
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
                 <h:outputText value=", "/>
                 <h:commandLink value="Zebra2" action="#{storageController.prepareZebraStorageToAdd}" />       
                 <h:outputText value=" "/>
+ -->
             </h:form>
             <h:form>
                 <h3><h:outputText value="Available Storages:" /></h3>
