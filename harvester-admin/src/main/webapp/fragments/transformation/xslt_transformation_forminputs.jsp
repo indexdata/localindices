@@ -52,11 +52,13 @@
                 onclick="return showEditStep();">
                <f:param name="stepID" value="#{item.id}" />
             </h:commandLink>
+<!-- 
            <h:commandLink value=" Crosswalk"
                action="#{transformationController.addCrosswalkStep}"
                 onclick="return showEditStep();">
                <f:param name="stepID" value="#{item.id}" />
             </h:commandLink>
+ -->
            <h:commandLink value=" Validation Step"
                action="#{transformationController.addValidationStep}"
                 onclick="return showEditStep();">
