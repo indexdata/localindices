@@ -70,7 +70,7 @@ public class JobInstance {
             	harvestJob.setStorage((RecordStorage) storage);
             }
             else {
-            	harvestJob = new BullkHarvestJob((XmlBulkResource) hable, proxy);
+            	harvestJob = new BulkHarvestJob((XmlBulkResource) hable, proxy);
                 harvestJob.setStorage(storage);            
             }
 
