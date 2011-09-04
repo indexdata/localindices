@@ -83,8 +83,7 @@ public class BullkHarvestJob implements HarvestJob {
     public void run() {
         try {
             status = HarvestStatus.RUNNING;
-            //db drop mode on
-            storage.setOverwriteMode(true);
+            storage.setOverwriteMode(resource.getOverwrite());
             downloadList(resource.getUrl().split(" "));
             status = HarvestStatus.FINISHED;
         } catch (Exception e) {
@@ -96,8 +95,17 @@ public class BullkHarvestJob implements HarvestJob {
     }
 
     private void downloadList(String[] urls) throws Exception {
-        for (String url : urls) {
-            download(new URL(url));
+        try {
+	    	storage.begin();
+	    	if (storage.getOverwriteMode())
+	    		storage.purge();
+	    	for (String url : urls) {
+	            download(new URL(url));
+	        }
+	    	storage.commit();
+        } catch (IOException ioe) {
+            storage.rollback();
+            throw new Exception("Storage write failed. ", ioe);
         }
     }
 
@@ -143,7 +151,6 @@ public class BullkHarvestJob implements HarvestJob {
                             } else {
                                 logger.log(Level.INFO, "Found file at " + link.toString());
                                 store(conn.getInputStream(), contentLenght);
-                                storage.setOverwriteMode(false);
                                 proper++;
                             }
                         } else {
@@ -174,14 +181,7 @@ public class BullkHarvestJob implements HarvestJob {
     }
 
     private void store(InputStream is, int contentLenght) throws Exception {
-        try {
-            storage.begin();
             pipe(is, storage.getOutputStream(), contentLenght);
-            storage.commit();
-        } catch (IOException ioe) {
-            storage.rollback();
-            throw new Exception("Storage write failed. ", ioe);
-        }
     }
 
     private void pipe(InputStream is, OutputStream os, int total) throws IOException {
