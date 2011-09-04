@@ -23,7 +23,7 @@ import org.apache.log4j.Level;
  * This class handles bulk HTTP download of a single file.
  * @author jakub
  */
-public class BullkHarvestJob implements HarvestJob {
+public class BulkHarvestJob implements HarvestJob {
 
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
     private HarvestStorage storage;
@@ -35,7 +35,7 @@ public class BullkHarvestJob implements HarvestJob {
     private Proxy proxy;
     private boolean die = false;
 
-    public BullkHarvestJob(XmlBulkResource resource, Proxy proxy) {
+    public BulkHarvestJob(XmlBulkResource resource, Proxy proxy) {
         this.proxy = proxy;
         this.resource = resource;
         this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
