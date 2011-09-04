@@ -46,6 +46,8 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.harvestImmediately}"/>
         <h:outputText value="Harvest job enabled:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
+        <h:outputText value="Overwrite:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.overwrite}"/>
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Transformation Pipeline:"/>
         <h:selectOneMenu value="#{resourceController.transformation}">
