@@ -33,12 +33,14 @@
                                    rendered="#{transformationController.lastItem < transformationController.itemCount && transformationController.lastItem + transformationController.batchSize > transformationController.itemCount}"/>
                 </div>               
                 <h:dataTable value="#{transformationController.transformations}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+<!-- 
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="ID" />
                         </f:facet> 
                         <h:outputText value="#{item.id}"></h:outputText>
                     </h:column>                
+ -->
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />
