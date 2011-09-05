@@ -90,7 +90,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     @Override
     public abstract void run();
 
-	protected Templates[] getTemplates(String[] stringTemplates)
+    @SuppressWarnings("unused")
+	private Templates[] getTemplates(String[] stringTemplates)
 			throws TransformerConfigurationException {
 				StreamSource[] streamSources = new StreamSource[stringTemplates.length];
 				int index = 0;
@@ -101,7 +102,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
 				return getTemplates(streamSources);
 			}
 
-	protected Templates getTemplates(StreamSource source)
+	private Templates getTemplates(StreamSource source)
 			throws TransformerConfigurationException {
 				return stf.newTemplates(source);
 			}
