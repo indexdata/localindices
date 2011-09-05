@@ -8,7 +8,7 @@
     <h5>General information: </h5>
     <h:panelGrid columns="2">
         <h:outputText value="ID:"/>
-        <h:outputText value="#{transformationController.transformation.id}" size="30"/>
+        <h:outputText value="#{transformationController.transformation.id}"/>
         <h:outputText value="Name:"/>
         <h:inputText value="#{transformationController.transformation.name}" size="30"/>
         <h:outputText value="Description:"/>
