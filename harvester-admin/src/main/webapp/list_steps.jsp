@@ -11,7 +11,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available resources</title>
+        <title>Available TransformationSteps</title>
     </head>
     <body>
         <f:view>
@@ -19,8 +19,8 @@
                 <h:commandLink value="Overview" action="#{stepController.back}" />
                 <h:commandLink value="Refresh List" action="#{stepController.list}" />
                 <br>
-                <h:outputText value="Add new transformation: "/>
-                <h:commandLink value="OAI-PMH" action="#{stepController.prepareXsltStep}" />                
+                <h:outputText value="Add new : "/>
+                <h:commandLink value="Xslt" action="#{stepController.prepareXsltStep}" />                
 <!-- 
                  <h:outputText value=", "/>
                 <h:commandLink value="WebCrawl" action="#{stepController.prepareWebCrawlResourceToAdd}" />       
