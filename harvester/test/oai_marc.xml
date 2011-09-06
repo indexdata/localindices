@@ -1,0 +1,1258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
+		http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<responseDate>2011-05-03T13:06:20Z</responseDate>
+	<request verb="ListRecords" from="2011-04-01" metadataPrefix="marcxml">http://ijict.org/index.php/ijoat/oai</request>
+	<ListRecords>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/178</identifier>
+				<datestamp>2011-04-14T10:00:41Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Next Generation High Speed Computing Using System-on-Chip (SoC) Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Qurat-ul-Ain Malik; FUIEMS</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">M. Aqeel Iqbal; FUIEMS</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">SoC, NoC, High Speed Computing, Homogenous SoC, Heterogeneous SoC.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">System on chip is the most modern form of technology being under use and further research for the high speed applications. This technology has nominated a large number of different research areas which would lead the existing technology towards the one of the most widely used computing technology. This technology has raised many emerging issues and has announced big challenges for the researchers and engineers. They are result of microprocessors, memories, buses systems, communications systems, standards, protocol processors, interfaces and other intellectual property components. Alternatively, a SoC product is designed with the concept of embedded system that is capable of being implemented on a single chip, thereby producing a system which can be placed in any environment which is smaller, faster and more efficient system. In this research paper a most comprehensive survey report of existing SoC technology and its underlying issues has been presented. The paper raises a large number of technical aspects at hardware level as well as software level which should be investigated for further exploration of the technology to demonstrate a high speed performance gain. </subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/system-on-chip</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 243-256</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/system-on-chip/745</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/208</identifier>
+				<datestamp>2011-04-14T10:02:37Z</datestamp>
+				<setSpec>ijoat:II</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">A Novel Texture Feature – Similarity, its Concept and Algorithm</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Abhishek Gupta; PEC, University of Technology, Chandigarh, INDIA</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Features of Textural images</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">texture feature, similarity, image processing, histogram, LSP(Local Subtration Pattern);</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Image Processing</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Texture feature is an important study about the textural image which helps to understand the nature and characteristics of the texture. So, we have introduced a novel texture feature &amp;ndash; Similarity which describes the textural image in term of similar regions available in image and help to identify the same texture appearing with some angle. This feature can also recognize the same texture in different light. Our paper describes the concept of the similarity verses dissimilarity and proposes an algorithm for calculating it. Every textural image&amp;rsquo;s region can be expressed by similarity histogram as discussed in this paper.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/texture-feature</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 181-187</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/texture-feature/750</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/texture-feature/751</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/211</identifier>
+				<datestamp>2011-04-14T10:05:00Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Exploring the Interaction between Users and Tagging Systems on the Web</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Mohammad Y Chuttur; Indiana University</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">information science, web tagging, user annotation, information representation, information retrieval</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">user tagging, content analysis, tagging behavior</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a"> With tagging becoming an increasingly important social phenomenon, some researchers view the tags supplied by users as a useful tool for helping individuals find relevant information on the web. Other researchers, however, still question the utility of tags in information retrieval systems, contending that tags are only relevant for the individual user supplying the tags. In this paper, we argue that tags are, in fact, the result of an interaction between the user, the tagging system, and the resource being tagged. Using Web Content Analysis, we analyze 33 websites that support tagging and identify the structural features (interfaces) that allow a user to tag a resource. Findings show that depending on the features supported by tagging systems, tags may either represent the information content of a resource as viewed by individual users only or they may be the result of a collaborative effort from a group of users. </subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a">content analysis</subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/tagging</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 233-242</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/tagging/739</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/214</identifier>
+				<datestamp>2011-04-14T10:06:24Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Probabilistic Encryption Based ECC Mechanism</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Addepalli V.N. Krishna; indur sciety</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Communication systems</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">ECC,Probabilistic encryption, Multiple ciphers, chosen cipher text attack</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">cryptography/network security</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Elliptic Curve Cryptography provides a secure means of&amp;nbsp; exchanging keys among communicating hosts using the Diffie Hellman Key Exchange algorithm. Encryption and Decryption of texts and messages have also been attempted. In the paper[15], the authors presented the implementation of ECC by first transforming the message into an affine point on the EC, and then applying the knapsack algorithm on ECC encrypted message over the finite field GF(p). The kanp sack problem is not secure in the present standards and more over in the work the authors in their decryption process used elliptic curve discrete logarithm to get back the plain text. This may form a computationally infeasible problem if the values are large enough in generating the plain text. In the present work the output of ECC algorithm is provided with probabilistic features which make the algorithm free from Chosen cipher text attack. Thus by having key lengths of even less than 160 bits, the present algorithm provides sufficient strength against crypto analysis and whose performance can be compared with standard algorithms like RSA.&amp;nbsp; </subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/elliptic-curve-crypotography</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 257-268</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/220</identifier>
+				<datestamp>2011-04-14T10:08:24Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Comparison of SCM and Rayleigh Channel Models by Exploitation of Diversity in Time and Spatial Domain Using Opportunistic Communication Technique</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Khalid Iqbal; NUST</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Almas Anjum; NUST</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">M. Aqeel Iqbal; NUST</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Communication Systems</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Spatial channel model (SCM), Signal to Noise ratio (SNR), Additive white Gaussian noise (AWGN), Base station (BS), Mobile station (MS), Uniform Linear Array (ULA), Bit Error Rate (BER)</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Communication Systems</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">This paper exploits the concept of diversity using adaptive antenna at BS, where different users are communicating with BS from different locations but at same frequency in flat fading and frequency selective environments. In this paper in the simulations it is assumed that there is one jammer whose direction is known in advance. Therefore it uses the known direction of the jammer to calculate the interference plus noise correlation matrix&amp;nbsp; so that it can place a null in the direction of jammer. When user-1 is communicating with the BS a composite signal is received using the optimal beamformer that forms main beam towards user-1, while placing a null towards user-2 considering it as a jammer. The interference plus noise correlation matrix is used to find the weight of an optimal beamformer. The opportunistic communication method has been implemented using Matlab Rayleigh and Spatial channel model (SCM) developed by 3rd generation partnership project (3GPP). The main focus is on comparison of results using SCM and Matlab Rayleigh channel and is shown with the help of simulations that SCM provides an improvement in terms of bit error rate (BER) as compared to Matlab Rayleigh Channel. The BER performance of SCM systems is much better thereby showing an improvement of about 5dB in flat fading environment which is achieved because of exploitation of spatial diversity offered by SCM. In case of frequency selective fading environment there is an improvement of 2-3 dB for two users while using SCM as compared to Matlab Rayleigh channel by exploitation of diversity in both spatial and time domains.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/scm-rayleigh</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 269-284</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/scm-rayleigh/704</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/scm-rayleigh/705</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/225</identifier>
+				<datestamp>2011-04-14T10:09:04Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Novel Wavelet Ann Technique To Classify Interturn Fault In Three Phase Induction Motor</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Anjali Uday Jawadekar; S.S.G.M.C.E Shegaon</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Sudhir Paraskar; S.S.G.M.C.E.SHEGAON</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Gajanan Dhole; S.S.G.M.C.E.SHEGAON</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Electrical Machines</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Induction motor, ANN, Fault detection, DWT, Park’s vector pattern.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Signal Processing</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Early detection of faults in stator winding of induction motor is crucial for reliable and economical operation of induction motor in industries. Whereas major winding faults can be easily identified from supply currents, minor faults involving less than 5 % of turns are not readily discernible. The present contribution reports experimental results for monitoring of minor short circuit faults in stator winding of induction motor. Motor line current has been analyzed using modern signal processing and data reduction tool combing Park&amp;rsquo;s Transformation and Discrete Wavelet Transform (DWT). Feed Forward Artificial Neural (FFANN) based data classification tool is used for fault characterization based on DWT features extracted from Park&amp;rsquo;s Current Vector Pattern. An online algorithm is tested successfully on three phase induction motor and experimental results are presented to demonstrate the effectiveness of the proposed method.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/ann-fault-tolerance</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 319-330</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/226</identifier>
+				<datestamp>2011-04-14T10:09:51Z</datestamp>
+				<setSpec>ijoat:RA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">A Review About Vector Group Connections In Transformers</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Geno Peter</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Transformer is the most important unit in an electrical distribution network. All transformers are subjected to various tests at the manufacturer&amp;rsquo;s test laboratory before despatch to the destination of erection. Measurement of turn&amp;rsquo;s ratio is one of the routine tests which each transformer has to undergo.&amp;nbsp; In the case of an ordinary winding resistance meter, we can measure the winding resistance and the contact resistance together. It is not possible to measure the contact resistance separately by this meter. Now contact resistance meter is available, it is designed to measure the contact resistances of various Test Objects such as Transformers, Circuit Breakers, Isolators, Bus-bar joints, Welded joints etc. Advanced winding resistance ohmmeter with Dynamic resistance measurement for OLTC is available now with an International trademark. The dynamic resistance measurement detects carbonized spots and weak contacts in the mechanism of a tap changer. In this paper, I wish to discuss the practical differences created in the turn ratio measurement because of the tap switch contact resistance.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/vector-group-connections</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 215-221</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/241</identifier>
+				<datestamp>2011-04-14T10:11:10Z</datestamp>
+				<setSpec>ijoat:RA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">A Survey of Quality Assurance Frameworks for Service Oriented Systems</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Maria Allauddin; College of EME, NUST</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Farooque Azam; College of EME, NUST</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Mehmooda Jabeen Zia; College of EME, NUST</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Service Oriented, Quality, Assurance, Framework,  Survey.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Quality assurance has vital role in building a software system because it provides confidence and lowers the risks associated. Assurance in service-oriented systems is a challenging problem, which requires a flexible and dynamic solution.When we talk about quality of a service oriented system we have to consider all the included services that are interdependent to provide that service, including all the limitations of resources and runtime situation. In order to state different quality expectations in terms of specification and advertisement significant quality networks are still required. In the frameworks there is also a need to compare and select between alternative services.&amp;nbsp;&amp;nbsp; In this paper we will survey different quality assurance frameworks used in service oriented systems, to determine that which framework is the most efficient and reliable to face the challenges and implications of the characteristics of these systems.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/quality-assurance</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 188-198</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/quality-assurance/702</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/251</identifier>
+				<datestamp>2011-04-14T10:11:57Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Dynamic Partial Reconfiguration of FPGA for SEU Mitigation and Area Efficiency</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Vijay G Savani; Nirma University</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Akash I Mecwan; Nirma University</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Nagendra P Gajjar; Nirma University</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">VLSI Design, Front End Design</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Single Event Upset (SEU), Reconfiguration, Mitigation.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Partial Reconfiguration of FPGA</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">The fast growing VLSI industry demands new techniques for configuring the FPGA. When it comes to defence and space application the configuration of the FPGA becomes more crucial. When it is required to configure the FPGA automatically, the need arises of more sophisticated and fast techniques for reconfiguration of FPGA. In the space application, the effect of radiation changes the bit patterns in the SRAM cells of FPGA, so it is required to put FPGA into its original condition before SEU. Considering all the facts the paper discusses the mitigation techniques for Single Event Upset (SEU) through Dynamic Partial Reconfiguration of FPGA. It is also very useful to save area of the FPGA by reconfiguration. For the proof of concept up and down sampler are developed as a reconfiguration module and then used for Dynamic Partial Reconfiguration technique. The timing and area requirement of reconfiguration using various techniques is the major focus of the paper.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/fpga-dynamic-partial</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 285-291</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/fpga-dynamic-partial/680</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/fpga-dynamic-partial/744</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/254</identifier>
+				<datestamp>2011-04-14T10:12:52Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Received Signal Strength Based Effective Call Scheduling in Wireless Mobile Network</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Biswajit Bhowmik; Bengal College of Engineering and Technology, Durgapur</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Piyali Sarkar</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Pooja Shekhar</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Nupur Thakur</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Communication Systems</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Mobile Station, Handover, Signal Strength, Treap, Arrival Rate, Departure Rate, Blocking Probability, SIRO, Splay Operations.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Mobility is the most imperative aspect in a wireless cellular communication system. The channel associated with the current connection (Base Station), while a call is in progress, is changed. The existing call may then change to a new Base Station (BS). Either crossing a cell boundary of current BS by the mobile caller also called mobile station (MS) or deterioration in quality of the signal in the current channel is primarily responsible for initiating this new connection. In this paper an improved Signal Strength Based Priority Queue Generation (S2BPQ) model is introduced for effective call scheduling.&amp;nbsp; The model computes signal strength of a mobile caller (MC) to enqueue and introduces a tree with heap like structure for generated queue implementation in considerably reduced time.&amp;nbsp; Determination of arrival rate of MCs and introduction of auto-generated data structure for selection of MCs in low starvation scheme reflect both originality and generality of the model. </subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">There is no funding agency</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/signal-strength-call-scheduling</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 292-305</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/256</identifier>
+				<datestamp>2011-04-14T10:13:29Z</datestamp>
+				<setSpec>ijoat:RA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Survey on Motion Vector Filtering and Object Segmentation Methods in Compressed Domain.</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Jayanth Avarur</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">SaiKrishna D</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">In the compression domain video analysis, motion vectors and DCT coefficients are the two main components used to analyze the motion of objects. Compression domain video analysis has many advantages over pixel domain analysis, it is becoming popular very fast and thus there is a need to develop an efficient method to identify the objects in the compression domain. In due course, large number of compressed domain approaches have appeared over the years, including foreground segmentation and object tracking. As mentioned earlier motion vectors and DCT coefficients play a major role in object detection and there is a possibility of noise in both the components. An efficient algorithm is required to filter out these noisy components. Considering the issue, we discuss several approaches for both noise filtering and object segmentation in a compressed video.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/motion-vector-filtering</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 199-205</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/motion-vector-filtering/743</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/261</identifier>
+				<datestamp>2011-04-14T10:14:10Z</datestamp>
+				<setSpec>ijoat:RA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">An Evaluation of K-Center Problem Solving Techniques, towards Optimality</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Rattan Rana; Thapar University India</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Deepak Garg; Thapar University, India</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">optimized algorithms</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">vertex k-center, facility location, optimal, demand node, lower bound, upper bound.</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Algorithms</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Optimization of facility location problem is one of the prominent areas of research since last few decades. The vertex k-center problem represents a common occurring problem with in public and private sectors. Consistent efforts are going towards optimal solution of this NP-hard nature problem. The aim of this paper is to highlight the different aspects of algorithmic approach made in this area, so far. Relevant suggestions and modifications are also incorporated in this paper.&amp;nbsp;</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/k-center-problem</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 206-214</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/k-center-problem/752</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/k-center-problem/755</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/262</identifier>
+				<datestamp>2011-04-14T10:14:48Z</datestamp>
+				<setSpec>ijoat:RP</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Discrimination between Inrush and Fault in Transformer: ANN Approach</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Sudhir Paraskar</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">M A Beg</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">G M Dhole</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Electrical Engineering</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Neural networks, transformer, fault detection, discrete wavelet transform (DWT), inrush current</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Signal Processing</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Transformer protection is critical issue in power system as the issue lies in the accurate and rapid discrimination of magnetizing inrush current from internal fault current. Artificial neural network has been proposed and has demonstrated the capability of solving the transformer monitoring and fault detection problem using an inexpensive, reliable, and noninvasive procedure. This paper gives algorithm where statistical parameters of detailed d1 level wavelet coefficients of signal are used as an input to the artificial neural network (ANN), which develops in to a novel approach for online detection method to discriminate the magnetizing inrush current and inter-turn fault, and even the location of fault i.e. whether the interturn fault lies in primary winding or secondary winding through the use of discrete wavelet transform and artificial neural-nets (ANNs). A custom-built single-phase transformer was used in the laboratory to collect the data from controlled experiments. After the feature extraction using discrete wavelet transform (DWT), a neural network models MLP has been designed and trained rigorously. The proposed on line detection scheme is also discussed. </subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/transformer-inrush-fault</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 306-318</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/263</identifier>
+				<datestamp>2011-04-14T10:15:19Z</datestamp>
+				<setSpec>ijoat:EA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">The Global Mind, Context And Knowledge Creation</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Gregory Vert; Louisiana State University</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Many years ago like so many of my friends, I often watched shows like Star Trek and Lost in Space. The allure of these shows was their fictional technologies and solved social issues. The ideas of communication being done over a hand held communicator and internal medicine being practiced without surgery were stunning and have know become our reality in a relatively small time period of forty years.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/knowledge-context</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 178-180</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:ojs.ijict.org:article/230</identifier>
+				<datestamp>2011-04-14T10:19:15Z</datestamp>
+				<setSpec>ijoat:RA</setSpec>
+			</header>
+			<metadata>
+<record
+	xmlns="http://www.loc.gov/MARC21/slim"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.loc.gov/MARC21/slim
+	http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+	<leader>     cam         3u     </leader>
+	<controlfield tag="008">"110414 2011                        eng  "</controlfield>
+	<datafield tag="042" ind1=" " ind2=" ">
+		<subfield code="a">dc</subfield>
+	</datafield>
+	<datafield tag="245" ind1="0" ind2="0">
+		<subfield code="a">Exploiting Parallelism in Association Rule Mining Algorithms</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Rakhi Garg; Banaras Hindu University, Varanasi</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a">Pramod Kumar Mishra; Banaras Hindu University</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Data Engineering &amp; Architecture</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Association rule mining, load balancing, distributed memory system, shared memory system, data parallelism, task parallelism .</subfield>
+	</datafield>
+	<datafield tag="653" ind1=" " ind2=" ">
+		<subfield code="a">Association Rule Mining Algorithms</subfield>
+	</datafield>
+	<datafield tag="520" ind1=" " ind2=" ">
+		<subfield code="a">Association rule mining is one of the major technique of data mining, involves finding of frequent itemsets with minimum support and generating association rule among them with minimum confidence. The task of finding all frequent itemsets for a large datasets requires a lot of computation which can be minimized by exploiting parallelism to the sequential algorithms. In this paper, we provide the preliminaries of basic concepts about association rule mining, different sequential association rule mining algorithms on different hardware platforms and also focus on the challenges in exploiting parallelism to these algorithms. We also discusses up to what extent these challenges e.g. load balancing, efficient memory usage, minimization of communication cost among processors, efficient data and task decomposition etc. are congregate by a given parallel association rule mining algorithm and classifies them accordingly.Although, this survey cannot be complete review of all algorithms, but it provides information that will cover major theoretical issues and can be serve as a reference for both the researchers and the practitioners.</subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="b">International Journal of Advancements in Technology</subfield>
+	</datafield>
+	<datafield tag="720" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="260" ind1=" " ind2=" ">
+		<subfield code="c">2011-04-14</subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="655" ind1=" " ind2="7">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="856" ind1=" " ind2=" ">
+		<subfield code="q">application/pdf</subfield>
+	</datafield>
+	<datafield tag="856" ind1="4" ind2="0">
+		<subfield code="u">http://ijict.org/index.php/ijoat/article/view/parallelism-association-rules-mining</subfield>
+	</datafield>
+	<datafield tag="786" ind1="0" ind2=" ">
+		<subfield code="n">International Journal of Advancements in Technology; Vol 2, No 2 (2011): International Journal of Advancements in Technology; 222-232</subfield>
+	</datafield>
+	<datafield tag="546" ind1=" " ind2=" ">
+		<subfield code="a">en</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/parallelism-association-rules-mining/720</subfield>
+	</datafield>
+	<datafield tag="787" ind1="0" ind2=" ">
+		<subfield code="n">http://ijict.org/index.php/ijoat/article/download/parallelism-association-rules-mining/721</subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="500" ind1=" " ind2=" ">
+		<subfield code="a"></subfield>
+	</datafield>
+	<datafield tag="540" ind1=" " ind2=" ">
+		<subfield code="a">Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</subfield>
+	</datafield>
+</record>
+			</metadata>
+		</record>
+	</ListRecords>
+</OAI-PMH>
