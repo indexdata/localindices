@@ -3,6 +3,7 @@ package com.indexdata.masterkey.localindices.step;
 import java.io.IOException;
 import java.io.StringReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
@@ -14,15 +15,18 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.log4j.Logger;
+
+import com.indexdata.xml.factory.XmlFactory;
+
 public class XslTransformationStep implements TransformationStep, Step {
 	
 	private String xslTransformation;
-	private TransformerFactory factory;
+	private TransformerFactory factory = XmlFactory.newTransformerInstance();
 	private Transformer transformer;
 	Step next;
 	
 	public XslTransformationStep() {
-		factory = TransformerFactory.newInstance();
 	} 
 	
 	void setXsl(String xslTransformation) throws TransformerConfigurationException {
