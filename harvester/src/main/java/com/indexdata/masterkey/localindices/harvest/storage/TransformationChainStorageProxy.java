@@ -8,7 +8,6 @@ import java.io.PipedOutputStream;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
@@ -16,13 +15,15 @@ import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.xml.factory.XmlFactory;
+
 public class TransformationChainStorageProxy extends StorageProxy {
 
 	PipedOutputStream output;
 	PipedInputStream input;
 	XMLReader xmlFilter;
 	Thread thread = null;
-	SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+	SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 	Transformer transformer;
 	TransformerException transformException = null;
 	IOException rollbackException = null;
