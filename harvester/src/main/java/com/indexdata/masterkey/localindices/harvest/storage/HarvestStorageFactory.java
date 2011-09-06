@@ -12,7 +12,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
@@ -21,6 +20,7 @@ import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.xml.factory.XmlFactory;
 
 /**
  * Returns an instance of a HarvestStorage object.
@@ -47,7 +47,7 @@ public class HarvestStorageFactory {
 		return harvestStorage;
 	}
 
-	static SAXParserFactory spf = SAXParserFactory.newInstance();
+	static SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
 
 	/**
 	 * Creates a XMLFilter from an array of strings 
@@ -61,8 +61,6 @@ public class HarvestStorageFactory {
 	public static XMLFilter createXMLFilter(String[] stylesheets)
 			throws TransformerConfigurationException,
 			UnsupportedEncodingException {
-		// Set up to read the input file
-		spf.setNamespaceAware(true);
 		XMLReader reader;
 		SAXParser parser;
 		try {
@@ -78,16 +76,8 @@ public class HarvestStorageFactory {
 			e.printStackTrace();
 			throw new TransformerConfigurationException("SAX Exception", e);
 		}
-		// Create the filters
-		// --SAXTransformerFactory is an interface
-		// --TransformerFactory is a concrete class
-		// --TransformerFactory actually returns a SAXTransformerFactory
-		// instance
-		// --We didn't care about that before, because we didn't use the
-		// --SAXTransformerFactory extensions. But now we do, so we cast the
-		// result.
-		SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory
-				.newInstance();
+
+		SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 		XMLFilter filter = null;
 		XMLReader parent = reader;
 		int index = 0;
