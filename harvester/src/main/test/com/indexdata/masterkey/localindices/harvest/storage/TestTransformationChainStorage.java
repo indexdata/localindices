@@ -34,6 +34,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
+import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
 		Harvestable harvestable = new  XmlBulkResource("http://localhost:8080/localindices-harvester/marc.xml");
@@ -44,6 +45,8 @@ public class TestTransformationChainStorage extends TestCase {
 		HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestable);
 		RecordStorage recordStorage = new SolrRecordStorage(solrUrl, harvestable);
 		RecordStorage bulkStorage = new BulkSolrRecordStorage(solrUrl, harvestable);
+		SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
+		SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
 		public TestTransformationChainStorage() {
 			
@@ -68,11 +71,6 @@ public class TestTransformationChainStorage extends TestCase {
 			HarvestStorage transformStorage  = new TransformationChainStorageProxy(solrStorage, xmlReader);
 			transformStorage.begin();
 			OutputStream output = transformStorage.getOutputStream();
-			
-			/*
-			SAXParser parser = spf.newSAXParser();
-			XMLReader reader = parser.getXMLReader();
-			*/
 			
 			Writer writer = new OutputStreamWriter(output);
 			writer.write(oai_pmh_oaidc);
@@ -107,24 +105,13 @@ public class TestTransformationChainStorage extends TestCase {
 			writer.close();
 			transformStorage.commit();
 		}
-
-		
 		
 		public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException, SAXException, TransformerConfigurationException, UnsupportedEncodingException {
 			// Set up to read the input file
-			SAXParserFactory spf = SAXParserFactory.newInstance();
-			spf.setNamespaceAware(true);
 
 			SAXParser parser = spf.newSAXParser();
 			XMLReader reader = parser.getXMLReader();
 			
-			// Create the filters
-			// --SAXTransformerFactory is an interface
-			// --TransformerFactory is a concrete class
-			// --TransformerFactory actually returns a SAXTransformerFactory instance
-			// --We didn't care about that before, because we didn't use the
-			// --SAXTransformerFactory extensions. But now we do, so we cast the result.
-			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 			XMLFilter filter;
 			XMLReader parent = reader; 
 			int index = 0;
@@ -138,7 +125,6 @@ public class TestTransformationChainStorage extends TestCase {
 		}
 		
 		public void testDOM2SAXRecordStorage() throws TransformerException, ParserConfigurationException, SAXException, IOException {
-			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 			try {
 				Transformer transfomer = stf.newTransformer();
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -155,7 +141,6 @@ public class TestTransformationChainStorage extends TestCase {
 		}
 
 		public void testDOM2SAXBulkRecordStorage() throws TransformerException, ParserConfigurationException, SAXException, IOException {
-			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
 			try {
 				Transformer transfomer = stf.newTransformer();
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
