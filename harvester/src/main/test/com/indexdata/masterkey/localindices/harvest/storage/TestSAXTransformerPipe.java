@@ -12,6 +12,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import com.indexdata.xml.factory.XmlFactory;
+
 import junit.framework.TestCase;
 
 public class TestSAXTransformerPipe extends TestCase {
@@ -22,9 +24,7 @@ public class TestSAXTransformerPipe extends TestCase {
 
 	@SuppressWarnings("unused")
 	private void notestPipedTransformer() throws TransformerConfigurationException, SAXException {
-		TransformerFactory tFactory = TransformerFactory.newInstance();
-
-		//TransformerFactory tFactory = TransformerFactory.newInstance();
+		TransformerFactory tFactory = XmlFactory.newTransformerInstance();
 
 		if (tFactory.getFeature(SAXSource.FEATURE) &&
 				tFactory.getFeature(SAXResult.FEATURE))
