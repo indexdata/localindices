@@ -2,6 +2,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.ByteArrayInputStream;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -20,6 +21,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
+
+import com.indexdata.xml.factory.XmlFactory;
 
 public class TestFilterChain extends TestCase {
 
@@ -237,19 +240,10 @@ public class TestFilterChain extends TestCase {
 			InputSource input = new InputSource(new ByteArrayInputStream( argv[0].getBytes()));
 
 			// Set up to read the input file
-			SAXParserFactory spf = SAXParserFactory.newInstance();
-			spf.setNamespaceAware(true);
-
+			SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
 			SAXParser parser = spf.newSAXParser();
 			XMLReader reader = parser.getXMLReader();
-
-			// Create the filters
-			// --SAXTransformerFactory is an interface
-			// --TransformerFactory is a concrete class
-			// --TransformerFactory actually returns a SAXTransformerFactory instance
-			// --We didn't care about that before, because we didn't use the
-			// --SAXTransformerFactory extensions. But now we do, so we cast the result.
-			SAXTransformerFactory stf = (SAXTransformerFactory) TransformerFactory.newInstance();
+			SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 			XMLFilter filter = null;
 			XMLReader parent = reader; 
 			int index = 1;
