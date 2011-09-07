@@ -58,10 +58,8 @@ import com.indexdata.xml.filter.SplitContentHandler;
  */
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
-  private static Logger logger = Logger
-      .getLogger("com.indexdata.masterkey.harvester");
-  private SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory
-      .newTransformerInstance();
+  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
   private String error;
   @SuppressWarnings("unused")
@@ -85,8 +83,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     try {
       for (TransformationStep step : steps) {
 	if (step.getScript() != null) {
-	  templates[index] = stf.newTemplates(new StreamSource(
-	      new StringReader(step.getScript())));
+	  templates[index] = stf.newTemplates(new StreamSource(new StringReader(step.getScript())));
 	  index++;
 	}
       }
@@ -101,8 +98,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private Record convert(Source source) throws TransformerException {
     if (source != null) {
       // TODO Need to handle other RecordStore types.
-      SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(
-	  getStorage(), resource.getId().toString()));
+      SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource
+	  .getId().toString()));
       Transformer transformer = stf.newTransformer();
       transformer.transform(source, outputTarget);
     }
@@ -121,8 +118,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       if (result.getNode() == null) {
 	logger.warn("transformNode: No Node found");
 	xmlSource = new DOMSource();
-      }
-      else 
+      } else
 	xmlSource = new DOMSource(result.getNode());
       /*
        * StreamResult debug = new StreamResult(System.out);
@@ -145,32 +141,28 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	convert(transformNode(xmlNode));
       } catch (TransformerException e) {
-	logger.error("Failed to transform or convert xmlNode"
-	    + xmlNode.getSystemId());
+	logger.error("Failed to transform or convert xmlNode" + xmlNode.getSystemId());
 	e.printStackTrace();
       }
     }
   }
 
   private RecordStorage setupTransformation(RecordStorage storage) {
-    if (resource.getTransformation() != null
-	&& resource.getTransformation().getSteps().size() > 0) {
+    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
       XMLReader xmlReader;
       try {
 	xmlReader = createTransformChain();
 	if (split) {
 	  // This basically override the proxy and stores using the Consumer
 	  // class. A "bit" confusing.
-	  SplitContentHandler splitHandler = new SplitContentHandler(
-	      new TransformerConsumer(), 1, 1000);
+	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1,
+	      1000);
 
 	  xmlReader.setContentHandler(splitHandler);
-	  return new SplitTransformationChainRecordStorageProxy(storage,
-	      xmlReader);
+	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader);
 	}
 	return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	    new Pz2SolrRecordContentHandler(storage, resource.getId()
-		.toString()));
+	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()));
 
       } catch (Exception e) {
 	e.printStackTrace();
@@ -262,8 +254,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	    if (responseCode == 200) {
 	      // watch for non-marc links
 	      if (contentType.startsWith("text/html")) {
-		logger.log(Level.WARN,
-		    "Possible sub-link ignored at " + link.toString());
+		logger.log(Level.WARN, "Possible sub-link ignored at " + link.toString());
 		recursive++;
 		continue;
 		// possibly a marc file
@@ -273,16 +264,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 		proper++;
 	      }
 	    } else {
-	      logger.log(Level.WARN, "Dead link (" + responseCode + " at "
-		  + link.toString());
+	      logger.log(Level.WARN, "Dead link (" + responseCode + " at " + link.toString());
 	      dead++;
 	      continue;
 	    }
 	  }
 	  if (proper == 0) {
-	    logger.log(Level.ERROR,
-		"No proper links found at " + url.toString()
-		    + ", trash links: " + recursive + ", dead links: " + dead);
+	    logger.log(Level.ERROR, "No proper links found at " + url.toString()
+		+ ", trash links: " + recursive + ", dead links: " + dead);
 	    throw new Exception("No MARC files found at " + url.toString());
 	  }
 	} else {
@@ -305,9 +294,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     pipe(is, output, contentLength);
   }
 
-  public XMLReader createTransformChain() throws ParserConfigurationException,
-      SAXException, TransformerConfigurationException,
-      UnsupportedEncodingException {
+  public XMLReader createTransformChain() throws ParserConfigurationException, SAXException,
+      TransformerConfigurationException, UnsupportedEncodingException {
     // Set up to read the input file
     SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
     SAXParser parser = spf.newSAXParser();
@@ -328,8 +316,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     return parent;
   }
 
-  private void pipe(InputStream is, OutputStream os, int total)
-      throws IOException {
+  private void pipe(InputStream is, OutputStream os, int total) throws IOException {
     int blockSize = 4096;
     int copied = 0;
     int num = 0;
@@ -343,13 +330,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       copied += len;
       if (num % logBlockNum == 0) {
-	logger.log(Level.INFO, "Downloaded " + copied + "/" + total
-	    + " bytes (" + ((double) copied / (double) total * 100) + "%)");
+	logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes ("
+	    + ((double) copied / (double) total * 100) + "%)");
       }
       num++;
     }
-    logger.log(Level.INFO, "Download finishes: " + copied + "/" + total
-	+ " bytes (" + ((double) copied / (double) total * 100) + "%)");
+    logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes ("
+	+ ((double) copied / (double) total * 100) + "%)");
     os.flush();
   }
 
@@ -359,8 +346,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       super.setStorage(setupTransformation((RecordStorage) storage));
     else {
       setStatus(HarvestStatus.ERROR);
-      resource.setCurrentStatus("Unsupported StorageType: "
-	  + storage.getClass().getCanonicalName() + ". Requires RecordStorage");
+      resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
+	  + ". Requires RecordStorage");
     }
   }
 }
