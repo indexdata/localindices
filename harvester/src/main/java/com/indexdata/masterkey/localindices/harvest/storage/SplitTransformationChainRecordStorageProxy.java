@@ -18,8 +18,8 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   private Thread thread = null;
   private TransformerException transformException = null;
 
-  public SplitTransformationChainRecordStorageProxy(final RecordStorage storage,
-      final XMLReader xmlFilter) throws IOException, TransformerConfigurationException {
+  public SplitTransformationChainRecordStorageProxy(final RecordStorage storage, final XMLReader xmlFilter) 
+  	throws IOException, TransformerConfigurationException {
     setTarget(storage);
     input = new PipedInputStream();
     output = new PipedOutputStream(input);
@@ -62,7 +62,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
       e.printStackTrace();
     }
     if (transformException != null) {
-      throw new IOException("Transformation failed", transformException);
+      throw new IOException("Transformation failed: " + transformException.getMessage(), transformException);
     }
     super.commit();
   }
