@@ -24,7 +24,10 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   public void add(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
-    docs.add(createDocument(record));
+    if (record.getId() != null)
+	docs.add(createDocument(record));
+    else
+      	logger.warn("No Id on Record. Not adding: " + record);
     if (limit != null && docs.size() >= limit)
       addRecords();
   }
@@ -44,19 +47,17 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       logger.info("Adding " + no_docs + " records.");
       try {
 	response = server.add(docs);
+	if (response.getStatus() != 0)
+	  logger.error("Error adding documents");
+	else
+	  added += no_docs;
       } catch (SolrServerException ste) {
 	logger.error("Exception while adding documents. Outstanding adds: " + added + ". Deletes: "
 	    + deleted);
-	throw ste;
+	docs = new LinkedList<SolrInputDocument>();
+	throw new RuntimeException("Solr Server Exception while adding records", ste);
       }
-      if (response.getStatus() != 0)
-	logger.error("Error adding documents");
-      else
-	added += no_docs;
       docs = new LinkedList<SolrInputDocument>();
-    } catch (SolrServerException e) {
-      e.printStackTrace();
-      throw new RuntimeException("Solr Server Exception while adding records", e);
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException("IO Exception while adding records", e);
