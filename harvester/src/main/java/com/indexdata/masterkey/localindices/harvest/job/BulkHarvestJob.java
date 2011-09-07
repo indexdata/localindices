@@ -144,8 +144,7 @@ public class BulkHarvestJob implements HarvestJob {
 	    if (responseCode == 200) {
 	      // watch for non-marc links
 	      if (contentType.startsWith("text/html")) {
-		logger.log(Level.WARN,
-		    "Possible sub-link ignored at " + link.toString());
+		logger.log(Level.WARN, "Possible sub-link ignored at " + link.toString());
 		recursive++;
 		continue;
 		// possibly a marc file
@@ -155,16 +154,14 @@ public class BulkHarvestJob implements HarvestJob {
 		proper++;
 	      }
 	    } else {
-	      logger.log(Level.WARN, "Dead link (" + responseCode + " at "
-		  + link.toString());
+	      logger.log(Level.WARN, "Dead link (" + responseCode + " at " + link.toString());
 	      dead++;
 	      continue;
 	    }
 	  }
 	  if (proper == 0) {
-	    logger.log(Level.ERROR,
-		"No proper links found at " + url.toString()
-		    + ", trash links: " + recursive + ", dead links: " + dead);
+	    logger.log(Level.ERROR, "No proper links found at " + url.toString()
+		+ ", trash links: " + recursive + ", dead links: " + dead);
 	    throw new Exception("No MARC files found at " + url.toString());
 	  }
 	  // assume marc file, TODO text/plain
@@ -186,8 +183,7 @@ public class BulkHarvestJob implements HarvestJob {
     pipe(is, storage.getOutputStream(), contentLenght);
   }
 
-  private void pipe(InputStream is, OutputStream os, int total)
-      throws IOException {
+  private void pipe(InputStream is, OutputStream os, int total) throws IOException {
     int blockSize = 4096;
     int copied = 0;
     int num = 0;
@@ -201,13 +197,13 @@ public class BulkHarvestJob implements HarvestJob {
       }
       copied += len;
       if (num % logBlockNum == 0) {
-	logger.log(Level.INFO, "Downloaded " + copied + "/" + total
-	    + " bytes (" + ((double) copied / (double) total * 100) + "%)");
+	logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes ("
+	    + ((double) copied / (double) total * 100) + "%)");
       }
       num++;
     }
-    logger.log(Level.INFO, "Download finishes: " + copied + "/" + total
-	+ " bytes (" + ((double) copied / (double) total * 100) + "%)");
+    logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes ("
+	+ ((double) copied / (double) total * 100) + "%)");
     os.flush();
   }
 
