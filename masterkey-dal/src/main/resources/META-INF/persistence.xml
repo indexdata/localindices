@@ -19,8 +19,8 @@
                 value="jdbc:mysql://localhost:3306/DBNAME?autoReconnect=true"/>
               <property name="toplink.jdbc.user" value=""/>
               <property name="toplink.jdbc.password" value=""/>
+              <property name="toplink.logging.level" value="FINE"/>
               -->
-              <property name="toplink.logging.level" value="WARN"/>
         </properties>
     </persistence-unit>
 </persistence>
