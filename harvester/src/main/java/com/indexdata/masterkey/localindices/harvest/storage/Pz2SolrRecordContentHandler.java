@@ -76,7 +76,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
       record.setDatabase(databaseId);
       record.setId(getAttributeValue(atts, "id"));
     }
-    if (inMetadata && (qName.equals("pz:metadata") || localName.equals("record"))) {
+    if (inMetadata && (qName.equals("pz:metadata") || localName.equals("metadata"))) {
       type = getAttributeValue(atts, "type");
     }
 
@@ -99,7 +99,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 	inHeader = false;
       if (localName.equals("record"))
 	inMetadata = false;
-      if (inMetadata) {
+      if (inMetadata && type != null) {
 	Collection<Serializable> values = keyValues.get(type);
 
 	if (values == null) {
