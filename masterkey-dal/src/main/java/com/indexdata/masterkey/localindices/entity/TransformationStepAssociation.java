@@ -20,110 +20,97 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.sun.xml.internal.bind.CycleRecoverable;
-
 @Entity
-@Table(name = "transformation_step",uniqueConstraints=@UniqueConstraint(columnNames={"TRANSFORMATION_ID","STEP_ID"}))
-@NamedQueries({@NamedQuery(name = "tsa.findById", query = "SELECT o FROM TransformationStepAssociation o WHERE o.id = :id"), 
-			   @NamedQuery(name = "tsa.findStepsByTransformationId", query = "SELECT o FROM TransformationStepAssociation o WHERE o.transformation.id = :id")})
-@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+@Table(name = "transformation_step", uniqueConstraints = @UniqueConstraint(columnNames = {
+    "TRANSFORMATION_ID", "STEP_ID" }))
+@NamedQueries({
+    @NamedQuery(name = "tsa.findById", query = "SELECT o FROM TransformationStepAssociation o WHERE o.id = :id"),
+    @NamedQuery(name = "tsa.findStepsByTransformationId", query = "SELECT o FROM TransformationStepAssociation o WHERE o.transformation.id = :id") })
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @XmlRootElement(name = "transformationStepAssociation")
+public class TransformationStepAssociation implements Serializable, Cloneable {
 
-public class TransformationStepAssociation  implements Serializable, Cloneable, CycleRecoverable {
+  public TransformationStepAssociation() {
+    step = null;
+    transformation = null;
+    id = null;
+  }
 
-	/**
-	 * 
-	 */
-	
-	public TransformationStepAssociation() {
-		step = null;
-		transformation = null;
-		id = null;
-	}
-	private static final long serialVersionUID = -8041896324751041180L;
+  private static final long serialVersionUID = -8041896324751041180L;
 
-	@Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
-	
-/*
- 	@Column(name = "TRANSFORMATION_ID")
-	private Long transformationId;
-	@Column(name = "STEP_ID")
-	private Long stepId;
- */
-	@Column(name = "POSITION")
-	private int position;
-	@ManyToOne
-	@PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
-	private Transformation transformation;
-	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-	@PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
-	@XmlTransient
-	private TransformationStep step;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
 
-	public void setTransformation(Transformation transformation) {
-		this.transformation = transformation;
-	}
+  /*
+   * @Column(name = "TRANSFORMATION_ID") private Long transformationId;
+   * 
+   * @Column(name = "STEP_ID") private Long stepId;
+   */
+  @Column(name = "POSITION")
+  private int position;
+  @ManyToOne
+  @PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
+  private Transformation transformation;
+  @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+  @PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
+  @XmlTransient
+  private TransformationStep step;
 
-	@XmlIDREF
-	public Transformation getTransformation() {
-		return transformation;
-	}
+  public void setTransformation(Transformation transformation) {
+    this.transformation = transformation;
+  }
 
-	public Long getTransformationId() {
-		if (transformation != null)
-			return transformation.getId();
-		return null;
-	}
+  @XmlIDREF
+  public Transformation getTransformation() {
+    return transformation;
+  }
 
-	/*
-	public void setStepId(long stepId) {
-		this.stepId = stepId;
-	}
-	 */
+  public Long getTransformationId() {
+    if (transformation != null)
+      return transformation.getId();
+    return null;
+  }
 
-	public Long getStepId() {
-		if (step != null)
-			return step.getId();
-		return null;
-	}
+  /*
+   * public void setStepId(long stepId) { this.stepId = stepId; }
+   */
 
-	public void setStep(TransformationStep step) {
-		this.step = step;
-	}
+  public Long getStepId() {
+    if (step != null)
+      return step.getId();
+    return null;
+  }
 
-	@Id 
-	@Column(name="STEP_ID", nullable=false, insertable=false, updatable=false)
-	public TransformationStep getStep() {
-		return step;
-	}
+  public void setStep(TransformationStep step) {
+    this.step = step;
+  }
 
-	public void setPosition(int position) {
-		this.position = position;
-	}
+  @Id
+  @Column(name = "STEP_ID", nullable = false, insertable = false, updatable = false)
+  public TransformationStep getStep() {
+    return step;
+  }
 
-	public int getPosition() {
-		return position;
-	}
+  public void setPosition(int position) {
+    this.position = position;
+  }
 
-	public Long getId() {
-		return id;
-	}
+  public int getPosition() {
+    return position;
+  }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-	
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
+  public Long getId() {
+    return id;
+  }
 
-	@Override
-	public Object onCycleDetected(Context arg0) {
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-		return null;
-	}
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
+  }
 
 }

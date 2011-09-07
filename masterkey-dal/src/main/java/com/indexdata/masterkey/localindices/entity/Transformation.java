@@ -26,8 +26,6 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 
-// import com.sun.xml.internal.bind.CycleRecoverable;
-
 /**
  * @author Dennis Schafroth
  */
@@ -35,10 +33,7 @@ import javax.xml.bind.annotation.XmlID;
 @NamedQueries({ @NamedQuery(name = "Transformation.findById", query = "SELECT object(o) FROM Transformation o WHERE o.id = :id") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "transformation")
-public class Transformation implements Serializable, Cloneable /*
-							        * ,
-							        * CycleRecoverable
-							        */{
+public class Transformation implements Serializable, Cloneable {
 
   protected static final long serialVersionUID = 1L;
   // user-set properties
@@ -172,8 +167,5 @@ public class Transformation implements Serializable, Cloneable /*
   public void setStepAssociations(List<TransformationStepAssociation> stepAssociations) {
     this.stepAssociations = stepAssociations;
   }
-  /*
-   * @Override public Object onCycleDetected(Context arg0) { // TODO
-   * Auto-generated method stub return null; }
-   */
+
 }

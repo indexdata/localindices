@@ -9,19 +9,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "solrStorage")
 public class SolrStorage extends Storage implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5840585258242340150L;
+  private static final long serialVersionUID = -5840585258242340150L;
 
-	private String url;
+  private String url;
 
-    public String getUrl() {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
 }
