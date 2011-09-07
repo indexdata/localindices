@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995-2008, Index Data
+ * Copyright (c) 1995-2011, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
@@ -15,23 +15,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * 
  * @author jakub
  */
-public class PutCookie extends HttpServlet {  
+public class PutCookie extends HttpServlet {
 
-    /**
+  /**
 	 * 
 	 */
-	private static final long serialVersionUID = -8807654103376003733L;
+  private static final long serialVersionUID = -8807654103376003733L;
 
-	/** 
-    * Handles the HTTP <code>GET</code> method.
-    * @param request servlet request
-    * @param response servlet response
-    */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        response.addCookie(new Cookie("admin-superuser", "local-0"));
-    }
+  /**
+   * Handles the HTTP <code>GET</code> method.
+   * 
+   * @param request
+   *          servlet request
+   * @param response
+   *          servlet response
+   */
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    response.addCookie(new Cookie("admin-superuser", "local-0"));
+  }
 }
