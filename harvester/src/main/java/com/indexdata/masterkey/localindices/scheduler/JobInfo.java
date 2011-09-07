@@ -12,43 +12,44 @@ import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 /**
  * Encapsulates some of the important status and config information of the
  * scheduled job. Used by the status servlet.
+ * 
  * @author jakub
  */
 public class JobInfo {
-    private Harvestable harvestable;
-    private HarvestStatus status;
-    private String error;
-    private String harvestPeriod;
+  private Harvestable harvestable;
+  private HarvestStatus status;
+  private String error;
+  private String harvestPeriod;
 
-    public String getError() {
-        return error;
-    }
+  public String getError() {
+    return error;
+  }
 
-    public void setError(String error) {
-        this.error = error;
-    }
+  public void setError(String error) {
+    this.error = error;
+  }
 
-    public String getHarvestPeriod() {
-        return harvestPeriod;
-    }
+  public String getHarvestPeriod() {
+    return harvestPeriod;
+  }
 
-    public void setHarvestPeriod(String harvestPeriod) {
-        this.harvestPeriod = harvestPeriod;
-    }
-    
-    public Harvestable getHarvestable() {
-        return harvestable;
-    }
+  public void setHarvestPeriod(String harvestPeriod) {
+    this.harvestPeriod = harvestPeriod;
+  }
 
-    public void setHarvestable(Harvestable harvestable) {
-        this.harvestable = harvestable;
-    }
+  public Harvestable getHarvestable() {
+    return harvestable;
+  }
 
-    public HarvestStatus getStatus() {
-        return status;
-    }
+  public void setHarvestable(Harvestable harvestable) {
+    this.harvestable = harvestable;
+  }
 
-    public void setStatus(HarvestStatus status) {
-        this.status = status;
-    }
+  public HarvestStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HarvestStatus status) {
+    this.status = status;
+  }
 }
