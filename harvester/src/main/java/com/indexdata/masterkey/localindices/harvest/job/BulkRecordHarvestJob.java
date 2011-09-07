@@ -153,11 +153,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	xmlReader = createTransformChain();
 	if (split) {
-	  // This basically override the proxy and stores using the Consumer
-	  // class. A "bit" confusing.
-	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1,
-	      1000);
-
+	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1, 1);
 	  xmlReader.setContentHandler(splitHandler);
 	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader);
 	}
