@@ -58,7 +58,6 @@
                 onclick="return showEditStep();">
                <f:param name="stepID" value="#{item.id}" />
             </h:commandLink>
- -->
            <h:commandLink value=" Validation Step"
                action="#{transformationController.addValidationStep}"
                 onclick="return showEditStep();">
@@ -69,6 +68,7 @@
                 onclick="return showEditStep();">
                <f:param name="stepID" value="#{item.id}" />
             </h:commandLink>
+ -->
     </div>  
     <div id="editStep" style="display:inline">
         <h:panelGrid columns="2">
