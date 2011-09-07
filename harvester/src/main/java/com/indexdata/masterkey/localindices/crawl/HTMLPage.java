@@ -32,7 +32,6 @@ import org.apache.log4j.Logger;
  * @author Heikki and Jakub
  */
 public class HTMLPage {
-
   public final static int READ_BLOCK_SIZE = 1000000; // bytes to read in one op
   public final static int MAX_READ_SIZE = 10000000; // 10MB
   public final static int CONN_TIMEOUT = 30000; // ms to make a connection
