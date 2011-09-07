@@ -29,76 +29,79 @@ import com.indexdata.masterkey.localindices.web.service.converter.StoragesConver
 
 /**
  * RESTful WS (resource) that maps to the Storage collection.
+ * 
  * @author Dennis
  */
 @Path("/storages/")
 public class StoragesResource {
-    private StorageDAO dao = new StoragesDAOJPA();
-    @Context
-    private UriInfo context;
+  private StorageDAO dao = new StoragesDAOJPA();
+  @Context
+  private UriInfo context;
 
-    /** Creates a new instance of StoragesResource */
-    public StoragesResource() {
-    }
+  /** Creates a new instance of StoragesResource */
+  public StoragesResource() {
+  }
 
-    /**
-     * Constructor used for instantiating an instance of the Storages resource.
-     *
-     * @param context HttpContext inherited from the parent resource
-     */
-    public StoragesResource(UriInfo context) {
-        this.context = context;
-    }
+  /**
+   * Constructor used for instantiating an instance of the Storages resource.
+   * 
+   * @param context
+   *          HttpContext inherited from the parent resource
+   */
+  public StoragesResource(UriInfo context) {
+    this.context = context;
+  }
 
-    /**
-     * Get method for retrieving a collection of Storage instance in XML format.
-     *
-     * @param start optional start item argument
-     * @param max optional max results argument
-     * @return an instance of StorageConverter
-     */
-    @GET
-    @Produces("application/xml")
-    public StoragesConverter get(
-            
-            @QueryParam("start")
-            @DefaultValue("0") int start,
-            
-            @QueryParam("max")
-            @DefaultValue("100") int max) {
-        List<Storage> entities;
-        if (max <= 0)
-            entities = new ArrayList<Storage>();
-        else
-            entities = dao.retrieve(start, max);
-        return new StoragesConverter(entities, context.getAbsolutePath(),
-                start, max, dao.getCount());
-    }
+  /**
+   * Get method for retrieving a collection of Storage instance in XML format.
+   * 
+   * @param start
+   *          optional start item argument
+   * @param max
+   *          optional max results argument
+   * @return an instance of StorageConverter
+   */
+  @GET
+  @Produces("application/xml")
+  public StoragesConverter get(
 
-    /**
-     * Post method for creating an instance of Storage using XML as the input format.
-     *
-     * @param data an StorageConverter entity that is deserialized from an XML stream
-     * @return Http 201 response code.
-     */
-    @POST
-    @Consumes("application/xml")
-    public Response post(StorageConverter data) {
-        Storage entity = data.getEntity();
-        entity.setCurrentStatus("NEW");
-        dao.create(entity);
-        return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
-    }
+  @QueryParam("start") @DefaultValue("0") int start,
 
-    /**
-     * Entry point to the Storage WS.
-     *
-     * @param id resource id
-     * @return an instance of StorageResource (WS)
-     */
-    @Path("{id}/")
-    public StorageResource getStorageResource(            
-    @PathParam("id") Long id) {
-        return new StorageResource(id, context);
-    }
+  @QueryParam("max") @DefaultValue("100") int max) {
+    List<Storage> entities;
+    if (max <= 0)
+      entities = new ArrayList<Storage>();
+    else
+      entities = dao.retrieve(start, max);
+    return new StoragesConverter(entities, context.getAbsolutePath(), start, max, dao.getCount());
+  }
+
+  /**
+   * Post method for creating an instance of Storage using XML as the input
+   * format.
+   * 
+   * @param data
+   *          an StorageConverter entity that is deserialized from an XML stream
+   * @return Http 201 response code.
+   */
+  @POST
+  @Consumes("application/xml")
+  public Response post(StorageConverter data) {
+    Storage entity = data.getEntity();
+    entity.setCurrentStatus("NEW");
+    dao.create(entity);
+    return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
+  }
+
+  /**
+   * Entry point to the Storage WS.
+   * 
+   * @param id
+   *          resource id
+   * @return an instance of StorageResource (WS)
+   */
+  @Path("{id}/")
+  public StorageResource getStorageResource(@PathParam("id") Long id) {
+    return new StorageResource(id, context);
+  }
 }

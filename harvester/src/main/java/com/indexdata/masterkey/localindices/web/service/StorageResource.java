@@ -20,61 +20,68 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageConvert
 
 /**
  * REST Web service (resource) that maps to a Storage entity.
+ * 
  * @author Dennis
  */
 public class StorageResource {
-    private StorageDAO dao = new StoragesDAOJPA();
-    private Long id;
-    private UriInfo context;
+  private StorageDAO dao = new StoragesDAOJPA();
+  private Long id;
+  private UriInfo context;
 
-    /** Creates a new instance of StorageResource */
-    public StorageResource() {
-    }
+  /** Creates a new instance of StorageResource */
+  public StorageResource() {
+  }
 
-    /**
-     * Constructor used for instantiating an instance of the entity referenced by id.
-     *
-     * @param id identifier for referenced the entity
-     * @param context HttpContext inherited from the parent resource
-     */
-    public StorageResource(Long id, UriInfo context) {
-        this.id = id;
-        this.context = context;
-    }
+  /**
+   * Constructor used for instantiating an instance of the entity referenced by
+   * id.
+   * 
+   * @param id
+   *          identifier for referenced the entity
+   * @param context
+   *          HttpContext inherited from the parent resource
+   */
+  public StorageResource(Long id, UriInfo context) {
+    this.id = id;
+    this.context = context;
+  }
 
-    /**
-     * Get method for retrieving an instance of referenced Storage in XML format.
-     *
-     * @return an instance of StorageConverter
-     */
-    @GET
-    @Produces("application/xml")
-    public StorageConverter get() {
-        return new StorageConverter(dao.retrieveById(id), context.getAbsolutePath());
-    }
+  /**
+   * Get method for retrieving an instance of referenced Storage in XML format.
+   * 
+   * @return an instance of StorageConverter
+   */
+  @GET
+  @Produces("application/xml")
+  public StorageConverter get() {
+    return new StorageConverter(dao.retrieveById(id), context.getAbsolutePath());
+  }
 
-    /**
-     * Put method for updating an instance of referenced entity, using XML as the input format.
-     *
-     * @param data an HarvestableConverter entity that is deserialized from an XML stream
-     */
-    @PUT
-    @Consumes("application/xml")
-    public void put(StorageConverter data) {
-        Storage entity = data.getEntity();
-        // TODO Fix
-        entity.setCurrentStatus("TODO");
-        entity.setMessage(null);
-        dao.update(entity);
-    }
+  /**
+   * Put method for updating an instance of referenced entity, using XML as the
+   * input format.
+   * 
+   * @param data
+   *          an HarvestableConverter entity that is deserialized from an XML
+   *          stream
+   */
+  @PUT
+  @Consumes("application/xml")
+  public void put(StorageConverter data) {
+    Storage entity = data.getEntity();
+    // TODO Fix
+    entity.setCurrentStatus("TODO");
+    entity.setMessage(null);
+    dao.update(entity);
+  }
 
-    /**
-     * Delete method for deleting an instance of referenced entity.
-     *
-     */
-    @DELETE
-    public void delete() {
-        dao.delete(dao.retrieveById(id));
-    }
+  /**
+   * Delete method for deleting an instance of referenced entity.
+   * 
+   */
+  @DELETE
+  public void delete() {
+    dao.delete(dao.retrieveById(id));
+  }
 
 }

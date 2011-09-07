@@ -26,76 +26,84 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableCon
 
 /**
  * REST Web service (resource) that maps to a Harvestable entity.
+ * 
  * @author jakub
  */
 public class HarvestableResource {
-    private HarvestableDAO dao = new HarvestablesDAOJPA();
-    private Long id;
-    private UriInfo context;
+  private HarvestableDAO dao = new HarvestablesDAOJPA();
+  private Long id;
+  private UriInfo context;
 
-    /** Creates a new instance of HarvestableResource */
-    public HarvestableResource() {
-    }
+  /** Creates a new instance of HarvestableResource */
+  public HarvestableResource() {
+  }
 
-    /**
-     * Constructor used for instantiating an instance of the entity referenced by id.
-     *
-     * @param id identifier for referenced the entity
-     * @param context HttpContext inherited from the parent resource
-     */
-    public HarvestableResource(Long id, UriInfo context) {
-        this.id = id;
-        this.context = context;
-    }
+  /**
+   * Constructor used for instantiating an instance of the entity referenced by
+   * id.
+   * 
+   * @param id
+   *          identifier for referenced the entity
+   * @param context
+   *          HttpContext inherited from the parent resource
+   */
+  public HarvestableResource(Long id, UriInfo context) {
+    this.id = id;
+    this.context = context;
+  }
 
-    /**
-     * Get method for retrieving an instance of referenced Harvestable in XML format.
-     *
-     * @return an instance of HarvestableConverter
-     */
-    @GET
-    @Produces("application/xml")
-    public HarvestableConverter get() {
-        return new HarvestableConverter(dao.retrieveById(id), context.getAbsolutePath());
-    }
+  /**
+   * Get method for retrieving an instance of referenced Harvestable in XML
+   * format.
+   * 
+   * @return an instance of HarvestableConverter
+   */
+  @GET
+  @Produces("application/xml")
+  public HarvestableConverter get() {
+    return new HarvestableConverter(dao.retrieveById(id), context.getAbsolutePath());
+  }
 
-    /**
-     * Put method for updating an instance of referenced Harvestable, using XML as the input format.
-     *
-     * @param data an HarvestableConverter entity that is deserialized from an XML stream
-     */
-    @PUT
-    @Consumes("application/xml")
-    public void put(HarvestableConverter data) {
-        Harvestable entity = data.getEntity();
-        entity.setCurrentStatus("NEW");
-        entity.setMessage(null);
-        dao.update(entity);
-    }
+  /**
+   * Put method for updating an instance of referenced Harvestable, using XML as
+   * the input format.
+   * 
+   * @param data
+   *          an HarvestableConverter entity that is deserialized from an XML
+   *          stream
+   */
+  @PUT
+  @Consumes("application/xml")
+  public void put(HarvestableConverter data) {
+    Harvestable entity = data.getEntity();
+    entity.setCurrentStatus("NEW");
+    entity.setMessage(null);
+    dao.update(entity);
+  }
 
-    /**
-     * Delete method for deleting an instance of referenced Harvestable.
-     *
-     */
-    @DELETE
-    public void delete() {
-        dao.delete(dao.retrieveById(id));
-    }
+  /**
+   * Delete method for deleting an instance of referenced Harvestable.
+   * 
+   */
+  @DELETE
+  public void delete() {
+    dao.delete(dao.retrieveById(id));
+  }
 
-    /**
-     * Entry point to the Harvestable log file.
-     *
-     */
-    @Path("log/")
-    @GET
-    @Produces("text/plain")
-    public String getHarvestableLog() {
-        try {
-            return HarvestableLog.getHarvestableLog(id);
-        } catch (FileNotFoundException fnf) {
-            throw new WebApplicationException(fnf);
-        } catch (IOException io) {
-            throw new WebApplicationException(io);
-        }
+  /**
+   * Entry point to the Harvestable log file.
+   * 
+   */
+  @Path("log/")
+  @GET
+  @Produces("text/plain")
+  public String getHarvestableLog() {
+    try {
+      return HarvestableLog.getHarvestableLog(id);
+    } catch (FileNotFoundException fnf) {
+      throw new WebApplicationException(fnf);
+    } catch (IOException io) {
+      throw new WebApplicationException(io);
     }
+  }
 }

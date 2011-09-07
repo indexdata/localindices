@@ -20,58 +20,65 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
 
 /**
  * REST Web service (resource) that maps to a Transformation entity.
+ * 
  * @author Dennis
  */
 public class TransformationResource {
-    private TransformationDAO dao = new TransformationsDAOJPA();
-    private Long id;
-    private UriInfo context;
+  private TransformationDAO dao = new TransformationsDAOJPA();
+  private Long id;
+  private UriInfo context;
 
-    /** Creates a new instance of HarvestableResource */
-    public TransformationResource() {
-    }
+  /** Creates a new instance of HarvestableResource */
+  public TransformationResource() {
+  }
 
-    /**
-     * Constructor used for instantiating an instance of the entity referenced by id.
-     *
-     * @param id identifier for referenced the entity
-     * @param context HttpContext inherited from the parent resource
-     */
-    public TransformationResource(Long id, UriInfo context) {
-        this.id = id;
-        this.context = context;
-    }
+  /**
+   * Constructor used for instantiating an instance of the entity referenced by
+   * id.
+   * 
+   * @param id
+   *          identifier for referenced the entity
+   * @param context
+   *          HttpContext inherited from the parent resource
+   */
+  public TransformationResource(Long id, UriInfo context) {
+    this.id = id;
+    this.context = context;
+  }
 
-    /**
-     * Get method for retrieving an instance of referenced Storage in XML format.
-     *
-     * @return an instance of StorageConverter
-     */
-    @GET
-    @Produces("application/xml")
-    public TransformationConverter get() {
-        return new TransformationConverter(dao.retrieveById(id), context.getAbsolutePath());
-    }
+  /**
+   * Get method for retrieving an instance of referenced Storage in XML format.
+   * 
+   * @return an instance of StorageConverter
+   */
+  @GET
+  @Produces("application/xml")
+  public TransformationConverter get() {
+    return new TransformationConverter(dao.retrieveById(id), context.getAbsolutePath());
+  }
 
-    /**
-     * Put method for updating an instance of referenced Transformation, using XML as the input format.
-     *
-     * @param data an HarvestableConverter entity that is de-serialized from an XML stream
-     */
-    @PUT
-    @Consumes("application/xml")
-    public void put(TransformationConverter data) {
-        Transformation entity = data.getEntity();
-        dao.update(entity);
-    }
+  /**
+   * Put method for updating an instance of referenced Transformation, using XML
+   * as the input format.
+   * 
+   * @param data
+   *          an HarvestableConverter entity that is de-serialized from an XML
+   *          stream
+   */
+  @PUT
+  @Consumes("application/xml")
+  public void put(TransformationConverter data) {
+    Transformation entity = data.getEntity();
+    dao.update(entity);
+  }
 
-    /**
-     * Delete method for deleting an instance of referenced Harvestable.
-     *
-     */
-    @DELETE
-    public void delete() {
-        dao.delete(dao.retrieveById(id));
-    }
+  /**
+   * Delete method for deleting an instance of referenced Harvestable.
+   * 
+   */
+  @DELETE
+  public void delete() {
+    dao.delete(dao.retrieveById(id));
+  }
 
 }

@@ -20,42 +20,44 @@ import com.indexdata.masterkey.localindices.web.service.converter.SearchablesCon
 
 /**
  * RESTful WS (resource) that maps to the Searchables collection.
+ * 
  * @author jakub
  */
 @Path("/searchables/")
 public class SearchablesResource {
-    private HarvestableDAO dao = new HarvestablesDAOJPA();
-    @Context
-    private UriInfo context;
+  private HarvestableDAO dao = new HarvestablesDAOJPA();
+  @Context
+  private UriInfo context;
 
-    /** Creates a new instance of HarvestablesResource */
-    public SearchablesResource() {
-    }
+  /** Creates a new instance of HarvestablesResource */
+  public SearchablesResource() {
+  }
 
-    /**
-     * Constructor used for instantiating an instance of the Searchable resource.
-     *
-     * @param context HttpContext inherited from the parent resource
-     */
-    public SearchablesResource(UriInfo context) {
-        this.context = context;
-    }
+  /**
+   * Constructor used for instantiating an instance of the Searchable resource.
+   * 
+   * @param context
+   *          HttpContext inherited from the parent resource
+   */
+  public SearchablesResource(UriInfo context) {
+    this.context = context;
+  }
 
-    /**
-     * Get method for retrieving a collection of Searchables instance in XML format.
-     *
-     * @param start optional start item argument
-     * @param max optional max results argument
-     * @return an instance of Searchables
-     */
-    @GET
-    @Produces("application/xml")
-    public SearchablesConverter get(
-            @QueryParam("start")
-            @DefaultValue("0") int start,
-            
-            @QueryParam("max")
-            @DefaultValue("100") int max) {
-        return new SearchablesConverter(dao.retrieve(start, max), context.getAbsolutePath());
-    }
+  /**
+   * Get method for retrieving a collection of Searchables instance in XML
+   * format.
+   * 
+   * @param start
+   *          optional start item argument
+   * @param max
+   *          optional max results argument
+   * @return an instance of Searchables
+   */
+  @GET
+  @Produces("application/xml")
+  public SearchablesConverter get(@QueryParam("start") @DefaultValue("0") int start,
+
+  @QueryParam("max") @DefaultValue("100") int max) {
+    return new SearchablesConverter(dao.retrieve(start, max), context.getAbsolutePath());
+  }
 }
