@@ -30,65 +30,64 @@ import com.indexdata.xml.factory.XmlFactory;
  */
 public class HarvestStorageFactory {
 
-	/**
-	 * Creates a HarvestStorage based on the Database Entity
-	 * @param harvestable
-	 * @return
-	 */
-	public static HarvestStorage getStorage(Harvestable harvestable) {
-		HarvestStorage harvestStorage = null;
-		/* TODO Extend to create other types */
-		if (harvestable.getStorage() instanceof com.indexdata.masterkey.localindices.entity.SolrStorage) {
-			com.indexdata.masterkey.localindices.entity.SolrStorage entity = (com.indexdata.masterkey.localindices.entity.SolrStorage) harvestable
-					.getStorage();
-			return new BulkSolrRecordStorage(entity.getUrl(), harvestable);
-		}
+  /**
+   * Creates a HarvestStorage based on the Database Entity
+   * 
+   * @param harvestable
+   * @return
+   */
+  public static HarvestStorage getStorage(Harvestable harvestable) {
+    HarvestStorage harvestStorage = null;
+    /* TODO Extend to create other types */
+    if (harvestable.getStorage() instanceof com.indexdata.masterkey.localindices.entity.SolrStorage) {
+      com.indexdata.masterkey.localindices.entity.SolrStorage entity = (com.indexdata.masterkey.localindices.entity.SolrStorage) harvestable
+	  .getStorage();
+      return new BulkSolrRecordStorage(entity.getUrl(), harvestable);
+    }
 
-		return harvestStorage;
-	}
+    return harvestStorage;
+  }
 
-	static SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
+  static SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
 
-	/**
-	 * Creates a XMLFilter from an array of strings 
-	 * @param stylesheets
-	 * @return
-	 * @throws TransformerConfigurationException
-	 * @throws UnsupportedEncodingException
-	 * 
-	 * TODO move out of this.
-	 */
-	public static XMLFilter createXMLFilter(String[] stylesheets)
-			throws TransformerConfigurationException,
-			UnsupportedEncodingException {
-		XMLReader reader;
-		SAXParser parser;
-		try {
-			parser = spf.newSAXParser();
-			reader = parser.getXMLReader();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new TransformerConfigurationException(
-					"Parser Configuration Error", e);
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new TransformerConfigurationException("SAX Exception", e);
-		}
+  /**
+   * Creates a XMLFilter from an array of strings
+   * 
+   * @param stylesheets
+   * @return
+   * @throws TransformerConfigurationException
+   * @throws UnsupportedEncodingException
+   * 
+   *           TODO move out of this.
+   */
+  public static XMLFilter createXMLFilter(String[] stylesheets)
+      throws TransformerConfigurationException, UnsupportedEncodingException {
+    XMLReader reader;
+    SAXParser parser;
+    try {
+      parser = spf.newSAXParser();
+      reader = parser.getXMLReader();
+    } catch (ParserConfigurationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      throw new TransformerConfigurationException("Parser Configuration Error", e);
+    } catch (SAXException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      throw new TransformerConfigurationException("SAX Exception", e);
+    }
 
-		SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
-		XMLFilter filter = null;
-		XMLReader parent = reader;
-		int index = 0;
-		while (index < stylesheets.length) {
-			filter = stf.newXMLFilter(new StreamSource(
-					new ByteArrayInputStream(stylesheets[index]
-							.getBytes("UTF-8"))));
-			filter.setParent(parent);
-			parent = filter;
-			index++;
-		}
-		return filter;
-	}
+    SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
+    XMLFilter filter = null;
+    XMLReader parent = reader;
+    int index = 0;
+    while (index < stylesheets.length) {
+      filter = stf.newXMLFilter(new StreamSource(new ByteArrayInputStream(stylesheets[index]
+	  .getBytes("UTF-8"))));
+      filter.setParent(parent);
+      parent = filter;
+      index++;
+    }
+    return filter;
+  }
 }

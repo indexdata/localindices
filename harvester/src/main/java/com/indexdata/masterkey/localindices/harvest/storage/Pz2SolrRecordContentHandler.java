@@ -60,12 +60,11 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   }
 
   @Override
-  public void startElement(String uri, String localName, String qName,
-      Attributes atts) throws SAXException {
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
     textBuffers.add(currentText);
     currentText = new StringBuffer();
-    if (record == null
-	&& (qName.equals("pz:record") || localName.equals("record"))) {
+    if (record == null && (qName.equals("pz:record") || localName.equals("record"))) {
       inMetadata = true;
       keyValues = new HashMap<String, Collection<Serializable>>();
       record = new RecordImpl(keyValues);
@@ -77,8 +76,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
       record.setDatabase(databaseId);
       record.setId(getAttributeValue(atts, "id"));
     }
-    if (inMetadata
-	&& (qName.equals("pz:metadata") || localName.equals("record"))) {
+    if (inMetadata && (qName.equals("pz:metadata") || localName.equals("record"))) {
       type = getAttributeValue(atts, "type");
     }
 
@@ -92,8 +90,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   }
 
   @Override
-  public void endElement(String uri, String localName, String qName)
-      throws SAXException {
+  public void endElement(String uri, String localName, String qName) throws SAXException {
     if (record != null) {
       if (inHeader && localName.equals("identifier")) {
 	record.setId(currentText.toString());
@@ -118,8 +115,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
     if (record != null && localName.equals("delete")) {
       store.delete(record.getId());
     }
-    if (record != null
-	&& (qName.equals("pz:record") || localName.equals("record"))) {
+    if (record != null && (qName.equals("pz:record") || localName.equals("record"))) {
       store.add(record);
       record = null;
     }
@@ -132,15 +128,13 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   }
 
   @Override
-  public void ignorableWhitespace(char[] ch, int start, int length)
-      throws SAXException {
+  public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
     // TODO Auto-generated method stub
 
   }
 
   @Override
-  public void processingInstruction(String target, String data)
-      throws SAXException {
+  public void processingInstruction(String target, String data) throws SAXException {
     // TODO Auto-generated method stub
 
   }
