@@ -28,6 +28,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.log4j.Level;
@@ -105,25 +106,41 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     return null;
   }
+  
+  private void debugSource(Source xmlSource) {
+    boolean debug = false;
+    if (debug) {
+	logger.debug("Transform xml ");
+	StreamResult debugOut = new StreamResult(System.out);
+	try {
+	  stf.newTransformer().transform(xmlSource, debugOut);
+
+	} catch (Exception e) {
+	  logger.debug("Unable to print XML: " + e.getMessage());
+	}
+    }
+  }
+
+  private void debugSource(Node xml) {
+    debugSource(new DOMSource(xml));
+  }
 
   protected Source transformNode(Source xmlSource) throws TransformerException {
-
     Transformer transformer;
     if (templates == null)
       return xmlSource;
     for (Templates template : templates) {
       transformer = template.newTransformer();
       DOMResult result = new DOMResult();
+      debugSource(xmlSource);
       transformer.transform(xmlSource, result);
+      debugSource(result.getNode());
+      
       if (result.getNode() == null) {
 	logger.warn("transformNode: No Node found");
 	xmlSource = new DOMSource();
       } else
 	xmlSource = new DOMSource(result.getNode());
-      /*
-       * StreamResult debug = new StreamResult(System.out);
-       * stf.newTransformer().transform(xmlSource, debug);
-       */
     }
     return xmlSource;
   }
@@ -137,11 +154,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
     @Override
     public void accept(Source xmlNode) {
-
       try {
 	convert(transformNode(xmlNode));
       } catch (TransformerException e) {
-	logger.error("Failed to transform or convert xmlNode" + xmlNode.getSystemId());
+	logger.error("Failed to transform or convert xmlNode: " + e.getMessage() + " " + xmlNode.toString());
 	e.printStackTrace();
       }
     }
