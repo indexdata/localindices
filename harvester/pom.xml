@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.indexdata</groupId>
 		<artifactId>localindices</artifactId>
-		<version>0.0.1</version>
+		<version>0.1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>com.indexdata</groupId>
 	<artifactId>harvester</artifactId>
@@ -24,7 +24,7 @@
 			</dependencies>
 		</profile>
 	</profiles>
-	<version>0.0.1</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<name>harvester</name>
 	<build>
 		<finalName>localindices-harvester</finalName>
