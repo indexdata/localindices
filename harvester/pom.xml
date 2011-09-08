@@ -8,7 +8,9 @@
   </parent>
   <groupId>com.indexdata</groupId>
   <artifactId>harvester</artifactId>
+<!--
   <version>0.1.0-SNAPSHOT</version>
+-->
   <packaging>war</packaging>
   <profiles>
     <profile>
@@ -89,12 +91,12 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-dal</artifactId>
-      <version>${pom.version}</version>
+      <version>${parent.version}</version>
     </dependency>
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>oaipmh-lib</artifactId>
-      <version>${pom.version}</version>
+      <version>${parent.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
