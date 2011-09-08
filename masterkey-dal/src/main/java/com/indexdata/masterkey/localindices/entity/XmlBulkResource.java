@@ -12,56 +12,71 @@ import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
+ * 
  * @author jakub
  */
 @Entity
-@XmlRootElement(name="xmlBulk")
+@XmlRootElement(name = "xmlBulk")
 public class XmlBulkResource extends Harvestable implements Serializable {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = -6751028242629873367L;
-	@Column(length=16384)
-    private String url;
-    private String expectedSchema;
-    private String normalizationFilter;
 
-    public String getExpectedSchema() {
-        return expectedSchema;
-    }
+  private static final long serialVersionUID = -6751028242629873367L;
+  @Column(length = 16384)
+  private String url;
+  private String splitAt;
+  private String splitSize;
+  private String expectedSchema;
 
-    public void setExpectedSchema(String expectedSchema) {
-        this.expectedSchema = expectedSchema;
-    }
+  public XmlBulkResource() {
+  }
 
-    public String getNormalizationFilter() {
-        return normalizationFilter;
-    }
+  public XmlBulkResource(String url) {
+    this.url = url;
+  }
 
-    public void setNormalizationFilter(String normalizationFilter) {
-        this.normalizationFilter = normalizationFilter;
-    }
+  public String getExpectedSchema() {
+    return expectedSchema;
+  }
 
-    public String getUrl() {
-        return url;
-    }
+  public void setExpectedSchema(String expectedSchema) {
+    this.expectedSchema = expectedSchema;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof XmlBulkResource)) {
-            return false;
-        }
-        XmlBulkResource other = (XmlBulkResource) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    // TODO: Warning - this method won't work in the case the id fields are not
+    // set
+    if (!(object instanceof XmlBulkResource)) {
+      return false;
     }
+    Harvestable other = (Harvestable) object;
+    if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+      return false;
+    }
+    return true;
+  }
+
+  public void setSplitAt(String splitAt) {
+    this.splitAt = splitAt;
+  }
+
+  public String getSplitAt() {
+    return splitAt;
+  }
+
+  public void setSplitSize(String splitSize) {
+    this.splitSize = splitSize;
+  }
+
+  public String getSplitSize() {
+    return splitSize;
+  }
 
 }

@@ -17,193 +17,169 @@ package com.indexdata.masterkey.localindices.harvest.storage;
  * limitations under the License.
  */
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.LinkedList;
+
+import javax.xml.stream.XMLStreamException;
+
+import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 
 /**
- * A simple utility class for posting raw updates to a Solr server, 
- * has a main method so it can be run on the command line.
+ * A simple utility class for posting raw updates to a Solr server, has a main
+ * method so it can be run on the command line.
  * 
  */
 public class SolrStorage implements HarvestStorage {
-	public static final String DEFAULT_POST_URL = "http://localhost:8983/solr/update";
-	public static final String POST_ENCODING = "UTF-8";
-	public static final String VERSION_OF_THIS_TOOL = "1.2";
-	private static final String SOLR_OK_RESPONSE_EXCERPT = "<int name=\"status\">0</int>";
+  public String POST_ENCODING = "UTF-8";
+  public String VERSION_OF_THIS_TOOL = "1.2";
+  protected String url = "http://localhost:8983/solr/";
+  protected CommonsHttpSolrServer server;
+  protected Harvestable harvestable;
+  protected Logger logger = Logger.getLogger(this.getClass());
+  ByteArrayOutputStream output = new ByteArrayOutputStream();
+  protected Collection<SolrInputDocument> documentList = null;
+  protected URL solrUrl;
+  private boolean override = false;
 
-	private static final String DATA_MODE_FILES = "files";
-	private static final String DATA_MODE_ARGS = "args";
-	private static final String DATA_MODE_STDIN = "stdin";
-	private HttpURLConnection urlc;
-	OutputStream output; 
-	private static final Set<String> DATA_MODES = new HashSet<String>();
-	static {
-		DATA_MODES.add(DATA_MODE_FILES);
-		DATA_MODES.add(DATA_MODE_ARGS);
-		DATA_MODES.add(DATA_MODE_STDIN);
-	}
+  public void init() {
+    try {
 
-	protected URL solrUrl;
+      server = new CommonsHttpSolrServer(url);
+      // server.setSoTimeout(1000); // socket read timeout
+      server.setConnectionTimeout(100);
+      server.setDefaultMaxConnectionsPerHost(100);
+      server.setMaxTotalConnections(100);
+      server.setFollowRedirects(false); // defaults to false
+      // allowCompression defaults to false.
+      // Server side must support gzip or deflate for this to have any effect.
+      server.setAllowCompression(true);
+      server.setMaxRetries(1); // defaults to 0. > 1 not recommended.
+      server.setParser(new XMLResponseParser());
 
-	public SolrStorage(Harvestable harvestable) {
-		try {
-			solrUrl = new URL(System.getProperty("url", DEFAULT_POST_URL));
+    } catch (MalformedURLException e) {
+      throw new RuntimeException("'url' is not a valid URL: " + System.getProperty("url", url), e);
+    }
 
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("System Property 'url' is not a valid URL: " + System.getProperty("url", DEFAULT_POST_URL), e);
-		}
-	}
+  }
 
-	public SolrStorage(String url_string, Harvestable harvestable) {
-		try {
-			solrUrl = new URL(url_string);
+  public SolrStorage(Harvestable harvestable) {
+    this.harvestable = harvestable;
+    init();
+  }
 
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("'url' is not a valid URL: " + url_string, e);
-		}
-	}
+  public SolrStorage(String url_string, Harvestable harvestable) {
+    this.harvestable = harvestable;
+    url = url_string;
+    init();
+  }
 
-	/** Check what Solr replied to a POST, and complain if it's not what we expected.
-	 *  TODO: parse the response and check it XMLwise, here we just check it as an unparsed String  
-	 */
-	static void warnIfNotExpectedResponse(String actual,String expected) {
-		if(actual.indexOf(expected) < 0) {
-			warn("Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
-		}
-	}
+  /**
+   * Check what Solr replied to a POST, and complain if it's not what we
+   * expected. TODO: parse the response and check it XMLwise, here we just check
+   * it as an unparsed String
+   */
+  static void warnIfNotExpectedResponse(String actual, String expected) {
+    if (actual.indexOf(expected) < 0) {
+      warn("Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
+    }
+  }
 
-	static void warn(String msg) {
-		System.err.println("SimplePostTool: WARNING: " + msg);
-	}
+  static void warn(String msg) {
+    System.err.println("SimplePostTool: WARNING: " + msg);
+  }
 
-	static void info(String msg) {
-		System.out.println("SimplePostTool: " + msg);
-	}
+  static void info(String msg) {
+    System.out.println("SimplePostTool: " + msg);
+  }
 
-	static void fatal(String msg) {
-		System.err.println("SimplePostTool: FATAL: " + msg);
-		System.exit(1);
-	}
+  static void fatal(String msg) {
+    System.err.println("SimplePostTool: FATAL: " + msg);
+    System.exit(1);
+  }
 
-	/**
-	 * Constructs an instance for posting data to the specified Solr URL 
-	 * (ie: "http://localhost:8983/solr/update")
-	 */
-	public SolrStorage(URL solrUrl, Harvestable harvestable) {
-		this.solrUrl = solrUrl;
-		warn("Make sure your XML documents are encoded in " + POST_ENCODING
-				+ ", other encodings are not currently supported");
-	}
+  /**
+   * Constructs an instance for posting data to the specified Solr URL (ie:
+   * "http://localhost:8983/solr/update")
+   */
+  public SolrStorage(URL solrUrl, Harvestable harvestable) {
+    this.solrUrl = solrUrl;
+  }
 
-	/**
-	 * Pipes everything from the reader to the writer via a buffer
-	 */
-	private static void pipe(Reader reader, Writer writer) throws IOException {
-		char[] buf = new char[1024];
-		int read = 0;
-		while ( (read = reader.read(buf) ) >= 0) {
-			writer.write(buf, 0, read);
-		}
-		writer.flush();
-	}
+  @Override
+  public void begin() throws IOException {
 
-	@Override
-	public void begin() throws IOException {
-		urlc = null;
-		urlc = (HttpURLConnection) solrUrl.openConnection();
-		try {
-			urlc.setRequestMethod("POST");
-		} 
-		catch (ProtocolException e) {
-			throw new IOException("Shouldn't happen: HttpURLConnection doesn't support POST??", e);
-		}
-		urlc.setDoOutput(true);
-		urlc.setDoInput(true);
-		urlc.setUseCaches(false);
-		urlc.setAllowUserInteraction(false);
-		urlc.setRequestProperty("Content-type", "text/xml; charset=" + POST_ENCODING);
+    documentList = new LinkedList<SolrInputDocument>();
+    output.reset();
 
-		output = urlc.getOutputStream();
-		try {
-			new OutputStreamWriter(output, POST_ENCODING);
-		}
-		catch (IOException io) {
-		}
-	}
+  }
 
-	private void readResponse(Writer writer) throws IOException 
-	{
-		if (writer != null)
-			writer.close();
-		InputStream in = urlc.getInputStream();
-		try {
-			Reader reader = new InputStreamReader(in);
-			pipe(reader, writer);
-			reader.close();
-		} catch (IOException e) {
-			throw new IOException("IOException while reading response", e);
-		} finally {
-			if (in != null) 
-				in.close();
-		}
-	}
+  @Override
+  public void commit() throws IOException {
+    SolrXmlParser parser = new SolrXmlParser();
+    SolrXmlHandler context = new SolrXmlHandler();
+    try {
+      parser.parse(output.toString(), context);
+    } catch (XMLStreamException e) {
+      e.printStackTrace();
+      throw new IOException("Error in SOLR XML parse: " + e.getMessage(), e);
+    }
+    try {
+      System.out.println(context.getDocuments());
+      UpdateResponse response = server.add(context.getDocuments());
+      logger.debug("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
+      response = server.commit();
+      logger.debug("CommitResponse: " + response.getStatus() + " " + response.getResponse());
 
-	@Override
-	public void commit() throws IOException 
-	{
-		StringWriter sw = new StringWriter();
-		readResponse(sw);
-		warnIfNotExpectedResponse(sw.toString(),SOLR_OK_RESPONSE_EXCERPT);
-		// Setup new connection
-		begin();
-		pipe(new StringReader("<commit/>"), new OutputStreamWriter(output));
-		StringWriter sw2 = new StringWriter();	
-		readResponse(sw2);
-		warnIfNotExpectedResponse(sw.toString(),SOLR_OK_RESPONSE_EXCERPT);
-	}
+    } catch (SolrServerException e) {
+      throw new IOException("Error in SOLR commit", e);
+    }
+  }
 
-	@Override
-	public void rollback() throws IOException {
-		StringWriter sw = new StringWriter();
-		readResponse(sw);
-		// don't send a commit
-	}
+  @Override
+  public void rollback() throws IOException {
+    try {
+      server.rollback();
+    } catch (SolrServerException e) {
+      e.printStackTrace();
+      throw new RuntimeException("Solr Server Exception in SOLR Rollback: " + e.getMessage(), e);
+    }
+  }
 
-	@Override
-	public void purge() throws IOException {
-		// TODO Auto-generated method stub
+  @Override
+  public void purge() throws IOException {
+    try {
+      server.deleteByQuery("database:" + harvestable.getId());
+    } catch (SolrServerException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      throw new IOException("Error purging records from server", e);
+    }
+  }
 
-	}
+  @Override
+  public void setOverwriteMode(boolean mode) {
+    override = mode;
+  }
 
-	@Override
-	public void setOverwriteMode(boolean mode) {
-		// TODO Auto-generated method stub
+  @Override
+  public boolean getOverwriteMode() {
+    return override;
+  }
 
-	}
-
-	@Override
-	public boolean getOverwriteMode() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public OutputStream getOutputStream() {
-		return output;
-	}
+  @Override
+  public OutputStream getOutputStream() {
+    return output;
+  }
 }

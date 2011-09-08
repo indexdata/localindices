@@ -10,7 +10,7 @@ package com.indexdata.masterkey.localindices.dao;
  * Non-specific DAO exception.
  * @author jakub
  */
-public class HarvestableDAOException extends Exception {
+public class HarvestableDAOException extends DAOException {
 
     /**
 	 * 

@@ -15,24 +15,25 @@ import com.indexdata.masterkey.localindices.util.ProcessUtils;
 
 /**
  * Wrapper class around zebrasrv.
+ * 
  * @author jakub
  */
 public class ZebraServer implements Runnable {
-    private String config;
-    private int portNum;
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
-    
-    public ZebraServer(String storageDir, int portNum) {
-        config = storageDir + "/zebra.cfg"; 
-        this.portNum = portNum;
-    }
+  private String config;
+  private int portNum;
+  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
-    public void run() {
-        try {
-            String[] cmd = {"zebrasrv", "-c", config,  "@:" + portNum};
-            ProcessUtils.execAndWait(cmd, logger);
-        } catch (IOException ex) {
-            logger.log(Level.ERROR, "ZebraServer: failure in zebrasrv process.", ex);
-        }
+  public ZebraServer(String storageDir, int portNum) {
+    config = storageDir + "/zebra.cfg";
+    this.portNum = portNum;
+  }
+
+  public void run() {
+    try {
+      String[] cmd = { "zebrasrv", "-c", config, "@:" + portNum };
+      ProcessUtils.execAndWait(cmd, logger);
+    } catch (IOException ex) {
+      logger.log(Level.ERROR, "ZebraServer: failure in zebrasrv process.", ex);
     }
+  }
 }

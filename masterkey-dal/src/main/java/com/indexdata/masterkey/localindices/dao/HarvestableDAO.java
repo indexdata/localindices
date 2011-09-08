@@ -6,32 +6,15 @@
 
 package com.indexdata.masterkey.localindices.dao;
 
+import java.io.InputStream;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  *
  * @author jakub
  */
-public interface HarvestableDAO {
-    public void createHarvestable(Harvestable harvestable);
-    public Harvestable retrieveHarvestableById(Long id);
-    public Harvestable updateHarvestable(Harvestable hable);
-    public void deleteHarvestable(Harvestable harvestable);
-    public List<Harvestable> retrieveHarvestables(int start, int max);
-    public int getHarvestableCount();
-    public InputStream getHarvestableLog(long id);
-    /**
-     * Retrieve a list of brief (listing) harvestables.
-     * @return
-     */
-    List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max);
-    /**
-     * Retrieves a harvestable using it's listing reference (brief)
-     * @param hbrief brief (listing) harvestable
-     * @return harvesatble detailed harvestable
-     */
-    Harvestable retrieveFromBrief(HarvestableBrief hbrief);
+public interface HarvestableDAO extends CommonDAO<Harvestable, HarvestableBrief> {
+	public InputStream getLog(long id);
 }

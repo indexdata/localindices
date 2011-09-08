@@ -16,20 +16,20 @@
     <body>
         <f:view>
             <h:form>
+                <h:commandLink value="Overview" action="#{resourceController.back}" />
                 <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
-                <h:outputText value=" | Add new resource: "/>
+                <br>
+                <h:outputText value="Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
-                <h:outputText value=", "/>
+<!-- 
+                 <h:outputText value=", "/>
                 <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
+ -->
                 <h:outputText value=", "/>
-                <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <h:commandLink value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+<!-- 
                 <h:outputText value=", "/>
-                <h:commandLink value="PP2-SOLR bulk" action="#{resourceController.prepareSolrXmlBulkResourceToAdd}" />
-                <!-- NELLCO doesn't want logout
-                <h:outputText value=" | "/>
-                Hello, <h:outputText value="#{loginManager.displayName}" />!
-                <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
-                -->
+ -->
             </h:form>
             <h:form>
                 <h3><h:outputText value="Available resources:" /></h3>
@@ -82,7 +82,7 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabled}"></h:outputText>
+                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">

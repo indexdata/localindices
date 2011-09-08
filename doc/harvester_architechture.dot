@@ -1,0 +1,32 @@
+digraph callgraph {
+
+	rankdir="LR";
+	fontname="verdana";
+	node [fontname="verdana"];
+    label="Harvester Architecture";
+	Target1[label="OAI-PMH", shape=circle];
+	Target2[label="XML", shape=circle];
+	Target3[label="MARC", shape=circle];
+	Target[shape=circle];
+	Target -> Step1[label="Fetch"];
+	Step1  -> Step2[label="Transform"];
+	Step1  -> Errors;
+	Step2  -> Step3[label="Transform"];
+	Step2  -> Errors;
+	Step3  -> SOLR[label="Store"];
+	Step3  -> Errors;
+	Target1 -> Fetch[label="http:"];
+	Target2 -> Fetch[label="file:"];
+	Target3 -> Fetch[label="Z39.50"];
+	Fetch -> Transform1; 
+	Fetch -> Transform2; 
+	Fetch -> Transform3; 
+	Transform1 -> Store1; 
+	Store1 -> SOLR[label="XML"];
+	Transform2 -> Transform4; 
+ 	Transform3 -> Store2; 
+	Store2 -> SOLR[label="Stream"];
+	Transform4 -> Store3; 
+	Store3 -> SOLR[label="Key-Value"];
+
+}

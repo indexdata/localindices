@@ -32,7 +32,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
     
     @Override
-    public void createHarvestable(Harvestable harvestable) {
+    public void create(Harvestable harvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -53,7 +53,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public Harvestable retrieveHarvestableById(Long id) {
+    public Harvestable retrieveById(Long id) {
         EntityManager em = getEntityManager();
         Harvestable hable = em.find(Harvestable.class, id);
         em.close();
@@ -61,7 +61,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public Harvestable updateHarvestable(Harvestable updHarvestable) {
+    public Harvestable update(Harvestable updHarvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         Harvestable harvestable = null;
@@ -83,7 +83,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }    
 
     @Override
-    public void deleteHarvestable(Harvestable harvestable) {
+    public void delete(Harvestable harvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -105,7 +105,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     @SuppressWarnings("unchecked")
 	@Override
-    public List<Harvestable> retrieveHarvestables(int start, int max) {
+    public List<Harvestable> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         List<Harvestable> hables = null;
@@ -130,7 +130,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public int getHarvestableCount() {
+    public int getCount() {
         EntityManager em = getEntityManager();
         try {
             int count = ((Long) em.createQuery("select count(o) from Harvestable as o").getSingleResult()).intValue();
@@ -141,9 +141,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
-        for (Harvestable hable : retrieveHarvestables(start, max)) {
+        for (Harvestable hable : retrieve(start, max)) {
             HarvestableBrief href = new HarvestableBrief(hable);
             hrefs.add(href);
         }
@@ -152,12 +152,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     @Override
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
-        return retrieveHarvestableById(href.getId());
+        return retrieveById(href.getId());
     }
 
     @Override
-    public InputStream getHarvestableLog(long id) {
+    public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

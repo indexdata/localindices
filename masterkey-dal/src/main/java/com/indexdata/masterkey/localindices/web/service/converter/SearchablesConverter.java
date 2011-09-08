@@ -13,7 +13,11 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.torus.Layer;
 import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
@@ -38,19 +42,36 @@ public class SearchablesConverter extends Records {
      * @param entities associated entities
      * @param uri associated uri
      */
-    public SearchablesConverter(Collection<Harvestable> entities, URI uri, String zurlBase) {
+    public SearchablesConverter(Collection<Harvestable> entities, URI uri) {
         Collection<Record> records = new ArrayList<Record>();
         for (Harvestable entity : entities) {
-            if (!entity.getEnabled()) continue;
+            if (!entity.getEnabled()) 
+            	continue;            
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
             layer.setId(entity.getId().toString());
-            layer.seLayertName("final");
+            layer.setLayerName("final");
             layer.setName(entity.getName());
-            layer.setZurl(zurlBase + "/job" + entity.getId());
-            layer.setElementSet("pz2snippet");
             layer.setServiceProvider(entity.getServiceProvider());
+            Storage storage = entity.getStorage();
+            
+            if (storage instanceof SolrStorage) {
+            	SolrStorage solrStorage = (SolrStorage) storage;
+                // Ensure unique zurl
+            	layer.setZurl(solrStorage.getUrl() + "#" + entity.getId());
+            	layer.setExtraArgs("fq=database:" + entity.getId());
+            	layer.setTransform("solr2pz.xsl");
+            	// TODO CCL MAP 
+            	// TODO FACET MAP
+            } else { 
+            	// Zebra
+            	// Extract zurlbase from Zebra Instance
+            	// layer.setZurl(zurlBase + "/" + entity.getId());
+            	Logger.getLogger(this.getClass()).warn("Zebra Index not fully implemented");
+            	// zebra specific
+                layer.setElementSet("pz2snippet");
+            }
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);

@@ -12,55 +12,54 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
- * The scheduler thread runs the actuall JobScheduler. It controls 
- * the sleep timeout and waits for kill signals. The instantiated object is
- * placed in the appplication context and can be retrieved across the application.
+ * The scheduler thread runs the actuall JobScheduler. It controls the sleep
+ * timeout and waits for kill signals. The instantiated object is placed in the
+ * appplication context and can be retrieved across the application.
  * 
  * @author jakub
  */
 public class SchedulerThread implements Runnable {
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
-    private boolean keepRunning;
-    private JobScheduler scheduler;
+  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private boolean keepRunning;
+  private JobScheduler scheduler;
 
-    public SchedulerThread(Map<String, Object> config) {
-        scheduler = new JobScheduler(config);
+  public SchedulerThread(Map<String, Object> config) {
+    scheduler = new JobScheduler(config);
+  }
+
+  public void run() {
+    logger.log(Level.INFO, "Scheduler started.");
+    keepRunning = true;
+    while (keepRunning()) {
+      try {
+	Thread.sleep(10 * 1000);
+	// logger.log(Level.INFO, "Checking and updating current job list..");
+	scheduler.checkJobs();
+	scheduler.updateJobs();
+	scheduler.checkJobs();
+      } catch (InterruptedException e) {
+	// logger.log(Level.WARN, "Scheduler was interrrupted. Exiting...");
+	// Throws null pointer exceptions when closing...
+      }
     }
+    scheduler.stopAllJobs();
+    logger.log(Level.INFO, "Scheduler exits.");
+  }
 
-    public void run() {
-        logger.log(Level.INFO, "Scheduler started.");
-        keepRunning = true;
-        while (keepRunning()) {
-            try {
-                Thread.sleep(10 * 1000);
-                //logger.log(Level.INFO, "Checking and updating current job list..");
-                scheduler.checkJobs();
-                scheduler.updateJobs();
-                scheduler.checkJobs();
-            } catch (InterruptedException e) {
-                //logger.log(Level.WARN, "Scheduler was interrrupted. Exiting...");
-                // Throws null pointer exceptions when closing...
-            }
-        }
-        scheduler.stopAllJobs();
-        logger.log(Level.INFO, "Scheduler exits.");
-    }
+  public synchronized void kill() {
+    logger.log(Level.WARN, "Scheduler received kill signal. Exiting...");
+    keepRunning = false;
+  }
 
-    public synchronized void kill() {
-        logger.log(Level.WARN, "Scheduler received kill signal. Exiting...");
-        keepRunning = false;
-    }
+  public Collection<JobInfo> getJobInfo() {
+    return scheduler.getJobInfo();
+  }
 
-    public Collection<JobInfo> getJobInfo() {
-        return scheduler.getJobInfo();
-    }
+  public void stopJob(Long jobId) {
+    scheduler.stopJob(jobId);
+  }
 
-    public void stopJob(Long jobId) {
-        scheduler.stopJob(jobId);
-    }
-
-    private synchronized boolean keepRunning() {
-        return keepRunning;
-    }   
+  private synchronized boolean keepRunning() {
+    return keepRunning;
+  }
 }
-

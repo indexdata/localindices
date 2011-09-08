@@ -27,21 +27,62 @@ import com.indexdata.rest.client.ResourceConnector;
  *
  * @author jakub
  */
-public class HarvestableDAOWS implements HarvestableDAO {
+public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
 
-    private String serviceBaseURL;
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
     public HarvestableDAOWS(String serviceBaseURL) {
-        this.serviceBaseURL = serviceBaseURL;
+        super(serviceBaseURL);
+    }
+    
+    /**
+     * create (POST) entity to the Web Service
+	 * @param Harvestable
+     * @return
+     */
+    @Override
+    public void create(Harvestable harvestable) {
+        try {
+            ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                    new ResourceConnector<HarvestablesConverter>(
+                    new URL(serviceBaseURL),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            HarvestableConverter harvestableContainer = new HarvestableConverter();
+            harvestableContainer.setEntity(harvestable);
+            URL url = harvestablesConnector.postAny(harvestableContainer);
+	    	harvestable.setId(extractId(url));
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
     }
 
+    /**
+     * Retrieve (GET) entity from the Web Service
+	 * @param id of the entity
+     * @return Harvestable
+     */
+    @Override
+    public Harvestable retrieveById(Long id) {
+        Harvestable hable = null;
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                new ResourceConnector<HarvestableConverter>(
+                    new URL(serviceBaseURL + id + "/"),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            hable = harvestableConnector.get().getEntity();
+        } catch (Exception male) {
+            logger.log(Level.DEBUG,  male);
+        }
+        return hable;    
+    }
     /**
      * Retrieve list of all harvestables from the Web Service
      * @return
      */
     @Override
-    public List<HarvestableBrief> retrieveHarvestableBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -61,7 +102,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
     /**
      * Retrieve harvestable from the Web Service using it's reference (URL)
      * @param href harvestableRef entity
-     * @return harvesatble entity
+     * @return harvestable entity
      */
     @Override
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
@@ -79,11 +120,11 @@ public class HarvestableDAOWS implements HarvestableDAO {
     } // retrieveFromBrief
 
     /**
-     * PUT harvestable to the Web Service
+     * update (PUT) harvestable to the Web Service
      * @param harvestable entity to be put
      */
     @Override
-    public Harvestable updateHarvestable(Harvestable harvestable) {
+    public Harvestable update(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                     new ResourceConnector<HarvestableConverter>(
@@ -99,40 +140,10 @@ public class HarvestableDAOWS implements HarvestableDAO {
         return harvestable;
     } // updateJob
 
-    @Override
-    public void createHarvestable(Harvestable harvestable) {
-        try {
-            ResourceConnector<HarvestablesConverter> harvestablesConnector =
-                    new ResourceConnector<HarvestablesConverter>(
-                    new URL(serviceBaseURL),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-        HarvestableConverter harvestableContainer = new HarvestableConverter();
-        harvestableContainer.setEntity(harvestable);
-        harvestablesConnector.postAny(harvestableContainer);
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
-        }
-    }
+
 
     @Override
-    public Harvestable retrieveHarvestableById(Long id) {
-        Harvestable hable = null;
-        try {
-            ResourceConnector<HarvestableConverter> harvestableConnector =
-                new ResourceConnector<HarvestableConverter>(
-                    new URL(serviceBaseURL + id + "/"),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            hable = harvestableConnector.get().getEntity();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG,  male);
-        }
-        return hable;    
-    }
-
-    @Override
-    public void deleteHarvestable(Harvestable harvestable) {
+    public void delete(Harvestable harvestable) {
         try {
             ResourceConnector<HarvestableConverter> harvestableConnector =
                 new ResourceConnector<HarvestableConverter>(
@@ -146,11 +157,11 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public List<Harvestable> retrieveHarvestables(int start, int max) {
+    public List<Harvestable> retrieve(int start, int max) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
        List<Harvestable> hables = new ArrayList<Harvestable>();
-       List<HarvestableBrief> hrefs = retrieveHarvestableBriefs(start, max);
+       List<HarvestableBrief> hrefs = retrieveBriefs(start, max);
        if (hrefs != null) {
             for (HarvestableBrief href : hrefs) {
                 Harvestable hable = retrieveFromBrief(href);
@@ -161,7 +172,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public int getHarvestableCount() {
+    public int getCount() {
         String url = serviceBaseURL + "?start=0&max=0";
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
@@ -179,7 +190,7 @@ public class HarvestableDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public InputStream getHarvestableLog(long id) {
+    public InputStream getLog(long id) {
         String logURL = serviceBaseURL + id + "/" + "log/";
         try {
             URL url = new URL(logURL);

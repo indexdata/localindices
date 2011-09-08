@@ -14,102 +14,116 @@ import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
+ * 
  * @author jakub
  */
 @Entity
 @XmlRootElement(name = "oaiPmh")
 public class OaiPmhResource extends Harvestable implements Serializable {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = -3980532198473557541L;
-	private String url;
-    private String oaiSetName;
-    private String metadataPrefix;
-    private String schemaURI;
-    private String normalizationFilter;
-    // resumption token
-    @Temporal(TemporalType.DATE)
-    private Date fromDate;
-    @Temporal(TemporalType.DATE)
-    private Date untilDate;
-    private String dateFormat;
 
-    public String getDateFormat() {
-        return dateFormat;
-    }
+  private static final long serialVersionUID = -3980532198473557541L;
+  private String url;
+  private String oaiSetName;
+  private String metadataPrefix;
+  private String schemaURI;
+  // resumption token
+  private String resumptionToken;
+  // NormalizationFilter (id? Load from other table)
+  private String normalizationFilter;
 
-    public void setDateFormat(String dateFormat) {
-        this.dateFormat = dateFormat;
-    }
+  @Temporal(TemporalType.DATE)
+  private Date fromDate;
+  @Temporal(TemporalType.DATE)
+  private Date untilDate;
+  private String dateFormat;
 
-    public Date getFromDate() {
-        return fromDate;
-    }
+  public OaiPmhResource() {
+  };
 
-    public void setFromDate(Date fromDate) {
-        this.fromDate = fromDate;
-    }
+  public String getDateFormat() {
+    return dateFormat;
+  }
 
-    public Date getUntilDate() {
-        return untilDate;
-    }
+  public void setDateFormat(String dateFormat) {
+    this.dateFormat = dateFormat;
+  }
 
-    public void setUntilDate(Date untilDate) {
-        this.untilDate = untilDate;
-    }
+  public Date getFromDate() {
+    return fromDate;
+  }
 
-    public String getUrl() {
-        return url;
-    }
+  public void setFromDate(Date fromDate) {
+    this.fromDate = fromDate;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public Date getUntilDate() {
+    return untilDate;
+  }
 
-    public String getMetadataPrefix() {
-        return metadataPrefix;
-    }
+  public void setUntilDate(Date untilDate) {
+    this.untilDate = untilDate;
+  }
 
-    public void setMetadataPrefix(String metadataPrefix) {
-        this.metadataPrefix = metadataPrefix;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public String getNormalizationFilter() {
-        return normalizationFilter;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    public void setNormalizationFilter(String normalizationFilter) {
-        this.normalizationFilter = normalizationFilter;
-    }
+  public String getMetadataPrefix() {
+    return metadataPrefix;
+  }
 
-    public String getOaiSetName() {
-        return oaiSetName;
-    }
+  public void setMetadataPrefix(String metadataPrefix) {
+    this.metadataPrefix = metadataPrefix;
+  }
 
-    public void setOaiSetName(String oaiSetName) {
-        this.oaiSetName = oaiSetName;
-    }
+  public String getNormalizationFilter() {
+    return normalizationFilter;
+  }
 
-    public String getSchemaURI() {
-        return schemaURI;
-    }
+  public void setNormalizationFilter(String normalizationFilter) {
+    this.normalizationFilter = normalizationFilter;
+  }
 
-    public void setSchemaURI(String schemaURI) {
-        this.schemaURI = schemaURI;
-    }
+  public String getOaiSetName() {
+    return oaiSetName;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof OaiPmhResource)) {
-            return false;
-        }
-        OaiPmhResource other = (OaiPmhResource) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+  public void setOaiSetName(String oaiSetName) {
+    this.oaiSetName = oaiSetName;
+  }
+
+  public String getSchemaURI() {
+    return schemaURI;
+  }
+
+  public void setSchemaURI(String schemaURI) {
+    this.schemaURI = schemaURI;
+  }
+
+  public String getResumptionToken() {
+    return resumptionToken;
+  }
+
+  public void setResumptionToken(String resumptionToken) {
+    this.resumptionToken = resumptionToken;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    // TODO: Warning - this method won't work in the case the id fields are not
+    // set
+    if (!(object instanceof OaiPmhResource)) {
+      return false;
     }
+    OaiPmhResource other = (OaiPmhResource) object;
+    if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+      return false;
+    }
+    return true;
+  }
+
 }

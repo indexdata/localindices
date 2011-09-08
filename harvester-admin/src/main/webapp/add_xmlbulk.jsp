@@ -11,15 +11,15 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Add new MARC bulk resource</title>
+        <title>Add new XML bulk resource</title>
     </head>
     <body>
         <f:view>
             <h:form>
                 <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
-                <h3>New MARC bulk resource:</h3>
-                <%@ include file="fragments/generic_resource_forminputs.jsp" %>
-                <%@ include file="fragments/xmlbulk_forminputs.jsp" %>
+                <h3>New XML bulk resource:</h3>
+                <%@ include file="fragments/resource/generic_resource_forminputs.jsp" %>
+                <%@ include file="fragments/resource/xmlbulk_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{resourceController.addResource}"/>
             </h:form>
         </f:view>

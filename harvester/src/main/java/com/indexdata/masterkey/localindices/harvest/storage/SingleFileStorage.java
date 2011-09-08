@@ -14,53 +14,54 @@ import java.io.OutputStream;
 
 /**
  * Simple, single file storage.
+ * 
  * @author jakub
  */
 public class SingleFileStorage implements HarvestStorage {
-    private String outFileName;
-    private OutputStream fos;
-    
-    public SingleFileStorage(Harvestable harvestable) {
-        this(harvestable.getId() + "-" + harvestable.getName());
-    }
-    
-    public SingleFileStorage(String outFileName) {
-        this.outFileName = outFileName;
-    }
-    
-    public void begin() throws IOException {
-        fos = new FileOutputStream(outFileName, true);
-    }
-    
-    public void commit() throws IOException {
-        fos.close();
-    }
-    
-    public void rollback() throws IOException {
-        fos.close();
-        File f = new File(outFileName);
-        f.delete();
-    }
+  private String outFileName;
+  private OutputStream fos;
 
-    public void purge() throws IOException {
-        this.rollback();
-    }
-    
-    public OutputStream getOutputStream() {
-        return fos;
-    }
-    
-    public String getOutFileName() {
-        return outFileName;
-    }
-    
-    public void setOverwriteMode(boolean mode) {
-        if (mode)
-            throw new UnsupportedOperationException("Overwritemode not supported");
-    }
-    
-    public boolean getOverwriteMode(){
-        return false;
-    }
+  public SingleFileStorage(Harvestable harvestable) {
+    this(harvestable.getId() + "-" + harvestable.getName());
+  }
+
+  public SingleFileStorage(String outFileName) {
+    this.outFileName = outFileName;
+  }
+
+  public void begin() throws IOException {
+    fos = new FileOutputStream(outFileName, true);
+  }
+
+  public void commit() throws IOException {
+    fos.close();
+  }
+
+  public void rollback() throws IOException {
+    fos.close();
+    File f = new File(outFileName);
+    f.delete();
+  }
+
+  public void purge() throws IOException {
+    this.rollback();
+  }
+
+  public OutputStream getOutputStream() {
+    return fos;
+  }
+
+  public String getOutFileName() {
+    return outFileName;
+  }
+
+  public void setOverwriteMode(boolean mode) {
+    if (mode)
+      throw new UnsupportedOperationException("Overwritemode not supported");
+  }
+
+  public boolean getOverwriteMode() {
+    return false;
+  }
 
 }

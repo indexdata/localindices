@@ -23,15 +23,16 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 @XmlRootElement(name = "harvestableBrief")
 public class HarvestableBrief implements Comparable<Object> {
     private Long id;
-    private URI uri;
     private String name;
     private String currentStatus;
     private String message;
     private Date lastHarvestStarted;
     private Date lastHarvestFinished;
     private Date nextHarvestSchedule;
-    private boolean enabled;
+    private Boolean enabled;
     private Date lastUpdated;
+    /* Resource uri */
+    private URI uri;
 
     /** Creates a new instance of HarvestableBrief */
     public HarvestableBrief() {
@@ -114,11 +115,17 @@ public class HarvestableBrief implements Comparable<Object> {
         this.lastUpdated = lastUpdated;
     }
 
-    @XmlElement(name="enabled")
-    public boolean isEnabled() {
-        return enabled;
+    public String getEnabledDisplay() {
+    	String display = "";
+    	if (isEnabled())
+        	display = "Yes";
+    	return display;
     }
 
+    public boolean isEnabled() {
+    	return enabled;
+    }
+    
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
