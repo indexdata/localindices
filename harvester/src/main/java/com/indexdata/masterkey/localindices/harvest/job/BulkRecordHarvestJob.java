@@ -69,11 +69,15 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private Proxy proxy;
   private boolean die = false;
   private Templates templates[];
-  private boolean split = true;
+  private int splitSize = 0;
+  private int splitDepth = 0;
 
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
+    splitDepth = getNumber(resource.getSplitAt(), splitDepth); 
+    splitSize  = getNumber(resource.getSplitSize(), splitSize);
+          
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     List<TransformationStep> steps = resource.getTransformation().getSteps();
@@ -94,6 +98,21 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.error(error);
       setStatus(HarvestStatus.ERROR);
     }
+  }
+
+  private int getNumber(String value, int defaultValue) {
+    int number;
+    if (value != null && !"".equals(value)) {
+      try {
+	number = Integer.parseInt(value);
+	if (number < 0)
+	  number = defaultValue;
+	return number;
+      } catch (NumberFormatException nfe) {
+	logger.warn("Unable to parse number: " + value);
+      }
+    }
+    return defaultValue;
   }
 
   private Record convert(Source source) throws TransformerException {
@@ -165,11 +184,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private RecordStorage setupTransformation(RecordStorage storage) {
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
+      boolean split = (splitSize > 0 && splitDepth > 0);
       XMLReader xmlReader;
       try {
-	xmlReader = createTransformChain();
+	xmlReader = createTransformChain(split);
 	if (split) {
-	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1, 1);
+	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), splitDepth, splitSize);
 	  xmlReader.setContentHandler(splitHandler);
 	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader);
 	}
@@ -306,19 +326,18 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     pipe(is, output, contentLength);
   }
 
-  public XMLReader createTransformChain() throws ParserConfigurationException, SAXException,
+  public XMLReader createTransformChain(boolean split) throws ParserConfigurationException, SAXException,
       TransformerConfigurationException, UnsupportedEncodingException {
     // Set up to read the input file
     SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
     SAXParser parser = spf.newSAXParser();
     XMLReader reader = parser.getXMLReader();
-
+    // If split mode, we are just interested in a reader. The transformation is done in transformNode();
+    if (split)
+      return reader;
     XMLFilter filter;
     XMLReader parent = reader;
     int index = 0;
-    // If split mode, we are just interested in a reader.
-    if (split)
-      return parent;
     while (index < templates.length) {
       filter = stf.newXMLFilter(templates[index]);
       filter.setParent(parent);
