@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-common</artifactId>
-      <version>0.0.26-SNAPSHOT</version>
+      <version>0.0.26</version>
     </dependency>
   </dependencies>
   <repositories>
