@@ -9,7 +9,7 @@
   <groupId>com.indexdata</groupId>
   <artifactId>oaipmh-lib</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.1.0-SNAPSHOT</version>
   <name>oaipmh-lib</name>
   <url>http://maven.apache.org</url>
   <build>
