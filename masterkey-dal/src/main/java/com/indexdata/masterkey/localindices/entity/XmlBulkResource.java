@@ -22,6 +22,8 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private static final long serialVersionUID = -6751028242629873367L;
   @Column(length = 16384)
   private String url;
+  private String splitAt;
+  private String splitSize;
   private String expectedSchema;
 
   public XmlBulkResource() {
@@ -59,6 +61,22 @@ public class XmlBulkResource extends Harvestable implements Serializable {
       return false;
     }
     return true;
+  }
+
+  public void setSplitAt(String splitAt) {
+    this.splitAt = splitAt;
+  }
+
+  public String getSplitAt() {
+    return splitAt;
+  }
+
+  public void setSplitSize(String splitSize) {
+    this.splitSize = splitSize;
+  }
+
+  public String getSplitSize() {
+    return splitSize;
   }
 
 }
