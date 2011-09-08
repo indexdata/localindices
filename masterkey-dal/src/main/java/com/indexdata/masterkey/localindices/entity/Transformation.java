@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlID;
 @Entity
 @NamedQueries({ @NamedQuery(name = "Transformation.findById", query = "SELECT object(o) FROM Transformation o WHERE o.id = :id") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@Table(name = "transformation")
+//@Table(name = "transformation")
 public class Transformation implements Serializable, Cloneable {
 
   protected static final long serialVersionUID = 1L;

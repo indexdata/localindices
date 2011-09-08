@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlID;
  */
 @Entity
 @NamedQueries({ @NamedQuery(name = "Storage.findById", query = "SELECT o FROM Storage o WHERE o.id = :id") })
-@Table(name = "storage")
+//@Table(name = "storage")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Storage implements Serializable, Cloneable {
 

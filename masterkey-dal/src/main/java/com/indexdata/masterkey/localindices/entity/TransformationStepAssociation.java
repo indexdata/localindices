@@ -21,7 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
-@Table(name = "transformation_step", uniqueConstraints = @UniqueConstraint(columnNames = {
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {
     "TRANSFORMATION_ID", "STEP_ID" }))
 @NamedQueries({
     @NamedQuery(name = "tsa.findById", query = "SELECT o FROM TransformationStepAssociation o WHERE o.id = :id"),
