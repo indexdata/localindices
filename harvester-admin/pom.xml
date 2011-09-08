@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-dal</artifactId>
-      <version>0.0.3-SNAPSHOT</version>
+      <version>${parent.version}</version>
     </dependency>
     <dependency>
       <!--
