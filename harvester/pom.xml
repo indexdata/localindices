@@ -8,6 +8,9 @@
   </parent>
   <groupId>com.indexdata</groupId>
   <artifactId>harvester</artifactId>
+<!--
+  <version>0.1.0-SNAPSHOT</version>
+-->
   <packaging>war</packaging>
   <profiles>
     <profile>
@@ -24,7 +27,6 @@
       </dependencies>
     </profile>
   </profiles>
-  <version>0.1.0-SNAPSHOT</version>
   <name>harvester</name>
   <build>
     <finalName>localindices-harvester</finalName>
