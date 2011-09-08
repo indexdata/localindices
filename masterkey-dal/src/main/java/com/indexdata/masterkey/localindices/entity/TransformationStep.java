@@ -25,7 +25,7 @@ import javax.persistence.Table;
  */
 @Entity
 @NamedQueries({ @NamedQuery(name = "TransformationStep.findById", query = "SELECT o FROM TransformationStep o WHERE o.id = :id") })
-@Table(name = "step")
+@Table(name = "STEP")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class TransformationStep implements Serializable, Cloneable {
 
