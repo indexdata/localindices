@@ -9,9 +9,9 @@
     <h:panelGrid columns="2">
         <h:outputText value="URLs (space-separated):"/>
         <h:inputTextarea cols="100" rows="15" value="#{resourceController.resource.url}"/>
-<!-- 
-        <h:outputText value="Expected Schema:"/>
-        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
- -->
+        <h:outputText value="Split at depth (Zero disables splitting):"/>
+        <h:inputText value="#{resourceController.resource.splitAt}"/>
+        <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
+        <h:inputText value="#{resourceController.resource.splitSize}"/>
     </h:panelGrid>
 </f:subview>
