@@ -61,9 +61,21 @@ public class SearchablesConverter extends Records {
                 // Ensure unique zurl
             	layer.setZurl(solrStorage.getUrl() + "#" + entity.getId());
             	layer.setExtraArgs("fq=database:" + entity.getId());
-            	layer.setTransform("solr2pz.xsl");
-            	// TODO CCL MAP 
-            	// TODO FACET MAP
+            	// TODO make configurable
+            	// but it can be overridden in Torus admin
+            	layer.setTransform("solr-pz2.xsl");
+            	// TODO Default Solr CCL MAP 
+            	layer.setCclMapTerm("1=text");
+            	layer.setCclMapTi("1=title");
+            	layer.setCclMapAu("1=author");
+            	layer.setCclMapSu("1=subject");
+            	layer.setCclMapJournalTitle("1=journal-title");
+            	layer.setCclMapIssn("1=issn");
+            	layer.setCclMapIsbn("1=isbn");
+            	layer.setSRU("solr");
+            	layer.setSRUVersion("");
+            	// TODO Default Solr FACET MAP
+            	// TODO These settings should be configurable for the Storage?
             } else { 
             	// Zebra
             	// Extract zurlbase from Zebra Instance
