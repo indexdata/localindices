@@ -59,7 +59,8 @@ public class SearchablesConverter extends Records {
             if (storage instanceof SolrStorage) {
             	SolrStorage solrStorage = (SolrStorage) storage;
                 // Ensure unique zurl
-            	layer.setZurl(solrStorage.getUrl() + "#" + entity.getId());
+            	
+            	layer.setZurl(modifySolrUrl(solrStorage.getUrl()) + "#" + entity.getId());
             	layer.setExtraArgs("fq=database:" + entity.getId());
             	// TODO make configurable
             	// but it can be overridden in Torus admin
@@ -90,5 +91,24 @@ public class SearchablesConverter extends Records {
         }
         super.setRecords(records);
         super.setUri(uri);
+    }
+
+    final String http = "http://";
+    final String select = "select";
+    final String slash = "/"; 
+    private String modifySolrUrl(String url) {
+      String zurl = url;
+      // Pazpar2 does not handled zurls with http://
+      if (zurl.startsWith(http)) 
+    	  zurl = zurl.substring(http.length());
+// This should be handled by pazpar2
+      /* 
+      if (!zurl.endsWith(select)) {
+	if (!zurl.endsWith(slash)) 
+	  zurl = zurl.concat(slash);
+	zurl.concat(select);
+      }
+      */
+      return zurl;
     }
 }
