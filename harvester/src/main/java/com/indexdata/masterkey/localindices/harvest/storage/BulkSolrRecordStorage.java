@@ -11,7 +11,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class BulkSolrRecordStorage extends SolrRecordStorage {
 
@@ -21,7 +20,6 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   //LocalIndicesLogger logger; 
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
-    logger = new StorageJobLogger(this.getClass(), harvestable);
   }
 
   public void add(Record record) {
