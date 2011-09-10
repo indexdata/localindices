@@ -52,7 +52,7 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  */
 @SuppressWarnings("unused")
 public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
-  static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+
   private OaiPmhResource resource;
   private Proxy proxy;
   private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
@@ -106,6 +106,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     if (getStatus().equals(HarvestStatus.NEW) || getStatus().equals(HarvestStatus.ERROR))
       this.initialRun = true;
     // this.resource.setMessage(null);
+    logger = new StorageJobLogger(this.getClass(), resource);
   }
 
   @Override
@@ -133,7 +134,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (IOException e) {
       setStatus(HarvestStatus.ERROR);
       resource.setMessage(e.getMessage());
-      logger.log(Level.DEBUG, e);
+      logger.log(Level.DEBUG, e.getMessage(), e);
     }
     // if there was no error we move the time marker
     if (getStatus() != HarvestStatus.ERROR && getStatus() != HarvestStatus.KILLED) {
