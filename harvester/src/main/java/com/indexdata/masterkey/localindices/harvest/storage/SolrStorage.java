@@ -21,13 +21,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.LinkedList;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
@@ -35,6 +33,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
  * A simple utility class for posting raw updates to a Solr server, has a main
@@ -47,15 +46,30 @@ public class SolrStorage implements HarvestStorage {
   protected String url = "http://localhost:8983/solr/";
   protected CommonsHttpSolrServer server;
   protected Harvestable harvestable;
-  protected Logger logger = Logger.getLogger(this.getClass());
+  protected StorageJobLogger logger;
   ByteArrayOutputStream output = new ByteArrayOutputStream();
   protected Collection<SolrInputDocument> documentList = null;
-  protected URL solrUrl;
   private boolean override = false;
+  String storageId = "";  
+  
+  public SolrStorage(Harvestable harvestable) {
+    this.harvestable = harvestable;
+    init();
+  }
 
+  public SolrStorage(String solrUrl, Harvestable harvestable) {
+    this.harvestable = harvestable;
+    url = solrUrl;
+    init();
+  }
+
+  protected String identify() {
+    return "Storage#" + storageId + "(JOB#" + harvestable.getId() + "): ";
+  }
+  
   public void init() {
     try {
-
+      logger = new StorageJobLogger(getClass(), harvestable);
       server = new CommonsHttpSolrServer(url);
       // server.setSoTimeout(1000); // socket read timeout
       server.setConnectionTimeout(100);
@@ -71,52 +85,41 @@ public class SolrStorage implements HarvestStorage {
     } catch (MalformedURLException e) {
       throw new RuntimeException("'url' is not a valid URL: " + System.getProperty("url", url), e);
     }
-
   }
 
-  public SolrStorage(Harvestable harvestable) {
-    this.harvestable = harvestable;
-    init();
+  /*
+  void debug(StackTraceElement[] stackTrace) {
+    for (int index = 0 ; index < stackTrace.length; index++)
+      logger.debug( identify() + " " + stackTrace[index].toString());
   }
 
-  public SolrStorage(String url_string, Harvestable harvestable) {
-    this.harvestable = harvestable;
-    url = url_string;
-    init();
+  void debug(String msg) {
+    logger.debug( identify() + " " + msg);
   }
 
-  /**
-   * Check what Solr replied to a POST, and complain if it's not what we
-   * expected. TODO: parse the response and check it XMLwise, here we just check
-   * it as an unparsed String
-   */
-  static void warnIfNotExpectedResponse(String actual, String expected) {
+  void warnIfNotExpectedResponse(String actual, String expected) {
     if (actual.indexOf(expected) < 0) {
-      warn("Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
+      logger.warn(identify() + " Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
     }
   }
 
-  static void warn(String msg) {
-    System.err.println("SimplePostTool: WARNING: " + msg);
+  void warn(String msg) {
+    logger.warn( identify() + " " + msg);
   }
 
-  static void info(String msg) {
-    System.out.println("SimplePostTool: " + msg);
+  void info(String msg) {
+    logger.info(identify() + msg);
   }
 
-  static void fatal(String msg) {
-    System.err.println("SimplePostTool: FATAL: " + msg);
-    System.exit(1);
+  void error(String msg) {
+    logger.error(identify() + msg);
   }
-
-  /**
-   * Constructs an instance for posting data to the specified Solr URL (ie:
-   * "http://localhost:8983/solr/update")
-   */
-  public SolrStorage(URL solrUrl, Harvestable harvestable) {
-    this.solrUrl = solrUrl;
+  
+  void fatal(String msg) {
+    logger.fatal(identify() + " " + msg);
+    // System.exit(1);
   }
-
+  */
   @Override
   public void begin() throws IOException {
 
@@ -132,18 +135,21 @@ public class SolrStorage implements HarvestStorage {
     try {
       parser.parse(output.toString(), context);
     } catch (XMLStreamException e) {
+      logger.error("SolrXmlParser: " + e.getMessage());
       e.printStackTrace();
-      throw new IOException("Error in SOLR XML parse: " + e.getMessage(), e);
+      throw new IOException("Error in Solr Xml parse: " + e.getMessage(), e);
     }
     try {
-      System.out.println(context.getDocuments());
-      UpdateResponse response = server.add(context.getDocuments());
-      logger.debug("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
-      response = server.commit();
-      logger.debug("CommitResponse: " + response.getStatus() + " " + response.getResponse());
+	logger.debug("Document: " + context.getDocuments());
+	UpdateResponse response = server.add(context.getDocuments());
+	logger.info("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
+	response = server.commit();
+	logger.info("CommitResponse: " + response.getStatus() + " " + response.getResponse());
 
     } catch (SolrServerException e) {
-      throw new IOException("Error in SOLR commit", e);
+      logger.error("Solr Server Exception: " + e.getMessage());
+      logger.debug(e.getStackTrace().toString());
+      throw new IOException("Error in SOLR add/commit", e);
     }
   }
 
@@ -181,5 +187,13 @@ public class SolrStorage implements HarvestStorage {
   @Override
   public OutputStream getOutputStream() {
     return output;
+  }
+
+  public String getStorageId() {
+    return storageId;
+  }
+
+  public void setStorageId(String storageId) {
+    this.storageId = storageId;
   }
 }
