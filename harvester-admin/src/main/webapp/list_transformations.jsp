@@ -16,7 +16,7 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Overview" action="#{transformationController.back}" />
+                <h:commandLink value="Resources"    action="#{resourceController.listResources}" />
                 <h:commandLink value="Refresh List" action="#{transformationController.list}" />
                 <br/>
                 <h:outputText value="Add new transformation: "/>
