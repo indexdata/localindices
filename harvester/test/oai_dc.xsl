@@ -1,1 +1,0 @@
-./target/localindices-harvester/WEB-INF/stylesheets/oai_dc.xsl
