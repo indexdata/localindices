@@ -5,9 +5,6 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -16,8 +13,12 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.log4j.Logger;
+
 import org.apache.log4j.Level;
+
+import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
 /**
  * This class handles bulk HTTP download of a single file.
@@ -25,7 +26,7 @@ import org.apache.log4j.Level;
  * @author jakub
  */
 public class BulkHarvestJob implements HarvestJob {
-  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private LocalIndicesLogger logger;
   private HarvestStorage storage;
   private HarvestStatus status;
   private String error;
@@ -40,6 +41,7 @@ public class BulkHarvestJob implements HarvestJob {
     this.resource = resource;
     this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
     this.resource.setMessage(null);
+    logger = new StorageJobLogger(this.getClass(), resource);
   }
 
   private synchronized boolean isKillSendt() {
