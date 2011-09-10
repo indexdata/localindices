@@ -16,8 +16,8 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Overview" action="#{storageController.back}" />
-                <h:commandLink value="Refresh List" action="#{storageController.listStorages}" />
+                <h:commandLink value="Resources" action="#{resourceController.listResources}" />
+                <h:commandLink value="Refresh List" action="#{storageController.listStorages}" styleClass="current"/>
                 <br/>
                 <h:outputText value="Add new storage: "/>
                 <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
