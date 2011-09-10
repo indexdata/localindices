@@ -53,4 +53,19 @@ public class RecordImpl implements Record {
     this.isDeleted = isDeleted;
   }
 
+  public String toString() {
+    String record = "Record[";
+    record.concat("id=" + id + ", ");
+    record.concat("database=" + database);
+    boolean first = true; 
+    for (String key : valueMap.keySet()) {
+      if (first) {
+	record.concat(", ");
+	first = false; 
+      }
+      // TODO serialize the Collection.. 
+      record.concat(key + "=> {" + valueMap.get(key) + "}");
+    }
+    return record;
+  }
 }
