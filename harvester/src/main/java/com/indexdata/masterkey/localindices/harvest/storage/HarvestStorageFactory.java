@@ -42,7 +42,9 @@ public class HarvestStorageFactory {
     if (harvestable.getStorage() instanceof com.indexdata.masterkey.localindices.entity.SolrStorage) {
       com.indexdata.masterkey.localindices.entity.SolrStorage entity = (com.indexdata.masterkey.localindices.entity.SolrStorage) harvestable
 	  .getStorage();
-      return new BulkSolrRecordStorage(entity.getUrl(), harvestable);
+      SolrStorage storage = new BulkSolrRecordStorage(entity.getUrl(), harvestable);
+      storage.setStorageId("" + entity.getId());
+      return storage;
     }
 
     return harvestStorage;
