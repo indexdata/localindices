@@ -14,8 +14,6 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Logger;
-
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -33,10 +31,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   private HarvestStatus status;
   private boolean die;
   protected TransformerFactory stf = XmlFactory.newTransformerInstance();
-  private Logger logger = Logger.getLogger(this.getClass());
-
-  // private Harvestable resource;
-
+  protected StorageJobLogger logger; 
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
   }
@@ -142,6 +137,5 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       }
     }
     return templates;
-  }
-
+  }  
 }
