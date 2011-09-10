@@ -18,18 +18,7 @@
         <f:view>
             <!-- top menu, move out?-->
             <h:form>
-                <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
-                <h:outputText value=" | Add new resource: "/>
-                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />
-                <!--
-                <h:outputText value=" : "/>
-                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />
-                -->
-                <h:outputText value=" | "/>
-                <h:commandLink value="MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
-                <h:outputText value=" | "/>
-                Hello, <h:outputText value="#{loginManager.displayName}" />!
-                <h:commandLink value="Logout" action="#{loginManager.doLogout}" />
+                <h:commandLink value="Back to resource List" action="#{resourceController.listResources}" />
             </h:form>
             <!-- Log file -->
             <h:form>
