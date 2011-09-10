@@ -28,8 +28,8 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   protected int added;
   protected int deleted;
 
-  public SolrRecordStorage(String url_string, Harvestable harvestable) {
-    super(url_string, harvestable);
+  public SolrRecordStorage(String url, Harvestable harvestable) {
+    super(url, harvestable);
   }
 
   @Override
@@ -54,7 +54,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     } catch (SolrServerException e) {
       logger.error("Commit failed when adding " + added + " and deleting " + deleted
 	  + " to database " + database);
-      e.printStackTrace();
+      debug(e.getStackTrace());
       throw new RuntimeException("Commit failed: " + e.getMessage(), e);
     }
   }
