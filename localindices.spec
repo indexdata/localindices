@@ -1,11 +1,11 @@
 Summary: Harvestering Service
-Name: Local Unified Index
+Name: lui-harvester
 Version: 0.1.0
 Release: 1.indexdata
 License: IndexData
 Group: Applications/Internet
 Vendor: Index Data ApS <info@indexdata.dk>
-Source: lui-%{version}.tar.gz
+Source: lui-harvester-%{version}.tar.gz
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: maven2
@@ -14,10 +14,6 @@ URL: http://www.indexdata.dk/masterkey
 
 %description
 The LUI Harvester is a harvesting platform. It can harvest OAI-PMH, XML bulk and web crawl into a local unified index. It support splitting and XSL transformations. It supports Solr and Zebra as storages. 
-
-%package -n lui-harvester
-Summary: Harvester
-Group: Applications/Internet
 
 %package -n lui-harvester-admin
 Summary: Harvester Admin 
