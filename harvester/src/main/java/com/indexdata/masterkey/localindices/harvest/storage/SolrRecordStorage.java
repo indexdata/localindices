@@ -54,7 +54,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     } catch (SolrServerException e) {
       logger.error("Commit failed when adding " + added + " and deleting " + deleted
 	  + " to database " + database);
-      debug(e.getStackTrace());
+      e.getStackTrace();
       throw new RuntimeException("Commit failed: " + e.getMessage(), e);
     }
   }
