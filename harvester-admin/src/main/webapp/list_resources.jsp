@@ -16,8 +16,9 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Overview" action="#{resourceController.back}" />
                 <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
+                <h:commandLink value="Storages"  action="#{storageController.listStorages}" />
+                <h:commandLink value="Transformations" action="#{transformationController.list}" />
                 <br>
                 <h:outputText value="Add new resource: "/>
                 <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
