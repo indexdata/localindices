@@ -45,6 +45,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
   public void contextInitialized(ServletContextEvent servletContextEvent) {
+
     logger.log(Level.INFO, "Harvester context is being initialized...");
     ServletContext ctx = servletContextEvent.getServletContext();
     // load default, fallback settings
@@ -81,6 +82,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
       } catch (IOException ioe) {
 	logger.log(Level.WARN, ioe);
       }
+      // TODO Updated Any RUNNING states to INTERRUPTED 
+      // We cannot just restarts the jobs. 
     }
 
     /* Refactor for multiple backends and types of backends */
