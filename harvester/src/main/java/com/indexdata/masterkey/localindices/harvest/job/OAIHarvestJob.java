@@ -16,7 +16,6 @@ import java.util.Date;
 import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -35,7 +34,7 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  * @author jakub
  */
 public class OAIHarvestJob extends AbstractHarvestJob {
-  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private LocalIndicesLogger logger; 
   private OaiPmhResource resource;
   private Proxy proxy;
   private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
@@ -84,6 +83,8 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     }
     this.resource = resource;
     this.proxy = proxy;
+    logger = new StorageJobLogger(this.getClass(), resource);
+    
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     if (getStatus().equals(HarvestStatus.NEW) || getStatus().equals(HarvestStatus.ERROR))
       this.initialRun = true;
