@@ -84,7 +84,7 @@
 		<session-timeout>30</session-timeout>
 	</session-config>
 	<welcome-file-list>
-		<welcome-file>overview.xhtml</welcome-file>
+		<welcome-file>list_resources.xhtml</welcome-file>
 	</welcome-file-list>
 	<!-- security stuff -->
 	<filter>
