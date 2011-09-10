@@ -31,8 +31,6 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -59,7 +57,6 @@ import com.indexdata.xml.filter.SplitContentHandler;
  */
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
-  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   private SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
   private String error;
@@ -77,11 +74,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     this.resource = resource;
     splitDepth = getNumber(resource.getSplitAt(), splitDepth); 
     splitSize  = getNumber(resource.getSplitSize(), splitSize);
-          
+    logger = new StorageJobLogger(getClass(), resource);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     List<TransformationStep> steps = resource.getTransformation().getSteps();
-
     templates = new Templates[steps.size()];
     int index = 0;
 
@@ -207,7 +203,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private synchronized boolean isKillSendt() {
     if (die) {
-      logger.log(Level.WARN, "Bulk harvest received kill signal.");
+      logger.warn("Bulk harvest received kill signal.");
     }
     return die;
   }
@@ -236,12 +232,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {
-	logger.log(Level.ERROR, "Roll-back failed.", ioe);
+	logger.warn("Roll-back failed.", ioe);
       }
       setStatus(HarvestStatus.ERROR);
       error = e.getMessage();
       resource.setMessage(e.getMessage());
-      logger.log(Level.ERROR, "Download failed.", e);
+      logger.error("Download failed.", e);
     }
   }
 
@@ -252,7 +248,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void download(URL url) throws Exception {
-    logger.log(Level.INFO, "Starting download - " + url.toString());
+    logger.info("Starting download - " + url.toString());
     try {
       HttpURLConnection conn = null;
       if (proxy != null)
@@ -266,7 +262,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       if (responseCode == 200) {
 	// jump page
 	if (contentType.startsWith("text/html")) {
-	  logger.log(Level.INFO, "Jump page found at " + url.toString());
+	  logger.info("Jump page found at " + url.toString());
 	  HTMLPage jp = new HTMLPage(conn.getInputStream(), url);
 	  if (jp.getLinks().isEmpty()) {
 	    throw new Exception("No links found on the jump page");
@@ -286,23 +282,23 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	    if (responseCode == 200) {
 	      // watch for non-marc links
 	      if (contentType.startsWith("text/html")) {
-		logger.log(Level.WARN, "Possible sub-link ignored at " + link.toString());
+		logger.warn("Possible sub-link ignored at " + link.toString());
 		recursive++;
 		continue;
 		// possibly a marc file
 	      } else {
-		logger.log(Level.INFO, "Found file at " + link.toString());
+		logger.warn("Found file at " + link.toString());
 		store(conn.getInputStream(), contentLenght);
 		proper++;
 	      }
 	    } else {
-	      logger.log(Level.WARN, "Dead link (" + responseCode + " at " + link.toString());
+	      logger.warn("Dead link (" + responseCode + " at " + link.toString());
 	      dead++;
 	      continue;
 	    }
 	  }
 	  if (proper == 0) {
-	    logger.log(Level.ERROR, "No proper links found at " + url.toString()
+	    logger.error("No proper links found at " + url.toString()
 		+ ", trash links: " + recursive + ", dead links: " + dead);
 	    throw new Exception("No MARC files found at " + url.toString());
 	  }
@@ -315,7 +311,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       } else {
 	throw new Exception("Http connection failed. (" + responseCode + ")");
       }
-      logger.log(Level.INFO, "Finished - " + url.toString());
+      logger.info("Finished - " + url.toString());
     } catch (IOException ioe) {
       throw new Exception("Http connection failed.", ioe);
     }
@@ -361,12 +357,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       copied += len;
       if (num % logBlockNum == 0) {
-	logger.log(Level.INFO, "Downloaded " + copied + "/" + total + " bytes ("
+	logger.info("Downloaded " + copied + "/" + total + " bytes ("
 	    + ((double) copied / (double) total * 100) + "%)");
       }
       num++;
     }
-    logger.log(Level.INFO, "Download finishes: " + copied + "/" + total + " bytes ("
+    logger.info("Download finishes: " + copied + "/" + total + " bytes ("
 	+ ((double) copied / (double) total * 100) + "%)");
     os.flush();
   }
