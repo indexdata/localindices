@@ -69,7 +69,7 @@
     <navigation-rule>
         <navigation-case>
             <from-outcome>harvester_log</from-outcome>
-            <to-view-id>/storage_log.jsp</to-view-id>
+            <to-view-id>/harvester_log.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
