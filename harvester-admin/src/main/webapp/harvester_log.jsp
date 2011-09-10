@@ -18,7 +18,7 @@
         <f:view>
             <!-- top menu, move out?-->
             <h:form>
-                <h:commandLink value="Back to resource List" action="#{resourceController.listResources}" />
+                <h:commandLink value="Back to Resources" action="#{resourceController.listResources}" />
             </h:form>
             <!-- Log file -->
             <h:form>
