@@ -3,7 +3,7 @@
   <groupId>com.indexdata</groupId>
   <artifactId>localindices</artifactId>
   <packaging>pom</packaging>
-  <version>1.9.1-SNAPSHOT</version>
+  <version>1.9.1</version>
   <name>Harvesting suite</name>
   <modules>
     <module>oaipmh-lib</module>
