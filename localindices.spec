@@ -1,6 +1,6 @@
 Summary: Harvestering Service
 Name: lui-harvester
-Version: 0.1.0
+Version: 0.1.2
 Release: 1.indexdata
 License: IndexData
 Group: Applications/Internet
@@ -89,7 +89,7 @@ mkdir -p ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
 cp -a %{harvester}/* ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
 
 mkdir -p ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/
-cp -a etc/harvester.properties ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/
+# cp -a etc/harvester.properties ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/
 
 mkdir -p ${RPM_BUILD_ROOT}/%{_localstatedir}/log/masterkey/harvester
 
@@ -100,12 +100,12 @@ mkdir -p ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester-admin/
 cp -a %{admin}/* ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester-admin/
 
 mkdir -p ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/
-cp -a etc/harvester.properties ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/
+#cp -a etc/harvester.properties ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/
 
 mkdir -p ${RPM_BUILD_ROOT}/%{_localstatedir}/log/masterkey/harvester-admin
 
 #tomcat context
-sed -e 's@docBase=".*"@docBase="%{_datadir}\/masterkey\/harvester"@g' etc/admin-context.xml > ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/harvester-admin-context.xml
+sed -e 's@docBase=".*"@docBase="%{_datadir}\/masterkey\/harvester"@g' etc/harvester-admin-context.xml > ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/harvester-admin-context.xml
 
 
 %clean
@@ -143,7 +143,7 @@ fi
 %files
 %defattr(-,root,root)
 %{_datadir}/masterkey/harvester
-%config %{_sysconfdir}/masterkey/harvester/conf.d/harvester.properties
+#%config %{_sysconfdir}/masterkey/harvester/conf.d/harvester.properties
 %attr(750,tomcat,tomcat) %dir %{_localstatedir}/log/masterkey/harvester
 
 %files -n lui-harvester-admin
