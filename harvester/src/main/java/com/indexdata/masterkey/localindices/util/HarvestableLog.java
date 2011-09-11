@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
  */
 public class HarvestableLog {
   // log file
-  private static File logFile = new File("/var/cache/harvested/harvester.log");
+  // TODO Should be configurable
+  private static File logFile = new File("/var/log/masterkey/harvester/harvester.log");
 
   // not used but shows the concept of matching against the whole buffer
   @SuppressWarnings("unused")
