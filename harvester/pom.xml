@@ -26,7 +26,7 @@
   </profiles>
   <name>harvester</name>
   <build>
-    <finalName>localindices-harvester</finalName>
+    <finalName>harvester</finalName>
     <plugins>
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
