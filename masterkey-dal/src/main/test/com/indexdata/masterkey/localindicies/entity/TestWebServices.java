@@ -39,7 +39,7 @@ public class TestWebServices extends TestCase {
      * @param args the command line arguments
      */
 	String port = ":8080";
-    String baseURL = "http://localhost" + port + "/localindices-harvester/records/";
+    String baseURL = "http://localhost" + port + "/harvester/records/";
     public void testHarvestables() throws IOException {
         try {
             System.out.println("+++ Retrieving harvestables:");
