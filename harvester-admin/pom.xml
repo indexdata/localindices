@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>1.9.2-SNAPSHOT</version>
+    <version>1.9.2</version>
   </parent>
   <groupId>com.indexdata</groupId>
   <artifactId>harvester-admin</artifactId>
   <packaging>war</packaging>
-  <version>1.9.2-SNAPSHOT</version>
+  <version>1.9.2</version>
   <name>harvester-admin</name>
   <url>http://maven.apache.org</url>
   <dependencies>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-dal</artifactId>
-      <version>1.9.2-SNAPSHOT</version>
+      <version>1.9.2</version>
     </dependency>
     <dependency>
       <!--
