@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>1.9.4-SNAPSHOT</version>
+    <version>1.9.5-SNAPSHOT</version>
   </parent>
   <groupId>com.indexdata</groupId>
   <artifactId>oaipmh-lib</artifactId>
   <packaging>jar</packaging>
-  <version>1.9.4-SNAPSHOT</version>
+  <version>1.9.5-SNAPSHOT</version>
   <name>oaipmh-lib</name>
   <url>http://maven.apache.org</url>
   <build>
