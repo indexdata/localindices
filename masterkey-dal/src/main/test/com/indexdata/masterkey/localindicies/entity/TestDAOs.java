@@ -251,7 +251,7 @@ public class TestDAOs extends TestCase {
 		public TransformationStepAssociationDAO newTransformationStepAssociationDAO() { return new TransformationStepAssociationsDAOJPA(); }; 
 	}
 
-	String baseURL = "http://localhost:8081/localindices-harvester/records/";
+	String baseURL = "http://localhost:8080/harvester/records/";
 	class WebServiceDAOFactory implements DAOFactory {
 		public HarvestableDAO newHavestableDAO() { return new HarvestableDAOWS(baseURL + "harvestables/"); }; 
 		public StorageDAO newStorageDAO() { return new StorageDAOWS(baseURL + "storages/"); }; 
