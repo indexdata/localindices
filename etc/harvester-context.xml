@@ -3,7 +3,7 @@
     Copied from torus-tomcat5.5.xml
 -->
 
-<Context path="/localindices-harvester" docBase="/usr/share/masterkey/localindices-harvester"
+<Context path="/localindices-harvester" docBase="/usr/share/masterkey/harvester"
    debug="0" privileged="true" allowLinking="true" crossContext="true">
   <!-- make symlinks work in Tomcat 5 -->
   <Resources className="org.apache.naming.resources.FileDirContext" allowLinking="true" />
