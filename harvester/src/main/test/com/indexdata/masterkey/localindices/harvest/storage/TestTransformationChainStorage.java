@@ -37,7 +37,7 @@ import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
   Harvestable harvestable = new XmlBulkResource(
-      "http://localhost:8080/localindices-harvester/marc.xml");
+      "http://localhost:8080/harvester/marc.xml");
 
   // SOLR Server in container on 8080
   String solrUrl = "http://localhost:8080/solr/";
