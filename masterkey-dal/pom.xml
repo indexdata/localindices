@@ -6,10 +6,10 @@
     <version>1.9.1-SNAPSHOT</version>
   </parent>
   <groupId>com.indexdata</groupId>
-  <description>Data Abstraction Layer</description>
   <artifactId>masterkey-dal</artifactId>
-  <packaging>jar</packaging>
   <version>1.9.1-SNAPSHOT</version>
+  <description>Data Abstraction Layer</description>
+  <packaging>jar</packaging>
   <name>masterkey-dal</name>
   <url>http://maven.apache.org</url>
   <build>
