@@ -8,8 +8,8 @@
   <modules>
     <module>oaipmh-lib</module>
     <module>masterkey-dal</module>
-    <module>harvester-admin</module>
     <module>harvester</module>
+    <module>harvester-admin</module>
   </modules>
   <build>
     <pluginManagement>
