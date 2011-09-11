@@ -79,8 +79,8 @@ The Harvester is part of the MasterKey suite. This package provides Tomcat 6 int
 %build
 mvn package -Pproduction
 
-%define harvester harvester/target/localindices-harvester
-%define admin harvester-admin/target/localindices-admin
+%define harvester harvester/target/harvester
+%define admin harvester-admin/target/harvester-admin
 %install
 mkdir -p ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
 cp -a %{harvester}/* ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
