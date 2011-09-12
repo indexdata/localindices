@@ -188,7 +188,9 @@ public class TransformationController {
 
   private boolean isPb() {
     FacesContext ctx = FacesContext.getCurrentInstance();
-    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
+    boolean postback = ctx.getExternalContext().getRequestParameterMap().size() > 0;    
+    //ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
+    return postback; 
   }
 
   /* list resources */
@@ -259,7 +261,7 @@ public class TransformationController {
       o = (Transformation) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = FacesContext.getCurrentInstance().getExternalContext()
+      String param = (String) FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("id");
       Long id = new Long(param);
       o = dao.retrieveById(id);
@@ -292,7 +294,7 @@ public class TransformationController {
   private int setupStep() {
     int index = -1;
     String idName = "stepID";
-    String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+    String param = (String) FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
 	.get(idName);
     if (param != null && !"null".equals(param)) {
       try {
