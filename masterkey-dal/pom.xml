@@ -129,9 +129,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.tomcat</groupId>
+      <groupId>tomcat</groupId>
       <artifactId>catalina</artifactId>
-      <version>6.0.20</version>
+      <version>5.5.23</version>
       <type>jar</type>
       <scope>test</scope>
     </dependency>

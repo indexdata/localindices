@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/harvester-admin" docBase="/usr/share/masterkey/harvester-admin"
-   debug="0" privileged="true" allowLinking="true" crossContext="true">
-   
+<Context 
+   docBase="/usr/share/masterkey/harvester-admin"
+   path="/harvester-admin" 
+   debug="0" 
+   privileged="true" 
+   allowLinking="true" 
+   crossContext="true"
+>
   <!-- make symlinks work in Tomcat 5 -->
   <Resources className="org.apache.naming.resources.FileDirContext" allowLinking="true" />
-  <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="30" maxWait="10000" name="localindicesDS" password="localidxadmpass" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"/>
+  <Resource 
+    name="localindicesDS"
+    username="localidxadm"
+    password="localidxadmpass"
+    factory="org.apache.commons.dbcp.BasicDataSourceFactory" 
+    auth="Container" 
+    driverClassName="com.mysql.jdbc.Driver" 
+    maxActive="100" maxIdle="30" maxWait="10000" 
+    type="javax.sql.DataSource" 
+    url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" 
+    />
 </Context>
