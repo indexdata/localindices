@@ -30,7 +30,6 @@
     name="localindicesDS" 
     password="localidxadmpass" 
     type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"
-    factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory" 
     />
 </Context>
 
