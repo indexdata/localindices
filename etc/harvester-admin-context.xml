@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/harvester-admin" docBase="/usr/share/masterkey/harvester"
-   debug="0" privileged="true" allowLinking="true" crossContext="true">
-   
+<Context 
+   docBase="/usr/share/masterkey/harvester-admin"
+   path="/harvester-admin" 
+   debug="0" 
+   privileged="true" 
+   allowLinking="true" 
+   crossContext="true"
+>
   <!-- make symlinks work in Tomcat 5 -->
   <Resources className="org.apache.naming.resources.FileDirContext" allowLinking="true" />
   <Resource 
