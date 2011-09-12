@@ -172,9 +172,7 @@ public class StorageController {
 
   private boolean isPb() {
     FacesContext ctx = FacesContext.getCurrentInstance();	
-    return ctx.getExternalContext().getRequestParameterMap().size() > 0;    
-
-    //return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
+    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
   }
 
   /* list storages */

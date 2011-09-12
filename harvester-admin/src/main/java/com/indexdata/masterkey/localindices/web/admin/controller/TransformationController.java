@@ -188,9 +188,7 @@ public class TransformationController {
 
   private boolean isPb() {
     FacesContext ctx = FacesContext.getCurrentInstance();
-    boolean postback = ctx.getExternalContext().getRequestParameterMap().size() > 0;    
-    //ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
-    return postback; 
+    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
   }
 
   /* list resources */
