@@ -432,7 +432,8 @@ public class ResourceController {
   }
 
   public String viewJobLog() {
-    String param = (String) FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("resourceId");
+    String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+	.get("resourceId");
     Long id = new Long(param);
     // slurp that damn log to string, before I figure how to cleanly get handle
     // of the InputStream in the view
@@ -471,8 +472,8 @@ public class ResourceController {
       o = (Harvestable) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = (String) FacesContext.getCurrentInstance().getExternalContext()
-      	.getRequestParameterMap().get("resourceId");
+      String param = FacesContext.getCurrentInstance().getExternalContext()
+	  .getRequestParameterMap().get("resourceId");
       Long id = new Long(param);
       o = dao.retrieveById(id);
     }

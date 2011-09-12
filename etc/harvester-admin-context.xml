@@ -13,7 +13,6 @@
     name="localindicesDS"
     username="localidxadm"
     password="localidxadmpass"
-    factory="org.apache.commons.dbcp.BasicDataSourceFactory" 
     auth="Container" 
     driverClassName="com.mysql.jdbc.Driver" 
     maxActive="100" maxIdle="30" maxWait="10000" 

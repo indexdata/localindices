@@ -259,7 +259,7 @@ public class TransformationController {
       o = (Transformation) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = (String) FacesContext.getCurrentInstance().getExternalContext()
+      String param = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("id");
       Long id = new Long(param);
       o = dao.retrieveById(id);
@@ -292,7 +292,7 @@ public class TransformationController {
   private int setupStep() {
     int index = -1;
     String idName = "stepID";
-    String param = (String) FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+    String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
 	.get(idName);
     if (param != null && !"null".equals(param)) {
       try {
