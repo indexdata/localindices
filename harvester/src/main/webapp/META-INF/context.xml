@@ -29,5 +29,5 @@
   connection.  mysqld by default closes idle connections after 8 hours.
   -->
   <Resources className="org.apache.naming.resources.FileDirContext" allowLinking="true" />
-  <Resource factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory" auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="30" maxWait="10000" name="localindicesDS" password="localidxadmpass" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"/>
+  <Resource factory="org.apache.commons.dbcp.BasicDataSourceFactory" auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="30" maxWait="10000" name="localindicesDS" password="localidxadmpass" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"/>
 </Context>
