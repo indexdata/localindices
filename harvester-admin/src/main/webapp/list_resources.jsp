@@ -93,10 +93,8 @@
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
                         <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}">
-                            <!--  
-                            onclick="return confirm('Are you sure?');" */
-                            --> 
+                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}"
+                            onclick="return confirm('Are you sure?');">
                             <f:param name="resourceId" value="#{item.id}"/>
                         </h:commandLink>
                         <h:outputText value=" | "/>
