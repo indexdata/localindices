@@ -23,6 +23,14 @@
   mm.mysql JDBC Driver will automatically reconnect if mysqld closed the
   connection.  mysqld by default closes idle connections after 8 hours.
   -->
-  <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="30" maxWait="10000" name="localindicesDS" password="localidxadmpass" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"/>
+  <Resource 
+    auth="Container" 
+    driverClassName="com.mysql.jdbc.Driver" 
+    maxActive="100" maxIdle="30" maxWait="10000" 
+    name="localindicesDS" 
+    password="localidxadmpass" 
+    type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"
+    factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory" 
+    />
 </Context>
 
