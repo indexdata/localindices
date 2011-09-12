@@ -171,10 +171,8 @@ public class StorageController {
   }
 
   private boolean isPb() {
-    FacesContext ctx = FacesContext.getCurrentInstance();	
-    return ctx.getExternalContext().getRequestParameterMap().size() > 0;    
-
-    //return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
+    FacesContext ctx = FacesContext.getCurrentInstance();
+    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
   }
 
   /* list storages */
@@ -237,7 +235,7 @@ public class StorageController {
       o = (Storage) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = (String) FacesContext.getCurrentInstance().getExternalContext()
+      String param = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("storageId");
       Long id = new Long(param);
       o = dao.retrieveById(id);
