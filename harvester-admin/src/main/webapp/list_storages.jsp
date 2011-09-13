@@ -20,7 +20,7 @@
                 <h:commandLink value="Refresh List" action="#{storageController.listStorages}" styleClass="current"/>
                 <br/>
                 <h:outputText value="Add new storage: "/>
-                <h:commandLink value="SOLR" action="#{storageController.prepareSolrStorageToAdd}" />                
+                <h:commandLink value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
 <!-- 
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
