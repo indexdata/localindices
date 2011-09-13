@@ -27,7 +27,7 @@
         <managed-bean-scope>session</managed-bean-scope>
         <managed-property>
             <property-name>userTorusURI</property-name>
-            <value>http://mk2.indexdata.com/torus/identity/records/USERS/</value>
+            <value>http://mk2-test.indexdata.com/torus/identity/records/USERS/</value>
          </managed-property>
     </managed-bean>
     <navigation-rule>
@@ -45,11 +45,11 @@
     <navigation-rule>
         <navigation-case>
             <from-outcome>overview</from-outcome>
-            <to-view-id>/overview.jsp</to-view-id>
+            <to-view-id>/list_resources.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>home</from-outcome>
-            <to-view-id>/overview.jsp</to-view-id>
+            <to-view-id>/list_resources.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
