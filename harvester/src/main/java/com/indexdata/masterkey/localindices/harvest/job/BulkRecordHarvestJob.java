@@ -81,16 +81,25 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     templates = new Templates[steps.size()];
     int index = 0;
 
+    String stepInfo = "";
+    String stepScript =""; 
     try {
       for (TransformationStep step : steps) {
+	stepInfo =  step.getId() + " " + step.getName();
 	if (step.getScript() != null) {
+	  stepScript = step.getScript();
+	  logger.info("Setting up XSLT template for Step: " + stepInfo);
 	  templates[index] = stf.newTemplates(new StreamSource(new StringReader(step.getScript())));
 	  index++;
 	}
+	else {
+	  logger.warn("Step " + stepInfo + " has not script!");
+	}
       }
     } catch (TransformerConfigurationException tce) {
+      error = "Failed to build xslt templates: " + stepInfo;
       templates = new Templates[0];
-      error = "Failed to build xslt templates";
+      logger.error("Failed to build XSLT template for Step: " + stepInfo + "Script: " + stepScript);      
       logger.error(error);
       setStatus(HarvestStatus.ERROR);
     }
