@@ -96,7 +96,7 @@
 		</init-param>
         <init-param>
             <param-name>USER_TORUS_URI</param-name>
-            <param-value>http://mk2.indexdata.com/torus/identity/records/USERS/</param-value>
+            <param-value>http://mk2-test.indexdata.com/torus/identity/records/USERS/</param-value>
         </init-param>
 		<init-param>
 			<param-name>SU_COOKIE_NAME</param-name>
