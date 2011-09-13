@@ -35,7 +35,7 @@ public class StorageJobLogger implements LocalIndicesLogger {
 
   public void warnIfNotExpectedResponse(String actual, String expected) {
     if (actual.indexOf(expected) < 0) {
-      logger.warn(getIdentify() + " Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
+      logger.warn(getIdentify() + " Unexpected response '" + actual + "' does not contain '" + expected + "'");
     }
   }
 
@@ -48,15 +48,15 @@ public class StorageJobLogger implements LocalIndicesLogger {
   }
 
   public void info(String msg) {
-    logger.info(getIdentify() + msg);
+    logger.info(getIdentify() + " " + msg);
   }
 
   public void error(String msg) {
-    logger.error(getIdentify() + msg);
+    logger.error(getIdentify() + " " + msg);
   }
 
   public void error(String msg, Exception e) {
-    logger.error(getIdentify() + msg);
+    logger.error(getIdentify() + " " + msg);
   }
 
   public void fatal(String msg) {
