@@ -54,7 +54,6 @@ public class AuthenticationCheckFilter implements Filter {
 	Logger.getLogger(this.getClass()).warn("Initializing LoginManager from web context. Not faces-context");
 	logMgr = new LoginManager();
 	logMgr.setUserTorusURI(USER_TORUS_URI);
-	logMgr.setUserTorusURI("dummy");
 	session.setAttribute("loginManager", logMgr);
       }
       if (logMgr.getUserTorusURI() == null) {
