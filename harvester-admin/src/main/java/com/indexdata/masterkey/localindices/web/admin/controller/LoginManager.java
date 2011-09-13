@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class LoginManager {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
-  // Not flexible!
-  private String idTorusURI = "http://mk2-test.indexdata.com/torus/identity/records/USERS/";
+  // No default value. Security hole. Back door.  
+  private String userTorusURI = null;
   private String username;
   private String password;
   private String displayName;
@@ -121,7 +121,10 @@ public class LoginManager {
 
   private IdentityTypeLayer retrieveLayer(String query) throws UnsupportedEncodingException,
       MalformedURLException, ResourceConnectionException {
-    String url = idTorusURI + "?query=" + URLEncoder.encode(query, "UTF-8");
+    if (userTorusURI == null) {
+      throw new MalformedURLException("No User Torus URI configured!");
+    }
+    String url = userTorusURI + "?query=" + URLEncoder.encode(query, "UTF-8");
     logger.log(Level.INFO, "Connecting to the identity torus - " + url);
     ResourceConnector<Records> torusConn = new ResourceConnector<Records>(new URL(url),
 	"com.indexdata.torus.layer" + ":com.indexdata.torus");
@@ -139,5 +142,13 @@ public class LoginManager {
       cookie.setMaxAge(0);
     ((HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse())
 	.addCookie(cookie);
+  }
+
+  public String getUserTorusURI() {
+    return userTorusURI;
+  }
+
+  public void setUserTorusURI(String userTorusURI) {
+    this.userTorusURI = userTorusURI;
   }
 }
