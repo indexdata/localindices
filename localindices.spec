@@ -1,7 +1,7 @@
 Summary: Harvestering Service
 Name: masterkey-harvester
 Version: 1.9.5
-Release: 1.indexdata
+Release: 2.indexdata
 License: IndexData
 Group: Applications/Internet
 Vendor: Index Data ApS <info@indexdata.dk>
@@ -85,7 +85,7 @@ mkdir -p ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester-admin/
 mkdir -p ${RPM_BUILD_ROOT}/%{_localstatedir}/log/masterkey/harvester
 
 #tomcat context
-sed -e 's@docBase=".*"@docBase="%{_datadir}\/masterkey\/harvester"@g' etc/harvester-admin-context.xml > ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/harvester-admin-context.xml
+sed -e 's@docBase=".*"@docBase="%{_datadir}\/masterkey\/harvester-admin"@g' etc/harvester-admin-context.xml > ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/harvester-admin-context.xml
 
 
 %clean
