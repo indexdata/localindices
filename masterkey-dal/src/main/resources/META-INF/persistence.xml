@@ -6,7 +6,9 @@
         <non-jta-data-source>java:/comp/env/localindicesDS</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
+<!--
             <property name="toplink.ddl-generation" value="create-tables"/>
+-->
             <property name="toplink.cache.type.default" value="NONE"/>
             <!--
               direct non-DataSource connection is possible but is generally
