@@ -117,8 +117,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // figure out harvesting period, even though we may end up using
     // resumptionTokens from the DB
     Date nextFrom = null;
-    if (resource.getUntilDate() == null)
-      resource.setUntilDate(yesterday());
+    if (resource.getUntilDate() != null)
+      logger.log(Level.INFO, "OAI harvest: until param will be overwritten to yesterday.");
+    resource.setUntilDate(yesterday());
     nextFrom = new Date();
     logger.log(Level.INFO, "OAI harvest started. Harvesting from: " 
 		+ resource.getFromDate() + " until: " + resource.getUntilDate());
