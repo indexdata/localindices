@@ -117,20 +117,16 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // figure out harvesting period, even though we may end up using
     // resumptionTokens from the DB
     Date nextFrom = null;
-    if (resource.getUntilDate() != null)
-      logger.log(Level.INFO, "JOB#" + resource.getId()
-	  + " OAI harvest: until param will be overwritten to yesterday.");
-    resource.setUntilDate(yesterday());
+    if (resource.getUntilDate() == null)
+      resource.setUntilDate(yesterday());
     nextFrom = new Date();
-    logger.log(Level.INFO, "JOB#" + resource.getId() + " OAI harvest started. Harvesting from: "
-	+ resource.getFromDate() + " until: " + resource.getUntilDate());
+    logger.log(Level.INFO, "OAI harvest started. Harvesting from: " 
+		+ resource.getFromDate() + " until: " + resource.getUntilDate());
     try {
-
+      getStorage().begin();
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
-      // }
-
     } catch (IOException e) {
       setStatus(HarvestStatus.ERROR);
       resource.setMessage(e.getMessage());
@@ -143,8 +139,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setUntilDate(null);
       resource.setNormalizationFilter(null);
       setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "JOB#" + resource.getId() + " OAI harvest finished OK. Next from: "
-	  + resource.getFromDate());
+      logger.log(Level.INFO, "OAI harvest finished OK. Next from: " + resource.getFromDate());
       initialRun = false;
       try {
 	getStorage().commit();
@@ -156,7 +151,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } else {
       if (getStatus().equals(HarvestStatus.KILLED))
 	setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "JOB#" + resource.getId() + " OAI harvest killed/faced error "
+      logger.log(Level.INFO, "OAI harvest killed/faced error "
 	  + "- rolling back. Next from param: " + resource.getFromDate());
       try {
 	getStorage().rollback();
@@ -224,16 +219,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       OAIError[] errors = null;
       if ((errors = getErrors(errorNodes)) != null) {
 	// The error message has been logged, but print out the full record
-	logger.log(Level.DEBUG,
-	    "JOB#" + resource.getId() + " OAI error response: \n" + listRecords.toString());
+	logger.log(Level.DEBUG, "OAI error response: \n" + listRecords.toString());
 	// if this is noRecordsMatch and initial run, something is wrong
-	logger.log(Level.DEBUG, "JOB#" + resource.getId() + " Parsed errors: #Errors: "
+	logger.log(Level.DEBUG, "Parsed errors: #Errors: "
 	    + errors.length + " First ErrorCode: " + errors[0].getCode() + " initialRun: "
 	    + initialRun);
-	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")
-	    && !this.initialRun) {
-	  logger.log(Level.INFO, "JOB#" + resource.getId()
-	      + " noRecordsMatch experienced for non-initial harvest - ignoring");
+	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")) {
+	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
 	  setStatus(HarvestStatus.KILLED);
 	  return;
 	} else
@@ -343,7 +335,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy);
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      logger.log(Level.DEBUG, "JOB#" + resource.getId() + msg + " Erroneous respponse:\n"
+      logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
 	  + TextUtils.readStream(hve.getResponseStream()));
       throw new IOException(msg, hve);
     } catch (IOException io) {
@@ -377,8 +369,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	String code = item.getAttributes().getNamedItem("code").getNodeValue();
 	String message = item.getTextContent();
 	errors[i] = new OAIError(code, message);
-	logger.log(Level.WARN, "JOB#" + resource.getId() + " OAI harvest error - " + code + ": "
-	    + message);
+	logger.log(Level.WARN, "OAI harvest error - " + code + ": " + message);
       }
       return errors;
     }
