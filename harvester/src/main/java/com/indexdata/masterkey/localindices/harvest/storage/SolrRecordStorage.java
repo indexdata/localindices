@@ -44,16 +44,14 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   public void commit() throws IOException {
     try {
 
-      logger.info("Committing added " + added + " and deleted " + deleted + " records to database "
-	  + database);
+      logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
       // TODO Testing waitFlush=false, waitSearcher=false. Not good for indexes
       // with searchers
       UpdateResponse response = server.commit(false, false);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
     } catch (SolrServerException e) {
-      logger.error("Commit failed when adding " + added + " and deleting " + deleted
-	  + " to database " + database);
+      logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database);
       e.getStackTrace();
       throw new RuntimeException("Commit failed: " + e.getMessage(), e);
     }
@@ -89,6 +87,8 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     databaseProperties = properties;
+    logger.debug("Current Database " + this.database + "New database: " + database);
+    this.database = database;
   }
 
   // @Deprecated createDocument Use Record method
@@ -106,6 +106,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     SolrInputDocument document = createDocument(record.getValues());
     if (idField != null)
       document.setField(idField, record.getId());
+
     if (databaseField != null)
       document.setField(databaseField, database);
     return document;
