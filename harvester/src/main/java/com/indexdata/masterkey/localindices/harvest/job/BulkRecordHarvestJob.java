@@ -230,12 +230,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       // TODO this is different from old behavior. All insert is now done in one
       // commit.
       getStorage().begin();
-      setStatus(HarvestStatus.RUNNING);
+      getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
-	;
-      getStorage().purge();
+	getStorage().purge();
+      setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
       setStatus(HarvestStatus.FINISHED);
+      getStorage().databaseEnd();
       getStorage().commit();
     } catch (Exception e) {
       try {
