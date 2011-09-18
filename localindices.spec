@@ -1,7 +1,7 @@
 Summary: Harvestering Service
 Name: masterkey-harvester
-Version: 1.9.5
-Release: 2.indexdata
+Version: 1.9.6
+Release: 1.indexdata
 License: IndexData
 Group: Applications/Internet
 Vendor: Index Data ApS <info@indexdata.dk>
