@@ -67,10 +67,11 @@ mvn package -Pproduction
 %install
 mkdir -p ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
 cp -a %{harvester}/* ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
+mkdir -p ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/sql
+cp -a sql/localindices.sql ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/sql/
+cp -a INSTALL.html ${RPM_BUILD_ROOT}/%{_datadir}/masterkey/harvester/
 
 mkdir -p ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/
-# cp -a etc/harvester.properties ${RPM_BUILD_ROOT}/%{_sysconfdir}/masterkey/harvester/
-
 mkdir -p ${RPM_BUILD_ROOT}/%{_localstatedir}/log/masterkey/harvester
 
 #tomcat context
