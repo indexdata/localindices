@@ -112,7 +112,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   @Override
   public void run() {
     setStatus(HarvestStatus.RUNNING);
-    this.resource.setMessage(null);
+    resource.setMessage(null);
 
     // figure out harvesting period, even though we may end up using
     // resumptionTokens from the DB
