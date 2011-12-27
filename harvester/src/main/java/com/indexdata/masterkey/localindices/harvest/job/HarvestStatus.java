@@ -16,5 +16,6 @@ public enum HarvestStatus {
     RUNNING,
     FINISHED,
     KILLED,
+    SHUTDOWN,
     ERROR
 }
