@@ -9,6 +9,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import java.net.Proxy;
@@ -68,7 +69,7 @@ public class JobScheduler {
 	  ji = null;
 	}
       }
-      // no corresponding job in the list, crate new one
+      // no corresponding job in the list, create new one
       if (ji == null) {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
 	try {
@@ -131,6 +132,10 @@ public class JobScheduler {
 	  ji.start();
 	}
 	break;
+      case SHUTDOWN:        // Status set on Servlet container shutdown, so the time can be way overdue
+	if (ji.isEnabled()) // It could have disabled in the database. 
+	  ji.start();
+	break;
       case RUNNING: // do nothing (update progress bar?)
 	break;
       case KILLED: // zombie thread
@@ -180,6 +185,10 @@ public class JobScheduler {
    */
   public void stopAllJobs() {
     for (JobInstance ji : jobs.values()) {
+      if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
+	ji.getHarvestable().setCurrentStatus(" " + HarvestStatus.SHUTDOWN);
+	dao.update(ji.getHarvestable());
+      }
       ji.stop();
     }
   }
