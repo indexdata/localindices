@@ -46,6 +46,9 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
 
   @Override
   public final synchronized void kill() {
+    if (status == HarvestStatus.RUNNING) {
+      status = HarvestStatus.KILLED;
+    }
     die = true;
   }
 
