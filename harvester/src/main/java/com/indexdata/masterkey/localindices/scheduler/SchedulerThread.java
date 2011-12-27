@@ -38,8 +38,12 @@ public class SchedulerThread implements Runnable {
 	scheduler.updateJobs();
 	scheduler.checkJobs();
       } catch (InterruptedException e) {
-	// logger.log(Level.WARN, "Scheduler was interrrupted. Exiting...");
-	// Throws null pointer exceptions when closing...
+	// Just loop
+      } catch (Exception e) {
+	logger.log(Level.ERROR, "Scheduler failed with exception: " + e.getMessage());
+	synchronized (this) {
+	  keepRunning = false;
+	}
       }
     }
     scheduler.stopAllJobs();
