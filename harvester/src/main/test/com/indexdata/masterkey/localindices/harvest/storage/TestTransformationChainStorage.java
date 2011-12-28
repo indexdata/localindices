@@ -2,11 +2,16 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URL;
 import java.util.Date;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +37,7 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
@@ -39,11 +45,15 @@ public class TestTransformationChainStorage extends TestCase {
   Harvestable harvestable = new XmlBulkResource(
       "http://localhost:8080/harvester/marc.xml");
 
+  String catalog_gz = "http://localhost:8080/solr/catalog.rdf.gz";
+  Harvestable harvestableCatalog = new XmlBulkResource(catalog_gz);
+
   // SOLR Server in container on 8080
   String solrUrl = "http://localhost:8080/solr/";
   HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestable);
   RecordStorage recordStorage = new SolrRecordStorage(solrUrl, harvestable);
   RecordStorage bulkStorage = new BulkSolrRecordStorage(solrUrl, harvestable);
+  RecordStorage bulkGutenbergStorage = new BulkSolrRecordStorage(solrUrl, harvestableCatalog);
   SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
@@ -51,6 +61,30 @@ public class TestTransformationChainStorage extends TestCase {
 
   }
 
+  public void testTransformationChain_GPDC_to_PZ_to_SolrStorage() throws IOException,
+      TransformerConfigurationException, ParserConfigurationException, SAXException {
+
+    URL url = new URL(catalog_gz);
+    HttpURLConnection conn = null;
+    conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestMethod("GET");
+    int responseCode = conn.getResponseCode();
+    int contentLength = conn.getContentLength();
+    String contentType = conn.getContentType();
+    int total = 0;
+    if (responseCode == 200) {
+      InputStream input = new GZIPInputStream(conn.getInputStream());
+      byte[] buffer = new byte[4092];
+      while (true) {
+	int length = input.read(buffer);
+	if (length < 0)
+	  break;
+	total += length;
+      }
+      assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
+    }
+  }
+  
   public void testSimpleTransformationStorage() throws IOException,
       TransformerConfigurationException, ParserConfigurationException, SAXException {
     String[] stylesheets = { pz2solr_xsl };
@@ -722,4 +756,362 @@ public class TestTransformationChainStorage extends TestCase {
       + "  </xsl:template>\n" + "  \n" + "  <xsl:template match=\"text()\"/>\n" + "\n"
       + "</xsl:stylesheet>";
 
+  String DC2marcslim_xsl 
+  	      = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
+  		"<xsl:stylesheet version=\"1.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns=\"http://www.loc.gov/MARC21/slim\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" exclude-result-prefixes=\"dc\">\n" + 
+  		"	<xsl:output method=\"xml\" indent=\"yes\"/>\n" + 
+  		"	\n" + 
+  		"	<xsl:template match=\"/\">\n" + 
+  		"		<record xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd\" >\n" + 
+  		"			<xsl:element name=\"leader\">\n" + 
+  		"				<xsl:variable name=\"type\" select=\"dc:type\"/>\n" + 
+  		"				<xsl:variable name=\"leader06\">\n" + 
+  		"					<xsl:choose>\n" + 
+  		"						<xsl:when test=\"$type='collection'\">p</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='dataset'\">m</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='event'\">r</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='image'\">k</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='interactive resource'\">m</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='service'\">m</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='software'\">m</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='sound'\">i</xsl:when>\n" + 
+  		"						<xsl:when test=\"$type='text'\">a</xsl:when>\n" + 
+  		"						<xsl:otherwise>a</xsl:otherwise>\n" + 
+  		"					</xsl:choose>\n" + 
+  		"				</xsl:variable>\n" + 
+  		"				<xsl:variable name=\"leader07\">\n" + 
+  		"					<xsl:choose>\n" + 
+  		"						<xsl:when test=\"$type='collection'\">c</xsl:when>\n" + 
+  		"						<xsl:otherwise>m</xsl:otherwise>\n" + 
+  		"					</xsl:choose>\n" + 
+  		"				</xsl:variable>\n" + 
+  		"				<xsl:value-of select=\"concat('      ',$leader06,$leader07,'         3u     ')\"/>\n" + 
+  		"			</xsl:element>\n" + 
+  		"\n" + 
+  		"			<datafield tag=\"042\" ind1=\" \" ind2=\" \">\n" + 
+  		"				<subfield code=\"a\">dc</subfield>\n" + 
+  		"			</datafield>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:contributer\">\n" + 
+  		"				<datafield tag=\"720\" ind1=\"0\" ind2=\"0\">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"					<subfield code=\"e\">collaborator</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:coverage\">\n" + 
+  		"				<datafield tag=\"500\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:creator\">\n" + 
+  		"				<datafield tag=\"720\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"					<subfield code=\"e\">author</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:date\">\n" + 
+  		"				<datafield tag=\"260\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"c\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>	\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:description\">\n" + 
+  		"				<datafield tag=\"520\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"			\n" + 
+  		"			<xsl:for-each select=\"//dc:format\">\n" + 
+  		"				<datafield tag=\"856\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"q\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:identifier\">\n" + 
+  		"				<datafield tag=\"024\" ind1=\"8\" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:language\">\n" + 
+  		"				<datafield tag=\"546\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"			\n" + 
+  		"			<xsl:for-each select=\"//dc:publisher\">\n" + 
+  		"				<datafield tag=\"260\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"b\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:relation\">\n" + 
+  		"				<datafield tag=\"787\" ind1=\"0\" ind2=\" \">\n" + 
+  		"					<subfield code=\"n\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:rights\">\n" + 
+  		"				<datafield tag=\"540\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:source\">\n" + 
+  		"				<datafield tag=\"786\" ind1=\"0\" ind2=\" \">\n" + 
+  		"					<subfield code=\"n\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:subject\">\n" + 
+  		"				<datafield tag=\"653\" ind1=\" \" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"																							\n" + 
+  		"			<xsl:for-each select=\"//dc:title[1]\">\n" + 
+  		"				<datafield tag=\"245\" ind1=\"0\" ind2=\"0\">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:title[position()>1]\">\n" + 
+  		"				<datafield tag=\"246\" ind1=\"3\" ind2=\"3\">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"\n" + 
+  		"			<xsl:for-each select=\"//dc:type\">\n" + 
+  		"				<datafield tag=\"655\" ind1=\"7\" ind2=\" \">\n" + 
+  		"					<subfield code=\"a\">\n" + 
+  		"						<xsl:value-of select=\".\"/>\n" + 
+  		"					</subfield>\n" + 
+  		"					<subfield code=\"2\">local</subfield>\n" + 
+  		"				</datafield>\n" + 
+  		"			</xsl:for-each>\n" + 
+  		"		</record>\n" + 
+  		"	</xsl:template>\n" + 
+  		"</xsl:stylesheet>";
+  
+  	String GPDC_2_marc_xsl =
+  	    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
+  	    "<xsl:stylesheet version=\"1.0\" \n" + 
+  	    "		xmlns:dc=\"http://purl.org/dc/elements/1.1/\" \n" + 
+  	    "		xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n" + 
+  	    "		xmlns=\"http://www.loc.gov/MARC21/slim\" \n" + 
+  	    "		xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" exclude-result-prefixes=\"dc\" \n" + 
+  	    "		xmlns:pgterms=\"http://www.gutenberg.org/rdfterms/\">\n" + 
+  	    "    <xsl:output method=\"xml\" indent=\"yes\"/>\n" + 
+  	    "    <xsl:strip-space elements=\"pgterms:file\"/>\n" + 
+  	    "    <xsl:template match=\"/\">\n" + 
+  	    "      <collection>\n" + 
+  	    "	<xsl:apply-templates />\n" + 
+  	    "      </collection>\n" + 
+  	    "    </xsl:template>\n" + 
+  	    "    <xsl:template match=\"rdf:Description\">\n" + 
+  	    "      <xsl:comment>\n" + 
+  	    "	<xsl:value-of select=\".\" />\n" + 
+  	    "      </xsl:comment>\n" + 
+  	    "    </xsl:template>\n" + 
+  	    "    <xsl:template match=\"pgterms:etext\">\n" + 
+  	    "        <record>\n" + 
+  	    "            <xsl:element name=\"leader\">\n" + 
+  	    "                <xsl:variable name=\"type\" select=\"dc:type\"/>\n" + 
+  	    "                <xsl:variable name=\"leader06\">\n" + 
+  	    "                    <xsl:choose>\n" + 
+  	    "                        <xsl:when test=\"$type='collection'\">p</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='dataset'\">m</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='event'\">r</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='image'\">k</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='interactive resource'\">m</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='service'\">m</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='software'\">m</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='sound'\">i</xsl:when>\n" + 
+  	    "                        <xsl:when test=\"$type='text'\">a</xsl:when>\n" + 
+  	    "                        <xsl:otherwise>a</xsl:otherwise>\n" + 
+  	    "                    </xsl:choose>\n" + 
+  	    "                </xsl:variable>\n" + 
+  	    "                <xsl:variable name=\"leader07\">\n" + 
+  	    "                    <xsl:choose>\n" + 
+  	    "                        <xsl:when test=\"$type='collection'\">c</xsl:when>\n" + 
+  	    "                        <xsl:otherwise>m</xsl:otherwise>\n" + 
+  	    "                    </xsl:choose>\n" + 
+  	    "                </xsl:variable>\n" + 
+  	    "                <xsl:value-of select=\"concat('      ',$leader06,$leader07,'         3u     ')\"/>\n" + 
+  	    "            </xsl:element>\n" + 
+  	    "	    <controlfield tag=\"001\">\n" + 
+  	    "	      <xsl:value-of select=\"substring(@rdf:ID, 6)\"/>\n" + 
+  	    "	    </controlfield>\n" + 
+  	    "	    <datafield tag=\"856\" ind1=\"0\" ind2=\"0\">\n" + 
+  	    "	      <subfield code=\"u\">http://www.gutenberg.org/ebooks/<xsl:value-of select=\"substring(@rdf:ID, 6)\"/></subfield>\n" + 
+  	    "	    </datafield>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:contributer\">\n" + 
+  	    "                <datafield tag=\"720\" ind1=\"0\" ind2=\"0\">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                    <subfield code=\"e\">collaborator</subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:coverage\">\n" + 
+  	    "                <datafield tag=\"500\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:creator\">\n" + 
+  	    "                <datafield tag=\"100\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "<!--\n" + 
+  	    "                    <subfield code=\"e\">author</subfield>\n" + 
+  	    "-->\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:date\">\n" + 
+  	    "                <datafield tag=\"260\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"c\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>    \n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:description\">\n" + 
+  	    "                <datafield tag=\"520\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:identifier\">\n" + 
+  	    "                <datafield tag=\"856\" ind1=\"4\" ind2=\"0\">\n" + 
+  	    "                    <subfield code=\"u\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "		    <xsl:if test=\"dc:format\">\n" + 
+  	    "		      <subfield code=\"q\">\n" + 
+  	    "		        <xsl:value-of select=\"dc:format\"/>\n" + 
+  	    "		      </subfield>\n" + 
+  	    "		    </xsl:if>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:language\">\n" + 
+  	    "                <datafield tag=\"546\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:publisher\">\n" + 
+  	    "                <datafield tag=\"260\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"b\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:relation\">\n" + 
+  	    "                <datafield tag=\"787\" ind1=\"0\" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"n\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:rights\">\n" + 
+  	    "                <datafield tag=\"540\" ind1=\" \" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:source\">\n" + 
+  	    "                <datafield tag=\"786\" ind1=\"0\" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"n\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <datafield tag=\"650\" ind1=\" \" ind2=\" \">\n" + 
+  	    "	      <xsl:for-each select=\"dc:subject\">\n" + 
+  	    "<!--		    <xsl:for-each select=\"tokenize(.,';|- -')\"> -->\n" + 
+  	    "		      <subfield code=\"a\"><xsl:value-of select=\"normalize-space(.)\" /></subfield>\n" + 
+  	    "<!--		    </xsl:for-each> -->\n" + 
+  	    "              </xsl:for-each>\n" + 
+  	    "	    </datafield>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:title[1]\">\n" + 
+  	    "                <datafield tag=\"245\" ind1=\"0\" ind2=\"0\">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:title[position()>1]\">\n" + 
+  	    "                <datafield tag=\"246\" ind1=\"3\" ind2=\"3\"><subfield code=\"a\"><xsl:value-of select=\".\"/></subfield></datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "\n" + 
+  	    "            <xsl:for-each select=\"dc:type\">\n" + 
+  	    "                <datafield tag=\"655\" ind1=\"7\" ind2=\" \">\n" + 
+  	    "                    <subfield code=\"a\">\n" + 
+  	    "                        <xsl:value-of select=\".\"/>\n" + 
+  	    "                    </subfield>\n" + 
+  	    "                    <subfield code=\"2\">local</subfield>\n" + 
+  	    "                </datafield>\n" + 
+  	    "            </xsl:for-each>\n" + 
+  	    "        </record>\n" + 
+  	    "    </xsl:template>\n" + 
+  	    "  <!-- Ignore other elements by mapping into empty DOM XML trees -->\n" + 
+  	    "<!--\n" + 
+  	    "  <xsl:template match=\"/*\"/>\n" + 
+  	    "-->\n" + 
+  	    "  <xsl:template match=\"pgterms:file\" />\n" + 
+  	    "\n" + 
+  	    "</xsl:stylesheet>\n";
+  
 }
