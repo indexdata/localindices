@@ -32,6 +32,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   private boolean die;
   protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger; 
+
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
   }
