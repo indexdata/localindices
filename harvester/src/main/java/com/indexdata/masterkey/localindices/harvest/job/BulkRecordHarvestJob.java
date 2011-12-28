@@ -15,6 +15,10 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -266,6 +270,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       else
 	conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
+      conn.setRequestProperty("Accept-Encoding", "gzip, deflate, zip");
       int responseCode = conn.getResponseCode();
       int contentLenght = conn.getContentLength();
       String contentType = conn.getContentType();
@@ -286,6 +291,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	    else
 	      conn = (HttpURLConnection) link.openConnection();
 	    conn.setRequestMethod("GET");
+	    conn.setRequestProperty("Accept-Encoding", "gzip, deflate, zip");
 	    responseCode = conn.getResponseCode();
 	    contentLenght = conn.getContentLength();
 	    contentType = conn.getContentType();
@@ -297,8 +303,9 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 		continue;
 		// possibly a marc file
 	      } else {
-		logger.warn("Found file at " + link.toString());
-		store(conn.getInputStream(), contentLenght);
+		InputStream inputStream = lookupCompresssionType(conn);
+		logger.warn("Found file at " + link.toString() + " with content-type: " + contentType);
+		store(inputStream, contentLenght);
 		proper++;
 	      }
 	    } else {
@@ -313,8 +320,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	    throw new Exception("No MARC files found at " + url.toString());
 	  }
 	} else {
-	  // setupTransformation()
-	  store(conn.getInputStream(), contentLenght);
+	  InputStream inputStream = lookupCompresssionType(conn);
+	  store(inputStream, contentLenght);
 	  getStorage().setOverwriteMode(false);
 	  return;
 	}
@@ -325,6 +332,17 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (IOException ioe) {
       throw new Exception("Http connection failed.", ioe);
     }
+  }
+
+  private InputStream lookupCompresssionType(HttpURLConnection conn) throws IOException 
+  {
+    if ("x-gzip".equalsIgnoreCase(conn.getContentEncoding()))
+      return new GZIPInputStream(conn.getInputStream());
+    if ("zip".equalsIgnoreCase(conn.getContentEncoding()))
+      return new ZipInputStream(conn.getInputStream());
+    if ("deflate".equalsIgnoreCase("deflate"))
+      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));    
+    return conn.getInputStream();
   }
 
   private void store(InputStream is, int contentLength) throws Exception {
