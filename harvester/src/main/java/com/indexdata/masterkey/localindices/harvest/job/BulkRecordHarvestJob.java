@@ -336,12 +336,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private InputStream lookupCompresssionType(HttpURLConnection conn) throws IOException 
   {
-    if ("x-gzip".equalsIgnoreCase(conn.getContentEncoding()))
-      return new GZIPInputStream(conn.getInputStream());
-    if ("zip".equalsIgnoreCase(conn.getContentEncoding()))
-      return new ZipInputStream(conn.getInputStream());
-    if ("deflate".equalsIgnoreCase("deflate"))
-      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));    
+    String contentType = conn.getContentType();
+    String contentEncoding = conn.getContentType();
+    if (contentType != null) {
+      if (contentType.endsWith("x-gzip"))
+	return new GZIPInputStream(conn.getInputStream());
+      if (contentType.endsWith("zip"))
+	return new ZipInputStream(conn.getInputStream());
+    }
+    if ("deflate".equalsIgnoreCase(contentEncoding))
+	return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
     return conn.getInputStream();
   }
 
