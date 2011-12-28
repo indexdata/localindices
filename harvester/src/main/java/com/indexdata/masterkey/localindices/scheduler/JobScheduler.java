@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995-2008, Index Data
+f * Copyright (c) 1995-2008, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
@@ -80,6 +80,13 @@ public class JobScheduler {
 	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
 	  if (!hbrief.isEnabled())
 	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " will be disabled.");
+	  else {
+	    if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
+	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + " was logged as running, but no JobInstances was found.");
+	      ji.start();
+	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + "  started");
+	    }
+	  }
 	} catch (IllegalArgumentException e) {
 	  logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
 	  logger.log(Level.DEBUG, e);
@@ -184,10 +191,15 @@ public class JobScheduler {
    * Brutally stop all jobs.
    */
   public void stopAllJobs() {
+    logger.log(Level.INFO, "StopAllJobs");
     for (JobInstance ji : jobs.values()) {
+	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " status: " + ji.getStatus());
       if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
-	ji.getHarvestable().setCurrentStatus(" " + HarvestStatus.SHUTDOWN);
+	ji.getHarvestable().setCurrentStatus("" + HarvestStatus.SHUTDOWN);
 	dao.update(ji.getHarvestable());
+	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
+	    		     + " status updated to " + ji.getHarvestable().getCurrentStatus() 
+	    		     + " (Job Instance status: " + ji.getStatus() + ")");
       }
       ji.stop();
     }
