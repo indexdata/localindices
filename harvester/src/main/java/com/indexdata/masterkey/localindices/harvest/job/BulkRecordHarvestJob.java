@@ -341,8 +341,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     if (contentType != null) {
       if (contentType.endsWith("x-gzip"))
 	return new GZIPInputStream(conn.getInputStream());
-      if (contentType.endsWith("zip"))
-	return new ZipInputStream(conn.getInputStream());
+      if (contentType.endsWith("zip")) {
+	logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
+	ZipInputStream zipInput = new ZipInputStream(conn.getInputStream());
+	if (zipInput.getNextEntry() == null)
+	  logger.error("No file found in URL: " + conn.getURL());
+	return zipInput;
+      }
     }
     if ("deflate".equalsIgnoreCase(contentEncoding))
 	return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
