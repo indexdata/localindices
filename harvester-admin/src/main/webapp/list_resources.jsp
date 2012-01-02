@@ -16,18 +16,18 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
-                <h:commandLink value="Storages"  action="#{storageController.listStorages}" />
-                <h:commandLink value="Transformations" action="#{transformationController.list}" />
+                <h:commandLink styleClass="navigation" value="Refresh List" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Storages"  action="#{storageController.listStorages}" />
+                <h:commandLink styleClass="navigation" value="Transformations" action="#{transformationController.list}" />
                 <br>
                 <h:outputText value="Add new resource: "/>
-                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
+                <h:commandLink styleClass="navigation" value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
 <!-- 
                  <h:outputText value=", "/>
-                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
+                <h:commandLink styleClass="navigation" value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
  -->
                 <h:outputText value=", "/>
-                <h:commandLink value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <h:commandLink styleClass="navigation" value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
 <!-- 
                 <h:outputText value=", "/>
  -->
@@ -42,12 +42,6 @@
                                    rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
                 </div>               
                 <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet> 
-                        <h:outputText value="#{item.id}"></h:outputText>
-                    </h:column>                
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />
@@ -83,23 +77,28 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
+                        <h:graphicImage alt="Enabled" height="16" url="/images/#{ item.enabledDisplay }.png" />
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions" />
+                            <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
+                        <h:commandLink styleClass="action" action="#{resourceController.prepareResourceToEdit}">
                             <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}"
+                        <h:commandLink styleClass="action" action="#{resourceController.prepareResourceToRun}">
+                            <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage alt="Run" height="16" url="/images/run.png" />
+                        </h:commandLink>
+                        <h:commandLink styleClass="action" action="#{resourceController.deleteResource}"
                             onclick="return confirm('Are you sure?');">
                             <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="View Log" action="#{resourceController.viewJobLog}">
+                        <h:commandLink styleClass="action" action="#{resourceController.viewJobLog}">
                             <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage alt="View Log" height="16" url="/images/log.png" />
                         </h:commandLink>
                     </h:column>
                 </h:dataTable>
