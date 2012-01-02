@@ -42,7 +42,7 @@ public class StorageController {
 
   private DataModel model;
   private List<StorageBrief> storages;
-  private String jobLog;
+  private String storageAdminSite;
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
 
@@ -215,15 +215,20 @@ public class StorageController {
 
   }
 
-  public String viewStorageLog() {
-
-    jobLog = "http://localhost:8080/solr/admin/";
-    return "storage_log";
-
+  public String getStorageAdmin() {
+    Storage storage = getResourceFromRequestParam();
+    if (storageAdminSite == null)
+    if (storage instanceof SolrStorage) {
+      SolrStorage solrStorage = (SolrStorage) storage;
+      storageAdminSite = solrStorage.getUrl() + "admin";
+      return storageAdminSite;     
+      //jobLog = "http://localhost:8080/solr/admin/";
+    }
+    return "";
   }
 
-  public String getjobLog() {
-    return jobLog;
+  public void setStorageAdmin(String adminSite) {
+    storageAdminSite = adminSite;
   }
 
   // </editor-fold>
@@ -237,8 +242,13 @@ public class StorageController {
     } else {
       String param = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("storageId");
-      Long id = new Long(param);
-      o = dao.retrieveById(id);
+      if (param != null) { 
+	logger.log(Level.DEBUG, "StorageId found " + param);
+	Long id = new Long(param);
+	o = dao.retrieveById(id);
+      }
+      else 
+	logger.log(Level.ERROR, "No StorageId parameter found on request");
     }
     return o;
   }
