@@ -16,11 +16,11 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Resources" action="#{resourceController.listResources}" />
-                <h:commandLink value="Refresh List" action="#{storageController.listStorages}" styleClass="current"/>
+                <h:commandLink styleClass="navigation" value="Resources" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Refresh List" action="#{storageController.listStorages}" />
                 <br/>
                 <h:outputText value="Add new storage: "/>
-                <h:commandLink value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
+                <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
 <!-- 
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
@@ -41,12 +41,6 @@
                 <h:dataTable value="#{storageController.storages}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet> 
-                        <h:outputText value="#{item.id}"></h:outputText>
-                    </h:column>                
-                    <h:column>
-                        <f:facet name="header">
                             <h:outputText value="Name" />
                         </f:facet> 
                         <h:outputText value="#{item.name}"></h:outputText>
@@ -55,24 +49,25 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
+                        <h:graphicImage alt="Enabled" height="16" url="/images/#{item.enabled}.png" />
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions" />
+                            <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="#{storageController.prepareStorageToEdit}">
+                        <h:commandLink action="#{storageController.prepareStorageToEdit}">
                             <f:param name="storageId" value="#{item.id}"/>
+                            <h:graphicImage alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{storageController.deleteStorage}"
+                        <h:commandLink action="#{storageController.deleteStorage}"
                             onclick="return confirm('Are you sure?');">
                             <f:param name="storageId" value="#{item.id}"/>
+                            <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="View Log" action="#{storageController.viewStorageLog}">
+                        <h:outputLink title="Storage Admin" value="#{storageController.storageAdmin}" target="_target">
                             <f:param name="storageId" value="#{item.id}"/>
-                        </h:commandLink>
+                            <h:graphicImage alt="Storarge Admin" height="16" url="/images/log.png" />
+                        </h:outputLink>
                     </h:column>
                 </h:dataTable>
             </h:form>
