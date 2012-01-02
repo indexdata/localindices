@@ -16,11 +16,11 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Resources"    action="#{resourceController.listResources}" />
-                <h:commandLink value="Refresh List" action="#{transformationController.list}" />
+                <h:commandLink styleClass="navigation"  value="Resources"    action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation"  value="Refresh List" action="#{transformationController.list}" />
                 <br/>
                 <h:outputText value="Add new transformation: "/>
-                <h:commandLink value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
+                <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
             <h:form>
@@ -33,14 +33,6 @@
                                    rendered="#{transformationController.lastItem < transformationController.itemCount && transformationController.lastItem + transformationController.batchSize > transformationController.itemCount}"/>
                 </div>               
                 <h:dataTable value="#{transformationController.transformations}" var="item" columnClasses="right,left,center,left,center,center,center,center">
-<!-- 
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet> 
-                        <h:outputText value="#{item.id}"></h:outputText>
-                    </h:column>                
- -->
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />
@@ -51,19 +43,20 @@
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabled}"></h:outputText>
+                        <h:graphicImage alt="Enabled" height="16" url="/images/#{item.enabled}.png" />
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions" />
+                            <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="#{transformationController.prepareToEdit}">
+                        <h:commandLink action="#{transformationController.prepareToEdit}">
                             <f:param name="id" value="#{item.id}"/>
+                            <h:graphicImage alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{transformationController.delete}"
+                        <h:commandLink action="#{transformationController.delete}"
                             onclick="return confirm('Are you sure?');">
                             <f:param name="id" value="#{item.id}"/>
+                            <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
                         </h:commandLink>
                     </h:column>
                 </h:dataTable>
