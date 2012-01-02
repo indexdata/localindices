@@ -59,13 +59,14 @@ public class RecordImpl implements Record {
     record.concat("database=" + database);
     boolean first = true; 
     for (String key : valueMap.keySet()) {
-      if (first) {
+      if (!first) {
 	record.concat(", ");
 	first = false; 
       }
       // TODO serialize the Collection.. 
       record.concat(key + "=> {" + valueMap.get(key) + "}");
     }
+    record += "]";
     return record;
   }
 }
