@@ -8,10 +8,11 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -37,7 +38,6 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
@@ -47,6 +47,8 @@ public class TestTransformationChainStorage extends TestCase {
 
   String catalog_gz = "http://localhost:8080/solr/catalog.rdf.gz";
   Harvestable harvestableCatalog = new XmlBulkResource(catalog_gz);
+
+  String catalog_zip = "http://localhost:8080/solr/catalog.rdf.zip";
 
   // SOLR Server in container on 8080
   String solrUrl = "http://localhost:8080/solr/";
@@ -61,7 +63,7 @@ public class TestTransformationChainStorage extends TestCase {
 
   }
 
-  public void testTransformationChain_GPDC_to_PZ_to_SolrStorage() throws IOException,
+  public void testTransformationChain_GZIP_Download() throws IOException,
       TransformerConfigurationException, ParserConfigurationException, SAXException {
 
     URL url = new URL(catalog_gz);
@@ -70,7 +72,7 @@ public class TestTransformationChainStorage extends TestCase {
     conn.setRequestMethod("GET");
     int responseCode = conn.getResponseCode();
     int contentLength = conn.getContentLength();
-    String contentType = conn.getContentType();
+    //String contentType = conn.getContentType();
     int total = 0;
     if (responseCode == 200) {
       InputStream input = new GZIPInputStream(conn.getInputStream());
@@ -84,6 +86,36 @@ public class TestTransformationChainStorage extends TestCase {
       assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
     }
   }
+
+  public void testTransformationChain_ZIP_Download() throws IOException,
+      TransformerConfigurationException, ParserConfigurationException, SAXException {
+
+    URL url = new URL(catalog_zip);
+    HttpURLConnection conn = null;
+    conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestMethod("GET");
+    int responseCode = conn.getResponseCode();
+    int contentLength = conn.getContentLength();
+    //String contentType = conn.getContentType();
+    int total = 0;
+    if (responseCode == 200) {
+      ZipInputStream zipInput = new ZipInputStream(conn.getInputStream());
+      ZipEntry entry = zipInput.getNextEntry();
+      InputStream input = zipInput;
+      while (entry != null) {
+	byte[] buffer = new byte[10240];
+	while (true) {
+	  int length = input.read(buffer);
+	  if (length < 0)
+	    break;
+	  total += length;
+	}
+	entry = zipInput.getNextEntry();
+      }
+      assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
+    }
+  }
+
   
   public void testSimpleTransformationStorage() throws IOException,
       TransformerConfigurationException, ParserConfigurationException, SAXException {
