@@ -45,6 +45,7 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
  * controls data access through DAO object
  * 
  * @author jakub
+ * @author Dennis
  */
 public class ResourceController {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
@@ -363,6 +364,17 @@ public class ResourceController {
       logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
       return "failure";
     }
+  }
+
+  /* update resource */
+  public String prepareResourceToRun() {
+    resource = getResourceFromRequestParam();
+    if (resource != null && !resource.getCurrentStatus().equals("RUNNING")) {
+      resource.setHarvestImmediately(true);
+      resource.setLastUpdated(new Date());
+      resource = dao.update(resource);
+    }
+    return listResources();
   }
 
   public String saveResource() {
