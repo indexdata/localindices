@@ -54,19 +54,15 @@ public class RecordImpl implements Record {
   }
 
   public String toString() {
-    String record = "Record[";
-    record.concat("id=" + id + ", ");
-    record.concat("database=" + database);
-    boolean first = true; 
+    StringBuffer record = new StringBuffer("Record[");
+    record.append("id=").append(id).append(", ");
+    record.append("database=").append(database);
     for (String key : valueMap.keySet()) {
-      if (!first) {
-	record.concat(", ");
-	first = false; 
-      }
+      record.append(", ");
       // TODO serialize the Collection.. 
-      record.concat(key + "=> {" + valueMap.get(key) + "}");
+      record.append(key).append(" => {").append(valueMap.get(key)).append("}");
     }
-    record += "]";
-    return record;
+    record.append("]");
+    return record.toString();
   }
 }
