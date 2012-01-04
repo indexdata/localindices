@@ -35,11 +35,10 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.httpclient.HttpClient;
 import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
-import org.marc4j.marc.VariableField;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -265,10 +264,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       download(new URL(url));
     }
   }
+
+  HttpClient client = new HttpClient();
   
   private void handleJumpPage(HttpURLConnection conn) throws Exception 
   {
-    HTMLPage jp = new HTMLPage(conn.getInputStream(), conn.getURL());
+    HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
     for (URL link : jp.getLinks()) {
       download(link);
     }    
@@ -283,7 +284,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       else
 	conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
-      conn.setRequestProperty("Accept-Encoding", "gzip, deflate, zip");
+      conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
 	String contentType = conn.getContentType();
@@ -327,7 +328,9 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }    
     @Override
     public void readAndStore() throws Exception {
-      MarcStreamReader reader  = new MarcStreamReader(conn.getInputStream());
+      // Assume MARC-8 encoding for now
+      MarcStreamReader reader  = new MarcStreamReader(conn.getInputStream(), "MARC-8");
+      reader.setBadIndicators(false);
       store(reader, -1);      
     }
   }
@@ -350,23 +353,35 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException 
   {
     String contentType = conn.getContentType();
-    String contentEncoding = conn.getContentEncoding();
+    InputStream inputStreamDecoded = handleContentEncoding(conn);
+    long contentLength = getContentLength(conn);
+    // Content is being decoded. Not the real length
+    if (inputStreamDecoded != conn.getInputStream())
+      contentLength = -1;
     if (contentType != null) {
       if (contentType.equals("application/marc")) 
 	return new MarcReadStore(conn);      
       if (contentType.endsWith("x-gzip"))
-	return new InputStreamReadStore(new GZIPInputStream(conn.getInputStream()), -1);
+	return new InputStreamReadStore(new GZIPInputStream(inputStreamDecoded), contentLength);
       if (contentType.endsWith("zip")) {
 	logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
-	ZipInputStream zipInput = new ZipInputStream(conn.getInputStream());
+	ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded);
 	if (zipInput.getNextEntry() == null)
 	  logger.error("No file found in URL: " + conn.getURL());
-	return new InputStreamReadStore(zipInput,  -1);
+	return new InputStreamReadStore(zipInput,  contentLength);
       }
     }
+    return new InputStreamReadStore(inputStreamDecoded, contentLength);
+  }
+
+  private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
+  {
+    String contentEncoding = conn.getContentEncoding();
+    if ("gzip".equals(contentEncoding))
+      return new GZIPInputStream(conn.getInputStream());
     if ("deflate".equalsIgnoreCase(contentEncoding))
-      return new InputStreamReadStore(new InflaterInputStream(conn.getInputStream(), new Inflater(true)), -1);
-    return new InputStreamReadStore(conn.getInputStream(), getContentLength(conn));
+      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
+    return conn.getInputStream();
   }
 
   private void store(MarcStreamReader reader, long contentLength) {
@@ -374,17 +389,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     long index = 0;
     while (reader.hasNext()) {
       org.marc4j.marc.Record record = reader.next();
-      // HACK for AutoGraphics dirty demo data. REMOVE
-      List<VariableField> list = record.getVariableFields("999");
-      for (VariableField field : list)
-	record.removeVariableField(field);
-      // HACK end
       writer.write(record);
-      if (index % 100 == 0)
-	logger.info("Marc record read: " + (++index));
+      if ((++index) % 100 == 0)
+	logger.info("Marc record read: " + index);
     }
     writer.close();
-    logger.info("Marc record read: " + index);
+    logger.info("Marc record read total: " + index);
   }
   private void store(InputStream is, long contentLength) throws Exception {
     OutputStream output = getStorage().getOutputStream();
