@@ -247,6 +247,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().databaseEnd();
       getStorage().commit();
     } catch (Exception e) {
+      // Test
+      e.printStackTrace();      
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {
@@ -259,10 +261,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
+  MarcWriter writer; 
   private void downloadList(String[] urls) throws Exception {
+    writer = new MarcXmlWriter(getStorage().getOutputStream());
     for (String url : urls) {
       download(new URL(url));
     }
+    if (writer != null)
+      writer.close();
   }
 
   HttpClient client = new HttpClient();
@@ -385,17 +391,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void store(MarcStreamReader reader, long contentLength) {
-    MarcWriter writer = new MarcXmlWriter(getStorage().getOutputStream());
     long index = 0;
     while (reader.hasNext()) {
       org.marc4j.marc.Record record = reader.next();
       writer.write(record);
-      if ((++index) % 100 == 0)
+      if ((++index) % 1000 == 0)
 	logger.info("Marc record read: " + index);
     }
-    writer.close();
     logger.info("Marc record read total: " + index);
   }
+
   private void store(InputStream is, long contentLength) throws Exception {
     OutputStream output = getStorage().getOutputStream();
     pipe(is, output, contentLength);
