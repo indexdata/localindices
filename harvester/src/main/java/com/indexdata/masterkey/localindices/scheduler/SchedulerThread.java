@@ -41,6 +41,7 @@ public class SchedulerThread implements Runnable {
 	// Just loop
       } catch (Exception e) {
 	logger.log(Level.ERROR, "Scheduler failed with exception: " + e.getMessage());
+	e.printStackTrace();
 	synchronized (this) {
 	  keepRunning = false;
 	}
