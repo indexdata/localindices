@@ -35,7 +35,6 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
@@ -71,6 +70,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
+  private HarvestStorage realRecordStorage;
   private Proxy proxy;
   private boolean die = false;
   private Templates templates[];
@@ -271,8 +271,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       writer.close();
   }
 
-  HttpClient client = new HttpClient();
-  
   private void handleJumpPage(HttpURLConnection conn) throws Exception 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
@@ -352,7 +350,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }    
     @Override
     public void readAndStore() throws Exception {
-      store(input, contentLength);      
+      store(input, contentLength); 
     }
   }
 
@@ -404,6 +402,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private void store(InputStream is, long contentLength) throws Exception {
     OutputStream output = getStorage().getOutputStream();
     pipe(is, output, contentLength);
+    output.close();
+    setStorage(realRecordStorage);
   }
 
   public XMLReader createTransformChain(boolean split) throws ParserConfigurationException, SAXException,
@@ -486,8 +486,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage)
+    if (storage instanceof RecordStorage) {
+      realRecordStorage = storage;
       super.setStorage(setupTransformation((RecordStorage) storage));
+    }
     else {
       setStatus(HarvestStatus.ERROR);
       resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
