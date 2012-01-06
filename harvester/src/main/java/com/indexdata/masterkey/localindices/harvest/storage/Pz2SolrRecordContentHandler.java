@@ -74,7 +74,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
       inHeader = true;
       record = new RecordImpl();
       record.setDatabase(databaseId);
-      record.setId(getAttributeValue(atts, "id"));
+      record.setId(databaseId + "-" + getAttributeValue(atts, "id"));
     }
     if (inMetadata && (qName.equals("pz:metadata") || localName.equals("metadata"))) {
       type = getAttributeValue(atts, "type");
@@ -93,7 +93,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (record != null) {
       if (inHeader && localName.equals("identifier")) {
-	record.setId(currentText.toString());
+	record.setId(databaseId + "-" + currentText.toString());
       }
       if (localName.equals("header"))
 	inHeader = false;
