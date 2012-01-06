@@ -11,7 +11,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Edit XML bulk resource</title>
+        <title>Edit XML/MARC bulk resource</title>
     </head>
     <body>
         <f:view>
