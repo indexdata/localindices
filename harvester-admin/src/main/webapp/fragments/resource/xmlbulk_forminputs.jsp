@@ -13,5 +13,7 @@
         <h:inputText value="#{resourceController.resource.splitAt}"/>
         <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
         <h:inputText value="#{resourceController.resource.splitSize}"/>
+        <h:outputText value="Mime-type for compressed data (application/marc for binary MARC)"/>
+        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
     </h:panelGrid>
 </f:subview>
