@@ -323,14 +323,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   
   class MarcReadStore implements ReadStore 
   {
-    HttpURLConnection conn; 
-    public MarcReadStore(HttpURLConnection conn) {
-      this.conn = conn; 
+    InputStream  input; 
+    public MarcReadStore(InputStream input) {
+      this.input = input; 
     }    
     @Override
     public void readAndStore() throws Exception {
       // Assume MARC-8 encoding for now
-      MarcStreamReader reader  = new MarcStreamReader(conn.getInputStream(), "MARC-8");
+      MarcStreamReader reader  = new MarcStreamReader(input, "MARC-8");
       reader.setBadIndicators(false);
       store(reader, -1);      
     }
@@ -351,27 +351,31 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException 
-  {
+  private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException {
     String contentType = conn.getContentType();
+    // InputStream after possible Content-Encoding decoded.
     InputStream inputStreamDecoded = handleContentEncoding(conn);
     long contentLength = getContentLength(conn);
     // Content is being decoded. Not the real length
     if (inputStreamDecoded != conn.getInputStream())
       contentLength = -1;
-    if (contentType != null) {
-      if (contentType.equals("application/marc")) 
-	return new MarcReadStore(conn);      
-      if (contentType.endsWith("x-gzip"))
-	return new InputStreamReadStore(new GZIPInputStream(inputStreamDecoded), contentLength);
-      if (contentType.endsWith("zip")) {
-	logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
-	ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded);
-	if (zipInput.getNextEntry() == null)
-	  logger.error("No file found in URL: " + conn.getURL());
-	return new InputStreamReadStore(zipInput,  contentLength);
-      }
+    if ("application/x-gzip".equals(contentType))
+      inputStreamDecoded = new GZIPInputStream(inputStreamDecoded);
+    else if ("application/zip".equals(contentType)) {
+      logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
+      ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded);
+      if (zipInput.getNextEntry() == null)
+	logger.error("No file found in URL: " + conn.getURL());
+      inputStreamDecoded = zipInput;
     }
+    if ("application/marc".equals(contentType)
+	|| "application/marc".equals(resource.getExpectedSchema())) {
+      logger.info("Setting up Binary MARC reader. "
+	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
+      return new MarcReadStore(inputStreamDecoded);
+    }
+    logger.info("Setting up InputStream reader. "
+	+ (contentType != null ? "Content-Type:" + contentType : ""));
     return new InputStreamReadStore(inputStreamDecoded, contentLength);
   }
 
