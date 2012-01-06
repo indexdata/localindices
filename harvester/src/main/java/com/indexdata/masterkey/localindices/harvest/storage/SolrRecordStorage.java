@@ -174,7 +174,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 	SolrDocumentList list = response.getResults();
 	if (list.size() == 1) {
 	  RecordImpl record = new RecordImpl(createMap(list.get(0)));
-	  record.setId(id);
+	  record.setId(database + "-" + id);
 	  record.setDatabase(database);
 	}
 	if (list.size() > 1)
