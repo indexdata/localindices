@@ -27,7 +27,7 @@
                 <h:commandLink styleClass="navigation" value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
  -->
                 <h:outputText value=", "/>
-                <h:commandLink styleClass="navigation" value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+                <h:commandLink styleClass="navigation" value="XML/MARC bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
 <!-- 
                 <h:outputText value=", "/>
  -->
