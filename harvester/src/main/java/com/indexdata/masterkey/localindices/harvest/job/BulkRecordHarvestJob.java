@@ -70,7 +70,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
-  private HarvestStorage realRecordStorage;
+  private HarvestStorage transformationStorage;
   private Proxy proxy;
   private boolean die = false;
   private Templates templates[];
@@ -261,14 +261,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  MarcWriter writer; 
+  //MarcWriter writer; 
   private void downloadList(String[] urls) throws Exception {
-    writer = new MarcXmlWriter(getStorage().getOutputStream());
     for (String url : urls) {
       download(new URL(url));
     }
-    if (writer != null)
-      writer.close();
   }
 
   private void handleJumpPage(HttpURLConnection conn) throws Exception 
@@ -390,6 +387,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private void store(MarcStreamReader reader, long contentLength) {
     long index = 0;
+    transformationStorage = setupTransformation(getStorage());
+    MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
     while (reader.hasNext()) {
       org.marc4j.marc.Record record = reader.next();
       writer.write(record);
@@ -400,10 +399,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void store(InputStream is, long contentLength) throws Exception {
-    OutputStream output = getStorage().getOutputStream();
+    transformationStorage = setupTransformation(getStorage());
+    OutputStream output = transformationStorage.getOutputStream();
     pipe(is, output, contentLength);
     output.close();
-    setStorage(realRecordStorage);
   }
 
   public XMLReader createTransformChain(boolean split) throws ParserConfigurationException, SAXException,
@@ -487,8 +486,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @Override
   public void setStorage(HarvestStorage storage) {
     if (storage instanceof RecordStorage) {
-      realRecordStorage = storage;
-      super.setStorage(setupTransformation((RecordStorage) storage));
+      super.setStorage((RecordStorage) storage);
     }
     else {
       setStatus(HarvestStatus.ERROR);
