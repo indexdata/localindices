@@ -89,7 +89,7 @@ public class OaiPmhDcContentHandler implements ContentHandler {
     // TODO Auto-generated method stub
     if (record != null) {
       if (inHeader && localName.equals("identifier")) {
-	record.setId(currentText.toString());
+	record.setId(databaseId + "-" + currentText.toString());
       }
       if (localName.equals("header"))
 	inHeader = false;
