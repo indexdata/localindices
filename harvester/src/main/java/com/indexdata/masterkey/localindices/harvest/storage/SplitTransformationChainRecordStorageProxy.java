@@ -25,14 +25,10 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     output = new PipedOutputStream(input);
     thread = new Thread(new Runnable() {
       public void run() {
-	try {
-	  processDataFromInputStream(input);
-	} catch (TransformerException tfe) {
-	  // TODO Send to Job Job... somehow 
-	}
+	processDataFromInputStream(input);
       };
 
-      private void processDataFromInputStream(PipedInputStream input) throws TransformerException {
+      private void processDataFromInputStream(PipedInputStream input) {
 	try {
 	  InputSource source = new InputSource(input);
 	  // TODO Add Split XML Reader (so a stream of multiple XML documents will be parsed by multiple xmlFilter.parse()
@@ -45,7 +41,6 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
 	} catch (SAXException e) {
 	  e.printStackTrace();
 	  transformException = new TransformerException("SAX Exception: " + e.getMessage(), e);
-	  throw transformException;
 	}
       };
     });
