@@ -108,7 +108,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 	}
 	values.add(currentText);
 	if ("id".equals(type))
-	  record.setId(currentText.toString());
+	  record.setId(databaseId + "-" + currentText.toString());
       }
     }
     /* This should work both with and without OAI-PMH headers */
