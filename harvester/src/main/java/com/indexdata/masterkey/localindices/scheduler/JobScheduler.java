@@ -133,9 +133,9 @@ public class JobScheduler {
 	break;
       case ERROR:
       case NEW: // ask if time to run
-      case WAITING:
+      case OK:
 	// should check harvested until?
-	if (ji.isEnabled() && ji.timeToRun()) {
+	if (ji.timeToRun()) {
 	  ji.start();
 	}
 	break;
