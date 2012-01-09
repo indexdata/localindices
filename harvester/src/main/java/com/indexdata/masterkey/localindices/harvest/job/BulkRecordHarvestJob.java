@@ -35,6 +35,7 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
@@ -55,6 +56,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainR
 import com.indexdata.xml.factory.XmlFactory;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
+import com.sun.xml.internal.rngom.parse.compact.EOFException;
 
 /**
  * This class handles bulk HTTP download of a single file.
@@ -394,8 +396,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     transformationStorage = setupTransformation(getStorage());
     MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
     while (reader.hasNext()) {
-      org.marc4j.marc.Record record = reader.next();
-      writer.write(record);
+      try {
+	org.marc4j.marc.Record record = reader.next();
+	writer.write(record);
+      } catch (MarcException e) {
+	logger.error("Got MarcException: " + error.getClass().getCanonicalName() + " " + e.getMessage());
+	if (e.getCause() instanceof EOFException) {
+	  logger.warn("Received EOF when reading record # " + index);
+	}
+	break;
+      }
       if ((++index) % 1000 == 0)
 	logger.info("Marc record read: " + index);
     }
