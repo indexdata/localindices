@@ -75,7 +75,7 @@ public class BulkHarvestJob implements HarvestJob {
   }
 
   public void finishReceived() {
-    status = HarvestStatus.WAITING;
+    status = HarvestStatus.OK;
   }
 
   public String getMessage() {
