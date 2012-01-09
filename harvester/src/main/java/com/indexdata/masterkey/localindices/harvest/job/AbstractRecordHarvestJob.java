@@ -71,7 +71,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   @Override
   public final synchronized void finishReceived() {
     if (status != null && status.equals(HarvestStatus.FINISHED)) {
-      status = HarvestStatus.WAITING;
+      status = HarvestStatus.OK;
     }
   }
 
