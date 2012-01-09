@@ -12,7 +12,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
  */
 public enum HarvestStatus {
     NEW,
-    WAITING,
+    OK,
     RUNNING,
     FINISHED,
     KILLED,
