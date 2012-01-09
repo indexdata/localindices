@@ -5,6 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,7 +57,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainR
 import com.indexdata.xml.factory.XmlFactory;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
-import com.sun.xml.internal.rngom.parse.compact.EOFException;
 
 /**
  * This class handles bulk HTTP download of a single file.
