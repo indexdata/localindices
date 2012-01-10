@@ -51,6 +51,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   public void commit() throws IOException {
     try {
       // Close the output so the PipedInputStream will get the EOF.
+      output.flush();
       output.close();
     } catch (IOException e) {
       e.printStackTrace();
