@@ -72,7 +72,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
-  private HarvestStorage transformationStorage;
+  private RecordStorage transformationStorage;
   private Proxy proxy;
   private boolean die = false;
   private Templates templates[];
@@ -246,8 +246,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
       setStatus(HarvestStatus.FINISHED);
-      getStorage().databaseEnd();
-      getStorage().commit();
+      // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
+      transformationStorage.databaseEnd();
+      transformationStorage.commit();
+      //getStorage().commit();
     } catch (Exception e) {
       // Test
       e.printStackTrace();      
@@ -391,7 +393,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     return conn.getInputStream();
   }
 
-  private void store(MarcStreamReader reader, long contentLength) {
+  private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
     transformationStorage = setupTransformation(getStorage());
     MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
@@ -409,6 +411,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       if ((++index) % 1000 == 0)
 	logger.info("Marc record read: " + index);
     }
+    writer.close();
+
     logger.info("Marc record read total: " + index);
   }
 
