@@ -141,5 +141,13 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       }
     }
     return templates;
+  }
+
+  public StorageJobLogger getLogger() {
+    return logger;
+  }
+
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }  
 }
