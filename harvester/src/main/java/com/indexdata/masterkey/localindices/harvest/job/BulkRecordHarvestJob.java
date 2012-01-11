@@ -206,10 +206,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (split) {
 	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), splitDepth, splitSize);
 	  xmlReader.setContentHandler(splitHandler);
-	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader);
+	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
 	}
 	return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()));
+	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
       } catch (Exception e) {
 	e.printStackTrace();
@@ -239,6 +239,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       // TODO this is different from old behavior. All insert is now done in one
       // commit.
+      getStorage().setLogger(logger);
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
@@ -401,6 +402,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	org.marc4j.marc.Record record = reader.next();
 	writer.write(record);
+	if (isKillSendt()) {
+	  // Close to end the pipe 
+	  writer.close();
+	  throw new IOException("Download interputed with a kill signal.");
+	}
       } catch (MarcException e) {
 	logger.error("Got MarcException: " + error.getClass().getCanonicalName() + " " + e.getMessage());
 	if (e.getCause() instanceof EOFException) {
