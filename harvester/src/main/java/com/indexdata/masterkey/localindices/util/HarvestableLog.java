@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class HarvestableLog {
   // log file
   // TODO Should be configurable
-  private static File logFile = new File("/var/log/masterkey/harvester/harvester.log");
+  private static String logDir = "/var/log/masterkey/harvester/";
 
   // not used but shows the concept of matching against the whole buffer
   @SuppressWarnings("unused")
@@ -38,19 +38,18 @@ public class HarvestableLog {
   }
 
   public static String getHarvestableLog(long jobId) throws FileNotFoundException, IOException {
-    BufferedReader r = new BufferedReader(new FileReader(logFile));
-    // build what we need
-    StringBuilder sb = new StringBuilder(1024);
-    Pattern lp = Pattern.compile("JOB#" + jobId);
-    String line = null;
-    Matcher m = null;
+    
+    BufferedReader r = new BufferedReader(new FileReader(getHarvesteableJobFilename(jobId)));
+    StringBuilder sb = new StringBuilder(10240);
+    String line;
     while ((line = r.readLine()) != null) {
-      m = lp.matcher(line);
-      if (m.find())
-	sb.append(line + "\n");
+      sb.append(line + "\n");
     }
     r.close();
     return sb.toString();
   }
 
+  public static String getHarvesteableJobFilename(long jobId) {
+    	return logDir + "job-" + jobId + ".log";
+  }
 }
