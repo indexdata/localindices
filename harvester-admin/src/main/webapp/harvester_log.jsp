@@ -19,7 +19,9 @@
             <!-- top menu, move out?-->
             <h:form>
                 <h:commandLink value="Back to Resources" action="#{resourceController.listResources}" />
-                <h:commandLink value="Refresh log" action="#{resourceController.viewJobLog}" />
+                <h:commandLink value="Refresh log" action="#{resourceController.viewJobLog}">
+                        <f:param name="resourceId" value="#{resourceController.currentId}" />
+                </h:commandLink>
             </h:form>
             <!-- Log file -->
             <h:form>
