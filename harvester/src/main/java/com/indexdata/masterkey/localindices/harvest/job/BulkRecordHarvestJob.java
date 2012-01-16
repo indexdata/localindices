@@ -408,7 +408,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	  throw new IOException("Download interputed with a kill signal.");
 	}
       } catch (MarcException e) {
-	logger.error("Got MarcException: " + error.getClass().getCanonicalName() + " " + e.getMessage());
+	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage());
 	if (e.getCause() instanceof EOFException) {
 	  logger.warn("Received EOF when reading record # " + index);
 	}
