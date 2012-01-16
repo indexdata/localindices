@@ -16,7 +16,7 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Resource List" action="#{resourceController.listResources}" />
                 <h3>Edit WebCrawl resource:</h3>
                 <%@ include file="fragments/resource/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/resource/webcrawl_forminputs.jsp" %>
