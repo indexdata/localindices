@@ -105,7 +105,7 @@
 					<h:commandLink styleClass="action"
 						action="#{resourceController.prepareResourceToEdit}">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="Edit" height="16" url="/images/edit.png" />
+						<h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
 					</h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.prepareResourceToRun}">
