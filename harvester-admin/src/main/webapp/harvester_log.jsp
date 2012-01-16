@@ -18,8 +18,8 @@
         <f:view>
             <!-- top menu, move out?-->
             <h:form>
-                <h:commandLink value="Back to Resources" action="#{resourceController.listResources}" />
-                <h:commandLink value="Refresh log" action="#{resourceController.viewJobLog}">
+                <h:commandLink styleClass="navigation" value="Back to Resources" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
                 </h:commandLink>
             </h:form>
@@ -29,8 +29,8 @@
                 <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
             </h:form>
             <h:form>
-                <h:commandLink value="Back to Resources" action="#{resourceController.listResources}" />
-                <h:commandLink value="Refresh log" action="#{resourceController.viewJobLog}">
+                <h:commandLink styleClass="navigation" value="Back to Resources" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
                 </h:commandLink>
             </h:form>
