@@ -49,11 +49,11 @@
                         <f:facet name="header">
                             <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink action="#{transformationController.prepareToEdit}">
+                        <h:commandLink styleClass="action" action="#{transformationController.prepareToEdit}">
                             <f:param name="id" value="#{item.id}"/>
                             <h:graphicImage alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:commandLink action="#{transformationController.delete}"
+                        <h:commandLink styleClass="action" action="#{transformationController.delete}"
                             onclick="return confirm('Are you sure?');">
                             <f:param name="id" value="#{item.id}"/>
                             <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
