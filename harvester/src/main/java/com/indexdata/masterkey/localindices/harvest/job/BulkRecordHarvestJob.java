@@ -74,7 +74,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private XmlBulkResource resource;
   private RecordStorage transformationStorage;
   private Proxy proxy;
-  private boolean die = false;
   private Templates templates[];
   private int splitSize = 0;
   private int splitDepth = 0;
@@ -218,13 +217,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     logger.warn("No Transformation Proxy configured.");
     return storage;
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.warn("Bulk harvest received kill signal.");
-    }
-    return die;
   }
 
   public String getMessage() {
@@ -402,7 +394,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	org.marc4j.marc.Record record = reader.next();
 	writer.write(record);
-	if (isKillSendt()) {
+	if (isKillSent()) {
 	  // Close to end the pipe 
 	  writer.close();
 	  throw new IOException("Download interputed with a kill signal.");
@@ -496,7 +488,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     TotalProgressLogger progress = new TotalProgressLogger(total);
     for (int len = -1; (len = is.read(buf)) != -1;) {
       os.write(buf, 0, len);
-      if (isKillSendt()) {
+      if (isKillSent()) {
 	throw new IOException("Download interputed with a kill signal.");
 	// every megabyte
       }
