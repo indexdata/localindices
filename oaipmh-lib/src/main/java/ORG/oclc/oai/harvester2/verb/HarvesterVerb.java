@@ -43,9 +43,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -55,6 +53,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.xpath.XPathAPI;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -70,7 +69,6 @@ import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 import com.indexdata.io.FailsafeUTF8InputStream;
-import org.apache.xpath.XPathAPI;
 
 
 /**
@@ -101,7 +99,7 @@ public abstract class HarvesterVerb {
     private boolean useTagSoup = false;
     private static HashMap<Thread, TransformerFactory> transformerFactoryMap = new HashMap<Thread, TransformerFactory>();
     private static HashMap<Thread, XPathFactory> xpathFactoryMap = new HashMap<Thread, XPathFactory>();
-    private static boolean debug = true;
+    private static boolean debug = false;
     
     static XPath createXPath() {
       /* create transformer */
@@ -344,7 +342,7 @@ public abstract class HarvesterVerb {
           throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
                   saxe, bin, requestURL);
 	}
-	if (debug) {
+	if (logger.isDebugEnabled() && debug) {
 	  Transformer transformer = createTransformer();
 	  transformer.transform(new DOMSource(doc), new StreamResult(System.out));
 	}
@@ -385,12 +383,14 @@ public abstract class HarvesterVerb {
       transformer.transform(input, dom);
       
       if (dom.getNode() instanceof Document) { 	
+	
 	Document doc = (Document) dom.getNode();
+	/*
 	NodeList list = doc.getElementsByTagName("OAI-PMH");
 	Element element = (Element) list.item(0);
 	DocumentBuilder builder = factory.newDocumentBuilder();
 	Document doc2 = builder.newDocument();
-
+	*/
 	return doc;
       }
         
