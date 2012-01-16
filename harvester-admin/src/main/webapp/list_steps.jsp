@@ -16,17 +16,17 @@
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Overview" action="#{stepController.back}" />
-                <h:commandLink value="Refresh List" action="#{stepController.list}" />
+                <h:commandLink styleClass="navigation" value="Overview" action="#{stepController.back}" />
+                <h:commandLink styleClass="navigation" value="Refresh List" action="#{stepController.list}" />
                 <br>
                 <h:outputText value="Add new : "/>
-                <h:commandLink value="Xslt" action="#{stepController.prepareXsltStep}" />                
+                <h:commandLink styleClass="navigation"  value="Xslt" action="#{stepController.prepareXsltStep}" />                
 <!-- 
                  <h:outputText value=", "/>
                 <h:commandLink value="WebCrawl" action="#{stepController.prepareWebCrawlResourceToAdd}" />       
  -->
                 <h:outputText value=", "/>
-                <h:commandLink value="XML bulk" action="#{stepController.prepareValidationStep}" />
+                <h:commandLink styleClass="navigation" value="XML bulk" action="#{stepController.prepareValidationStep}" />
                 <h:outputText value=", "/>
             </h:form>
             <h:form>
@@ -84,19 +84,16 @@
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Available Actions" />
+                            <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink value="Edit" action="#{stepController.prepareResourceToEdit}">
+                        <h:commandLink styleClass="action" action="#{stepController.prepareResourceToEdit}">
                             <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{stepController.deleteResource}"
+                        <h:commandLink styleClass="action" action="#{stepController.deleteResource}"
                             onclick="return confirm('Are you sure?');">
                             <f:param name="resourceId" value="#{item.id}"/>
-                        </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="View Log" action="#{stepController.viewJobLog}">
-                            <f:param name="resourceId" value="#{item.id}"/>
+                            <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />                            
                         </h:commandLink>
                     </h:column>
                 </h:dataTable>
