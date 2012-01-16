@@ -53,7 +53,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.xpath.XPathAPI;
+//import org.apache.xpath.XPathAPI;
+import com.sun.org.apache.xpath.internal.XPathAPI;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -76,6 +77,7 @@ import com.indexdata.io.FailsafeUTF8InputStream;
  * 
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
+@SuppressWarnings("restriction")
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
