@@ -15,12 +15,6 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
-import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
-import ORG.oclc.oai.harvester2.transport.HttpErrorException;
-
-import com.indexdata.io.FailsafeUTF8InputStream;
-import com.sun.org.apache.xpath.internal.XPathAPI;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,13 +37,24 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
-//import org.apache.log4j.Logger;
-//import org.apache.xpath.XPathAPI;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,8 +62,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
+
+import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
+import ORG.oclc.oai.harvester2.transport.HttpErrorException;
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+
+import com.indexdata.io.FailsafeUTF8InputStream;
+import org.apache.xpath.XPathAPI;
+
 
 /**
  * HarvesterVerb is the parent class for each of the OAI verbs.
@@ -70,7 +83,7 @@ public abstract class HarvesterVerb {
 
     private final static int HTTP_MAX_RETRIES = 10;
     private final static int HTTP_RETRY_TIMEOUT = 600; //secs
-    
+
     /* Primary OAI namespaces */
     public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
     public static final String SCHEMA_LOCATION_V1_1_GET_RECORD = "http://www.openarchives.org/OAI/1.1/OAI_GetRecord http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd";
@@ -85,59 +98,70 @@ public abstract class HarvesterVerb {
     private static HashMap<Thread, DocumentBuilder> builderMap = new HashMap<Thread, DocumentBuilder>();
     private static Element namespaceElement = null;
     private static DocumentBuilderFactory factory = null;
+    private boolean useTagSoup = false;
+    private static HashMap<Thread, TransformerFactory> transformerFactoryMap = new HashMap<Thread, TransformerFactory>();
+    private static HashMap<Thread, XPathFactory> xpathFactoryMap = new HashMap<Thread, XPathFactory>();
+    private static boolean debug = true;
     
-    private static Transformer idTransformer = null;
+    static XPath createXPath() {
+      /* create transformer */
+      XPathFactory xpathFactory = xpathFactoryMap.get(Thread.currentThread());
+      if (xpathFactory == null) {
+	xpathFactory = XPathFactory.newInstance();
+	xpathFactoryMap.put(Thread.currentThread(), xpathFactory);
+      }
+      return xpathFactory.newXPath();
+    }
+
+    static Transformer createTransformer() {
+      /* create transformer */
+      TransformerFactory xformFactory = transformerFactoryMap.get(Thread.currentThread());
+      if (xformFactory == null) {
+	xformFactory = TransformerFactory.newInstance();
+	transformerFactoryMap.put(Thread.currentThread(), xformFactory);
+      }
+      try {
+          Transformer transformer = xformFactory.newTransformer();
+          transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+          transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+          return transformer;
+      } catch (TransformerException e) {
+          e.printStackTrace();
+      }
+      return null;
+    }
     static {
         try {
-            /* create transformer */
-            TransformerFactory xformFactory = TransformerFactory.newInstance();
-            try {
-                idTransformer = xformFactory.newTransformer();
-                idTransformer.setOutputProperty(
-                        OutputKeys.OMIT_XML_DECLARATION, "yes");
-            } catch (TransformerException e) {
-                e.printStackTrace();
-            }
-            
+          
             /* Load DOM Document */
-            factory = DocumentBuilderFactory
-            .newInstance();
+            factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
             Thread t = Thread.currentThread();
             DocumentBuilder builder = factory.newDocumentBuilder();
             builderMap.put(t, builder);
-            
             DOMImplementation impl = builder.getDOMImplementation();
             Document namespaceHolder = impl.createDocument(
                     "http://www.oclc.org/research/software/oai/harvester",
                     "harvester:namespaceHolder", null);
             namespaceElement = namespaceHolder.getDocumentElement();
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:harvester",
-            "http://www.oclc.org/research/software/oai/harvester");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai20", "http://www.openarchives.org/OAI/2.0/");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_GetRecord",
-            "http://www.openarchives.org/OAI/1.1/OAI_GetRecord");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_Identify",
-            "http://www.openarchives.org/OAI/1.1/OAI_Identify");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_ListIdentifiers",
-            "http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers");
-            namespaceElement
-            .setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_ListMetadataFormats",
-            "http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_ListRecords",
-            "http://www.openarchives.org/OAI/1.1/OAI_ListRecords");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-                    "xmlns:oai11_ListSets",
-            "http://www.openarchives.org/OAI/1.1/OAI_ListSets");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:harvester", 
+        	"http://www.oclc.org/research/software/oai/harvester");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi", 
+        	"http://www.w3.org/2001/XMLSchema-instance");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai20", 
+        	"http://www.openarchives.org/OAI/2.0/");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_GetRecord",
+        	"http://www.openarchives.org/OAI/1.1/OAI_GetRecord");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_Identify",
+        	"http://www.openarchives.org/OAI/1.1/OAI_Identify");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListIdentifiers",
+        	"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListMetadataFormats",
+        	"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListRecords",
+        	"http://www.openarchives.org/OAI/1.1/OAI_ListRecords");
+            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListSets",
+        	"http://www.openarchives.org/OAI/1.1/OAI_ListSets");
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
@@ -168,7 +192,8 @@ public abstract class HarvesterVerb {
      */
     public NodeList getErrors() throws TransformerException {
         if (SCHEMA_LOCATION_V2_0.equals(getSchemaLocation())) {
-            return getNodeList("/oai20:OAI-PMH/oai20:error");
+            //return getNodeList("/oai20:OAI-PMH/oai20:error");
+          return getNodeList("/OAI-PMH/error");
         } else {
             return null;
         }
@@ -304,24 +329,25 @@ public abstract class HarvesterVerb {
         
         int contentLength = con.getContentLength();
         
+
         InputStream bin = new BufferedInputStream(new FailsafeUTF8InputStream(in));
         bin.mark(contentLength);
-        
         InputSource data = new InputSource(bin);        
-        Thread t = Thread.currentThread();
-        DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
-        if (builder == null) {
-            builder = factory.newDocumentBuilder();
-            builderMap.put(t, builder);
-        }
-        try {
-            doc = builder.parse(data);
-        } catch (SAXException saxe) {
-            bin.reset();
-            throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
-                    saxe, bin, requestURL);
-        }
-        
+	try {
+	  if (isUseTagSoup()) 
+	    doc = createTagSoupDocument(data);
+	  else 
+	    doc = createDocument(data);
+	} catch (SAXException saxe) {
+          bin.reset();
+          saxe.printStackTrace();
+          throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
+                  saxe, bin, requestURL);
+	}
+	if (debug) {
+	  Transformer transformer = createTransformer();
+	  transformer.transform(new DOMSource(doc), new StreamResult(System.out));
+	}
         StringTokenizer tokenizer = new StringTokenizer(
                 getSingleString("/*/@xsi:schemaLocation"), " ");
         StringBuffer sb = new StringBuffer();
@@ -331,6 +357,46 @@ public abstract class HarvesterVerb {
             sb.append(tokenizer.nextToken());
         }
         this.schemaLocation = sb.toString();
+    }
+
+    private Document createDocument(InputSource data) throws ParserConfigurationException,
+	SAXException, IOException {
+      Thread t = Thread.currentThread();
+      DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
+      if (builder == null) {
+          builder = factory.newDocumentBuilder();
+          builderMap.put(t, builder);
+      }
+      return builder.parse(data);
+    }
+
+    private Document createTagSoupDocument(InputSource data) throws SAXException,
+	TransformerConfigurationException, TransformerFactoryConfigurationError,
+	TransformerException, ParserConfigurationException {
+      XMLReader reader = XMLReaderFactory.createXMLReader("org.ccil.cowan.tagsoup.Parser");
+      boolean useNamespace = reader.getFeature("http://xml.org/sax/features/namespaces");
+      boolean usePrefixes = reader.getFeature("http://xml.org/sax/features/namespace-prefixes");
+      reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+      logger.debug("Namespace: " + useNamespace + ". Prefixes: " + usePrefixes);
+      Source input = new SAXSource(reader, data);
+      Transformer transformer = createTransformer();
+      //SAXResult saxResult = new SAXResult(new CleanXMLHandler)
+      DOMResult dom = new DOMResult();
+      transformer.transform(input, dom);
+      
+      if (dom.getNode() instanceof Document) { 	
+	Document doc = (Document) dom.getNode();
+	NodeList list = doc.getElementsByTagName("OAI-PMH");
+	Element element = (Element) list.item(0);
+	DocumentBuilder builder = factory.newDocumentBuilder();
+	Document doc2 = builder.newDocument();
+
+	return doc;
+      }
+        
+      else 
+        logger.error("Not a Document");
+      return null;
     }
     
     /**
@@ -342,21 +408,11 @@ public abstract class HarvesterVerb {
      */
     public String getSingleString(String xpath) throws TransformerException {
         return getSingleString(getDocument(), xpath);
-//        return XPathAPI.eval(getDocument(), xpath, namespaceElement).str();
-//      String str = null;
-//      Node node = XPathAPI.selectSingleNode(getDocument(), xpath,
-//      namespaceElement);
-//      if (node != null) {
-//      XObject xObject = XPathAPI.eval(node, "string()");
-//      str = xObject.str();
-//      }
-//      return str;
     }
     
-    public String getSingleString(Node node, String xpath)
-    throws TransformerException {
-        return XPathAPI.eval(node, xpath, namespaceElement).str();
-    }
+  public String getSingleString(Node node, String xpath) throws TransformerException {
+      return XPathAPI.eval(node, xpath, namespaceElement).str();
+  }
     
     /**
      * Get a NodeList containing the nodes in the response DOM for the specified
@@ -365,21 +421,42 @@ public abstract class HarvesterVerb {
      * @return the NodeList for the xpath into the response DOM
      * @throws TransformerException
      */
+  
+  static HashMap<String, XPathExpression> xPathExprMap = new HashMap<String, XPathExpression>();
+  
     public NodeList getNodeList(String xpath) throws TransformerException {
-        return XPathAPI.selectNodeList(getDocument(), xpath, namespaceElement);
+      //return XPathAPI.selectNodeList(getDocument(), xpath, namespaceElement);
+      try {
+	XPathExpression expr = xPathExprMap.get(xpath); 
+	if (expr == null) {
+	      XPath xPath = createXPath();
+	      expr = xPath.compile(xpath);
+	      xPathExprMap.put(xpath, expr);
+	}
+	return (NodeList) expr.evaluate(getDocument(), XPathConstants.NODESET);
+      } catch (XPathExpressionException e) {
+	logger.error("XPath Exception: ", e);
+      }
+      return null;
     }
     
     public String toString() {
-        // Element docEl = getDocument().getDocumentElement();
-        // return docEl.toString();
         Source input = new DOMSource(getDocument());
         StringWriter sw = new StringWriter();
         Result output = new StreamResult(sw);
         try {
-            idTransformer.transform(input, output);
+            createTransformer().transform(input, output);
             return sw.toString();
         } catch (TransformerException e) {
             return e.getMessage();
         }
+    }
+
+    public boolean isUseTagSoup() {
+      return useTagSoup;
+    }
+
+    public void setUseTagSoup(boolean useTagSoup) {
+      this.useTagSoup = useTagSoup;
     }
 }
