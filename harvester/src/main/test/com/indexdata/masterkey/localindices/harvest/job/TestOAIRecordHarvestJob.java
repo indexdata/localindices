@@ -54,8 +54,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
   @SuppressWarnings("deprecation")
   public void testClean1MonthBulkHarvestJob() throws IOException {
-    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new Date(2011, 1, 1),
-	new Date(2011, 2, 1));
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new Date(2012, 1, 1),
+	new Date(2012, 2, 1));
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
