@@ -147,7 +147,7 @@ public class WebHarvestJob implements HarvestJob {
   }
 
   public void finishReceived() {
-    status = HarvestStatus.WAITING;
+    status = HarvestStatus.OK;
   }
 
   // Set an "error" message to report progress

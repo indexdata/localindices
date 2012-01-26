@@ -8,102 +8,130 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available resources</title>
-    </head>
-    <body>
-        <f:view>
-            <h:form>
-                <h:commandLink value="Refresh List" action="#{resourceController.listResources}" />
-                <h:commandLink value="Storages"  action="#{storageController.listStorages}" />
-                <h:commandLink value="Transformations" action="#{transformationController.list}" />
-                <br>
-                <h:outputText value="Add new resource: "/>
-                <h:commandLink value="OAI-PMH" action="#{resourceController.prepareOaiPmhResourceToAdd}" />                
-<!-- 
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="css/styles.css" />
+<title>Available resources</title>
+</head>
+<body>
+	<f:view>
+		<h:form>
+			<h:commandLink styleClass="navigation" value="Refresh List"
+				action="#{resourceController.listResources}" />
+			<h:commandLink styleClass="navigation" value="Storages"
+				action="#{storageController.listStorages}" />
+			<h:commandLink styleClass="navigation" value="Transformations"
+				action="#{transformationController.list}" />
+			<br>
+			<h:outputText value="Add new resource: " />
+			<h:commandLink styleClass="navigation" value="OAI-PMH"
+				action="#{resourceController.prepareOaiPmhResourceToAdd}" />
+			<!-- 
                  <h:outputText value=", "/>
-                <h:commandLink value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
+                <h:commandLink styleClass="navigation" value="WebCrawl" action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
  -->
-                <h:outputText value=", "/>
-                <h:commandLink value="XML bulk" action="#{resourceController.prepareXmlBulkResourceToAdd}" />
-<!-- 
+			<h:outputText value=", " />
+			<h:commandLink styleClass="navigation" value="XML/MARC bulk"
+				action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+			<!-- 
                 <h:outputText value=", "/>
  -->
-            </h:form>
-            <h:form>
-                <h3><h:outputText value="Available resources:" /></h3>
-                <div id="pager">
-                    <h:outputText value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{resourceController.prev}" value="Previous #{resourceController.batchSize}" rendered="#{resourceController.firstItem >= resourceController.batchSize}"/>&nbsp;
-                    <h:commandLink action="#{resourceController.next}" value="Next #{resourceController.batchSize}" rendered="#{resourceController.lastItem + resourceController.batchSize <= resourceController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{resourceController.next}" value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
-                                   rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}"/>
-                </div>               
-                <h:dataTable value="#{resourceController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet> 
-                        <h:outputText value="#{item.id}"></h:outputText>
-                    </h:column>                
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Name" />
-                        </f:facet> 
-                        <h:outputText value="#{item.name}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Status" />
-                        </f:facet> 
-                        <h:outputText value="#{item.currentStatus}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Status Msg" />
-                        </f:facet> 
-                        <h:outputText value="#{item.message}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Last Harvested" />
-                        </f:facet>                        
-                        <h:outputText rendered="#{item.lastHarvestFinished != null}" value="#{item.lastHarvestFinished}"/>
-                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attempted on #{item.lastHarvestStarted}"/>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Next Scheduled Harvest" />
-                        </f:facet> 
-                        <h:outputText value="#{item.nextHarvestSchedule}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Enabled" />
-                        </f:facet> 
-                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Available Actions" />
-                        </f:facet> 
-                        <h:commandLink value="Edit" action="#{resourceController.prepareResourceToEdit}">
-                            <f:param name="resourceId" value="#{item.id}"/>
-                        </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="Delete" action="#{resourceController.deleteResource}"
-                            onclick="return confirm('Are you sure?');">
-                            <f:param name="resourceId" value="#{item.id}"/>
-                        </h:commandLink>
-                        <h:outputText value=" | "/>
-                        <h:commandLink value="View Log" action="#{resourceController.viewJobLog}">
-                            <f:param name="resourceId" value="#{item.id}"/>
-                        </h:commandLink>
-                    </h:column>
-                </h:dataTable>
-            </h:form>
-        </f:view>
-    </body>
+		</h:form>
+		<h:form>
+			<h3>
+				<h:outputText value="Available resources:" />
+			</h3>
+			<div id="pager">
+				<h:outputText
+					value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
+				&nbsp;
+				<h:commandLink action="#{resourceController.prev}"
+					value="Previous #{resourceController.batchSize}"
+					rendered="#{resourceController.firstItem >= resourceController.batchSize}" />
+				&nbsp;
+				<h:commandLink action="#{resourceController.next}"
+					value="Next #{resourceController.batchSize}"
+					rendered="#{resourceController.lastItem + resourceController.batchSize <= resourceController.itemCount}" />
+				&nbsp;
+				<h:commandLink action="#{resourceController.next}"
+					value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
+					rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}" />
+			</div>
+			<h:dataTable width="100%" value="#{resourceController.resources}"
+				var="item"
+				columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage">
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Name" />
+					</f:facet>
+					<h:outputText value="#{item.name}"></h:outputText>
+				</h:column>
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Status" />
+					</f:facet>
+					<h:outputText value="#{item.currentStatus}"></h:outputText>
+				</h:column>
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Last Harvested" />
+					</f:facet>
+					<h:outputText rendered="#{item.lastHarvestFinished != null}"
+						value="#{item.lastHarvestFinished}">
+						<f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
+					</h:outputText>
+					<h:outputText styleClass="attempt"
+						rendered="#{item.lastHarvestFinished == null}"
+						value="#{item.lastHarvestStarted}">
+						<f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
+					</h:outputText>
+				</h:column>
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Next Scheduled Harvest" />
+					</f:facet>
+                    <h:outputText rendered="#{item.enabled}"
+					   value="#{item.nextHarvestSchedule}">
+						<f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
+					</h:outputText>
+                    <h:outputText rendered="#{!item.enabled }"
+                       value="Disabled">
+                    </h:outputText>
+				</h:column>
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Actions" />
+					</f:facet>
+					<h:commandLink styleClass="action"
+						action="#{resourceController.prepareResourceToEdit}">
+						<f:param name="resourceId" value="#{item.id}" />
+						<h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
+					</h:commandLink>
+					<h:commandLink styleClass="action"
+						action="#{resourceController.prepareResourceToRun}">
+						<f:param name="resourceId" value="#{item.id}" />
+						<h:graphicImage alt="Run" height="16" url="/images/run.png" />
+					</h:commandLink>
+					<h:commandLink styleClass="action"
+						action="#{resourceController.deleteResource}"
+						onclick="return confirm('Are you sure?');">
+						<f:param name="resourceId" value="#{item.id}" />
+						<h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
+					</h:commandLink>
+					<h:commandLink styleClass="action"
+						action="#{resourceController.viewJobLog}">
+						<f:param name="resourceId" value="#{item.id}" />
+						<h:graphicImage alt="View Log" height="16" url="/images/log.png" />
+					</h:commandLink>
+				</h:column>
+				<h:column>
+					<f:facet name="header">
+						<h:outputText value="Status Message" />
+					</f:facet>
+					<h:outputText value="#{item.message}"></h:outputText>
+				</h:column>
+			</h:dataTable>
+		</h:form>
+	</f:view>
+</body>
 </html>

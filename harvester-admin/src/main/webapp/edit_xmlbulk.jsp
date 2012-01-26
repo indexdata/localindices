@@ -11,12 +11,12 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Edit XML bulk resource</title>
+        <title>Edit XML/MARC bulk resource</title>
     </head>
     <body>
         <f:view>
             <h:form>
-                <h:commandLink value="Resource List" action="#{resourceController.listResources}" />
+                <h:commandLink styleClass="navigation" value="Resource List" action="#{resourceController.listResources}" />
                 <h3>Edit XML bulk resource:</h3>
                 <%@ include file="fragments/resource/generic_resource_forminputs.jsp" %>
                 <%@ include file="fragments/resource/xmlbulk_forminputs.jsp" %>

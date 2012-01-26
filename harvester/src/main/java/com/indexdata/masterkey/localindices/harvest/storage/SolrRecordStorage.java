@@ -17,6 +17,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   Collection<String> deleteIds = new LinkedList<String>();
@@ -27,7 +28,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private Map<String, String> databaseProperties;
   protected int added;
   protected int deleted;
-
+  
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
   }
@@ -51,7 +52,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
     } catch (SolrServerException e) {
-      logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database);
+      logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database, e);
       e.getStackTrace();
       throw new RuntimeException("Commit failed: " + e.getMessage(), e);
     }
@@ -125,10 +126,10 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       else
 	added++;
     } catch (SolrServerException e) {
-      logger.error("SolrServer Exception on add: " + e.getMessage());
+      logger.error("SolrServer Exception on add: " + e.getMessage(), e);
       e.printStackTrace();
     } catch (IOException e) {
-      logger.error("IO Exception on add: " + e.getMessage());
+      logger.error("IO Exception on add: " + e.getMessage(), e);
       e.printStackTrace();
     }
 
@@ -174,7 +175,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 	SolrDocumentList list = response.getResults();
 	if (list.size() == 1) {
 	  RecordImpl record = new RecordImpl(createMap(list.get(0)));
-	  record.setId(id);
+	  record.setId(database + "-" + id);
 	  record.setDatabase(database);
 	}
 	if (list.size() > 1)
@@ -232,6 +233,11 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   public void setDatabase(String database) {
     this.database = database;
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }
 
 }

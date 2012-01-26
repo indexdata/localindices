@@ -12,14 +12,18 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 public class SplitTransformationChainRecordStorageProxy extends RecordStorageProxy {
   private PipedOutputStream output;
   private PipedInputStream input;
   private Thread thread = null;
   private TransformerException transformException = null;
-
-  public SplitTransformationChainRecordStorageProxy(final RecordStorage storage, final XMLReader xmlFilter) 
+  private StorageJobLogger logger; 
+  
+  public SplitTransformationChainRecordStorageProxy(final RecordStorage storage, final XMLReader xmlFilter, final StorageJobLogger logger) 
   	throws IOException, TransformerConfigurationException {
+    this.logger = logger; 
     setTarget(storage);
     input = new PipedInputStream();
     output = new PipedOutputStream(input);
@@ -31,14 +35,20 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
       private void processDataFromInputStream(PipedInputStream input) {
 	try {
 	  InputSource source = new InputSource(input);
+	  // TODO Add Split XML Reader (so a stream of multiple XML documents will be parsed by multiple xmlFilter.parse()
+	  // which sadly means I need to buffer the whole thing. 
 	  xmlFilter.parse(source);
 	} catch (IOException ioe) {
 	  transformException = new TransformerException("IO Error while parsing/transforming: "
 	      + ioe.getMessage(), ioe);
+	  if (logger != null) 
+	    logger.error("IOException in XML split", ioe);
 	  ioe.printStackTrace();
 	} catch (SAXException e) {
-	  transformException = new TransformerException("SAX Exception: " + e.getMessage(), e);
+	  if (logger != null) 
+	    logger.error("SAXException in XML split", e);
 	  e.printStackTrace();
+	  transformException = new TransformerException("SAX Exception: " + e.getMessage(), e);
 	}
       };
     });
@@ -49,6 +59,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   public void commit() throws IOException {
     try {
       // Close the output so the PipedInputStream will get the EOF.
+      output.flush();
       output.close();
     } catch (IOException e) {
       e.printStackTrace();
@@ -58,7 +69,8 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     try {
       thread.join();
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
+      if (logger != null) 
+	logger.error("Interrupted before joined", e);
       e.printStackTrace();
     }
     if (transformException != null) {
@@ -69,6 +81,11 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
 
   public OutputStream getOutputStream() {
     return output;
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }
 
 }

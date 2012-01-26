@@ -140,6 +140,8 @@ public class JobInstance {
   /**
    * Checks if the time has come to run the harvesting thread.
    * 
+   * Changed behavior: Harvest Immediately will run even when disabled.
+   * 
    * @return true/false
    */
   public boolean timeToRun() {
@@ -147,7 +149,7 @@ public class JobInstance {
     if (harvestable.getHarvestImmediately()) {
       itIsTime = true;
       harvestable.setHarvestImmediately(false);
-    } else {
+    } else if (harvestable.getEnabled()) {
       CronLine curCron = CronLine.currentCronLine();
       if ((lastCronLine != null) && lastCronLine.matches(curCron)) {
 	itIsTime = false;

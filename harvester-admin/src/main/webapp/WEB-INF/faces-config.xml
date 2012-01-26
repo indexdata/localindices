@@ -27,7 +27,7 @@
         <managed-bean-scope>session</managed-bean-scope>
         <managed-property>
             <property-name>userTorusURI</property-name>
-            <value>http://mk2-test.indexdata.com/torus/identity/records/USERS/</value>
+            <value>http://mk2-test.indexdata.com/torus2/identity.USERS/records/</value>
          </managed-property>
     </managed-bean>
     <navigation-rule>

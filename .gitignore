@@ -12,3 +12,4 @@ vpproject/
 *.jdbc
 *.versionsBackup
 mem.*
+.DS_Store

@@ -7,6 +7,8 @@
 <f:subview id="generic_resource_form_inputs">
     <h5>General information: </h5>
     <h:panelGrid columns="2">
+        <h:outputText value="Id:"/>
+        <h:outputText value="#{resourceController.resource.id}"/>
         <h:outputText value="Name:"/>
         <h:inputText value="#{resourceController.resource.name}" size="30"/>
         <h:outputText value="Service Provider:"/>

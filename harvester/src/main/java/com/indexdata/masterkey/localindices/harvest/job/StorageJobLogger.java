@@ -1,19 +1,57 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.IOException;
+
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.util.HarvestableLog;
 
 
 public class StorageJobLogger implements LocalIndicesLogger {
 
   private Logger logger; 
   private String identify;
-  
+  Layout layout = new PatternLayout("%d %-5p %m\n");
+  Appender storageFileLog  = null;   
+  Appender jobFileLog  = null;   
+  public StorageJobLogger(Class<? extends Object> loggerClass, Storage resource) {
+    
+    String logId = "storage-" + (resource != null ? resource.getId() : "null");
+    logger = Logger.getLogger(logId);
+    String logFilename = "/var/log/masterkey/harvester/" + logId  + ".log";
+    try {
+      storageFileLog = new FileAppender(layout, logFilename, true);
+      logger.addAppender(storageFileLog);
+    } catch (IOException e) {
+      logger = Logger.getLogger(loggerClass);
+      logger.error("Failed to open per-job log file (" + logFilename + ")");
+    }
+    logger.setAdditivity(true);
+    if (resource != null)
+      setIdentify("STORAGE(" + resource.getId() + " " + resource.getName() + "): ");
+  }
+
   public StorageJobLogger(Class<? extends Object> loggerClass, Harvestable resource) {
-    logger = Logger.getLogger(loggerClass);
-    setIdentify("JOB#" + resource.getId() + " STORAGE#" + (resource.getStorage() != null? resource.getStorage().getId() : ""));
+    String logFilename = HarvestableLog.getHarvesteableJobFilename(resource.getId());
+    logger = Logger.getLogger(loggerClass + "JOB#" + resource.getId() );
+    try {
+      // restart the log on each run
+      jobFileLog = new FileAppender(layout, logFilename, false);
+      logger.addAppender(jobFileLog);
+    } catch (IOException e) {
+      logger = Logger.getLogger(loggerClass);
+      logger.error("Failed to open per-job log file (" + logFilename + ")");
+    }
+    if (resource != null)
+      setIdentify("JOB(" + resource.getId() + " " + resource.getName() + "): ");
+    		//"" STORAGE#" + (resource.getStorage() != null? resource.getStorage().getId() : ""));
   }
 
   public void setIdentify(String identify) {
@@ -44,7 +82,7 @@ public class StorageJobLogger implements LocalIndicesLogger {
   }
 
   public void warn(String msg, Throwable t) {
-    logger.warn( getIdentify() + " " + msg);
+    logger.warn( getIdentify() + " " + msg, t);
   }
 
   public void info(String msg) {
@@ -52,10 +90,6 @@ public class StorageJobLogger implements LocalIndicesLogger {
   }
 
   public void error(String msg) {
-    logger.error(getIdentify() + " " + msg);
-  }
-
-  public void error(String msg, Exception e) {
     logger.error(getIdentify() + " " + msg);
   }
 

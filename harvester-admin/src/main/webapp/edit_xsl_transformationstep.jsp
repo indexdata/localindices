@@ -12,7 +12,7 @@
     <body onload="showEditStep();">
         <f:view>
             <h:form>
-                <h:commandLink value="Transformations List" action="#{transformationController.list}" />
+                <h:commandLink styleClass="navigation" value="Transformations List" action="#{transformationController.list}" />
                 <h3>Edit XSL Transformation: </h3>
                 <%@ include file="fragments/transformation/generic_transformation_forminputs.jsp" %>
                 <%@ include file="fragments/transformation/xslt_transformation_forminputs.jsp" %>

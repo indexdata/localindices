@@ -67,15 +67,23 @@ public class SearchablesConverter extends Records {
             	layer.setTransform("solr-pz2.xsl");
             	// TODO Default Solr CCL MAP 
             	layer.setCclMapTerm("1=text");
-            	layer.setCclMapTi("1=title");
-            	layer.setCclMapAu("1=author");
-            	layer.setCclMapSu("1=subject");
+            	layer.setCclMapTi(  "1=title");
+            	layer.setCclMapAu(  "1=author");
+            	layer.setCclMapSu(  "1=subject");
             	layer.setCclMapJournalTitle("1=journal-title");
             	layer.setCclMapIssn("1=issn");
             	layer.setCclMapIsbn("1=isbn");
             	layer.setSRU("solr");
             	layer.setSRUVersion("");
-            	// TODO Default Solr FACET MAP
+            	// Missing a dynamic method as: 
+            	//layer.addElement(key, value);
+            	// TODO Default Solr FACET MAP and LIMIT MAP
+            	//List<Object> elements = layer.getOtherElements();
+            	/*
+            	elements.add(new JAXBElement(
+            	  new QName("","rootTag"),String.class,"foo bar"));
+            	*/
+            	//elements.add()
             	// TODO These settings should be configurable for the Storage?
             } else { 
             	// Zebra

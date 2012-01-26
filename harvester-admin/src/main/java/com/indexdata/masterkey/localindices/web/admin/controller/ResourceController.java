@@ -45,6 +45,7 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
  * controls data access through DAO object
  * 
  * @author jakub
+ * @author Dennis
  */
 public class ResourceController {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
@@ -278,6 +279,7 @@ public class ResourceController {
   private int firstItem = 0;
   private int batchSize = 50;
   private int itemCount = -1;
+  private Long currentId;
 
   public int getBatchSize() {
     return batchSize;
@@ -365,6 +367,17 @@ public class ResourceController {
     }
   }
 
+  /* update resource */
+  public String prepareResourceToRun() {
+    resource = getResourceFromRequestParam();
+    if (resource != null && !resource.getCurrentStatus().equals("RUNNING")) {
+      resource.setHarvestImmediately(true);
+      resource.setLastUpdated(new Date());
+      resource = dao.update(resource);
+    }
+    return listResources();
+  }
+
   public String saveResource() {
     prePersist();
     resource = dao.update(resource);
@@ -435,9 +448,10 @@ public class ResourceController {
     String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
 	.get("resourceId");
     Long id = new Long(param);
+    setCurrentId(id);
     // slurp that damn log to string, before I figure how to cleanly get handle
     // of the InputStream in the view
-    StringBuilder sb = new StringBuilder(1024);
+    StringBuilder sb = new StringBuilder(10240);
     InputStream is = dao.getLog(id);
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String line = null;
@@ -551,6 +565,14 @@ public class ResourceController {
       logger.log(Level.FATAL, "Exception when updating Storage", ex);
       ex.printStackTrace();
     }
+  }
+
+  public Long getCurrentId() {
+    return currentId;
+  }
+
+  public void setCurrentId(Long currentId) {
+    this.currentId = currentId;
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995-2008, Index Data
+f * Copyright (c) 1995-2008, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
@@ -9,6 +9,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import java.net.Proxy;
@@ -68,7 +69,7 @@ public class JobScheduler {
 	  ji = null;
 	}
       }
-      // no corresponding job in the list, crate new one
+      // no corresponding job in the list, create new one
       if (ji == null) {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
 	try {
@@ -79,6 +80,13 @@ public class JobScheduler {
 	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
 	  if (!hbrief.isEnabled())
 	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " will be disabled.");
+	  else {
+	    if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
+	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + " was logged as running, but no JobInstances was found.");
+	      ji.start();
+	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + "  started");
+	    }
+	  }
 	} catch (IllegalArgumentException e) {
 	  logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
 	  logger.log(Level.DEBUG, e);
@@ -125,11 +133,15 @@ public class JobScheduler {
 	break;
       case ERROR:
       case NEW: // ask if time to run
-      case WAITING:
+      case OK:
 	// should check harvested until?
-	if (ji.isEnabled() && ji.timeToRun()) {
+	if (ji.timeToRun()) {
 	  ji.start();
 	}
+	break;
+      case SHUTDOWN:        // Status set on Servlet container shutdown, so the time can be way overdue
+	if (ji.isEnabled()) // It could have disabled in the database. 
+	  ji.start();
 	break;
       case RUNNING: // do nothing (update progress bar?)
 	break;
@@ -179,7 +191,16 @@ public class JobScheduler {
    * Brutally stop all jobs.
    */
   public void stopAllJobs() {
+    logger.log(Level.INFO, "StopAllJobs");
     for (JobInstance ji : jobs.values()) {
+	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " status: " + ji.getStatus());
+      if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
+	ji.getHarvestable().setCurrentStatus("" + HarvestStatus.SHUTDOWN);
+	dao.update(ji.getHarvestable());
+	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
+	    		     + " status updated to " + ji.getHarvestable().getCurrentStatus() 
+	    		     + " (Job Instance status: " + ji.getStatus() + ")");
+      }
       ji.stop();
     }
   }

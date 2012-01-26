@@ -16,6 +16,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.xml.factory.XmlFactory;
 
 public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
@@ -25,11 +26,13 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
   private SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   private Transformer transformer;
   private TransformerException transformException = null;
-
+  private StorageJobLogger logger; 
+  
   public TransformationChainRecordStorageProxy(final RecordStorage storage,
-      final XMLReader xmlFilter, final ContentHandler storageHandler) throws IOException,
+      final XMLReader xmlFilter, final ContentHandler storageHandler, final StorageJobLogger logger) throws IOException,
       TransformerConfigurationException {
     // this.xmlFilter = xmlFilter;
+    this.logger = logger;
     setTarget(storage);
     input = new PipedInputStream();
     output = new PipedOutputStream(input);
@@ -47,6 +50,8 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
 	try {
 	  transformer.transform(transformSource, result);
 	} catch (TransformerException e) {
+	  if (logger != null) 
+	    logger.error("Transformation exception. Save for later ", e);
 	  e.printStackTrace();
 	  transformException = e;
 	}
@@ -61,6 +66,8 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
       // Close the output so the PipedInputStream will get the EOF.
       output.close();
     } catch (IOException e) {
+      if (logger != null) 
+	logger.error("IOException on close.", e);
       e.printStackTrace();
     }
     // Ensure that the PipedInputStream has read it all and the transformation
@@ -68,10 +75,13 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
     try {
       thread.join();
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
+      if (logger != null) 
+	logger.error("Interrupted before joined", e);
       e.printStackTrace();
     }
     if (transformException != null) {
+      if (logger != null) 
+	logger.error("Throw saved Transformation exception as IOException", transformException);
       throw new IOException("Transformation failed", transformException);
     }
     super.commit();
@@ -79,6 +89,14 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
 
   public OutputStream getOutputStream() {
     return output;
+  }
+
+  public StorageJobLogger getLogger() {
+    return logger;
+  }
+
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }
 
 }

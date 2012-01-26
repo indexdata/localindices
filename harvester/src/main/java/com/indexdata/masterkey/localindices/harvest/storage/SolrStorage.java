@@ -33,6 +33,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
@@ -63,13 +64,13 @@ public class SolrStorage implements HarvestStorage {
     init();
   }
 
-  protected String identify() {
-    return "Storage#" + storageId + "(JOB#" + harvestable.getId() + "): ";
-  }
-  
   public void init() {
     try {
-      logger = new StorageJobLogger(getClass(), harvestable);
+      Storage storage = null;
+      if (harvestable != null) {
+        storage = harvestable.getStorage();
+      }
+      logger = new StorageJobLogger(SolrStorage.class, storage);
       server = new CommonsHttpSolrServer(url);
       // server.setSoTimeout(1000); // socket read timeout
       server.setConnectionTimeout(100);
@@ -87,39 +88,6 @@ public class SolrStorage implements HarvestStorage {
     }
   }
 
-  /*
-  void debug(StackTraceElement[] stackTrace) {
-    for (int index = 0 ; index < stackTrace.length; index++)
-      logger.debug( identify() + " " + stackTrace[index].toString());
-  }
-
-  void debug(String msg) {
-    logger.debug( identify() + " " + msg);
-  }
-
-  void warnIfNotExpectedResponse(String actual, String expected) {
-    if (actual.indexOf(expected) < 0) {
-      logger.warn(identify() + " Unexpected response from Solr: '" + actual + "' does not contain '" + expected + "'");
-    }
-  }
-
-  void warn(String msg) {
-    logger.warn( identify() + " " + msg);
-  }
-
-  void info(String msg) {
-    logger.info(identify() + msg);
-  }
-
-  void error(String msg) {
-    logger.error(identify() + msg);
-  }
-  
-  void fatal(String msg) {
-    logger.fatal(identify() + " " + msg);
-    // System.exit(1);
-  }
-  */
   @Override
   public void begin() throws IOException {
 

@@ -23,25 +23,32 @@
 		</h:column>
 		<h:column>
 			<f:facet name="header">
-				<h:outputText value="Available Actions" />
+				<h:outputText value="Actions" />
 			</f:facet>
-			<h:commandLink value="Edit" action="#{transformationController.editStep}"
+			<h:commandLink 
+			    styleClass="action"  
+			    action="#{transformationController.editStep}"
                 onclick="return showEditStep();" >
                 <f:param name="ID" value="#{item.id}" />
 				<f:param name="stepID" value="#{item.id}" />
+                <h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
 			</h:commandLink>
-			<h:commandLink value="Up" action="#{transformationController.upStep}">
+			<h:commandLink 
+			    styleClass="action"  
+			    action="#{transformationController.upStep}">
 				<f:param name="stepID" value="#{item.id}" />
+                <h:graphicImage title="Up" alt="Up" height="16" url="/images/up.png" />
 			</h:commandLink>
-			<h:commandLink value="Down"
+			<h:commandLink styleClass="action" 
 				action="#{transformationController.downStep}">
 				<f:param name="stepID" value="#{item.id}" />
+                <h:graphicImage title="Down" alt="Down" height="16" url="/images/down.png" />
 			</h:commandLink>
-			<h:outputText value=" | " />
-			<h:commandLink value="Delete"
+			<h:commandLink styleClass="action"  
 				action="#{transformationController.deleteStep}"
 				onclick="return confirm('Are you sure?');">
 				<f:param name="stepID" value="#{item.id}" />
+                <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
 			</h:commandLink>
 		</h:column>
 	</h:dataTable>

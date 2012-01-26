@@ -6,34 +6,45 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 public class ConsoleRecordStorage implements RecordStorage {
 
   private boolean overrideMode;
   private String database = null;
-
+  StorageJobLogger logger; 
+  
+  
+  private void message(Object msg) {
+    System.out.println(msg);
+    if (logger != null) {
+      	logger.info(msg.toString());
+    }
+  }
+  
   @Override
   public void begin() throws IOException {
-    System.out.println("Begin");
+    message("Begin");
   }
 
   @Override
   public void commit() throws IOException {
-    System.out.println("Commit");
+    message("Commit");
   }
 
   @Override
   public void rollback() throws IOException {
-    System.out.println("Rollback");
+    message("Rollback");
   }
 
   @Override
   public void purge() throws IOException {
-    System.out.println("Purge");
+    message("Purge");
   }
 
   @Override
   public void setOverwriteMode(boolean mode) {
-    System.out.println("setOverrideMode");
+    message("setOverrideMode");
     overrideMode = mode;
   }
 
@@ -50,26 +61,24 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     this.database = database;
-    System.out.println("Start database: " + database);
+    message("Start database: " + database);
   }
 
   @Override
   public void databaseEnd() {
-    System.out.println("database End: " + database);
+    message("database End: " + database);
     database = null;
   }
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
-    System.out.println("adding Map...");
+    message("Adding as Map.");
+    add(new RecordImpl(keyValues));
   }
 
   @Override
   public void add(Record record) {
-    System.out.print("Add Record{id=" + record.getId() + ", ");
-    Map<String, Collection<Serializable>> map = record.getValues();
-    System.out.println(map);
-    System.out.println("}");
+    message("Add " + record.toString());
   }
 
   @Override
@@ -80,6 +89,11 @@ public class ConsoleRecordStorage implements RecordStorage {
 
   @Override
   public void delete(String id) {
-    System.out.println("Delete Record{id=" + id + "}");
+    message("Delete Record{id=" + id + "}");
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }
 }

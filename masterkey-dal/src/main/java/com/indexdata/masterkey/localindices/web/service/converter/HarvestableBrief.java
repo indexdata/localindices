@@ -116,7 +116,7 @@ public class HarvestableBrief implements Comparable<Object> {
     }
 
     public String getEnabledDisplay() {
-    	String display = "";
+    	String display = "No";
     	if (isEnabled())
         	display = "Yes";
     	return display;

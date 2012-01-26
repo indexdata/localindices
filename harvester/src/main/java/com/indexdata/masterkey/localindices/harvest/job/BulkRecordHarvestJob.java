@@ -5,6 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +16,10 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -31,6 +36,10 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.marc4j.MarcException;
+import org.marc4j.MarcStreamReader;
+import org.marc4j.MarcWriter;
+import org.marc4j.MarcXmlWriter;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -63,8 +72,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
+  private RecordStorage transformationStorage;
   private Proxy proxy;
-  private boolean die = false;
   private Templates templates[];
   private int splitSize = 0;
   private int splitDepth = 0;
@@ -196,10 +205,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (split) {
 	  SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), splitDepth, splitSize);
 	  xmlReader.setContentHandler(splitHandler);
-	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader);
+	  return new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
 	}
 	return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()));
+	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
       } catch (Exception e) {
 	e.printStackTrace();
@@ -208,13 +217,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     logger.warn("No Transformation Proxy configured.");
     return storage;
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.warn("Bulk harvest received kill signal.");
-    }
-    return die;
   }
 
   public String getMessage() {
@@ -229,6 +231,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       // TODO this is different from old behavior. All insert is now done in one
       // commit.
+      getStorage().setLogger(logger);
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
@@ -236,9 +239,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
       setStatus(HarvestStatus.FINISHED);
-      getStorage().databaseEnd();
-      getStorage().commit();
+      // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
+      transformationStorage.databaseEnd();
+      transformationStorage.commit();
+      //getStorage().commit();
     } catch (Exception e) {
+      // Test
+      e.printStackTrace();      
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {
@@ -251,10 +258,19 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
+  //MarcWriter writer; 
   private void downloadList(String[] urls) throws Exception {
     for (String url : urls) {
       download(new URL(url));
     }
+  }
+
+  private void handleJumpPage(HttpURLConnection conn) throws Exception 
+  {
+    HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
+    for (URL link : jp.getLinks()) {
+      download(link);
+    }    
   }
 
   private void download(URL url) throws Exception {
@@ -266,57 +282,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       else
 	conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
+      conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
-      int contentLenght = conn.getContentLength();
-      String contentType = conn.getContentType();
       if (responseCode == 200) {
-	// jump page
-	if (contentType.startsWith("text/html")) {
-	  logger.info("Jump page found at " + url.toString());
-	  HTMLPage jp = new HTMLPage(conn.getInputStream(), url);
-	  if (jp.getLinks().isEmpty()) {
-	    throw new Exception("No links found on the jump page");
-	  }
-	  int proper = 0;
-	  int dead = 0;
-	  int recursive = 0;
-	  for (URL link : jp.getLinks()) {
-	    if (proxy != null)
-	      conn = (HttpURLConnection) link.openConnection(proxy);
-	    else
-	      conn = (HttpURLConnection) link.openConnection();
-	    conn.setRequestMethod("GET");
-	    responseCode = conn.getResponseCode();
-	    contentLenght = conn.getContentLength();
-	    contentType = conn.getContentType();
-	    if (responseCode == 200) {
-	      // watch for non-marc links
-	      if (contentType.startsWith("text/html")) {
-		logger.warn("Possible sub-link ignored at " + link.toString());
-		recursive++;
-		continue;
-		// possibly a marc file
-	      } else {
-		logger.warn("Found file at " + link.toString());
-		store(conn.getInputStream(), contentLenght);
-		proper++;
-	      }
-	    } else {
-	      logger.warn("Dead link (" + responseCode + " at " + link.toString());
-	      dead++;
-	      continue;
-	    }
-	  }
-	  if (proper == 0) {
-	    logger.error("No proper links found at " + url.toString()
-		+ ", trash links: " + recursive + ", dead links: " + dead);
-	    throw new Exception("No MARC files found at " + url.toString());
-	  }
-	} else {
-	  // setupTransformation()
-	  store(conn.getInputStream(), contentLenght);
-	  getStorage().setOverwriteMode(false);
-	  return;
+	String contentType = conn.getContentType();
+	if (contentType.equals("text/html")) {
+	  handleJumpPage(conn);
+	}
+	else {
+	  ReadStore readStore = lookupCompresssionType(conn);
+	  readStore.readAndStore();
 	}
       } else {
 	throw new Exception("Http connection failed. (" + responseCode + ")");
@@ -327,9 +302,123 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private void store(InputStream is, int contentLength) throws Exception {
-    OutputStream output = getStorage().getOutputStream();
+  private long getContentLength(HttpURLConnection conn) {
+    // conn.getContentLength() overruns at 2GB, since the interface returns a integer
+    long contentLength = -1;
+    try {
+      contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
+    } catch (Exception e) {
+      logger.error("Error parsing Content-Length: " + conn.getHeaderField("Content-Length"));
+      contentLength = -1;
+    }
+    return contentLength;
+  }
+
+  interface ReadStore {
+    void readAndStore() throws Exception;
+  }
+  
+  class MarcReadStore implements ReadStore 
+  {
+    InputStream  input; 
+    public MarcReadStore(InputStream input) {
+      this.input = input; 
+    }    
+    @Override
+    public void readAndStore() throws Exception {
+      // Assume MARC-8 encoding for now
+      MarcStreamReader reader  = new MarcStreamReader(input, "MARC-8");
+      reader.setBadIndicators(false);
+      store(reader, -1);      
+    }
+  }
+
+  
+  class InputStreamReadStore implements ReadStore 
+  {
+    InputStream input; 
+    long contentLength;
+    public InputStreamReadStore(InputStream input, long contentLength) {
+      this.input = input;
+      this.contentLength = contentLength;
+    }    
+    @Override
+    public void readAndStore() throws Exception {
+      store(input, contentLength); 
+    }
+  }
+
+  private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException {
+    String contentType = conn.getContentType();
+    // InputStream after possible Content-Encoding decoded.
+    InputStream inputStreamDecoded = handleContentEncoding(conn);
+    long contentLength = getContentLength(conn);
+    // Content is being decoded. Not the real length
+    if (inputStreamDecoded != conn.getInputStream())
+      contentLength = -1;
+    if ("application/x-gzip".equals(contentType))
+      inputStreamDecoded = new GZIPInputStream(inputStreamDecoded);
+    else if ("application/zip".equals(contentType)) {
+      logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
+      ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded);
+      if (zipInput.getNextEntry() == null)
+	logger.error("No file found in URL: " + conn.getURL());
+      inputStreamDecoded = zipInput;
+    }
+    if ("application/marc".equals(contentType)
+	|| "application/marc".equals(resource.getExpectedSchema())) {
+      logger.info("Setting up Binary MARC reader. "
+	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
+      return new MarcReadStore(inputStreamDecoded);
+    }
+    logger.info("Setting up InputStream reader. "
+	+ (contentType != null ? "Content-Type:" + contentType : ""));
+    return new InputStreamReadStore(inputStreamDecoded, contentLength);
+  }
+
+  private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
+  {
+    String contentEncoding = conn.getContentEncoding();
+    if ("gzip".equals(contentEncoding))
+      return new GZIPInputStream(conn.getInputStream());
+    if ("deflate".equalsIgnoreCase(contentEncoding))
+      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
+    return conn.getInputStream();
+  }
+
+  private void store(MarcStreamReader reader, long contentLength) throws IOException {
+    long index = 0;
+    transformationStorage = setupTransformation(getStorage());
+    MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
+    while (reader.hasNext()) {
+      try {
+	org.marc4j.marc.Record record = reader.next();
+	writer.write(record);
+	if (isKillSent()) {
+	  // Close to end the pipe 
+	  writer.close();
+	  throw new IOException("Download interputed with a kill signal.");
+	}
+      } catch (MarcException e) {
+	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage());
+	if (e.getCause() instanceof EOFException) {
+	  logger.warn("Received EOF when reading record # " + index);
+	}
+	break;
+      }
+      if ((++index) % 1000 == 0)
+	logger.info("Marc record read: " + index);
+    }
+    writer.close();
+
+    logger.info("Marc record read total: " + index);
+  }
+
+  private void store(InputStream is, long contentLength) throws Exception {
+    transformationStorage = setupTransformation(getStorage());
+    OutputStream output = transformationStorage.getOutputStream();
     pipe(is, output, contentLength);
+    output.close();
   }
 
   public XMLReader createTransformChain(boolean split) throws ParserConfigurationException, SAXException,
@@ -353,34 +442,68 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     return parent;
   }
 
-  private void pipe(InputStream is, OutputStream os, int total) throws IOException {
-    int blockSize = 4096;
-    int copied = 0;
-    int num = 0;
+  class TotalProgressLogger {
+    long total;
+    long copied = 0;
+    long num = 0;
     int logBlockNum = 256; // how many blocks to log progress
-    byte[] buf = new byte[blockSize];
-    for (int len = -1; (len = is.read(buf)) != -1;) {
-      os.write(buf, 0, len);
-      if (isKillSendt()) {
-	throw new IOException("Download interputed with a kill signal.");
-	// every megabyte
-      }
+    String message = "Downloaded ";
+
+    public TotalProgressLogger(long total) {
+      this.total = total;
+    }
+
+    void progress(int len) {
       copied += len;
-      if (num % logBlockNum == 0) {
-	logger.info("Downloaded " + copied + "/" + total + " bytes ("
-	    + ((double) copied / (double) total * 100) + "%)");
+      if (copied == total) {
+	message = "Download finished: ";
+      }
+      if (num % logBlockNum == 0 || copied == total) {
+	showProgress();
       }
       num++;
     }
-    logger.info("Download finishes: " + copied + "/" + total + " bytes ("
-	+ ((double) copied / (double) total * 100) + "%)");
+    
+    protected void end() {
+	message = "Download finished: ";
+	showProgress();
+    }
+    protected void showProgress() {
+      if (total != -1)
+	logger.info(message + copied + "/" + total + " bytes ("
+	    + ((double) copied / (double) total * 100) + "%)");
+      else
+	logger.info(message + copied + " bytes");
+    }
+  }
+  
+  /* 
+   * Pipe is reading after decompression, so Content-Length does does not match total
+   * Any stream that doesn't support valid total should return -1 into. The ProgressLogger should adjust to this
+   * 
+   */
+  private void pipe(InputStream is, OutputStream os, long total) throws IOException {
+    int blockSize = 4096;
+    byte[] buf = new byte[blockSize];
+    TotalProgressLogger progress = new TotalProgressLogger(total);
+    for (int len = -1; (len = is.read(buf)) != -1;) {
+      os.write(buf, 0, len);
+      if (isKillSent()) {
+	throw new IOException("Download interputed with a kill signal.");
+	// every megabyte
+      }
+      progress.progress(len);
+    }
+    progress.end();
+    
     os.flush();
   }
 
   @Override
   public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage)
-      super.setStorage(setupTransformation((RecordStorage) storage));
+    if (storage instanceof RecordStorage) {
+      super.setStorage((RecordStorage) storage);
+    }
     else {
       setStatus(HarvestStatus.ERROR);
       resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()

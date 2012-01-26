@@ -32,6 +32,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   private boolean die;
   protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger; 
+
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
   }
@@ -46,6 +47,9 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
 
   @Override
   public final synchronized void kill() {
+    if (status == HarvestStatus.RUNNING) {
+      status = HarvestStatus.KILLED;
+    }
     die = true;
   }
 
@@ -67,7 +71,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   @Override
   public final synchronized void finishReceived() {
     if (status != null && status.equals(HarvestStatus.FINISHED)) {
-      status = HarvestStatus.WAITING;
+      status = HarvestStatus.OK;
     }
   }
 
@@ -137,5 +141,13 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       }
     }
     return templates;
+  }
+
+  public StorageJobLogger getLogger() {
+    return logger;
+  }
+
+  public void setLogger(StorageJobLogger logger) {
+    this.logger = logger;
   }  
 }

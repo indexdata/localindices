@@ -7,6 +7,8 @@
 <f:subview id="generic_storage_form_inputs">
     <h5>General information: </h5>
     <h:panelGrid columns="2">
+        <h:outputText value="ID:"/>
+        <h:outputText value="#{storageController.storage.id}"/>
         <h:outputText value="Name:"/>
         <h:inputText value="#{storageController.storage.name}" size="30"/>
         <h:outputText value="Storage Description:"/>

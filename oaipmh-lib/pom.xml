@@ -4,11 +4,10 @@
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
     <version>1.9.7-SNAPSHOT</version>
+    <relativePath>..</relativePath>
   </parent>
-  <groupId>com.indexdata</groupId>
   <artifactId>oaipmh-lib</artifactId>
   <packaging>jar</packaging>
-  <version>1.9.7-SNAPSHOT</version>
   <name>oaipmh-lib</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -63,6 +62,18 @@
         </exclusion>
       </exclusions>
     </dependency>
+<!--
+    <dependency>
+    	<groupId>org.ccil.cowan.tagsoup</groupId>
+    	<artifactId>tagsoup</artifactId>
+    	<version>1.2.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>xalan</groupId>
+    	<artifactId>xalan</artifactId>
+    	<version>2.7.1</version>
+    </dependency>
+-->
   </dependencies>
 </project>
 
