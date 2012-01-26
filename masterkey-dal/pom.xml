@@ -4,10 +4,9 @@
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
     <version>1.9.7-SNAPSHOT</version>
+    <relativePath>../localindices</relativePath>
   </parent>
-  <groupId>com.indexdata</groupId>
   <artifactId>masterkey-dal</artifactId>
-  <version>1.9.7-SNAPSHOT</version>
   <description>Data Abstraction Layer</description>
   <packaging>jar</packaging>
   <name>masterkey-dal</name>
@@ -37,13 +36,6 @@
             <value>template=${basedir}/src/main/freemarker/jaxb-index.fmt</value>
           </options>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>process</goal>
-            </goals>
-          </execution>
-        </executions>
         <dependencies>
           <dependency>
             <groupId>net.sf.apt-jelly</groupId>
