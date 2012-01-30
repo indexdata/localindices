@@ -162,7 +162,8 @@
 		<groupId>net.sourceforge.saxon</groupId>
 	        <artifactId>saxon</artifactId>
 		<version>9.1.0.8</version>
-	</dependency>
+		<classifier>dom</classifier>
+	    </dependency>
 
 	</dependencies>
 	<properties>
