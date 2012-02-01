@@ -40,6 +40,7 @@ import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
+import org.marc4j.TurboMarcXmlWriter;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -59,7 +60,7 @@ import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
- * This class handles bulk HTTP download of a single file.
+ * This class handles HTTP download of file(s), and bulk transformation
  * 
  * @author Dennis
  * 
@@ -321,8 +322,15 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   class MarcReadStore implements ReadStore 
   {
     InputStream  input; 
+    boolean useTurboMarc = false;
+    
     public MarcReadStore(InputStream input) {
-      this.input = input; 
+      this.input = input;
+    }    
+
+    public MarcReadStore(InputStream input, boolean useTurboMarc) {
+      this.input = input;
+      this.useTurboMarc = useTurboMarc;
     }    
     @Override
     public void readAndStore() throws Exception {
@@ -365,8 +373,9 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.error("No file found in URL: " + conn.getURL());
       inputStreamDecoded = zipInput;
     }
-    if ("application/marc".equals(contentType)
-	|| "application/marc".equals(resource.getExpectedSchema())) {
+    if ("application/marc".equals(contentType) || 
+	"application/marc".equals(resource.getExpectedSchema()) ||
+	"application/tmarc".equals(resource.getExpectedSchema())) {
       logger.info("Setting up Binary MARC reader. "
 	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
       return new MarcReadStore(inputStreamDecoded);
@@ -389,7 +398,15 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
     transformationStorage = setupTransformation(getStorage());
-    MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
+    MarcWriter writer;
+    if ("application/tmarc".equals(resource.getExpectedSchema())) {
+    	writer = new TurboMarcXmlWriter(transformationStorage.getOutputStream(), true);
+    	logger.info("Setting up Binary MARC to TurboMarc converter");
+    }
+    else { 
+  	logger.info("Setting up Binary MARC to MarcXml converter");
+ 	writer = new MarcXmlWriter(transformationStorage.getOutputStream(), true);
+    }
     while (reader.hasNext()) {
       try {
 	org.marc4j.marc.Record record = reader.next();
