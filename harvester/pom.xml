@@ -42,13 +42,13 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.11</version>
 				<configuration>
-				    <testSourceDirectory>src/main/test</testSourceDirectory>
-                    <excludes>
-                        <exclude>**/TestOAI*</exclude>
-                    </excludes>				    
+					<testSourceDirectory>src/main/test</testSourceDirectory>
+					<excludes>
+						<exclude>**/TestOAI*</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
-	</plugins>
+		</plugins>
 	</build>
 	<dependencies>
 		<dependency>
@@ -158,18 +158,17 @@
 			<artifactId>marc4j</artifactId>
 			<version>2.5-SNAPSHOT</version>
 		</dependency>
-	    <dependency>
-		<groupId>net.sourceforge.saxon</groupId>
-	        <artifactId>saxon</artifactId>
-		<version>9.1.0.8</version>
-	    </dependency>
-	    <dependency>
-		<groupId>net.sourceforge.saxon</groupId>
-	        <artifactId>saxon</artifactId>
-		<version>9.1.0.8</version>
-		<classifier>dom</classifier>
-	    </dependency>
-
+ 		<dependency>
+			<groupId>net.sourceforge.saxon</groupId>
+			<artifactId>saxon</artifactId>
+			<version>9.1.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.saxon</groupId>
+			<artifactId>saxon</artifactId>
+			<version>9.1.0.8</version>
+			<classifier>dom</classifier>
+		</dependency>
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
