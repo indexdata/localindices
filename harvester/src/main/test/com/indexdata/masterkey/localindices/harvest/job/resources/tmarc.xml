@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tmarc:c xmlns:tmarc="http://www.indexdata.com/turbomarc">
+  <tmarc:r>
+    <tmarc:l>00714cam a2200205 a 4500</tmarc:l>
+    <tmarc:c001>12883376</tmarc:c001>
+    <tmarc:c005>20030616111422.0</tmarc:c005>
+    <tmarc:c008>020805s2002    nyu    j      000 1 eng  </tmarc:c008>
+    <tmarc:d020 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">0786808772</tmarc:sa>
+    </tmarc:d020>
+    <tmarc:d020 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">0786816155 (pbk.)</tmarc:sa>
+    </tmarc:d020>
+    <tmarc:d040 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">DLC</tmarc:sa>
+      <tmarc:sc ind1=" " ind2=" ">DLC</tmarc:sc>
+      <tmarc:sd ind1=" " ind2=" ">DLC</tmarc:sd>
+    </tmarc:d040>
+    <tmarc:d100 ind1="1" ind2=" ">
+      <tmarc:sa ind1="1" ind2=" ">Chabon, Michael.</tmarc:sa>
+    </tmarc:d100>
+    <tmarc:d245 ind1="1" ind2="0">
+      <tmarc:sa ind1="1" ind2="0">Summerland /</tmarc:sa>
+      <tmarc:sc ind1="1" ind2="0">Michael Chabon.</tmarc:sc>
+    </tmarc:d245>
+    <tmarc:d250 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">1st ed.</tmarc:sa>
+    </tmarc:d250>
+    <tmarc:d260 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">New York :</tmarc:sa>
+      <tmarc:sb ind1=" " ind2=" ">Miramax Books/Hyperion Books for Children,</tmarc:sb>
+      <tmarc:sc ind1=" " ind2=" ">c2002.</tmarc:sc>
+    </tmarc:d260>
+    <tmarc:d300 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">500 p. ;</tmarc:sa>
+      <tmarc:sc ind1=" " ind2=" ">22 cm.</tmarc:sc>
+    </tmarc:d300>
+    <tmarc:d520 ind1=" " ind2=" ">
+      <tmarc:sa ind1=" " ind2=" ">Ethan Feld, the worst baseball player in the history of the game, finds himself recruited by a 100-year-old scout to help a band of fairies triumph over an ancient enemy.</tmarc:sa>
+    </tmarc:d520>
+    <tmarc:d650 ind1=" " ind2="1">
+      <tmarc:sa ind1=" " ind2="1">Fantasy.</tmarc:sa>
+    </tmarc:d650>
+    <tmarc:d650 ind1=" " ind2="1">
+      <tmarc:sa ind1=" " ind2="1">Baseball</tmarc:sa>
+      <tmarc:sv ind1=" " ind2="1">Fiction.</tmarc:sv>
+    </tmarc:d650>
+    <tmarc:d650 ind1=" " ind2="1">
+      <tmarc:sa ind1=" " ind2="1">Magic</tmarc:sa>
+      <tmarc:sv ind1=" " ind2="1">Fiction.</tmarc:sv>
+    </tmarc:d650>
+  </tmarc:r>
+</tmarc:c>
