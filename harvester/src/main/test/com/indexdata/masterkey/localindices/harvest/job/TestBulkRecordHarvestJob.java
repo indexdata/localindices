@@ -29,6 +29,8 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class TestBulkRecordHarvestJob extends TestCase {
 
@@ -117,7 +119,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   
-  public void testCleanNoSplit() throws IOException {
+  public void testCleanNoSplit() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, null, 0, 0);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
@@ -125,40 +127,59 @@ public class TestBulkRecordHarvestJob extends TestCase {
     RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanSplit1000BulkHarvestJob() throws IOException {
+  public void testCleanSplit1000BulkHarvestJob() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, null, 1, 1000);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanTurboMarcHarvestJob() throws IOException {
+  public void testCleanTurboMarcHarvestJob() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 0, 0);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanTurboMarcSplitHarvestJob() throws IOException {
+  public void testCleanTurboMarcSplitHarvestJob() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);    
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanGZippedSplitOneMarc21() throws IOException {
+  public void testCleanGZippedSplitOneMarc21() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", 1, 1);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
@@ -166,10 +187,14 @@ public class TestBulkRecordHarvestJob extends TestCase {
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanGZippedSplitTurboMarc() throws IOException {
+  public void testCleanGZippedSplitTurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
@@ -177,6 +202,10 @@ public class TestBulkRecordHarvestJob extends TestCase {
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
