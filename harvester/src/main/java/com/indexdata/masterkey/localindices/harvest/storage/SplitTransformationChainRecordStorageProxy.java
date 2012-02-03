@@ -88,4 +88,9 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     this.logger = logger;
   }
 
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    return storage.getStatus();
+  }
+
 }
