@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
-  xmlns="http://www.indexdata.com/turbomarc"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-  xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
   xmlns:tmarc="http://www.indexdata.com/turbomarc">
 
   <xsl:output indent="yes" method="xml" version="1.0"
@@ -11,18 +9,18 @@
 
   <!-- Extract metadata from MARC21/USMARC from streamlined marcxml format 
     http://www.loc.gov/marc/bibliographic/ecbdhome.html -->
+  <xsl:template name="record-hook" />
+
 
   <xsl:template match="/">
       <xsl:apply-templates />
   </xsl:template>
 
-  <xsl:template match="tmarc:c">
+  <xsl:template match="tmarc:collection">
     <collection>
       <xsl:apply-templates />
     </collection>
   </xsl:template>
-
-  <xsl:template name="record-hook" />
 
   <xsl:template match="tmarc:r">
     <xsl:variable name="title_medium" select="tmarc:d245/tmarc:sh" />
@@ -49,10 +47,10 @@
     <xsl:variable name="electronic">
       <xsl:choose>
         <xsl:when test="$form1='s' or $form1='q' or $form1='o' or
-       $form2='s' or $form2='q' or $form2='o'">
-       <xsl:text>yes</xsl:text>
-    </xsl:when>
-    <xsl:otherwise/>
+	   $form2='s' or $form2='q' or $form2='o'">
+	   <xsl:text>yes</xsl:text>
+	</xsl:when>
+	<xsl:otherwise/>
       </xsl:choose>
     </xsl:variable>
 
@@ -61,42 +59,42 @@
         <xsl:when test="string-length($medium)"><xsl:value-of select="$medium" /></xsl:when>
         <xsl:when test="($typeofrec='a' or $typeofrec='t') and $biblevel='m'">book</xsl:when>
         <xsl:when test="$typeofrec='j' or $typeofrec='i'">
-      <xsl:text>recording</xsl:text>
-      <xsl:choose>
-        <xsl:when test="$oclcb='d' and $oclcd='f'">-cd</xsl:when>
-        <xsl:when test="$oclcb='s'">-cassette</xsl:when>
-        <xsl:when test="$oclcb='d' and $oclcd='a' or $oclcd='b' or
-          $oclcd='c' or $oclcd='d' or $oclcd='e'">-vinyl</xsl:when>
-      </xsl:choose>
-    </xsl:when>
-    <xsl:when test="$typeofrec='g'">
-      <xsl:choose>
-        <xsl:when test="$typeofvm='m' or $typeofvm='v'">
-          <xsl:text>video</xsl:text>
-          <xsl:choose>
-            <xsl:when test="$oclca='v' and $oclcb='d' and $oclce='v'">-dvd</xsl:when>
-            <xsl:when test="$oclca='v' and $oclcb='d' and $oclce='s'">-blu-ray</xsl:when>
-            <xsl:when test="$oclca='v' and $oclcb='f' and $oclce='b'">-vhs</xsl:when>
-          </xsl:choose>
-        </xsl:when>
-        <xsl:otherwise>audio-visual</xsl:otherwise>
-      </xsl:choose>
-    </xsl:when>
-    <xsl:when test="$typeofrec='a' and $biblevel='s'">
-      <xsl:choose>
-        <xsl:when test="$typeofserial='n'">newspaper</xsl:when>
-        <xsl:otherwise>journal</xsl:otherwise>
-      </xsl:choose>
-    </xsl:when>
-    <xsl:when test="$typeofrec='e' or $typeofrec='f'">map</xsl:when>
-    <xsl:when test="$typeofrec='c' or $typeofrec='d'">music-score</xsl:when>
-    <xsl:when test="$form1='a' or $form1='b' or $form1='c'">microform</xsl:when>
-    <xsl:when test="$typeofrec='t'">thesis</xsl:when>
+	  <xsl:text>recording</xsl:text>
+	  <xsl:choose>
+	    <xsl:when test="$oclcb='d' and $oclcd='f'">-cd</xsl:when>
+	    <xsl:when test="$oclcb='s'">-cassette</xsl:when>
+	    <xsl:when test="$oclcb='d' and $oclcd='a' or $oclcd='b' or
+	      $oclcd='c' or $oclcd='d' or $oclcd='e'">-vinyl</xsl:when>
+	  </xsl:choose>
+	</xsl:when>
+	<xsl:when test="$typeofrec='g'">
+	  <xsl:choose>
+	    <xsl:when test="$typeofvm='m' or $typeofvm='v'">
+	      <xsl:text>video</xsl:text>
+	      <xsl:choose>
+	        <xsl:when test="$oclca='v' and $oclcb='d' and $oclce='v'">-dvd</xsl:when>
+	        <xsl:when test="$oclca='v' and $oclcb='d' and $oclce='s'">-blu-ray</xsl:when>
+	        <xsl:when test="$oclca='v' and $oclcb='f' and $oclce='b'">-vhs</xsl:when>
+	      </xsl:choose>
+	    </xsl:when>
+	    <xsl:otherwise>audio-visual</xsl:otherwise>
+	  </xsl:choose>
+	</xsl:when>
+	<xsl:when test="$typeofrec='a' and $biblevel='s'">
+	  <xsl:choose>
+	    <xsl:when test="$typeofserial='n'">newspaper</xsl:when>
+	    <xsl:otherwise>journal</xsl:otherwise>
+	  </xsl:choose>
+	</xsl:when>
+	<xsl:when test="$typeofrec='e' or $typeofrec='f'">map</xsl:when>
+	<xsl:when test="$typeofrec='c' or $typeofrec='d'">music-score</xsl:when>
+	<xsl:when test="$form1='a' or $form1='b' or $form1='c'">microform</xsl:when>
+	<xsl:when test="$typeofrec='t'">thesis</xsl:when>
         <!-- <xsl:when test="$journal_title">article</xsl:when> -->
-    <xsl:when test="$typeofrec='a' or $typeofrec='i' and
-        ($typeofserial='d' or $typeofserial='w')">web</xsl:when>
-    <xsl:when test="$typeofrec='a' and $biblevel='b'">article</xsl:when>
-    <xsl:when test="$typeofrec='m'">electronic</xsl:when>
+	<xsl:when test="$typeofrec='a' or $typeofrec='i' and
+	    ($typeofserial='d' or $typeofserial='w')">web</xsl:when>
+	<xsl:when test="$typeofrec='a' and $biblevel='b'">article</xsl:when>
+	<xsl:when test="$typeofrec='m'">electronic</xsl:when>
         <xsl:when test="$title_medium">
           <xsl:value-of select="translate($title_medium, ' []/:', '')" />
         </xsl:when>
@@ -414,17 +412,17 @@
             <xsl:if test="position() > 1">
               <xsl:text>, </xsl:text>
             </xsl:if>
-        <xsl:variable name='value'>
-          <xsl:value-of select='normalize-space(.)'/>
-        </xsl:variable>
-        <xsl:choose>
-          <xsl:when test="substring($value,string-length($value)) = ','">
-        <xsl:value-of select="substring($value,0,string-length($value)-1)"/>
-          </xsl:when>
-          <xsl:otherwise>
-        <xsl:value-of select="$value"/>
-          </xsl:otherwise>
-        </xsl:choose> 
+	    <xsl:variable name='value'>
+	      <xsl:value-of select='normalize-space(.)'/>
+	    </xsl:variable>
+	    <xsl:choose>
+	      <xsl:when test="substring($value,string-length($value)) = ','">
+		<xsl:value-of select="substring($value,0,string-length($value)-1)"/>
+	      </xsl:when>
+	      <xsl:otherwise>
+		<xsl:value-of select="$value"/>
+	      </xsl:otherwise>
+	    </xsl:choose> 
          </xsl:for-each>
         </pz:metadata>
       </xsl:for-each>
@@ -640,14 +638,14 @@
         </pz:metadata>
         <pz:metadata type="electronic-text">
           <xsl:choose>
-        <xsl:when test="tmarc:sy">
-          <xsl:value-of select="tmarc:sy/text()" />
-        </xsl:when>
-        <xsl:when test="tmarc:s3">
-          <xsl:value-of select="tmarc:s3/text()" />
-        </xsl:when>
-         <xsl:otherwise>Get resource</xsl:otherwise>
-       </xsl:choose>
+	    <xsl:when test="tmarc:sy">
+	      <xsl:value-of select="tmarc:sy/text()" />
+	    </xsl:when>
+	    <xsl:when test="tmarc:s3">
+	      <xsl:value-of select="tmarc:s3/text()" />
+	    </xsl:when>
+	     <xsl:otherwise>Get resource</xsl:otherwise>
+	   </xsl:choose>
         </pz:metadata>
         <pz:metadata type="electronic-note">
           <xsl:value-of select="tmarc:sz" />
@@ -673,66 +671,66 @@
           </pz:metadata>
         </xsl:if>
         <xsl:if test="tmarc:sg">
-      <xsl:variable name="value">
+	  <xsl:variable name="value">
             <xsl:for-each select="tmarc:sg">
               <xsl:value-of select="."/>
             </xsl:for-each>
-      </xsl:variable>
+	  </xsl:variable>
           <pz:metadata type="journal-subpart">
             <xsl:value-of select="$value"/>
-      </pz:metadata>
-      <xsl:variable name="l">
-        <xsl:value-of select="translate($value,
-                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ.',
-                  'abcdefghijklmnopqrstuvwxyz ') "/>
-      </xsl:variable>
-      <xsl:variable name="volume">
-        <xsl:choose>
-          <xsl:when test="string-length(substring-after($l,'vol ')) &gt; 0">
-        <xsl:value-of select="substring-before(normalize-space(substring-after($l,'vol ')),' ')"/>
-          </xsl:when>
-          <xsl:when test="string-length(substring-after($l,'v ')) &gt; 0">
-        <xsl:value-of select="substring-before(normalize-space(substring-after($l,'v ')),' ')"/>
-          </xsl:when>
-        </xsl:choose>
-      </xsl:variable>
-      <xsl:variable name="issue">
-        <xsl:value-of select="substring-before(translate(normalize-space(substring-after($l,'issue')), ',', ' '),' ')"/>
-      </xsl:variable>
-      <xsl:variable name="pages">
-        <xsl:choose>
-          <xsl:when test="string-length(substring-after($l,' p ')) &gt; 0">
-        <xsl:value-of select="normalize-space(substring-after($l,' p '))"/>
-          </xsl:when>
-          <xsl:when test="string-length(substring-after($l,',p')) &gt; 0">
-        <xsl:value-of select="normalize-space(substring-after($l,',p'))"/>
-          </xsl:when>
-          <xsl:when test="string-length(substring-after($l,' p')) &gt; 0">
-        <xsl:value-of select="normalize-space(substring-after($l,' p'))"/>
-          </xsl:when>
-        </xsl:choose>
-      </xsl:variable>
+	  </pz:metadata>
+	  <xsl:variable name="l">
+	    <xsl:value-of select="translate($value,
+				  'ABCDEFGHIJKLMNOPQRSTUVWXYZ.',
+				  'abcdefghijklmnopqrstuvwxyz ') "/>
+	  </xsl:variable>
+	  <xsl:variable name="volume">
+	    <xsl:choose>
+	      <xsl:when test="string-length(substring-after($l,'vol ')) &gt; 0">
+		<xsl:value-of select="substring-before(normalize-space(substring-after($l,'vol ')),' ')"/>
+	      </xsl:when>
+	      <xsl:when test="string-length(substring-after($l,'v ')) &gt; 0">
+		<xsl:value-of select="substring-before(normalize-space(substring-after($l,'v ')),' ')"/>
+	      </xsl:when>
+	    </xsl:choose>
+	  </xsl:variable>
+	  <xsl:variable name="issue">
+	    <xsl:value-of select="substring-before(translate(normalize-space(substring-after($l,'issue')), ',', ' '),' ')"/>
+	  </xsl:variable>
+	  <xsl:variable name="pages">
+	    <xsl:choose>
+	      <xsl:when test="string-length(substring-after($l,' p ')) &gt; 0">
+		<xsl:value-of select="normalize-space(substring-after($l,' p '))"/>
+	      </xsl:when>
+	      <xsl:when test="string-length(substring-after($l,',p')) &gt; 0">
+		<xsl:value-of select="normalize-space(substring-after($l,',p'))"/>
+	      </xsl:when>
+	      <xsl:when test="string-length(substring-after($l,' p')) &gt; 0">
+		<xsl:value-of select="normalize-space(substring-after($l,' p'))"/>
+	      </xsl:when>
+	    </xsl:choose>
+	  </xsl:variable>
 
-      <!-- volume -->
-      <xsl:if test="string-length($volume) &gt; 0">
-        <pz:metadata type="volume-number">
-          <xsl:value-of select="$volume"/>
-        </pz:metadata>
-      </xsl:if>
-      <!-- issue -->
-      <xsl:if test="string-length($issue) &gt; 0">
-        <pz:metadata type="issue-number">
-          <xsl:value-of select="$issue"/>
-        </pz:metadata>
-      </xsl:if>
-      <!-- pages -->
-      <xsl:if test="string-length($pages) &gt; 0">
-        <pz:metadata type="pages-number">
-          <xsl:value-of select="$pages"/>
-        </pz:metadata>
-      </xsl:if>
-      
-      <!-- season -->
+	  <!-- volume -->
+	  <xsl:if test="string-length($volume) &gt; 0">
+	    <pz:metadata type="volume-number">
+	      <xsl:value-of select="$volume"/>
+	    </pz:metadata>
+	  </xsl:if>
+	  <!-- issue -->
+	  <xsl:if test="string-length($issue) &gt; 0">
+	    <pz:metadata type="issue-number">
+	      <xsl:value-of select="$issue"/>
+	    </pz:metadata>
+	  </xsl:if>
+	  <!-- pages -->
+	  <xsl:if test="string-length($pages) &gt; 0">
+	    <pz:metadata type="pages-number">
+	      <xsl:value-of select="$pages"/>
+	    </pz:metadata>
+	  </xsl:if>
+	  
+	  <!-- season -->
         </xsl:if>
         <xsl:if test="tmarc:sp">
           <pz:metadata type="journal-title-abbrev">
@@ -764,9 +762,9 @@
 
       <pz:metadata type="medium">
         <xsl:value-of select="$vmedium" />
-    <xsl:if test="string-length($electronic) and $vmedium != 'electronic'">
-      <xsl:text> (electronic)</xsl:text>
-    </xsl:if>
+	<xsl:if test="string-length($electronic) and $vmedium != 'electronic'">
+	  <xsl:text> (electronic)</xsl:text>
+	</xsl:if>
       </pz:metadata>
 
       <xsl:for-each select="tmarc:d900/tmarc:sa">
@@ -848,68 +846,68 @@
 
       <xsl:for-each select="tmarc:d926">
         <pz:metadata type="locallocation">
-      <xsl:choose><xsl:when test="tmarc:sa">
-        <xsl:value-of select="tmarc:sa"/>
-      </xsl:when><xsl:otherwise>
-        <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
-      </xsl:otherwise></xsl:choose>
-    </pz:metadata>
+	  <xsl:choose><xsl:when test="tmarc:sa">
+	    <xsl:value-of select="tmarc:sa"/>
+	  </xsl:when><xsl:otherwise>
+	    <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
+	  </xsl:otherwise></xsl:choose>
+	</pz:metadata>
         <pz:metadata type="callnumber">
-      <xsl:choose><xsl:when test="tmarc:sc">
-        <xsl:value-of select="tmarc:sc"/>
-      </xsl:when><xsl:otherwise>
-        <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
-      </xsl:otherwise></xsl:choose>
-    </pz:metadata>
+	  <xsl:choose><xsl:when test="tmarc:sc">
+	    <xsl:value-of select="tmarc:sc"/>
+	  </xsl:when><xsl:otherwise>
+	    <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
+	  </xsl:otherwise></xsl:choose>
+	</pz:metadata>
         <pz:metadata type="available">
-      <xsl:choose><xsl:when test="tmarc:se">
-        <xsl:value-of select="tmarc:se"/>
-      </xsl:when><xsl:otherwise>
-        <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
-      </xsl:otherwise></xsl:choose>
-    </pz:metadata>
+	  <xsl:choose><xsl:when test="tmarc:se">
+	    <xsl:value-of select="tmarc:se"/>
+	  </xsl:when><xsl:otherwise>
+	    <xsl:text>PAZPAR2_NULL_VALUE</xsl:text>
+	  </xsl:otherwise></xsl:choose>
+	</pz:metadata>
       </xsl:for-each>
 
       <!-- OhioLINK holdings -->
       <xsl:for-each select="tmarc:d945">
-    <pz:metadata type="locallocation">
+	<pz:metadata type="locallocation">
           <xsl:choose>
             <xsl:when test="tmarc:sa">
               <xsl:value-of select="tmarc:sa"/>
             </xsl:when>
             <xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
           </xsl:choose>
-    </pz:metadata>
-    <pz:metadata type="callnumber">
+	</pz:metadata>
+	<pz:metadata type="callnumber">
           <xsl:choose>
-        <xsl:when test="tmarc:sb">
+	    <xsl:when test="tmarc:sb">
               <xsl:value-of select="tmarc:sb"/>
             </xsl:when>
             <xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
           </xsl:choose>
-    </pz:metadata>
-    <pz:metadata type="publicnote">
+	</pz:metadata>
+	<pz:metadata type="publicnote">
           <xsl:choose>
             <xsl:when test="tmarc:sc">
               <xsl:value-of select="tmarc:sc"/>
             </xsl:when>
             <xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
           </xsl:choose>
-    </pz:metadata>
-    <pz:metadata type="available">
+	</pz:metadata>
+	<pz:metadata type="available">
           <xsl:choose>
             <xsl:when test="tmarc:ss = 'N'">Available</xsl:when>
             <xsl:when test="tmarc:ss != 'N'">
               <xsl:choose>
-        <xsl:when test="tmarc:sd">
+		<xsl:when test="tmarc:sd">
                   <xsl:value-of select="tmarc:sd"/>
-        </xsl:when>
-        <xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
+		</xsl:when>
+		<xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
               </xsl:choose>
             </xsl:when>
             <xsl:otherwise>PAZPAR2_NULL_VALUE</xsl:otherwise>
           </xsl:choose>
-    </pz:metadata>      
+	</pz:metadata>      
       </xsl:for-each>
 
       <xsl:for-each select="tmarc:d948">
@@ -950,13 +948,14 @@
         </pz:metadata>
       </xsl:for-each>
 
+
       <!-- passthrough id data -->
       <xsl:for-each select="pz:metadata">
         <xsl:copy-of select="." />
       </xsl:for-each>
 
       <!-- other stylesheets importing this might want to define this -->
-    <xsl:call-template name="record-hook" />
+	<xsl:call-template name="record-hook" />
 
     </pz:record>
   </xsl:template>
