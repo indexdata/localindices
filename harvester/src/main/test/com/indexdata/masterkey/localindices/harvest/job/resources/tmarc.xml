@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tmarc:c xmlns:tmarc="http://www.indexdata.com/turbomarc">
+<collection xmlns:tmarc="http://www.indexdata.com/turbomarc">
   <tmarc:r>
     <tmarc:l>00714cam a2200205 a 4500</tmarc:l>
     <tmarc:c001>12883376</tmarc:c001>
@@ -50,4 +50,4 @@
       <tmarc:sv ind1=" " ind2="1">Fiction.</tmarc:sv>
     </tmarc:d650>
   </tmarc:r>
-</tmarc:c>
+</collection>
