@@ -69,7 +69,7 @@ import ORG.oclc.oai.harvester2.transport.BrokenHttpResponseException;
 import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
-import com.indexdata.io.FailsafeUTF8InputStream;
+import com.indexdata.io.FailsafeXMLCharacterInputStream;
 
 
 /**
@@ -330,7 +330,7 @@ public abstract class HarvesterVerb {
         int contentLength = con.getContentLength();
         
 
-        InputStream bin = new BufferedInputStream(new FailsafeUTF8InputStream(in));
+        InputStream bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
         bin.mark(contentLength);
         InputSource data = new InputSource(bin);        
 	try {
