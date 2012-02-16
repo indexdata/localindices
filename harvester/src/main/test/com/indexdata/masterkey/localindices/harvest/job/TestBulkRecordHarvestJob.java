@@ -45,7 +45,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   private XmlBulkResource createResource(String url, String expectedSchema, int splitAt, int size)
       throws IOException {
     XmlBulkResource resource = new XmlBulkResource(url);
-    resource.setName(url + " " + (expectedSchema != null ? expectedSchema : "") + splitAt + " " + size);
+    resource.setName(url + " " + (expectedSchema != null ? expectedSchema + " " : "") + splitAt + " " + size);
     resource.setSplitAt(String.valueOf(splitAt));
     resource.setSplitSize(String.valueOf(size));
     resource.setExpectedSchema(expectedSchema);
@@ -135,8 +135,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanSplit1000BulkHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, null, 1, 1000);
+  public void testCleanSplit100BulkHarvestJob() throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarc, null, 1, 100);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
@@ -164,8 +164,23 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanTurboMarcSplitHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1000);
+  public void testCleanTurboMarcSplitOneHarvestJob() throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1);
+    resource.setId(2l);
+    resource.setTransformation(createTurboMarcTransformation());
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setOverwriteMode(true);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(),        new Long(1002).equals(storageStatus.getAdds()));
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  public void testCleanTurboMarcSplit100HarvestJob() throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 100);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);    
@@ -194,7 +209,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanGZippedSplitTurboMarc() throws IOException, StatusNotImplemented {
+  public void testCleanGZippedSplit1000TurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
