@@ -30,6 +30,7 @@ public class SchedulerThread implements Runnable {
   public void run() {
     logger.log(Level.INFO, "Scheduler started.");
     keepRunning = true;
+    
     while (keepRunning()) {
       try {
 	Thread.sleep(10 * 1000);
@@ -40,8 +41,7 @@ public class SchedulerThread implements Runnable {
       } catch (InterruptedException e) {
 	// Just loop
       } catch (Exception e) {
-	logger.log(Level.ERROR, "Scheduler failed with exception: " + e.getMessage());
-	e.printStackTrace();
+	logger.log(Level.ERROR, "Scheduler failed with exception: " + e.getMessage(), e);	
 	synchronized (this) {
 	  keepRunning = false;
 	}
