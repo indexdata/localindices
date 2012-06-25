@@ -62,7 +62,7 @@ import com.indexdata.xml.filter.SplitContentHandler;
 /**
  * This class handles HTTP download of file(s), and bulk transformation
  * 
- * @author Dennis
+ * @author Dennis Schafroth
  * 
  */
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
@@ -323,6 +323,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   {
     InputStream  input; 
     boolean useTurboMarc = false;
+    // Default MARC-8 encoding, use setEncoding to override
+    String encoding = "MARC-8";
     
     public MarcReadStore(InputStream input) {
       this.input = input;
@@ -332,10 +334,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       this.input = input;
       this.useTurboMarc = useTurboMarc;
     }    
+
+    void setEncoding(String encoding) {
+      this.encoding = encoding;
+    }
+    
     @Override
     public void readAndStore() throws Exception {
-      // Assume MARC-8 encoding for now
-      MarcStreamReader reader  = new MarcStreamReader(input, "MARC-8");
+      MarcStreamReader reader  = new MarcStreamReader(input, encoding);
       reader.setBadIndicators(false);
       store(reader, -1);      
     }
@@ -373,13 +379,26 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.error("No file found in URL: " + conn.getURL());
       inputStreamDecoded = zipInput;
     }
-    if ("application/marc".equals(contentType) || 
-	"application/marc".equals(resource.getExpectedSchema()) ||
-	"application/tmarc".equals(resource.getExpectedSchema())) {
+    String mimeTypeCharset = contentType;
+     if (resource.getExpectedSchema() != null) 
+       mimeTypeCharset = resource.getExpectedSchema();
+     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
+     // Expected type overrides contenttype
+     if (resource.getExpectedSchema() != null)
+       mimeCharset =  new MimeTypeCharSet(resource.getExpectedSchema());
+    if (mimeCharset.isMimeType("application/marc") ||
+	// TODO doesn't really make sense
+	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader. "
 	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
-      return new MarcReadStore(inputStreamDecoded);
+      
+      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded);
+      String encoding = mimeCharset.getCharset();
+      if (encoding != null) 
+	readStore.setEncoding(encoding);
+      return readStore;
     }
+    
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
     return new InputStreamReadStore(inputStreamDecoded, contentLength);
@@ -399,7 +418,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     long index = 0;
     transformationStorage = setupTransformation(getStorage());
     MarcWriter writer;
-    if ("application/tmarc".equals(resource.getExpectedSchema())) {
+    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(resource.getOutputSchema());
+    if (mimetypeCharset.isMimeType("application/tmarc")) {
     	writer = new TurboMarcXmlWriter(transformationStorage.getOutputStream(), true);
     	logger.info("Setting up Binary MARC to TurboMarc converter");
     }
