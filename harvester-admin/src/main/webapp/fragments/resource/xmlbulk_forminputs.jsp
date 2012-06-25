@@ -13,7 +13,9 @@
         <h:inputText value="#{resourceController.resource.splitAt}"/>
         <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
         <h:inputText value="#{resourceController.resource.splitSize}"/>
-        <h:outputText value="Mime-type for compressed data (application/marc for binary MARC)"/>
+        <h:outputText value="Mime-type for compressed data (application/marc; charset=MARC-8 for binary MARC in MARC-8)"/>
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>
+        <h:outputText value="Output format (MARCXML / TurboMARC)"/>
+        <h:inputText value="#{resourceController.resource.outputSchema}"/>
     </h:panelGrid>
 </f:subview>
