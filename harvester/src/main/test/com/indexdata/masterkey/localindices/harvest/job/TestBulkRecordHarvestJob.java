@@ -37,18 +37,21 @@ public class TestBulkRecordHarvestJob extends TestCase {
   //String resourceMarc = "http://lui.indexdata.com/ag/demo_org.mrc";
   String resourceMarc = "http://lui.indexdata.com/ag/demo-part-00.mrc";
 
+  String resourceMarcUTF8 = "http://lui.indexdata.com/oaister/oais-00.mrc";
+
   String resourceMarcGZ = "http://lui.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui.indexdata.com/ag/demo-part-00.mrc.zip";
-  String solrUrl = "http://localhost:8080/solr/";
+  String solrUrl = "http://lui.indexdata.com/solr/";
   RecordStorage recordStorage;
 
-  private XmlBulkResource createResource(String url, String expectedSchema, int splitAt, int size)
+  private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema, int splitAt, int size)
       throws IOException {
     XmlBulkResource resource = new XmlBulkResource(url);
     resource.setName(url + " " + (expectedSchema != null ? expectedSchema + " " : "") + splitAt + " " + size);
     resource.setSplitAt(String.valueOf(splitAt));
     resource.setSplitSize(String.valueOf(size));
     resource.setExpectedSchema(expectedSchema);
+    resource.setOutputSchema(outputSchema);
     resource.setEnabled(true);
     resource.setId(1l);
     resource.setCurrentStatus("NEW");
@@ -120,7 +123,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   
   public void testCleanNoSplit() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, null, 0, 0);
+    XmlBulkResource resource = createResource(resourceMarc, null, null, 0, 0);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
@@ -136,7 +139,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanSplit100BulkHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, null, 1, 100);
+    XmlBulkResource resource = createResource(resourceMarc, null, null, 1, 100);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
@@ -150,7 +153,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanTurboMarcHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 0, 0);
+    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 0, 0);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -165,7 +168,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanTurboMarcSplitOneHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1);
+    XmlBulkResource resource = createResource(resourceMarc, "application/marc; charset=MARC-8", "application/tmarc", 1, 1);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -180,7 +183,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanTurboMarcSplit100HarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 100);
+    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 1, 100);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);    
@@ -195,7 +198,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanGZippedSplitOneMarc21() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", 1, 1);
+    XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, 1);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -210,7 +213,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   public void testCleanGZippedSplit1000TurboMarc() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/tmarc", 1, 1000);
+    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
