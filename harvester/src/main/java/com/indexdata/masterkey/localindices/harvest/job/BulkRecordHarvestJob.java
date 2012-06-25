@@ -335,7 +335,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     @Override
     public void readAndStore() throws Exception {
       // Assume MARC-8 encoding for now
-      MarcStreamReader reader  = new MarcStreamReader(input, "MARC-8");
+      MarcStreamReader reader  = new MarcStreamReader(input /*, "MARC-8" */);
       reader.setBadIndicators(false);
       store(reader, -1);      
     }
