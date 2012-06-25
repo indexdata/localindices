@@ -39,7 +39,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   String resourceMarcGZ = "http://lui.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui.indexdata.com/ag/demo-part-00.mrc.zip";
-  String solrUrl = "http://localhost:8080/solr/";
+  String solrUrl = "http://lui.indexdata.com/solr/";
   RecordStorage recordStorage;
 
   private XmlBulkResource createResource(String url, String expectedSchema, int splitAt, int size)
