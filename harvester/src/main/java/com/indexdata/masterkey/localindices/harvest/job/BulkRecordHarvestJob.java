@@ -324,7 +324,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     InputStream  input; 
     boolean useTurboMarc = false;
     // Default MARC-8 encoding, use setEncoding to override
-    String encoding = "MARC-8";
+    String encoding = null;
     
     public MarcReadStore(InputStream input) {
       this.input = input;
@@ -379,18 +379,15 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.error("No file found in URL: " + conn.getURL());
       inputStreamDecoded = zipInput;
     }
-    String mimeTypeCharset = contentType;
-     if (resource.getExpectedSchema() != null) 
-       mimeTypeCharset = resource.getExpectedSchema();
-     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
-     // Expected type overrides contenttype
-     if (resource.getExpectedSchema() != null)
+    MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
+    // Expected type overrides content type
+    if (resource.getExpectedSchema() != null)
        mimeCharset =  new MimeTypeCharSet(resource.getExpectedSchema());
     if (mimeCharset.isMimeType("application/marc") ||
 	// TODO doesn't really make sense
 	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader. "
-	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
+	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : "Content-type: " + contentType));
       
       MarcReadStore readStore = new MarcReadStore(inputStreamDecoded);
       String encoding = mimeCharset.getCharset();
@@ -520,7 +517,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
    * 
    */
   private void pipe(InputStream is, OutputStream os, long total) throws IOException {
-    int blockSize = 4096;
+    int blockSize = 100*1024;
     byte[] buf = new byte[blockSize];
     TotalProgressLogger progress = new TotalProgressLogger(total);
     for (int len = -1; (len = is.read(buf)) != -1;) {

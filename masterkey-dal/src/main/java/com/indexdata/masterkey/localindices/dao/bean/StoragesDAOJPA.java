@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -111,7 +112,9 @@ public class StoragesDAOJPA implements StorageDAO {
     public List<Storage> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        List<Storage> hables = null;
+        // HACK: Hides any Database errors, but does not throw a null pointer 
+        // which stops the Scheduler. 
+        List<Storage> hables = new LinkedList<Storage>();
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from Storage as o");

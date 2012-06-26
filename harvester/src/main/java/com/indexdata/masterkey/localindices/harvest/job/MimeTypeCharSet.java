@@ -3,7 +3,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 public class MimeTypeCharSet {
   
   private String mimetype = "";
-  private String charset  = "";
+  private String charset  = null;
   static String CHARSET =  "charset=";
   public MimeTypeCharSet(String mimetypeCharset) {
     if (mimetypeCharset == null)

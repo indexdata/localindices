@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -109,7 +110,8 @@ public class TransformationsDAOJPA implements TransformationDAO {
     public List<Transformation> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        List<Transformation> hables = null;
+        // HACK: Hides database errors but does not crash the Scheduler
+        List<Transformation> hables = new LinkedList<Transformation>();
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from Transformation as o");
