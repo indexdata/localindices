@@ -40,6 +40,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
   String resourceMarcUTF8 = "http://lui.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui.indexdata.com/oaister/oais.000000.mrc.gz";
 
+  String resourceLoCMarc8gz = "http://lui.indexdata.com/loc/part01.dat.gz";
+
   String resourceMarcGZ = "http://lui.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui.indexdata.com/ag/demo-part-00.mrc.zip";
   String solrUrl = "http://lui.indexdata.com/solr/";
@@ -245,6 +247,21 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   public void testCleanOAIsterGZipSplit1000TurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
+    resource.setId(2l);
+    resource.setTransformation(createTurboMarcTransformation());
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setOverwriteMode(true);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(100000).equals(storageStatus.getAdds()));
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  public void testCleanLoCGzSplit1000TurboMarc() throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceLoCMarc8gz, "application/marc; charset=MARC8", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
