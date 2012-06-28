@@ -386,8 +386,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     if (mimeCharset.isMimeType("application/marc") ||
 	// TODO doesn't really make sense
 	mimeCharset.isMimeType("application/tmarc")) {
-      logger.info("Setting up Binary MARC reader. "
-	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : "Content-type: " + contentType));
+      logger.info("Setting up Binary MARC reader ("  
+	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
+	  + (resource.getExpectedSchema() != null ? 
+	      " Override by resource mime-type: " + resource.getExpectedSchema() 
+	      : "Content-type: " + contentType));
       
       MarcReadStore readStore = new MarcReadStore(inputStreamDecoded);
       String encoding = mimeCharset.getCharset();
