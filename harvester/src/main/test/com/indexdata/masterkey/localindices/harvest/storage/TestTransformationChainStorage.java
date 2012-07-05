@@ -116,6 +116,7 @@ public class TestTransformationChainStorage extends TestCase {
 	}
 	entry = zipInput.getNextEntry();
       }
+      zipInput.close();
       assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
     }
   }
