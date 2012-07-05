@@ -162,6 +162,7 @@ public class TransformationController {
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
     // stepAssociation = current.getStepAssociations();
+    currentStepAssociation = null;
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
     if (current instanceof Transformation) {
@@ -208,19 +209,11 @@ public class TransformationController {
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public DataModel getTransformationSteps() {
-    List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); /*
-												  * stepDao
-												  * .
-												  * retrieveByTransformationId
-												  * (
-												  * current
-												  * .
-												  * getId
-												  * (
-												  * )
-												  * )
-												  * ;
-												  */
+    List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); 
+    
+    /*
+     * stepDao . retrieveByTransformationId ( current . getId ( ) ) ;
+     */
     if (current != null)
       steps = (List) current.getSteps();
     return new ListDataModel(steps);
@@ -414,6 +407,7 @@ public class TransformationController {
       currentStepAssociation.setTransformation(current);
       currentStepAssociation = associationDao.update(currentStepAssociation);
     }
+    currentStepAssociation = null;
     return "save_step";
   }
 
