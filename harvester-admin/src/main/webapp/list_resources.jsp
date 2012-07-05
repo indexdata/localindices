@@ -110,18 +110,18 @@
 					<h:commandLink styleClass="action"
 						action="#{resourceController.prepareResourceToRun}">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="Run" height="16" url="/images/run.png" />
+						<h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
 					</h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.deleteResource}"
 						onclick="return confirm('Are you sure?');">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
+						<h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
 					</h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.viewJobLog}">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="View Log" height="16" url="/images/log.png" />
+						<h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
 					</h:commandLink>
 				</h:column>
 				<h:column>
