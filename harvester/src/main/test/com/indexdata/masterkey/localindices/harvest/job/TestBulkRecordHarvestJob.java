@@ -241,7 +241,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(100000).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
@@ -271,7 +271,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(100000).equals(storageStatus.getAdds()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(250000).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
