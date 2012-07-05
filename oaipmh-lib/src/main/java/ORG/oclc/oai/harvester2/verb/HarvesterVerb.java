@@ -316,7 +316,8 @@ public abstract class HarvesterVerb {
         String contentEncoding = con.getHeaderField("Content-Encoding");
         logger.log(Level.INFO, "contentEncoding=" + contentEncoding);
         if ("compress".equals(contentEncoding)) {
-            ZipInputStream zis = new ZipInputStream(con.getInputStream());
+            @SuppressWarnings("resource")
+	    ZipInputStream zis = new ZipInputStream(con.getInputStream());
             zis.getNextEntry();
             in = zis;
         } else if ("gzip".equals(contentEncoding)) {
@@ -328,8 +329,6 @@ public abstract class HarvesterVerb {
         }
         
         int contentLength = con.getContentLength();
-        
-
         InputStream bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
         bin.mark(contentLength);
         InputSource data = new InputSource(bin);        
@@ -338,7 +337,9 @@ public abstract class HarvesterVerb {
 	    doc = createTagSoupDocument(data);
 	  else 
 	    doc = createDocument(data);
+	    in.close();
 	} catch (SAXException saxe) {
+	  in.close();
           bin.reset();
           saxe.printStackTrace();
           throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
