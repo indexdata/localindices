@@ -42,8 +42,11 @@ public interface HarvestStorage {
    * 
    * @throws java.io.IOException
    */
-  public void purge() throws IOException;
+  public void purge(boolean commit) throws IOException;
 
+  //public void purgeCommit() throws IOException;
+
+  
   /**
    * Set/get a flag that indicates the overwrite mode Normally a storage is in
    * append mode, so new transactions (begin-write-commit) are appended to the
