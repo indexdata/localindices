@@ -235,7 +235,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (!dataStart) {
 	  storage.databaseStart(resource.getId().toString(), null);
 	  if (storage.getOverwriteMode())
-	    storage.purge();
+	    storage.purge(false);
 	  dataStart = true;
 	}
 	NodeList list;
