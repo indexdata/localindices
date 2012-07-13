@@ -132,9 +132,14 @@ public class SolrStorage implements HarvestStorage {
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     try {
-      server.deleteByQuery("database:" + harvestable.getId());
+      UpdateResponse response = server.deleteByQuery("database:" + harvestable.getId());
+      logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
+      if (commit) {
+	response = server.commit();
+	logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+      }
     } catch (SolrServerException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
