@@ -254,17 +254,12 @@ public class TestTransformationChainStorage extends TestCase {
     XMLReader xmlFilter = createTransformChain(stylesheets);
     TransformationChainRecordStorageProxy storageProxy = new TransformationChainRecordStorageProxy(
 	recordStorage, xmlFilter, new Pz2SolrRecordContentHandler(recordStorage, "test"), null);
-    // Clean database completely
-    storageProxy.purge();
-    // storageProxy.commit();
-    // Really purge everything
-    // recordStorage.setDatabase(resourceUrl);
-    // recordStorage.purge();
-    // recordStorage.commit();
-
-    // recordStorage.setOverwriteMode(true);
+    // Clean database completely before run
+    storageProxy.purge(true);
+    // TODO Check empty database
     job.setStorage(storageProxy);
     job.run();
+    // TODO Check records in storage
   }
 
   String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
