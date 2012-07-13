@@ -29,8 +29,10 @@ public class ConsoleStorage implements HarvestStorage {
     System.out.println("--- Storage write rolled back, last write discarded ---");
   }
 
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     System.out.println("--- Storage write purged, all previous write discarded ---");
+    if (commit)
+      commit();
   }
 
   public OutputStream getOutputStream() {
