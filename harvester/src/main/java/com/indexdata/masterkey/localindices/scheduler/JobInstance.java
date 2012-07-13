@@ -121,7 +121,8 @@ public class JobInstance {
   public void destroy() {
     harvestJob.kill();
     try {
-      harvestJob.getStorage().purge();
+      HarvestStorage storage = harvestJob.getStorage(); 
+      storage.purge(true);
     } catch (IOException ex) {
       logger.log(Level.ERROR, "Destroy failed.");
       logger.log(Level.DEBUG, ex);
