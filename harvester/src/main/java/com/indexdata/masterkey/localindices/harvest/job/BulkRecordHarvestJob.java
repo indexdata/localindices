@@ -236,7 +236,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
-	getStorage().purge();
+	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
       setStatus(HarvestStatus.FINISHED);
