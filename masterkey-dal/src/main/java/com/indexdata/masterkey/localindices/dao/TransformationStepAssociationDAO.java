@@ -11,6 +11,6 @@ public interface TransformationStepAssociationDAO extends CommonDAO<Transformati
     public List<TransformationStepAssociation> retrieveByTransformationId(Long transformationId);
     public List<TransformationStepAssociation> retrieveByStepId(Long stepId);
     public int getStepCountByTransformationId(Long transformationId);
-	public int getTransformationCountByStepId(Long stepId);
+    public int getTransformationCountByStepId(Long stepId);
 
 }
