@@ -22,6 +22,11 @@
         <managed-bean-scope>session</managed-bean-scope>
     </managed-bean>
     <managed-bean>
+        <managed-bean-name>stepController</managed-bean-name>
+        <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.StepController</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+    </managed-bean>
+    <managed-bean>
         <managed-bean-name>loginManager</managed-bean-name>
         <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.LoginManager</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
@@ -68,6 +73,12 @@
         <navigation-case>
             <from-outcome>list_transformations</from-outcome>
             <to-view-id>/list_transformations.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <navigation-case>
+            <from-outcome>list_steps</from-outcome>
+            <to-view-id>/list_steps.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
@@ -141,43 +152,77 @@
     <navigation-rule>
         <from-view-id>/list_transformations.jsp</from-view-id>
         <navigation-case>
-            <from-outcome>new_xsl_transformation</from-outcome>
-            <to-view-id>/add_xsl_transformation.jsp</to-view-id>
+            <from-outcome>new_transformation</from-outcome>
+            <to-view-id>/transformation_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
-            <from-outcome>edit_xsl_transformation</from-outcome>
-            <to-view-id>/edit_xsl_transformation.jsp</to-view-id>
+            <from-outcome>edit_transformation</from-outcome>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/edit_transformations.jsp</from-view-id>
+        <from-view-id>/list_steps.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>new_split_step</from-outcome>
+            <to-view-id>/step_split_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_split_step</from-outcome>
+            <to-view-id>/step_split_add.jsp</to-view-id>
+        </navigation-case>
         <navigation-case>
             <from-outcome>new_xsl_step</from-outcome>
-            <to-view-id>/add_xsl_transformationstep.jsp</to-view-id>
+            <to-view-id>/step_xsl_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xsl_step</from-outcome>
-            <to-view-id>/edit_xsl_transformationstep.jsp</to-view-id>
+            <to-view-id>/step_xsl_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_transformation</from-outcome>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>save_step</from-outcome>
-            <to-view-id>/edit_xsl_transformation.jsp</to-view-id>
+            <to-view-id>/list_steps.jsp</to-view-id>
         </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/transformation_edit.jsp</from-view-id>
         <navigation-case>
-            <from-outcome>cancel_step</from-outcome>
-            <to-view-id>/edit_xsl_transformation.jsp</to-view-id>
+            <from-outcome>insert_step</from-outcome>
+            <to-view-id>/transformation_insert_step.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>up_step</from-outcome>
-            <to-view-id>/up_xsl_transformationstep.jsp</to-view-id>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>down_step</from-outcome>
-            <to-view-id>/down_xsl_transformationstep.jsp</to-view-id>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>delete_step</from-outcome>
-            <to-view-id>/delete_xsl_transformationstep.jsp</to-view-id>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>save</from-outcome>
+            <to-view-id>/list_transformations.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>cancel</from-outcome>
+            <to-view-id>/list_transformations.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/transformations_add.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>save</from-outcome>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>cancel</from-outcome>
+            <to-view-id>/list_transformations.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>
