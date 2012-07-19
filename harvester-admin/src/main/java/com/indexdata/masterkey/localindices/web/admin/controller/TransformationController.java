@@ -166,7 +166,7 @@ public class TransformationController {
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
     if (current instanceof Transformation) {
-      return "edit_xsl_transformation";
+      return "edit_transformation";
     }
     /*
      * else if (resource instanceof ZebraTransformation) { return
