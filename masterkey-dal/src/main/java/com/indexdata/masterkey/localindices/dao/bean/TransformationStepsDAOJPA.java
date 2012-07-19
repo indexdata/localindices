@@ -18,6 +18,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
+import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepBrief;
 import com.indexdata.utils.persistence.EntityUtil;
@@ -154,5 +155,11 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
         } finally {
             em.close();
         }    
+    }
+
+    @Override
+    public List<Transformation> getTransformations(TransformationStep step) {
+      // TODO Auto-generated method stub
+      return null;
     }
 }
