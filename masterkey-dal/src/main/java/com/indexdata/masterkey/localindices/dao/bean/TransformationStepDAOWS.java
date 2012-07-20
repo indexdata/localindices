@@ -182,4 +182,10 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
 	  // TODO Auto-generated method stub
 	  return null;
 	}
+
+	@Override
+	public List<TransformationStep> getEnabledSteps() {
+	  // TODO Auto-generated method stub
+	  return null;
+	}
 }
