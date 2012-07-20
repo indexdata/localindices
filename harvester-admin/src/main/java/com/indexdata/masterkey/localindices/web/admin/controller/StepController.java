@@ -81,7 +81,7 @@ public class StepController {
   // <editor-fold defaultstate="collapsed"
   // desc="Transformation list paging functions">
   private int firstItem = 0;
-  private int batchSize = 50;
+  private int batchSize = 20;
   private int itemCount = -1;
 
   public int getBatchSize() {
@@ -135,9 +135,14 @@ public class StepController {
     return "edit_split_step";
   }
 
-  public String prepareXslStep() {
+  public String prepareXsltStep() {
     current = new BasicTransformationStep();
-    return "edit_xsl_step";
+    return "edit_xslt_step";
+  }
+
+  public String prepareValidationStep() {
+    current = new BasicTransformationStep();
+    return "edit_xsd_step";
   }
 
   public String add() {
@@ -147,6 +152,12 @@ public class StepController {
     return list();
   }
 
+  public String test() {
+    prePersist();
+    dao.create(current);
+    return "test_step";
+  }
+  
   /* update resource */
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
@@ -154,7 +165,7 @@ public class StepController {
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
     if (current instanceof BasicTransformationStep) {
-      return "edit_xsl_step";
+      return "edit_xslt_step";
     }
     if (current instanceof TransformationStep) {
       return "edit_split_step";
@@ -260,19 +271,16 @@ public class StepController {
   }
 
   public String editStep() {
-    stepMode = "showEditStep();";
     // TODO edit depending on Step Type
-    return "edit_xsl_step";
+    return "edit_xslt_step";
   }
 
   public String deleteStep() {
-    stepMode = "hideEditStep();";
     prePersist();
     if (current != null) {
       if (associationDao.getTransformationCountByStepId(current.getId()) > 0)
 	return "step_in_use";
       dao.delete(current);
-      stepMode = "hideEditStep();";
       return "delete_step";
     }
     return "no_step";
