@@ -52,7 +52,7 @@ public class TransformationStepAssociation implements Serializable, Cloneable {
   @ManyToOne
   @PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
   private Transformation transformation;
-  @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+  @ManyToOne
   @PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
   @XmlTransient
   private TransformationStep step;
