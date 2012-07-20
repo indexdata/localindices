@@ -10,4 +10,7 @@ public interface TransformationStepDAO extends CommonDAO<TransformationStep, Tra
 {
   	/* Retrieve a list of Transformations using step */ 
   	List<Transformation> getTransformations(TransformationStep step);
+  	
+  	List<TransformationStep> getEnabledSteps();
+  	
 }
