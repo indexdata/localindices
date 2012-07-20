@@ -162,4 +162,10 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
       // TODO Auto-generated method stub
       return null;
     }
+
+    @Override
+    public List<TransformationStep> getEnabledSteps() {
+      // TODO Auto-generated method stub
+      return null;
+    }
 }
