@@ -11,22 +11,20 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available TransformationSteps</title>
+        <title>Steps</title>
     </head>
     <body>
         <f:view>
+            <h:outputText style="h1">Steps</h:outputText>
             <h:form>
-                <h:commandLink styleClass="navigation" value="Overview" action="#{stepController.back}" />
-                <h:commandLink styleClass="navigation" value="Refresh List" action="#{stepController.list}" />
+                <%@ include file="fragments/navigation_panel.jsp" %>
                 <br>
                 <h:outputText value="Add new : "/>
-                <h:commandLink styleClass="navigation"  value="Xslt" action="#{stepController.prepareXsltStep}" />                
-<!-- 
-                 <h:outputText value=", "/>
-                <h:commandLink value="WebCrawl" action="#{stepController.prepareWebCrawlResourceToAdd}" />       
- -->
+                <h:commandLink styleClass="navigation"  value="Split" action="#{stepController.prepareSplitStep}" />                
                 <h:outputText value=", "/>
-                <h:commandLink styleClass="navigation" value="XML bulk" action="#{stepController.prepareValidationStep}" />
+                <h:commandLink styleClass="navigation"  value="Transformation (XSL)" action="#{stepController.prepareXsltStep}" />                
+                <h:outputText value=", "/>
+                <h:commandLink styleClass="navigation" value="Validation (XSD)" action="#{stepController.prepareValidationStep}" />
                 <h:outputText value=", "/>
             </h:form>
             <h:form>
@@ -38,7 +36,8 @@
                     <h:commandLink action="#{stepController.next}" value="Remaining #{stepController.itemCount - stepController.lastItem}"
                                    rendered="#{stepController.lastItem < stepController.itemCount && stepController.lastItem + stepController.batchSize > stepController.itemCount}"/>
                 </div>               
-                <h:dataTable value="#{stepController.resources}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+                <h5>Transformation Steps:</h5>
+                <h:dataTable value="#{stepController.steps}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="ID" />
@@ -53,46 +52,39 @@
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status" />
+                            <h:outputText value="Step Type" />
                         </f:facet> 
-                        <h:outputText value="#{item.currentStatus}"></h:outputText>
+                        <h:outputText value="#{item.type}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Status Msg" />
+                            <h:outputText value="Input Format" />
                         </f:facet> 
-                        <h:outputText value="#{item.message}"></h:outputText>
+                        <h:outputText value="#{item.inputFormat}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
-                            <h:outputText value="Last Harvested" />
-                        </f:facet>                        
-                        <h:outputText rendered="#{item.lastHarvestFinished != null}" value="#{item.lastHarvestFinished}"/>
-                        <h:outputText rendered="#{item.lastHarvestFinished == null}" value="attempted on #{item.lastHarvestStarted}"/>
-                    </h:column>
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="Next Scheduled Harvest" />
+                            <h:outputText value="Output Format" />
                         </f:facet> 
-                        <h:outputText value="#{item.nextHarvestSchedule}"></h:outputText>
+                        <h:outputText value="#{item.outputFormat}"></h:outputText>
                     </h:column>
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Enabled" />
                         </f:facet> 
-                        <h:outputText value="#{item.enabledDisplay}"></h:outputText>
+                        <h:graphicImage alt="Enabled" height="16" url="/images/#{item.enabledDisplay}.png" />
                     </h:column>
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Actions" />
                         </f:facet> 
-                        <h:commandLink styleClass="action" action="#{stepController.prepareResourceToEdit}">
-                            <f:param name="resourceId" value="#{item.id}"/>
+                        <h:commandLink styleClass="action" action="#{stepController.prepareToEdit}">
+                            <f:param name="id" value="#{item.id}"/>
                             <h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
                         </h:commandLink>
-                        <h:commandLink styleClass="action" action="#{stepController.deleteResource}"
+                        <h:commandLink styleClass="action" action="#{stepController.delete}"
                             onclick="return confirm('Are you sure?');">
-                            <f:param name="resourceId" value="#{item.id}"/>
+                            <f:param name="id" value="#{item.id}"/>
                             <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />                            
                         </h:commandLink>
                     </h:column>

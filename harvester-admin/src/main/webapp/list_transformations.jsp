@@ -11,13 +11,13 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available Transformations</title>
+        <title>Transformations</title>
     </head>
     <body>
         <f:view>
+            <h:outputText style="h1">Transformations</h:outputText>
             <h:form>
-                <h:commandLink styleClass="navigation"  value="Resources"    action="#{resourceController.listResources}" />
-                <h:commandLink styleClass="navigation"  value="Refresh List" action="#{transformationController.list}" />
+                <%@ include file="fragments/navigation_panel.jsp" %>
                 <br/>
                 <h:outputText value="Add new transformation: "/>
                 <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                

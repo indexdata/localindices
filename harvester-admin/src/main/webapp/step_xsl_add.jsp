@@ -17,9 +17,10 @@
         <f:view>
             <h:form>
                 <h:commandLink styleClass="navigation"  value="Steps" action="#{stepController.list}" />
-                <h3>Xslt Step: </h3>
+                <h3>XSL Transformation Step: </h3>
                 <%@ include file="fragments/step/generic_forminputs.jsp" %>
                 <%@ include file="fragments/step/xslt_forminputs.jsp" %>
+                <%@ include file="fragments/step/test_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{stepController.save}"/>
                 <h:commandButton value="Cancel" action="#{stepController.cancel}"/>
             </h:form>

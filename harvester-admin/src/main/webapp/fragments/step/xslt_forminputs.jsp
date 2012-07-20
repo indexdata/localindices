@@ -5,12 +5,10 @@
 <%@taglib prefix="h" uri="http://java.sun.com/jsf/html"%>
 
 <f:subview id="edit_xsl_form">
-    <div id="editStep" style="display:inline">
+    <div id="XSLeditStep" style="display:inline">
         <h:panelGrid columns="1">
-            <h:outputText value="XSLTransformation:" />
-            <h:inputTextarea
-                value="#{stepController.current.script}"
-                rows="40" cols="80" />
+            <h:outputText value="Transformation (XSL):" />
+            <h:inputTextarea value="#{stepController.current.script}" rows="30" cols="100" />
         </h:panelGrid>
     </div>  
 </f:subview>
