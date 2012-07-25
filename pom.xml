@@ -25,13 +25,32 @@
         </plugin>
 	<plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.2.1</version>
-	  <configuration>
-	    <preparationGoals>clean install</preparationGoals>
-            <tagBase>https://svn.apache.org/repos/asf/maven/components/releases</tagBase>
-	  </configuration>          
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <phase>verify</phase>
+              <goals>
+		<goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
 	</plugin>
+	<!-- Build on platform that has maven 2.2.1 
+	   On RHEL5/CentOS5 install a newer maven or package it from war. 
+	  -->
+	<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.2.2</version>
+          <configuration>
+            <preparationGoals>clean verify</preparationGoals>
+            <releaseProfiles>production</releaseProfiles>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
+            <pushChanges>false</pushChanges>
+            <localCheckout>true</localCheckout>
+          </configuration>
+       </plugin>
       </plugins>
     </pluginManagement>
   </build>
