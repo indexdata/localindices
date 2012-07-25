@@ -1,0 +1,6 @@
+masterkey-harvester (2.00-1) unstable; urgency=low
+
+  * Initial Debian Release.
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 25 Jul 2012 14:06:00 +0100
+
