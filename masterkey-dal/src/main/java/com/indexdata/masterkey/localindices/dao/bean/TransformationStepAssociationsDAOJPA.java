@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -108,7 +109,8 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
     public List<TransformationStepAssociation> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        List<TransformationStepAssociation> hables = null;
+        // HACK: Hides database errors but does not crash the Scheduler
+        List<TransformationStepAssociation> hables = new LinkedList<TransformationStepAssociation>();
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from TransformationStepAssociation as o");

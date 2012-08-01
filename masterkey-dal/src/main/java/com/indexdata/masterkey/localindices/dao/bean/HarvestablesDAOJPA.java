@@ -10,8 +10,10 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.utils.persistence.EntityUtil;
+
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -108,7 +110,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public List<Harvestable> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        List<Harvestable> hables = null;
+        // Communication errors with the persistence Layer will now just look like 0 records exists.
+        // But at least our Scheduler wont stop running.
+        List<Harvestable> hables = new LinkedList<Harvestable>();
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from Harvestable as o");
@@ -117,12 +121,16 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             hables = q.getResultList();
             tx.commit();
         } catch (Exception ex) {
-            logger.log(Level.DEBUG, ex);
+            logger.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
                 logger.log(Level.DEBUG, e);
             }
+            // Some sort of analysis on the exception is required. 
+            // Temporary should either ignored or throw as Interrupted
+            // Fatals should be re-thrown.  
+            // For now every one is logged but otherwise ignored. 
         } finally {
             em.close();
         }

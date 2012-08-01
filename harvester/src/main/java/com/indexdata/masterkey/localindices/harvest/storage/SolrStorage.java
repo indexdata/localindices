@@ -73,7 +73,7 @@ public class SolrStorage implements HarvestStorage {
       logger = new StorageJobLogger(SolrStorage.class, storage);
       server = new CommonsHttpSolrServer(url);
       // server.setSoTimeout(1000); // socket read timeout
-      server.setConnectionTimeout(100);
+      server.setConnectionTimeout(2000);
       server.setDefaultMaxConnectionsPerHost(100);
       server.setMaxTotalConnections(100);
       server.setFollowRedirects(false); // defaults to false
@@ -132,9 +132,14 @@ public class SolrStorage implements HarvestStorage {
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     try {
-      server.deleteByQuery("database:" + harvestable.getId());
+      UpdateResponse response = server.deleteByQuery("database:" + harvestable.getId());
+      logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
+      if (commit) {
+	response = server.commit();
+	logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+      }
     } catch (SolrServerException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

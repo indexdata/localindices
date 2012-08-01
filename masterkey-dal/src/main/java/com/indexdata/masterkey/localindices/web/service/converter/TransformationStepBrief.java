@@ -13,6 +13,10 @@ public class TransformationStepBrief implements Comparable<Object> {
     private Long id;
     private String name;
     private String description;
+    private String type;
+    private String inputFormat;
+    private String outputFormat;
+    private Boolean enabled;
     
     private URI uri; 
 
@@ -24,6 +28,11 @@ public class TransformationStepBrief implements Comparable<Object> {
         setId(entity.getId());
         setName(entity.getName());
         setDescription(entity.getDescription());
+        setType(entity.getType());
+        setInputFormat(entity.getInputFormat());
+        setOutputFormat(entity.getOutputFormat());
+        setEnabled(entity.getEnabled());
+          
         if (isUriExtendable) {
             try {
                 this.uri = new URI(uri.toString() + entity.getId() + "/");
@@ -87,4 +96,58 @@ public class TransformationStepBrief implements Comparable<Object> {
 	public URI getResourceUri() {
 		return uri;
 	}
+
+
+    public String getType() {
+      if (type == null)
+	return "";
+      return type;
+    }
+
+
+    public void setType(String type) {
+      this.type = type;
+    }
+
+
+    public String getInputFormat() {
+      if (inputFormat == null)
+	return "";
+      return inputFormat;
+    }
+
+
+    public void setInputFormat(String format) {
+      this.inputFormat = format;
+    }
+
+
+    public String getOutputFormat() {
+      if (outputFormat == null)
+	return "";
+      return outputFormat;
+    }
+
+
+    public void setOutputFormat(String format) {
+      this.outputFormat = format;
+    }
+
+
+    public boolean isEnabled() {
+      return enabled != null && enabled;
+    }
+
+
+    public void setEnabled(Boolean enabled) {
+      this.enabled = enabled;
+    }
+    
+    public String getEnabledDisplay() {
+  	String display = "No";
+  	if (isEnabled())
+      	display = "Yes";
+  	return display;
+  }
+
 }

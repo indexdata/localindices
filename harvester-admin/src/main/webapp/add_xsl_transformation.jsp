@@ -18,7 +18,7 @@
             <h:form>
                 <h:commandLink styleClass="navigation"  value="Transformation List" action="#{transformationController.list}" />
                 <h3>New XSL Transformation: </h3>
-                <%@ include file="fragments/transformation/generic_transformation_forminputs.jsp" %>
+                <%@ include file="fragments/transformation/generic_forminputs.jsp" %>
                 <%@ include file="fragments/transformation/xslt_transformation_forminputs.jsp" %>
                 <h:commandButton value="Add" action="#{transformationController.add}"/>
             </h:form>

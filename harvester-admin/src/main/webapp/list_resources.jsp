@@ -11,17 +11,13 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" type="text/css" href="css/styles.css" />
-<title>Available resources</title>
+<title>Resources</title>
 </head>
 <body>
 	<f:view>
-		<h:form>
-			<h:commandLink styleClass="navigation" value="Refresh List"
-				action="#{resourceController.listResources}" />
-			<h:commandLink styleClass="navigation" value="Storages"
-				action="#{storageController.listStorages}" />
-			<h:commandLink styleClass="navigation" value="Transformations"
-				action="#{transformationController.list}" />
+            <h:outputText style="h1">Resources</h:outputText>
+    		<h:form>
+            <%@ include file="fragments/navigation_panel.jsp" %>
 			<br>
 			<h:outputText value="Add new resource: " />
 			<h:commandLink styleClass="navigation" value="OAI-PMH"
@@ -110,18 +106,18 @@
 					<h:commandLink styleClass="action"
 						action="#{resourceController.prepareResourceToRun}">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="Run" height="16" url="/images/run.png" />
+						<h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
 					</h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.deleteResource}"
 						onclick="return confirm('Are you sure?');">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
+						<h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
 					</h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.viewJobLog}">
 						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage alt="View Log" height="16" url="/images/log.png" />
+						<h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
 					</h:commandLink>
 				</h:column>
 				<h:column>

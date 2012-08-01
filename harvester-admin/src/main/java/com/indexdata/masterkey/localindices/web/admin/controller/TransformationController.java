@@ -17,6 +17,7 @@ import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.crypto.dsig.Transform;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -26,6 +27,8 @@ import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
+import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
+import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -56,7 +59,8 @@ public class TransformationController {
   private String stepMode = "hideEditStep();"; // which JS function should be
 					       // called on load
   private TransformationStepAssociation currentStepAssociation;
-
+  private TransformationStepDAO stepDao; 
+  
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
 
@@ -66,10 +70,10 @@ public class TransformationController {
 	  .getCurrentInstance().getExternalContext().getContext());
       associationDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext
 	  .getCurrentInstance().getExternalContext().getContext());
-/*
+
       stepDao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext
 	  .getCurrentInstance().getExternalContext().getContext());
-*/
+
     } catch (DAOException ex) {
       logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
     }
@@ -90,6 +94,7 @@ public class TransformationController {
   private int firstItem = 0;
   private int batchSize = 50;
   private int itemCount = -1;
+  private String errorMessage;
 
   public int getBatchSize() {
     return batchSize;
@@ -162,10 +167,11 @@ public class TransformationController {
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
     // stepAssociation = current.getStepAssociations();
+    currentStepAssociation = null;
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
     if (current instanceof Transformation) {
-      return "edit_xsl_transformation";
+      return "edit_transformation";
     }
     /*
      * else if (resource instanceof ZebraTransformation) { return
@@ -208,19 +214,11 @@ public class TransformationController {
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public DataModel getTransformationSteps() {
-    List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); /*
-												  * stepDao
-												  * .
-												  * retrieveByTransformationId
-												  * (
-												  * current
-												  * .
-												  * getId
-												  * (
-												  * )
-												  * )
-												  * ;
-												  */
+    List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); 
+    
+    /*
+     * stepDao . retrieveByTransformationId ( current . getId ( ) ) ;
+     */
     if (current != null)
       steps = (List) current.getSteps();
     return new ListDataModel(steps);
@@ -250,20 +248,37 @@ public class TransformationController {
 
   }
 
-  // </editor-fold>
+  public Transformation getResourceFromRequestParam() {
+    return getResourceFromRequestParam(null);
+  }
 
   /* objects from request */
-  public Transformation getResourceFromRequestParam() {
+  public Transformation getResourceFromRequestParam(String id_param) {
+    if (id_param == null)
+      id_param = "id";
+    
     Transformation o = null;
     if (model != null) {
       o = (Transformation) model.getRowData();
       // o = em.merge(o);
     } else {
       String param = FacesContext.getCurrentInstance().getExternalContext()
-	  .getRequestParameterMap().get("id");
+	  .getRequestParameterMap().get(id_param);
       Long id = new Long(param);
       o = dao.retrieveById(id);
     }
+    return o;
+  }
+
+  /* objects from request */
+  public TransformationStep getStepFromRequestParam(String id_param) 
+  {
+    if (id_param == null)
+      id_param = "id";
+    TransformationStep o; 
+    String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(id_param);
+    Long id = new Long(param);
+    o = stepDao.retrieveById(id);
     return o;
   }
 
@@ -321,22 +336,32 @@ public class TransformationController {
     return -1;
   }
 
-  public String addXslStep() {
-    currentStepAssociation = null;
-    // Step up Xsl Step type and association
-    logger.error("Setting up new XSL step.");
-    BasicTransformationStep step = new BasicTransformationStep();
-    step.setDescription("<Description>");
-    step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-    currentStepAssociation = new TransformationStepAssociation();
-    currentStepAssociation.setStep(step);
-    currentStepAssociation.setTransformation(current);
-    currentStepAssociation.setPosition(current.getSteps().size() + 1);
-    step.setName("<New step " + currentStepAssociation.getPosition() + ">");
-    // current.addStepAssociation(currentStepAssociation);
-    setupStep();
-    stepMode = "showEditStep();";
-    return "new_xsl_step";
+  public String selectStepToInsert() {
+    return "insert_step";
+  }
+
+  public String addStep() 
+  {
+    Transformation transformation = getResourceFromRequestParam("transformationID");
+    TransformationStep step = getStepFromRequestParam("stepID");
+    if (transformation != null && step != null) {
+      currentStepAssociation = new TransformationStepAssociation();
+      currentStepAssociation.setStep(step);
+      currentStepAssociation.setTransformation(transformation);
+      currentStepAssociation.setPosition(transformation.getSteps().size() + 1);
+      associationDao.create(currentStepAssociation); 
+      logger.debug("Association id " + currentStepAssociation.getId() 
+	  + " Transformation ID: " + currentStepAssociation.getTransformationId() 
+	  + " Step ID: " + currentStepAssociation.getStepId());  
+      transformation.addStepAssociation(currentStepAssociation);
+      dao.create(transformation);
+    } 
+    else {
+      errorMessage = "Failed to attached Step (" + step + ") to Transformation (" + transformation + "): One was not found.";  
+      return "transformation_failure";
+    }
+      
+    return "insert_step";
   }
 
   public String editStep() {
@@ -414,6 +439,7 @@ public class TransformationController {
       currentStepAssociation.setTransformation(current);
       currentStepAssociation = associationDao.update(currentStepAssociation);
     }
+    currentStepAssociation = null;
     return "save_step";
   }
 
@@ -461,6 +487,14 @@ public class TransformationController {
 
   public void setStepMode(String stepMode) {
     this.stepMode = stepMode;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
   }
 
 }

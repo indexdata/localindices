@@ -2,6 +2,8 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
 
@@ -12,9 +14,11 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
     setTarget(storage);
   }
 
-  public void purge() {
+  public void purge(boolean commit) {
     if (logger != null)
       logger.info("purge is being ignored.");
+    if (commit)
+      commit();
   }
 
   public void commit() {
@@ -26,6 +30,11 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger; 
     
+  }
+
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    return getTarget().getStatus();
   }
 
 }

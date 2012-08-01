@@ -8,8 +8,6 @@
     </xsl:copy>
   </xsl:template>
 
-
-  <!-- remove empty subject-long -->
   <xsl:template match="pz:metadata[@type='author']">
     <xsl:variable name="author" select="replace(string(.), ', [0-9]{4}\-[0-9]{4}$', '')" />
     <xsl:if test="$author and $author != '' ">
@@ -18,6 +16,4 @@
       </pz:metadata>
     </xsl:if>
   </xsl:template>
-
-
 </xsl:stylesheet>

@@ -12,8 +12,10 @@ public class ConsoleRecordStorage implements RecordStorage {
 
   private boolean overrideMode;
   private String database = null;
-  StorageJobLogger logger; 
-  
+  StorageJobLogger logger;
+  private int added;
+  private int deleted; 
+  boolean committed; 
   
   private void message(Object msg) {
     System.out.println(msg);
@@ -25,21 +27,29 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public void begin() throws IOException {
     message("Begin");
+    added = 0;
+    deleted = 0;
+    committed  = false;
   }
 
   @Override
   public void commit() throws IOException {
     message("Commit");
+    committed = true;
   }
 
   @Override
   public void rollback() throws IOException {
     message("Rollback");
+    added = 0;
+    deleted = 0;
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     message("Purge");
+    if (commit)
+      	commit();
   }
 
   @Override
@@ -79,6 +89,7 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public void add(Record record) {
     message("Add " + record.toString());
+    added++;
   }
 
   @Override
@@ -90,10 +101,16 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public void delete(String id) {
     message("Delete Record{id=" + id + "}");
+    deleted++;
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
+  }
+
+  @Override
+  public StorageStatus getStatus()  {
+    return new SimpleStorageStatus(added, deleted, committed);
   }
 }

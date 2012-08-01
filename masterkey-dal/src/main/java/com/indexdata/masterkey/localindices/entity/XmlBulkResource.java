@@ -25,6 +25,7 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private String splitAt;
   private String splitSize;
   private String expectedSchema;
+  private String outputSchema;
 
   public XmlBulkResource() {
   }
@@ -77,6 +78,14 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 
   public String getSplitSize() {
     return splitSize;
+  }
+
+  public String getOutputSchema() {
+    return outputSchema;
+  }
+
+  public void setOutputSchema(String outputSchema) {
+    this.outputSchema = outputSchema;
   }
 
 }

@@ -22,4 +22,6 @@ public interface RecordStorage extends HarvestStorage {
   void delete(String id);
 
   void setLogger(StorageJobLogger logger);
+  
+  StorageStatus getStatus() throws StatusNotImplemented;
 }

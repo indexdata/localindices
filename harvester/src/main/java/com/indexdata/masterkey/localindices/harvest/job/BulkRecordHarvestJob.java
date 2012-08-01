@@ -40,6 +40,7 @@ import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
+import org.marc4j.TurboMarcXmlWriter;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -59,9 +60,9 @@ import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
- * This class handles bulk HTTP download of a single file.
+ * This class handles HTTP download of file(s), and bulk transformation
  * 
- * @author Dennis
+ * @author Dennis Schafroth
  * 
  */
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
@@ -235,7 +236,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
-	getStorage().purge();
+	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
       setStatus(HarvestStatus.FINISHED);
@@ -321,13 +322,26 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   class MarcReadStore implements ReadStore 
   {
     InputStream  input; 
+    boolean useTurboMarc = false;
+    // Default MARC-8 encoding, use setEncoding to override
+    String encoding = null;
+    
     public MarcReadStore(InputStream input) {
-      this.input = input; 
+      this.input = input;
     }    
+
+    public MarcReadStore(InputStream input, boolean useTurboMarc) {
+      this.input = input;
+      this.useTurboMarc = useTurboMarc;
+    }    
+
+    void setEncoding(String encoding) {
+      this.encoding = encoding;
+    }
+    
     @Override
     public void readAndStore() throws Exception {
-      // Assume MARC-8 encoding for now
-      MarcStreamReader reader  = new MarcStreamReader(input, "MARC-8");
+      MarcStreamReader reader  = new MarcStreamReader(input, encoding);
       reader.setBadIndicators(false);
       store(reader, -1);      
     }
@@ -365,12 +379,26 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.error("No file found in URL: " + conn.getURL());
       inputStreamDecoded = zipInput;
     }
-    if ("application/marc".equals(contentType)
-	|| "application/marc".equals(resource.getExpectedSchema())) {
-      logger.info("Setting up Binary MARC reader. "
-	  + (resource.getExpectedSchema() != null ? " Override by resource mime-type." : ""));
-      return new MarcReadStore(inputStreamDecoded);
+    MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
+    // Expected type overrides content type
+    if (resource.getExpectedSchema() != null)
+       mimeCharset =  new MimeTypeCharSet(resource.getExpectedSchema());
+    if (mimeCharset.isMimeType("application/marc") ||
+	// TODO doesn't really make sense
+	mimeCharset.isMimeType("application/tmarc")) {
+      logger.info("Setting up Binary MARC reader ("  
+	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
+	  + (resource.getExpectedSchema() != null ? 
+	      " Override by resource mime-type: " + resource.getExpectedSchema() 
+	      : "Content-type: " + contentType));
+      
+      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded);
+      String encoding = mimeCharset.getCharset();
+      if (encoding != null) 
+	readStore.setEncoding(encoding);
+      return readStore;
     }
+    
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
     return new InputStreamReadStore(inputStreamDecoded, contentLength);
@@ -389,7 +417,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
     transformationStorage = setupTransformation(getStorage());
-    MarcWriter writer = new MarcXmlWriter(transformationStorage.getOutputStream());
+    MarcWriter writer;
+    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(resource.getOutputSchema());
+    if (mimetypeCharset.isMimeType("application/tmarc")) {
+    	writer = new TurboMarcXmlWriter(transformationStorage.getOutputStream(), true);
+    	logger.info("Setting up Binary MARC to TurboMarc converter");
+    }
+    else { 
+  	logger.info("Setting up Binary MARC to MarcXml converter");
+ 	writer = new MarcXmlWriter(transformationStorage.getOutputStream(), true);
+    }
     while (reader.hasNext()) {
       try {
 	org.marc4j.marc.Record record = reader.next();
@@ -483,7 +520,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
    * 
    */
   private void pipe(InputStream is, OutputStream os, long total) throws IOException {
-    int blockSize = 4096;
+    int blockSize = 100*1024;
     byte[] buf = new byte[blockSize];
     TotalProgressLogger progress = new TotalProgressLogger(total);
     for (int len = -1; (len = is.read(buf)) != -1;) {

@@ -28,6 +28,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private Map<String, String> databaseProperties;
   protected int added;
   protected int deleted;
+  private boolean committed;
   
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
@@ -39,6 +40,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     database = harvestable.getId().toString();
     added = 0;
     deleted = 0;
+    committed = false;
   }
 
   @Override
@@ -46,11 +48,12 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     try {
 
       logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
-      // TODO Testing waitFlush=false, waitSearcher=false. Not good for indexes
-      // with searchers
-      UpdateResponse response = server.commit(false, false);
+      // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
+      UpdateResponse response = server.commit(true, false);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
+      else	
+	committed = true;
     } catch (SolrServerException e) {
       logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database, e);
       e.getStackTrace();
@@ -70,9 +73,18 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     try {
-      server.deleteByQuery(databaseField + ":" + database);
+      if (database == null) {
+	logger.error("purge called before begin.");
+	begin();
+      }
+      UpdateResponse response = server.deleteByQuery(databaseField + ":" + database);
+      logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
+      if (commit) {
+	response = server.commit();
+	logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+      }
     } catch (SolrServerException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -238,6 +250,11 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
+  }
+
+  @Override
+  public StorageStatus getStatus()  {
+    return new SimpleStorageStatus(added, deleted, committed);
   }
 
 }

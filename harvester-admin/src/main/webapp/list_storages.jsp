@@ -11,21 +11,21 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available Storages</title>
+        <title>Storages</title>
     </head>
     <body>
         <f:view>
+            <h:outputText style="h1">Storages</h:outputText>
             <h:form>
-                <h:commandLink styleClass="navigation" value="Resources" action="#{resourceController.listResources}" />
-                <h:commandLink styleClass="navigation" value="Refresh List" action="#{storageController.listStorages}" />
+                <%@ include file="fragments/navigation_panel.jsp" %>
                 <br/>
                 <h:outputText value="Add new storage: "/>
                 <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
+                <h:outputText value=", "/>
+                <h:commandLink value="ConsoleStorage" action="#{storageController.prepareConsoleStorageToAdd}" />       
 <!-- 
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
-                <h:outputText value=", "/>
-                <h:commandLink value="Zebra2" action="#{storageController.prepareZebraStorageToAdd}" />       
                 <h:outputText value=" "/>
  -->
             </h:form>
@@ -64,10 +64,6 @@
                             <f:param name="storageId" value="#{item.id}"/>
                             <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
                         </h:commandLink>
-                        <h:outputLink title="Storage Admin" value="#{storageController.storageAdmin}" target="_target">
-                            <f:param name="storageId" value="#{item.id}"/>
-                            <h:graphicImage alt="Storarge Admin" height="16" url="/images/log.png" />
-                        </h:outputLink>
                     </h:column>
                 </h:dataTable>
             </h:form>

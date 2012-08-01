@@ -1,0 +1,5 @@
+// This is way more permissive than the Harvester actually needs.
+
+grant codeBase "file:/usr/share/masterkey/harvester/-" {
+  permission java.security.AllPermission;
+};

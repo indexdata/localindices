@@ -148,7 +148,7 @@ tbody tr:hover th {
     background: #C5CCDC;
 }
 
-.navigation:after {
+.navigation:before {
     content:"\00A0\00BB";
 }
 	

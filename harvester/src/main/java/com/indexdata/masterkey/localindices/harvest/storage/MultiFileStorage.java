@@ -152,10 +152,13 @@ public class MultiFileStorage implements HarvestStorage {
    * 
    * @throws java.io.IOException
    */
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     logger.log(Level.INFO, "Purge '" + basePath + "'");
     deleteDir(new File(committedDir));
     deleteDir(new File(incomingDir));
+    if (!commit) {
+      logger.log(Level.WARN, "Purge is always committed on MultiFileStorage '" + basePath + "'");
+    }
   }
 
   /**

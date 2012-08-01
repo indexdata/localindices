@@ -43,8 +43,11 @@ public class SingleFileStorage implements HarvestStorage {
     f.delete();
   }
 
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     this.rollback();
+    if (!commit) {
+      	// TODO Warn about always commit
+    }
   }
 
   public OutputStream getOutputStream() {

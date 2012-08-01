@@ -99,4 +99,9 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
     this.logger = logger;
   }
 
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    return getTarget().getStatus();
+  }
+
 }
