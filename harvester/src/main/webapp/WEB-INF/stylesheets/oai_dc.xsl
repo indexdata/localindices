@@ -70,9 +70,11 @@
     </xsl:for-each>
 
     <xsl:for-each select="dc:identifier">
-      <pz:metadata type="electronic-url">
-	<xsl:value-of select="."/>
-      </pz:metadata>
+      <xsl:if test="contains(.,'://')">
+	<pz:metadata type="electronic-url">
+	  <xsl:value-of select="."/>
+	</pz:metadata>
+      </xsl:if>
     </xsl:for-each>
 
     <xsl:for-each select="dc:type">
