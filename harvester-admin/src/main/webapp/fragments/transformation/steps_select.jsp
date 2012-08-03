@@ -35,6 +35,6 @@
 		</h:column>
 	</h:dataTable>
     <div id="transformation_steps_select_close" style="display:inline">  
-        <h:commandLink value="Close" action="#{transformationController.list}" />
+        <h:commandLink value="Close" action="#{transformationController.editCurrent}" />
     </div>
 </f:subview>
