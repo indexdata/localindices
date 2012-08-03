@@ -142,9 +142,9 @@ public class TransformationController {
   // </editor-fold>
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
   /* add new resource */
-  public String prepareXsltTransformationToAdd() {
+  public String prepareTransformationToAdd() {
     current = new BasicTransformation();
-    return "new_xsl_transformation";
+    return "new_transformation";
   }
 
   public String prepareCrossMapTransformationToAdd() {
@@ -153,12 +153,20 @@ public class TransformationController {
     return "new_crossmap_transformation";
   }
 
-  public String add() {
+  /* Save and continue editing */ 
+  public String save() {
     prePersist();
-    dao.create(current);
+    if (current.getId() == null)
+      dao.create(current);
+    else
+      current = dao.update(current);
+    return editCurrent();
+  }
+
+  public String saveExit() {
+    save();
     current = null;
     currentStepAssociation = null;
-    // stepAssociation = null;
     return list();
   }
 
@@ -182,13 +190,6 @@ public class TransformationController {
       logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
       return "failure";
     }
-  }
-
-  public String save() {
-    prePersist();
-    current = dao.update(current);
-    current = null;
-    return list();
   }
 
   private boolean isPb() {
@@ -353,7 +354,10 @@ public class TransformationController {
 	  + " Transformation ID: " + currentStepAssociation.getTransformationId() 
 	  + " Step ID: " + currentStepAssociation.getStepId());  
       transformation.addStepAssociation(currentStepAssociation);
-      dao.create(transformation);
+      // Should not happpen, but...
+      if (transformation.getId() == null) 
+	dao.create(transformation);
+      current = dao.update(transformation);
     } 
     else {
       errorMessage = "Failed to attached Step (" + step + ") to Transformation (" + transformation + "): One was not found.";  
@@ -399,7 +403,7 @@ public class TransformationController {
       swap.setPosition(swap.getPosition() - i);
       current.getStepAssociations().set(newIndex, cur);
       current.getStepAssociations().set(index, swap);
-      dao.update(current);
+      current = dao.update(current);
       associationDao.update(cur);
       associationDao.update(swap);
     }
@@ -448,10 +452,10 @@ public class TransformationController {
     return "save_step";
   }
 
-  public String cancelStep() {
+  public String cancel() {
+    current = null;
     currentStepAssociation = null;
-    stepMode = "hideEditStep();";
-    return "cancel_step";
+    return list();
   }
 
   public TransformationStep getTransformationStep() {
