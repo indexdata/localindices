@@ -6,6 +6,7 @@
 
 <f:subview id="transformation_steps_select">
 	<h5>Transformation Steps:</h5>
+    <%@ include file="/fragments/step/pager.jsp" %>
 	<h:dataTable value="#{stepController.steps}"
 		var="item"
 		columnClasses="right,left,center,left,center,center,center,center">
@@ -21,6 +22,18 @@
 			</f:facet>
 			<h:outputText value="#{item.name}"></h:outputText>
 		</h:column>
+        <h:column>
+            <f:facet name="header">
+                <h:outputText value="In" />
+            </f:facet>
+            <h:outputText value="#{item.inputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+            <f:facet name="header">
+                <h:outputText value="Out" />
+            </f:facet>
+            <h:outputText value="#{item.outputFormat}"></h:outputText>
+        </h:column>
 		<h:column>
 			<f:facet name="header">
 				<h:outputText value="Actions" />
@@ -35,6 +48,6 @@
 		</h:column>
 	</h:dataTable>
     <div id="transformation_steps_select_close" style="display:inline">  
-        <h:commandLink value="Close" action="#{transformationController.editCurrent}" />
+        <h:commandButton value="Close" action="#{transformationController.editCurrent}" />
     </div>
 </f:subview>
