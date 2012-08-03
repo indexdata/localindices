@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.StreamingUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -71,9 +72,11 @@ public class SolrStorage implements HarvestStorage {
         storage = harvestable.getStorage();
       }
       logger = new StorageJobLogger(SolrStorage.class, storage);
+      //server = new StreamingUpdateSolrServer(url, 1000, 10);
       server = new CommonsHttpSolrServer(url);
-      // server.setSoTimeout(1000); // socket read timeout
-      server.setConnectionTimeout(2000);
+      // TODO make configurable 
+      server.setSoTimeout(100000); // socket read timeout
+      server.setConnectionTimeout(10000);
       server.setDefaultMaxConnectionsPerHost(100);
       server.setMaxTotalConnections(100);
       server.setFollowRedirects(false); // defaults to false
