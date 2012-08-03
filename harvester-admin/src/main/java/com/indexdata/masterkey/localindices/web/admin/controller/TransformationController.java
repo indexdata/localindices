@@ -17,7 +17,6 @@ import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.crypto.dsig.Transform;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -371,10 +370,15 @@ public class TransformationController {
     return "edit_xsl_step";
   }
 
+  public String editCurrent() {
+    return "edit_current";
+  }
+
   public String upStep() {
     setupStep();
     upDownStep(currentStepAssociation, -1);
     stepMode = "hideEditStep();";
+    // TODO replace with edit_current
     return "up_step";
   }
 
@@ -405,6 +409,7 @@ public class TransformationController {
     setupStep();
     upDownStep(currentStepAssociation, 1);
     stepMode = "hideEditStep();";
+    // TODO replace with edit_current
     return "down_step";
   }
 
