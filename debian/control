@@ -1,21 +1,32 @@
-Source: masterkey-service-proxy
+Source: masterkey-harvester
 Section: misc
 Priority: extra
 Maintainer: Index Data <info@indexdata.com>
-Build-Depends: debhelper (>= 5), maven2, default-jdk
+Build-Depends: debhelper (>= 5), default-jdk, maven2, unzip
 Standards-Version: 3.8.0
-Homepage: http://www.indexdata.dk/masterkey/
+Homepage: http://www.indexdata.dk/masterkey/harvester
 
-Package: masterkey-service-proxy
+Package: masterkey-harvester
 Architecture: all
-Description: The Service Proxy, part of the MasterKey suite
- Provides additional services on top of those provided by
- Pazpar2, handling authentication and other such tasks.
+Description: The Harvester, part of the MasterKey suite 
+ provides a OAI-PMH and XML bulk harvesting, transformations 
+ using pipelines of XSL Transformations into indexes like Solr.
 
-Package: masterkey-service-proxy-tomcat6
+Package: masterkey-harvester-tomcat6
 Architecture: all
-Depends: tomcat6, masterkey-service-proxy, libtext-csv-perl, libjson-perl, libspreadsheet-parseexcel-perl, libspreadsheet-writeexcel-perl, libxml-libxml-simple-perl
-Description: Implementation of the Service Proxy under Tomcat 6
- Provides additional services on top of those provided by
- Pazpar2, handling authentication and other such tasks.
+Depends: tomcat6, masterkey-harvester
+Description: Configuration of the Harvester for running under Tomcat 6
+
+Package: masterkey-harvester-admin
+Architecture: all
+Depends:
+Description: The Harvester Administration, part of the MasterKey suite
+
+Package: masterkey-harvester-admin-tomcat6
+Architecture: all
+Depends: tomcat6
+Description: Configuration of the Harvester Administration running under Tomcat 6
+
+
+
 

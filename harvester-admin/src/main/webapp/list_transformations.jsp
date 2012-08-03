@@ -11,20 +11,20 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="css/styles.css"/>
-        <title>Available Transformations</title>
+        <title>Transformations</title>
     </head>
     <body>
         <f:view>
             <h:form>
-                <h:commandLink styleClass="navigation"  value="Resources"    action="#{resourceController.listResources}" />
-                <h:commandLink styleClass="navigation"  value="Refresh List" action="#{transformationController.list}" />
-                <br/>
+                <%@ include file="fragments/navigation_panel.jsp" %>
+                <h3>
+                    <h:outputText>Transformations</h:outputText>
+                </h3>
                 <h:outputText value="Add new transformation: "/>
                 <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
             <h:form>
-                <h3><h:outputText value="Available Transformations:" /></h3>
                 <div id="pager">
                     <h:outputText value="Item #{transformationController.firstItem + 1}..#{transformationController.lastItem} of #{transformationController.itemCount}"/>&nbsp;
                     <h:commandLink action="#{transformationController.prev}" value="Previous #{transformationController.batchSize}" rendered="#{transformationController.firstItem >= transformationController.batchSize}"/>&nbsp;

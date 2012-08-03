@@ -1,7 +1,6 @@
-files
-masterkey-service-proxy
-masterkey-service-proxy-tomcat6
-masterkey-service-proxy-tomcat6.debhelper.log
-masterkey-service-proxy-tomcat6.substvars
-masterkey-service-proxy.debhelper.log
-masterkey-service-proxy.substvars
+masterkey-harvester
+masterkey-harvester-tomcat6
+masterkey-harvester-tomcat6.debhelper.log
+masterkey-harvester-tomcat6.substvars
+masterkey-harvester.debhelper.log
+masterkey-harvester.substvars

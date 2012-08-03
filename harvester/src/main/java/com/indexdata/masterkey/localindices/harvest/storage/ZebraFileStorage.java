@@ -63,8 +63,10 @@ public class ZebraFileStorage extends MultiFileStorage {
   }
 
   @Override
-  public void purge() throws IOException {
-    super.purge();
+  public void purge(boolean commit) throws IOException {
+    super.purge(commit);
+    if (!commit)
+      logger.log(Level.WARN, "ZebraFileStorage: purge is always commited.");
     zebraDrop();
     zebraCommit();
   }

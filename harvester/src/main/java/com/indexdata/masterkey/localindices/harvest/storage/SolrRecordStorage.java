@@ -48,9 +48,8 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     try {
 
       logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
-      // TODO Testing waitFlush=false, waitSearcher=false. Not good for indexes
-      // with searchers
-      UpdateResponse response = server.commit(true, true);
+      // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
+      UpdateResponse response = server.commit(true, false);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
       else	
@@ -74,9 +73,18 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     try {
-      server.deleteByQuery(databaseField + ":" + database);
+      if (database == null) {
+	logger.error("purge called before begin.");
+	begin();
+      }
+      UpdateResponse response = server.deleteByQuery(databaseField + ":" + database);
+      logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
+      if (commit) {
+	response = server.commit();
+	logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+      }
     } catch (SolrServerException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

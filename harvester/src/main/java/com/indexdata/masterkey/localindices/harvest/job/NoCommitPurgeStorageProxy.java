@@ -14,9 +14,11 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
     setTarget(storage);
   }
 
-  public void purge() {
+  public void purge(boolean commit) {
     if (logger != null)
       logger.info("purge is being ignored.");
+    if (commit)
+      commit();
   }
 
   public void commit() {

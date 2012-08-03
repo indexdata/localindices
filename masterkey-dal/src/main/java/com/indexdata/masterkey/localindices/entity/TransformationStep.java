@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,6 +20,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * @author Dennis
@@ -37,10 +39,23 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   protected String name;
   @Column(length = 4096)
   protected String description;
+
+  protected String type;
+ 
+  protected String inputFormat;
+  protected String outputFormat;
+  
   protected Boolean enabled;
   @Lob
   protected String script = "";
 
+  @Lob
+  protected String testData = "";
+  @Lob
+  protected String testOutput = "";
+  @Transient
+  protected List<Transformation> transformations; 
+  
   public TransformationStep() {
   }
 
@@ -112,5 +127,53 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   @Override
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
+  }
+
+  public String getInputFormat() {
+    return inputFormat;
+  }
+
+  public void setInputFormat(String format) {
+    this.inputFormat = format;
+  }
+
+  public String getOutputFormat() {
+    return outputFormat;
+  }
+
+  public void setOutputFormat(String format) {
+    this.outputFormat = format;
+  }
+
+  public String getTestData() {
+    return testData;
+  }
+
+  public void setTestData(String testData) {
+    this.testData = testData;
+  }
+
+  public String getTestOutput() {
+    return testOutput;
+  }
+
+  public void setTestOutput(String testOutput) {
+    this.testOutput = testOutput;
+  }
+
+  public List<Transformation> getTransformations() {
+    return transformations;
+  }
+
+  public void setTransformations(List<Transformation> transformations) {
+    this.transformations = transformations;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 }

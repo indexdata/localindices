@@ -1,5 +1,5 @@
-// This is way more permissive than the Service Proxy actually needs.
+// This is way more permissive than the Harvester actually needs.
 
-grant codeBase "file:/usr/share/masterkey/service-proxy/-" {
+grant codeBase "file:/usr/share/masterkey/harvester/-" {
   permission java.security.AllPermission;
 };

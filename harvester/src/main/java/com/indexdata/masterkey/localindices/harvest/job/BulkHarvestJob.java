@@ -100,7 +100,7 @@ public class BulkHarvestJob implements HarvestJob {
     try {
       storage.begin();
       if (storage.getOverwriteMode())
-	storage.purge();
+	storage.purge(false);
       for (String url : urls) {
 	download(new URL(url));
       }

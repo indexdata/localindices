@@ -8,15 +8,14 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
-    <%@ include file="fragments/transformation/generic_transformation_head.jsp" %>
+    <%@ include file="fragments/transformation/generic_head.jsp" %>
     <body onload="hideEditStep();">
         <f:view>
             <h:form>
                 <h:commandLink styleClass="navigation" value="Transformations List" action="#{transformationController.list}" />
-                <h3>Edit XSL Transformation: </h3>
-                <%@ include file="fragments/transformation/generic_transformation_forminputs.jsp" %>
-                <%@ include file="fragments/transformation/xslt_transformation_forminputs.jsp" %>
-                <%@ include file="fragments/transformation/generic_transformation_buttons.jsp" %>
+                <h3>Edit Transformation: </h3>
+                <%@ include file="fragments/transformation/generic_information.jsp" %>
+                <%@ include file="fragments/transformation/steps_select.jsp" %>
             </h:form>
         </f:view>
     </body>

@@ -8,6 +8,9 @@ TOMCAT6PACKAGE = masterkey-harvester-tomcat6
 TOMCAT6ROOT = $(CURDIR)/debian/$(TOMCAT6PACKAGE)
 #TOMCAT6DOC = $(TOMCAT6ROOT)/usr/share/doc/$(TOMCAT6PACKAGE)
 
+UTIL_PACKAGE = masterkey-harvester-util
+UTIL_ROOT = $(CURDIR)/debian/$(UTIL_PACKAGE)
+
 clean:
 	dh_testdir
 	dh_testroot
@@ -23,7 +26,7 @@ clean:
 	@echo LD_PRELOAD=$$LD_PRELOAD
 	env LD_PRELOAD= mvn clean
 
-WEBAPP = sp-runtime/target/harvester
+WEBAPP = harvester/target/harvester
 build: $(WEBAPP)
 $(WEBAPP):
 	dh_testdir
@@ -36,19 +39,23 @@ install-stamp: build
 	dh_testroot
 	dh_clean -k
 
-	# LUI Harvester core
-	mkdir -p $(COREROOT)/usr/share/masterkey/harvester
-	cp -a $(WEBAPP)/* $(COREROOT)/usr/share/masterkey/harvester
-	mkdir -p $(COREROOT)/var/log/masterkey
+	# Harvester core
+	mkdir -p $(COREROOT)/usr/share/masterkey/harvester/
+	unzip harvester/target/harvester.war -d $(COREROOT)/usr/share/masterkey/harvester/
 
-	# LUI Harvester admin 
+	# Harvester Admin core
 	mkdir -p $(COREROOT)/usr/share/masterkey/harvester-admin
-	cp -a $(WEBAPP)/* $(COREROOT)/usr/share/masterkey/harvester-admin
-	mkdir -p $(COREROOT)/var/log/masterkey
+	unzip harvester-admin/target/harvester-admin.war -d $(COREROOT)/usr/share/masterkey/harvester-admin/
 
-	# LUI Harvester plumbing for Tomcat 6
+	# Harvester plumbing for Tomcat 6
 	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester
-	cp -p debian/harvester-tomcat6.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
+	cp -p etc/harvester-context.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
+	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
+	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
+
+	# Harvester Admin plumbing for Tomcat 6
+	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester-admin
+	cp -p etc/harvester-admin-context.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
 	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
 	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
 

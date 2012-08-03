@@ -29,8 +29,8 @@ public abstract class StorageProxy implements HarvestStorage {
   }
 
   @Override
-  public void purge() throws IOException {
-    storage.purge();
+  public void purge(boolean commit) throws IOException {
+    storage.purge(commit);
   }
 
   @Override

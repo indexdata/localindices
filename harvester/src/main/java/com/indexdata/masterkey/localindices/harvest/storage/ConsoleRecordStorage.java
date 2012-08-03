@@ -46,8 +46,10 @@ public class ConsoleRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void purge() throws IOException {
+  public void purge(boolean commit) throws IOException {
     message("Purge");
+    if (commit)
+      	commit();
   }
 
   @Override
