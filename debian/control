@@ -9,8 +9,8 @@ Homepage: http://www.indexdata.dk/masterkey/harvester
 Package: masterkey-harvester
 Architecture: all
 Description: The Harvester, part of the MasterKey suite 
-provides a OAI-PMH and XML bulk harvesting, transformations 
-using pipelines of XSL Transformations into indexes like Solr.
+ provides a OAI-PMH and XML bulk harvesting, transformations 
+ using pipelines of XSL Transformations into indexes like Solr.
 
 Package: masterkey-harvester-tomcat6
 Architecture: all
