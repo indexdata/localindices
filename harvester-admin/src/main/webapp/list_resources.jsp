@@ -9,16 +9,17 @@
 
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="css/styles.css" />
-<title>Resources</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+    <title>Resources</title>
 </head>
 <body>
 	<f:view>
-            <h:outputText style="h1">Resources</h:outputText>
     		<h:form>
             <%@ include file="fragments/navigation_panel.jsp" %>
-			<br>
+            <h3>
+                <h:outputText value="Resources" />
+            </h3>
 			<h:outputText value="Add new resource: " />
 			<h:commandLink styleClass="navigation" value="OAI-PMH"
 				action="#{resourceController.prepareOaiPmhResourceToAdd}" />
@@ -34,9 +35,6 @@
  -->
 		</h:form>
 		<h:form>
-			<h3>
-				<h:outputText value="Available resources:" />
-			</h3>
 			<div id="pager">
 				<h:outputText
 					value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />

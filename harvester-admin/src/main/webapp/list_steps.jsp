@@ -15,20 +15,19 @@
     </head>
     <body>
         <f:view>
-            <h:outputText style="h1">Steps</h:outputText>
             <h:form>
                 <%@ include file="fragments/navigation_panel.jsp" %>
-                <br>
-                <h:outputText value="Add new : "/>
+                <h3> 
+                    <h:outputText>Steps</h:outputText>
+                </h3>
+                <h:outputText value="Add new: "/>
+                <!--
                 <h:commandLink styleClass="navigation"  value="Split" action="#{stepController.prepareSplitStep}" />                
-                <h:outputText value=", "/>
+                -->
                 <h:commandLink styleClass="navigation"  value="Transformation (XSL)" action="#{stepController.prepareXsltStep}" />                
-                <h:outputText value=", "/>
                 <h:commandLink styleClass="navigation" value="Validation (XSD)" action="#{stepController.prepareValidationStep}" />
-                <h:outputText value=", "/>
             </h:form>
             <h:form>
-                <h3><h:outputText value="Available resources:" /></h3>
                 <div id="pager">
                     <h:outputText value="Item #{stepController.firstItem + 1}..#{stepController.lastItem} of #{stepController.itemCount}"/>&nbsp;
                     <h:commandLink action="#{stepController.prev}" value="Previous #{stepController.batchSize}" rendered="#{stepController.firstItem >= stepController.batchSize}"/>&nbsp;
@@ -36,7 +35,6 @@
                     <h:commandLink action="#{stepController.next}" value="Remaining #{stepController.itemCount - stepController.lastItem}"
                                    rendered="#{stepController.lastItem < stepController.itemCount && stepController.lastItem + stepController.batchSize > stepController.itemCount}"/>
                 </div>               
-                <h5>Transformation Steps:</h5>
                 <h:dataTable value="#{stepController.steps}" var="item" columnClasses="right,left,center,left,center,center,center,center">
                     <h:column>
                         <f:facet name="header">

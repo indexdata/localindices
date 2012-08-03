@@ -15,22 +15,22 @@
     </head>
     <body>
         <f:view>
-            <h:outputText style="h1">Storages</h:outputText>
             <h:form>
                 <%@ include file="fragments/navigation_panel.jsp" %>
-                <br/>
+                <h3>
+                    <h:outputText>Storages</h:outputText>
+                </h3>
                 <h:outputText value="Add new storage: "/>
                 <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
-                <h:outputText value=", "/>
-                <h:commandLink value="ConsoleStorage" action="#{storageController.prepareConsoleStorageToAdd}" />       
 <!-- 
+                <h:outputText value=", "/>
+                <h:commandLink styleClass="navigation"  value="ConsoleStorage" action="#{storageController.prepareConsoleStorageToAdd}" />       
                 <h:outputText value=", "/>
                 <h:commandLink value="Zoo Keeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}" />                
                 <h:outputText value=" "/>
  -->
             </h:form>
             <h:form>
-                <h3><h:outputText value="Available Storages:" /></h3>
                 <div id="pager">
                     <h:outputText value="Item #{storageController.firstItem + 1}..#{storageController.lastItem} of #{storageController.itemCount}"/>&nbsp;
                     <h:commandLink action="#{storageController.prev}" value="Previous #{storageController.batchSize}" rendered="#{storageController.firstItem >= storageController.batchSize}"/>&nbsp;

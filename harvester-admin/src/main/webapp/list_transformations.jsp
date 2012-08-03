@@ -15,16 +15,16 @@
     </head>
     <body>
         <f:view>
-            <h:outputText style="h1">Transformations</h:outputText>
             <h:form>
                 <%@ include file="fragments/navigation_panel.jsp" %>
-                <br/>
+                <h3>
+                    <h:outputText>Transformations</h:outputText>
+                </h3>
                 <h:outputText value="Add new transformation: "/>
                 <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
             <h:form>
-                <h3><h:outputText value="Available Transformations:" /></h3>
                 <div id="pager">
                     <h:outputText value="Item #{transformationController.firstItem + 1}..#{transformationController.lastItem} of #{transformationController.itemCount}"/>&nbsp;
                     <h:commandLink action="#{transformationController.prev}" value="Previous #{transformationController.batchSize}" rendered="#{transformationController.firstItem >= transformationController.batchSize}"/>&nbsp;
