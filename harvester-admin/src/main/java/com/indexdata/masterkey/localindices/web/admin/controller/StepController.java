@@ -178,7 +178,10 @@ public class StepController {
 
   public String save() {
     prePersist();
-    current = dao.update(current);
+    if (current.getId() != null)
+      current = dao.update(current);
+    else 
+      dao.create(current);
     current = null;
     return list();
   }
