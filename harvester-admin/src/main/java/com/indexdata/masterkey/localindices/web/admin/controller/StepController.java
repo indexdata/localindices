@@ -45,6 +45,8 @@ public class StepController {
   private TransformationStep current;
   private String splitAt;
   private String splitSize;
+
+  private boolean selectStepMode = false; 
   
   private DataModel model;
   @SuppressWarnings("rawtypes")
@@ -351,6 +353,14 @@ public class StepController {
 
   public void setSplitSize(String splitSize) {
     this.splitSize = splitSize;
+  }
+
+  public boolean isSelectStepMode() {
+    return selectStepMode;
+  }
+
+  public void setSelectStepMode(boolean selectStepMode) {
+    this.selectStepMode = selectStepMode;
   }
 
 }
