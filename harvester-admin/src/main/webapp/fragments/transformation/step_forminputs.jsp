@@ -45,6 +45,6 @@
 		</h:column>
 	</h:dataTable>
     <div id="addStep" style="display:inline">  
-        <h:commandLink value="Add new Step" action="#{transformationController.selectStepToInsert}" />
+        <h:commandLink value="Add step:" action="#{transformationController.selectStepToInsert}" />
     </div>
 </f:subview>
