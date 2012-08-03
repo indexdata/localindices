@@ -213,7 +213,7 @@
     <navigation-rule>
         <from-view-id>/transformation_insert_step.jsp</from-view-id>
         <navigation-case>
-            <from-outcome>save</from-outcome>
+            <from-outcome>edit_current</from-outcome>
             <to-view-id>/transformation_edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
