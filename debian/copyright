@@ -1,0 +1,16 @@
+This is the debian package for the Masterkey Harvester application.
+It was created by Dennis Schafroth <dennis@indexdata.com>.
+
+Copyright (C) 2009-2012 by Index Data Aps.
+
+At the moment, this software remains proprietary, and may not be
+inspected, used, deployed, enjoyed, contemplated, inspected, built,
+installed, reverse-engineered or meditated on without the express
+written permission on Index Data, carved on tablets of stone and
+signed by a two-thirds majority of the members of the U.S. Supreme
+Court.
+
+We hope to relax these conditions in the future.
+
+The Debian packaging is (C) 2012, Index Data <info@indexdata.com> and
+is licensed under the same terms as the software itself (see above).

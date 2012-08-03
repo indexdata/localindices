@@ -1,0 +1,21 @@
+Source: masterkey-service-proxy
+Section: misc
+Priority: extra
+Maintainer: Index Data <info@indexdata.com>
+Build-Depends: debhelper (>= 5), maven2, default-jdk
+Standards-Version: 3.8.0
+Homepage: http://www.indexdata.dk/masterkey/
+
+Package: masterkey-service-proxy
+Architecture: all
+Description: The Service Proxy, part of the MasterKey suite
+ Provides additional services on top of those provided by
+ Pazpar2, handling authentication and other such tasks.
+
+Package: masterkey-service-proxy-tomcat6
+Architecture: all
+Depends: tomcat6, masterkey-service-proxy, libtext-csv-perl, libjson-perl, libspreadsheet-parseexcel-perl, libspreadsheet-writeexcel-perl, libxml-libxml-simple-perl
+Description: Implementation of the Service Proxy under Tomcat 6
+ Provides additional services on top of those provided by
+ Pazpar2, handling authentication and other such tasks.
+

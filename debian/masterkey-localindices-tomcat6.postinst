@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+case "$1" in
+    configure|upgrade)
+	chown -R tomcat6:adm /var/log/masterkey/service-proxy
+	chmod g+rs /var/log/masterkey/service-proxy
+	ln -sf ../../../masterkey/service-proxy/service-proxy-tomcat6.xml /etc/tomcat6/Catalina/localhost/service-proxy.xml
+	ln -sf ../../masterkey/service-proxy/tomcat.policy /etc/tomcat6/policy.d/05service-proxy.policy
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

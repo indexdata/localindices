@@ -1,0 +1,69 @@
+#!/usr/bin/make -f
+
+COREPACKAGE = masterkey-harvester
+COREROOT = $(CURDIR)/debian/$(COREPACKAGE)
+#COREDOC = $(COREROOT)/usr/share/doc/$(COREPACKAGE)
+
+TOMCAT6PACKAGE = masterkey-harvester-tomcat6
+TOMCAT6ROOT = $(CURDIR)/debian/$(TOMCAT6PACKAGE)
+#TOMCAT6DOC = $(TOMCAT6ROOT)/usr/share/doc/$(TOMCAT6PACKAGE)
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean build-stamp install-stamp
+	# Commands to clean up after the build process follow.
+	# Running under dpkg-buildpackage uses fakeroot by default (or
+	# of course if it is explicitly requested using "-rfakeroot"),
+	# which sets LD_PRELOAD to "libfakeroot-sysv.so".  For some
+	# reason that I do not understand, this screws up maven's
+	# "clean" target (though not its "install").  The upshot of
+	# all this is that it's necessary to clear the LD_PRELOAD
+	# environment variable before invoking "mvn clean".  *sigh*
+	@echo LD_PRELOAD=$$LD_PRELOAD
+	env LD_PRELOAD= mvn clean
+
+WEBAPP = sp-runtime/target/harvester
+build: $(WEBAPP)
+$(WEBAPP):
+	dh_testdir
+	env LD_PRELOAD= mvn package -Pproduction
+	touch $@
+
+install: install-stamp
+install-stamp: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+
+	# LUI Harvester core
+	mkdir -p $(COREROOT)/usr/share/masterkey/harvester
+	cp -a $(WEBAPP)/* $(COREROOT)/usr/share/masterkey/harvester
+	mkdir -p $(COREROOT)/var/log/masterkey
+
+	# LUI Harvester admin 
+	mkdir -p $(COREROOT)/usr/share/masterkey/harvester-admin
+	cp -a $(WEBAPP)/* $(COREROOT)/usr/share/masterkey/harvester-admin
+	mkdir -p $(COREROOT)/var/log/masterkey
+
+	# LUI Harvester plumbing for Tomcat 6
+	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester
+	cp -p debian/harvester-tomcat6.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
+	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
+	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
+
+	touch $@
+
+binary: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	dh_installchangelogs
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+.PHONY: build clean binary-indep binary-arch binary install
