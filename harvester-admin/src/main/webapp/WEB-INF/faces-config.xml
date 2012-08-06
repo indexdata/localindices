@@ -192,6 +192,13 @@
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
+        <from-view-id>/transformation_add.jsp</from-view-id>
+        <navigation-case>
+            <from-outcome>edit_current</from-outcome>
+            <to-view-id>/transformation_edit.jsp</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
         <from-view-id>/transformation_edit.jsp</from-view-id>
         <navigation-case>
             <from-outcome>insert_step</from-outcome>

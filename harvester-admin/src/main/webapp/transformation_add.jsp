@@ -22,7 +22,8 @@
                 <!--  
                 <%@ include file="fragments/transformation/step_forminputs.jsp" %>
                  -->
-                <h:commandButton value="Add" action="#{transformationController.add}"/>
+                <h:commandButton value="Add" action="#{transformationController.saveExit}"/>
+                <h:commandButton value="Save" action="#{transformationController.save}"/>
                 <h:commandButton value="Cancel" action="#{transformationController.cancel}"/>
             </h:form>
         </f:view>

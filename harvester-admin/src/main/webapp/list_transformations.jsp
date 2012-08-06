@@ -21,7 +21,7 @@
                     <h:outputText>Transformations</h:outputText>
                 </h3>
                 <h:outputText value="Add new transformation: "/>
-                <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareXsltTransformationToAdd}" />                
+                <h:commandLink styleClass="navigation"  value="XSLT" action="#{transformationController.prepareTransformationToAdd}" />                
                 <h:outputText value=" "/>
             </h:form>
             <h:form>

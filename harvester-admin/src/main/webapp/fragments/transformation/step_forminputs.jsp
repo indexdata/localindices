@@ -21,6 +21,18 @@
 			</f:facet>
 			<h:outputText value="#{item.name}"></h:outputText>
 		</h:column>
+        <h:column>
+            <f:facet name="header">
+                <h:outputText value="In" />
+            </f:facet>
+            <h:outputText value="#{item.inputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+            <f:facet name="header">
+                <h:outputText value="Out" />
+            </f:facet>
+            <h:outputText value="#{item.outputFormat}"></h:outputText>
+        </h:column>
 		<h:column>
 			<f:facet name="header">
 				<h:outputText value="Actions" />
@@ -45,6 +57,7 @@
 		</h:column>
 	</h:dataTable>
     <div id="addStep" style="display:inline">  
-        <h:commandLink value="Add step:" action="#{transformationController.selectStepToInsert}" />
+        <h:commandButton value="Add steps" action="#{transformationController.selectStepToInsert}" />
     </div>
+    <br>
 </f:subview>
