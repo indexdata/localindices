@@ -112,9 +112,8 @@ public class StoragesDAOJPA implements StorageDAO {
     public List<Storage> retrieve(int start, int max) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
-        // HACK: Hides any Database errors, but does not throw a null pointer 
-        // which stops the Scheduler. 
-        List<Storage> hables = new LinkedList<Storage>();
+        // HACK: Hides any Database errors with a null pointer 
+        List<Storage> hables = null;
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from Storage as o");
@@ -137,8 +136,11 @@ public class StoragesDAOJPA implements StorageDAO {
 
     @Override
     public List<StorageBrief> retrieveBriefs(int start, int max) {
+        List<Storage> list = retrieve(start, max);
+        if (list == null)
+          return null;
         List<StorageBrief> hrefs = new ArrayList<StorageBrief>();
-        for (Storage hable : retrieve(start, max)) {
+        for (Storage hable : list) {
             StorageBrief href = new StorageBrief(hable);
             hrefs.add(href);
         }
