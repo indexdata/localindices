@@ -128,6 +128,8 @@ public class StepController {
     current = null;
     resources = null;
     itemCount = -1;
+    if (isSelectStepMode()) 
+      return "select_steps";
     return "list_steps";
   }
 
