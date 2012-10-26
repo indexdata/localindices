@@ -101,9 +101,8 @@ public class JobScheduler {
       JobInstance ji = it.next();
       if (!ji.seen) {
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-	    + " no longer in the DB. Deleting from list.");
-	// ji.stop();
-	ji.destroy();
+	    + " no longer in the DB. Stopping the job.");
+	ji.stop();
 	it.remove();
       }
     }

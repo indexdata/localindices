@@ -75,7 +75,7 @@ public class SolrStorage implements HarvestStorage {
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       server = new CommonsHttpSolrServer(url);
       // TODO make configurable 
-      server.setSoTimeout(100000); // socket read timeout
+      server.setSoTimeout(0); // socket read timeout
       server.setConnectionTimeout(10000);
       server.setDefaultMaxConnectionsPerHost(100);
       server.setMaxTotalConnections(100);

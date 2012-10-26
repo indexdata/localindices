@@ -6,20 +6,21 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.utils.persistence.EntityUtil;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
 
 
 /**
@@ -112,7 +113,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         EntityTransaction tx = em.getTransaction();
         // Communication errors with the persistence Layer will now just look like 0 records exists.
         // But at least our Scheduler wont stop running.
-        List<Harvestable> hables = new LinkedList<Harvestable>();
+        List<Harvestable> hables = null;
         try {
             tx.begin();
             Query q = em.createQuery("select object(o) from Harvestable as o");
@@ -151,7 +152,10 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     @Override
     public List<HarvestableBrief> retrieveBriefs(int start, int max) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
-        for (Harvestable hable : retrieve(start, max)) {
+        List<Harvestable> list = retrieve(start, max);
+        if (list == null)
+          return null;
+        for (Harvestable hable : list) {
             HarvestableBrief href = new HarvestableBrief(hable);
             hrefs.add(href);
         }
