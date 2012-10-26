@@ -12,7 +12,7 @@
 		&nbsp;
 		<h:commandLink action="#{stepController.prev}"
 			value="Previous #{stepController.batchSize}"
-			rendered="#{stepController.firstItem > stepController.batchSize}" />
+			rendered="#{stepController.firstItem >= stepController.batchSize}" />
 		&nbsp;
 		<h:commandLink action="#{stepController.next}"
 			value="Next #{stepController.batchSize}"
