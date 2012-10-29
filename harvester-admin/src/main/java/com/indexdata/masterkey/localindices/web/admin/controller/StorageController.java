@@ -45,6 +45,12 @@ public class StorageController {
   private String storageAdminSite;
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
+  // </editor-fold>
+  // <editor-fold defaultstate="collapsed" desc="Storage list paging functions">
+  private int firstItem = 0;
+  private int batchSize = 20;
+  private int itemCount = -1;
+
 
   public StorageController() {
     try {
@@ -62,12 +68,6 @@ public class StorageController {
   public void setStorage(Storage storage) {
     this.storage = storage;
   }
-
-  // </editor-fold>
-  // <editor-fold defaultstate="collapsed" desc="Storage list paging functions">
-  private int firstItem = 0;
-  private int batchSize = 50;
-  private int itemCount = -1;
 
   public int getBatchSize() {
     return batchSize;
