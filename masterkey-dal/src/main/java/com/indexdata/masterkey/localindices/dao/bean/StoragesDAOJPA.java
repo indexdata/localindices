@@ -116,7 +116,7 @@ public class StoragesDAOJPA implements StorageDAO {
         List<Storage> hables = null;
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Storage as o");
+            Query q = em.createQuery("select object(o) from Storage as o order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
