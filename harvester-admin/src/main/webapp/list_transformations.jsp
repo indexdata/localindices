@@ -26,13 +26,11 @@
             </h:form>
             <h:form>
                 <div id="pager">
-                    <h:outputText value="Item #{transformationController.firstItem + 1}..#{transformationController.lastItem} of #{transformationController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{transformationController.prev}" value="Previous #{transformationController.batchSize}" rendered="#{transformationController.firstItem >= transformationController.batchSize}"/>&nbsp;
-                    <h:commandLink action="#{transformationController.next}" value="Next #{transformationController.batchSize}" rendered="#{transformationController.lastItem + transformationController.batchSize <= transformationController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{transformationController.next}" value="Remaining #{transformationController.itemCount - transformationController.lastItem}"
-                                   rendered="#{transformationController.lastItem < transformationController.itemCount && transformationController.lastItem + transformationController.batchSize > transformationController.itemCount}"/>
+                    <h:outputText value="Item #{transformationController.firstItem + 1}..#{transformationController.lastItem} of #{transformationController.itemCount}" rendered="#{transformationController.itemCount > 0}"/>&nbsp;
+                    <h:commandLink action="#{transformationController.prev}" value="Previous" rendered="#{transformationController.firstItem > 1}"/>&nbsp;
+                    <h:commandLink action="#{transformationController.next}" value="Next" rendered="#{transformationController.lastItem < transformationController.itemCount}"/>&nbsp;
                 </div>               
-                <h:dataTable value="#{transformationController.transformations}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+                <h:dataTable value="#{transformationController.transformations}" var="item" columnClasses="transformationname,enabled,actions">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />
