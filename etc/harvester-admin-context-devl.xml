@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context 
-   docBase="/home/dennis/proj/localindices/harvester-admin/target/harvester-admin"
+   docBase="/home/dennis/proj/localindices/harvester-admin/target/harvester-admin.war"
    path="/harvester-admin" 
    debug="1" 
    privileged="true" 
