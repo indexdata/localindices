@@ -60,6 +60,14 @@ public class ResourceController {
   private String jobLog;
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
+  // </editor-fold>
+  // <editor-fold defaultstate="collapsed"
+  // desc="Resource list paging functions">
+  private int firstItem = 0;
+  private int batchSize = 20;
+  private int itemCount = -1;
+  private Long currentId;
+
 
   public Boolean getLongDate() {
     return longDate;
@@ -272,14 +280,6 @@ public class ResourceController {
     }
     return list;
   }
-
-  // </editor-fold>
-  // <editor-fold defaultstate="collapsed"
-  // desc="Resource list paging functions">
-  private int firstItem = 0;
-  private int batchSize = 50;
-  private int itemCount = -1;
-  private Long currentId;
 
   public int getBatchSize() {
     return batchSize;
