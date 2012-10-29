@@ -6,8 +6,8 @@
 
 <f:subview id="generic_edit_buttons">
     <h5>Actions: </h5>
-    <h:commandButton value="Save Changes & Exit" action="#{storageController.saveStorage}"/>
-    <h:commandButton value="Cancel Changes & Exit" action="#{storageController.listStorages}"/>
+    <h:commandButton value="Save" action="#{storageController.saveStorage}"/>
+    <h:commandButton value="Cancel" action="#{storageController.listStorages}"/>
     <h:commandButton onclick="return confirm('Are you sure?');" value="Delete All Records" action="#{storageController.saveAndPurge}"/>
     <br/>
 </f:subview>
