@@ -11,12 +11,12 @@
 			rendered="#{stepController.itemCount > 0}" />
 		&nbsp;
 		<h:commandLink action="#{stepController.prev}"
-			value="Previous #{stepController.batchSize}"
-			rendered="#{stepController.firstItem >= stepController.batchSize}" />
+			value="Previous"
+			rendered="#{stepController.firstItem > 1}" />
 		&nbsp;
 		<h:commandLink action="#{stepController.next}"
-			value="Next #{stepController.batchSize}"
-			rendered="#{stepController.lastItem + stepController.batchSize < stepController.itemCount}" />
+			value="Next"
+			rendered="#{stepController.lastItem < stepController.itemCount}" />
 		&nbsp;
 	</div>
 </f:subview>
