@@ -2,7 +2,7 @@
  */
 package com.indexdata.masterkey.localindices.crawl;
 
-import com.indexdata.masterkey.localindices.harvest.job.WebHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.WebHarvestJobInterface;
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.URL;
@@ -28,7 +28,7 @@ public class CrawlThread implements Runnable {
   public static final int CRAWLTHREAD_DONE = 5;
   private static Logger logger = Logger
       .getLogger("com.indexdata.masterkey.localindices.crawl");
-  WebHarvestJob job;
+  WebHarvestJobInterface job;
   private Proxy proxy;
   private CrawlQueue que;
   private String filterString;
@@ -36,7 +36,7 @@ public class CrawlThread implements Runnable {
   private int hitInterval;
   private int status = CRAWLTHREAD_STARTING;
 
-  public CrawlThread(WebHarvestJob job, Proxy proxy, CrawlQueue que,
+  public CrawlThread(WebHarvestJobInterface job, Proxy proxy, CrawlQueue que,
       String filterString, int threadNumber, int hitInterval) {
     this.job = job;
     this.proxy = proxy;
@@ -111,7 +111,7 @@ public class CrawlThread implements Runnable {
 	if (!xml.isEmpty()) {
 	  try {
 	    setStatus(CRAWLTHREAD_SAVING);
-	    job.saveXmlFragment(xml);
+	    job.getOutputStream().write(xml.getBytes());
 	    setStatus(CRAWLTHREAD_PROCESSING);
 	  } catch (IOException ex) {
 	    job.setError("I/O error writing data: " + ex.getMessage());
