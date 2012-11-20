@@ -32,13 +32,11 @@
             </h:form>
             <h:form>
                 <div id="pager">
-                    <h:outputText value="Item #{storageController.firstItem + 1}..#{storageController.lastItem} of #{storageController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{storageController.prev}" value="Previous #{storageController.batchSize}" rendered="#{storageController.firstItem >= storageController.batchSize}"/>&nbsp;
-                    <h:commandLink action="#{storageController.next}" value="Next #{storageController.batchSize}" rendered="#{storageController.lastItem + storageController.batchSize <= storageController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{storageController.next}" value="Remaining #{storageController.itemCount - storageController.lastItem}"
-                                   rendered="#{storageController.lastItem < storageController.itemCount && storageController.lastItem + storageController.batchSize > storageController.itemCount}"/>
+                    <h:outputText value="Item #{storageController.firstItem + 1}..#{storageController.lastItem} of #{storageController.itemCount}" rendered="#{storageController.itemCount > 0}"/>&nbsp;
+                    <h:commandLink action="#{storageController.prev}" value="Previous" rendered="#{storageController.firstItem > 1}"/>&nbsp;
+                    <h:commandLink action="#{storageController.next}" value="Next" rendered="#{storageController.lastItem < storageController.itemCount}"/>&nbsp;
                 </div>               
-                <h:dataTable value="#{storageController.storages}" var="item" columnClasses="right,left,center,left,center,center,center,center">
+                <h:dataTable value="#{storageController.storages}" var="item" columnClasses="storagename,enabled,actions">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />

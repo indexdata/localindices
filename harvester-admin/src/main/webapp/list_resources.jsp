@@ -40,16 +40,12 @@
 					value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
 				&nbsp;
 				<h:commandLink action="#{resourceController.prev}"
-					value="Previous #{resourceController.batchSize}"
+					value="Previous"
 					rendered="#{resourceController.firstItem >= resourceController.batchSize}" />
 				&nbsp;
 				<h:commandLink action="#{resourceController.next}"
-					value="Next #{resourceController.batchSize}"
-					rendered="#{resourceController.lastItem + resourceController.batchSize <= resourceController.itemCount}" />
-				&nbsp;
-				<h:commandLink action="#{resourceController.next}"
-					value="Remaining #{resourceController.itemCount - resourceController.lastItem}"
-					rendered="#{resourceController.lastItem < resourceController.itemCount && resourceController.lastItem + resourceController.batchSize > resourceController.itemCount}" />
+					value="Next"
+					rendered="#{resourceController.lastItem  < resourceController.itemCount}" />
 			</div>
 			<h:dataTable width="100%" value="#{resourceController.resources}"
 				var="item"

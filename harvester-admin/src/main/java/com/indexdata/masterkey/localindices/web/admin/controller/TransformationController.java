@@ -62,6 +62,14 @@ public class TransformationController {
   
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
+  // </editor-fold>
+  // <editor-fold defaultstate="collapsed"
+  // desc="Transformation list paging functions">
+  private int firstItem = 0;
+  private int batchSize = 20;
+  private int itemCount = -1;
+  private String errorMessage;
+
 
   public TransformationController() {
     try {
@@ -86,14 +94,6 @@ public class TransformationController {
     this.current = resource;
     // currentStepAssociation = current.getStepAssociations();
   }
-
-  // </editor-fold>
-  // <editor-fold defaultstate="collapsed"
-  // desc="Transformation list paging functions">
-  private int firstItem = 0;
-  private int batchSize = 50;
-  private int itemCount = -1;
-  private String errorMessage;
 
   public int getBatchSize() {
     return batchSize;

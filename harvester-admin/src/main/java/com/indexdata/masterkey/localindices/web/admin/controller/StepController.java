@@ -45,6 +45,13 @@ public class StepController {
   private TransformationStep current;
   private String splitAt;
   private String splitSize;
+  // </editor-fold>
+  // <editor-fold defaultstate="collapsed"
+  // desc="Transformation list paging functions">
+  private int firstItem = 0;
+  private int batchSize = 20;
+  private int itemCount = -1;
+
 
   private boolean selectStepMode = false; 
   
@@ -78,13 +85,6 @@ public class StepController {
     this.current = resource;
     
   }
-
-  // </editor-fold>
-  // <editor-fold defaultstate="collapsed"
-  // desc="Transformation list paging functions">
-  private int firstItem = 0;
-  private int batchSize = 20;
-  private int itemCount = -1;
 
   public int getBatchSize() {
     return batchSize;
@@ -128,6 +128,8 @@ public class StepController {
     current = null;
     resources = null;
     itemCount = -1;
+    if (isSelectStepMode()) 
+      return "insert_step";
     return "list_steps";
   }
 
@@ -196,6 +198,20 @@ public class StepController {
   /* list resources */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getSteps() {
+    setSelectStepMode(false);
+    return getStepsCommon();
+  }
+
+  /* list resources */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public DataModel getStepsInsertMode() {
+    setSelectStepMode(true);
+    return getStepsCommon();
+  }
+
+  /* list resources */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public DataModel getStepsCommon() {
     // check if new request
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
@@ -207,8 +223,7 @@ public class StepController {
       Collections.sort(resources);
     return new ListDataModel(resources);
   }
-
-  public String delete() {
+public String delete() {
     current = getResourceFromRequestParam();
     if (current != null) {
       dao.delete(current);

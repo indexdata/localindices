@@ -116,7 +116,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         List<Harvestable> hables = null;
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Harvestable as o");
+            Query q = em.createQuery("select object(o) from Harvestable as o order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();

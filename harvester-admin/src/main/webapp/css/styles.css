@@ -151,6 +151,55 @@ tbody tr:hover th {
 .navigation:before {
     content:"\00A0\00BB";
 }
+
+td.resourcename {
+	text-align: left;
 	
-	
+}
+
+td.status {
+    text-align: center;
+    
+}
+
+td.actions {
+    text-align: center;
+}
+
+td.statusmessage {
+    text-align: left;
+    width: 200;
+    max-width: 200;   
+}
+
+td.lastharvest {
+    text-align: left;
+}
+
+td.nextharvest {
+    text-align: left;
+}
+
+td.enabled {
+    text-align: center;
+}
+
+td.storagename {
+    text-align: left;
+}
+
+td.transformationname {
+    text-align: left;
+}
+
+td.stepname {
+    text-align: left;
+}
+
+td.steptype {
+    text-align: center;
+}
+
+td.stepformat {
+    text-align: center;
 }

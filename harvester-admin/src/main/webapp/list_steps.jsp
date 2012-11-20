@@ -30,18 +30,10 @@
             <h:form>
                 <div id="pager">
                     <h:outputText value="Item #{stepController.firstItem + 1}..#{stepController.lastItem} of #{stepController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{stepController.prev}" value="Previous #{stepController.batchSize}" rendered="#{stepController.firstItem >= stepController.batchSize}"/>&nbsp;
-                    <h:commandLink action="#{stepController.next}" value="Next #{stepController.batchSize}" rendered="#{stepController.lastItem + stepController.batchSize <= stepController.itemCount}"/>&nbsp;
-                    <h:commandLink action="#{stepController.next}" value="Remaining #{stepController.itemCount - stepController.lastItem}"
-                                   rendered="#{stepController.lastItem < stepController.itemCount && stepController.lastItem + stepController.batchSize > stepController.itemCount}"/>
+                    <h:commandLink action="#{stepController.prev}" value="Previous" rendered="#{stepController.firstItem >= stepController.batchSize}"/>&nbsp;
+                    <h:commandLink action="#{stepController.next}" value="Next" rendered="#{stepController.lastItem < stepController.itemCount}"/>&nbsp;
                 </div>               
-                <h:dataTable value="#{stepController.steps}" var="item" columnClasses="right,left,center,left,center,center,center,center">
-                    <h:column>
-                        <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet> 
-                        <h:outputText value="#{item.id}"></h:outputText>
-                    </h:column>                
+                <h:dataTable value="#{stepController.steps}" var="item" columnClasses="stepname,steptype,stepformat,stepformat,enabled,actions">
                     <h:column>
                         <f:facet name="header">
                             <h:outputText value="Name" />

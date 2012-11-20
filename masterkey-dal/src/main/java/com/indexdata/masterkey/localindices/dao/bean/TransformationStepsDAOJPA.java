@@ -114,7 +114,7 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
         List<TransformationStep> hables = new LinkedList<TransformationStep>();
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from TransformationStep as o");
+            Query q = em.createQuery("select object(o) from TransformationStep as o order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
