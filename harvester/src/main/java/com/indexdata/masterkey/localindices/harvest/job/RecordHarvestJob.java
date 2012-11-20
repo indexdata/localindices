@@ -6,8 +6,6 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.OutputStream;
-
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
@@ -21,14 +19,14 @@ public interface RecordHarvestJob extends HarvestJob {
    * Stop the current job and rollback the current harvest, deleting files
    * received so far. Does not touch the older harvests.
    */
-  public void kill();
+  void kill();
 
   /**
    * Get latest harvest status.
    * 
    * @return current status
    */
-  public HarvestStatus getStatus();
+  HarvestStatus getStatus();
 
   /**
    * Sets the storage for the the harvested data.
@@ -36,31 +34,28 @@ public interface RecordHarvestJob extends HarvestJob {
    * @param storage
    *          for the harvest
    */
-  public void setStorage(RecordStorage storage);
+  void setStorage(RecordStorage storage);
 
   /**
    * Returns storage currently used for harvested data.
    * 
    * @return current storage
    */
-  public RecordStorage getStorage();
+  RecordStorage getStorage();
 
   /**
    * Inform the harvestesting job the the files harvest were received.
    */
-  public void finishReceived();
+  void finishReceived();
 
   /**
    * Get last harvesting error.
    * 
    * @return
    */
-  public String getMessage();
+  String getMessage();
 
-  public boolean isUpdated();
+  boolean isUpdated();
 
-  public void clearUpdated();
-
-  public OutputStream getOutputStream();
-
+  void clearUpdated();
 }

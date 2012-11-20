@@ -3,15 +3,6 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-
-import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
-import com.indexdata.masterkey.localindices.crawl.CrawlThread;
-import com.indexdata.masterkey.localindices.crawl.SiteRequest;
-import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
@@ -22,8 +13,20 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.xml.sax.XMLReader;
+
+import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
+import com.indexdata.masterkey.localindices.crawl.CrawlThread;
+import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.crawl.SiteRequest;
+import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
+import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -85,9 +88,9 @@ import org.apache.log4j.Logger;
  *         easy to do with N threads in parallel. - Detect and convert character
  *         sets, if possible
  */
-public class WebHarvestJob implements WebHarvestJobInterface {
+public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements WebHarvestJobInterface {
 
-  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  //private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   private HarvestStorage storage;
   private HarvestStatus status;
   private Proxy proxy;
@@ -102,11 +105,11 @@ public class WebHarvestJob implements WebHarvestJobInterface {
   private final int maxNumWorkers = 100;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
-  public WebHarvestJob(WebCrawlResource resource, Proxy proxy) {
+  public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
     this.resource = resource;
     this.proxy = proxy;
     robotCache = new WebRobotCache(proxy);
-    logger.setLevel(Level.ALL); // While debugging
+    // logger.setLevel(Level.ALL); // While debugging
     this.error = null;
     this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
   }
@@ -118,36 +121,13 @@ public class WebHarvestJob implements WebHarvestJobInterface {
     return die;
   }
 
-  private synchronized void onKillSendt() {
-    die = true;
-  }
-
-  public void kill() {
-    if (status != HarvestStatus.FINISHED) {
-      status = HarvestStatus.KILLED;
-      onKillSendt();
-    }
-  }
-
-  public HarvestStatus getStatus() {
-    return status;
-  }
-
   public void setStorage(HarvestStorage storage) {
     this.storage = storage;
-  }
-
-  public HarvestStorage getStorage() {
-    return this.storage;
   }
 
   public WebRobotCache getRobotCache() {
     return robotCache;
 
-  }
-
-  public void finishReceived() {
-    status = HarvestStatus.OK;
   }
 
   // Set an "error" message to report progress
@@ -182,7 +162,7 @@ public class WebHarvestJob implements WebHarvestJobInterface {
   }
 
   public synchronized void saveXmlFragment(String xml) throws IOException {
-    OutputStream os = storage.getOutputStream();
+    OutputStream os = getOutputStream();
     os.write(xml.getBytes());
   }
 
@@ -416,23 +396,27 @@ public class WebHarvestJob implements WebHarvestJobInterface {
     }
   } // run()
 
-  @Override
-  public boolean isUpdated() {
-    return false;
+  public RecordStorage setupTransformation(RecordStorage storage) {
+    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
+      XMLReader xmlReader;
+      try {
+	xmlReader = createTransformChain(false);
+	return new TransformationChainRecordStorageProxy(storage, xmlReader,
+	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
+
+      } catch (Exception e) {
+	e.printStackTrace();
+	logger.error(e.getMessage());
+      }
+    }
+    logger.warn("No Transformation Proxy configured.");
+    return storage;
   }
 
-  @Override
-  public void clearUpdated() {
-  }
-
-  public synchronized boolean isKillSent() {
-    return false;
-  }
-
+  
   @Override
   public OutputStream getOutputStream() {
-    // TODO Auto-generated method stub
-    return null;
+    return setupTransformation(getStorage()).getOutputStream();
   }
 } // class WebHarvestJob
 

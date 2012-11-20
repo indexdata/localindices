@@ -7,15 +7,11 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
@@ -24,13 +20,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.client.XmlMarcClient;
@@ -42,7 +35,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
-import com.indexdata.xml.factory.XmlFactory;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 
@@ -52,17 +44,14 @@ import com.indexdata.xml.filter.SplitContentHandler;
  * @author Dennis Schafroth
  * 
  */
-public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
-
-  private SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
-
+public class BulkRecordHarvestJob extends AbstractRecordHarvestJob 
+{
   private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
   private RecordStorage transformationStorage;
   private Proxy proxy;
-  private Templates templates[];
   private int splitSize = 0;
   private int splitDepth = 0;
 
@@ -260,28 +249,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-
-  public XMLReader createTransformChain(boolean split) throws ParserConfigurationException, SAXException,
-      TransformerConfigurationException, UnsupportedEncodingException {
-    // Set up to read the input file
-    SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
-    SAXParser parser = spf.newSAXParser();
-    XMLReader reader = parser.getXMLReader();
-    // If split mode, we are just interested in a reader. The transformation is done in transformNode();
-    if (split)
-      return reader;
-    XMLFilter filter;
-    XMLReader parent = reader;
-    int index = 0;
-    while (index < templates.length) {
-      filter = stf.newXMLFilter(templates[index]);
-      filter.setParent(parent);
-      parent = filter;
-      index++;
-    }
-    return parent;
-  }
-  
   @Override
   public void setStorage(HarvestStorage storage) {
     if (storage instanceof RecordStorage) {

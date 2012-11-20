@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -60,8 +61,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private boolean initialRun = true;
   private String[] oai_dc_pz = { "oai_dc.xsl" };
   private String[] oai_marc21_pz = { "oai2marc.xsl", "marc21.xsl" };
-  private Templates[] templates = {};
-
   @Override
   public String getMessage() {
     return resource.getMessage();
@@ -394,5 +393,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     if (!(storage instanceof RecordStorage))
       throw new RuntimeException("Requires a RecordStorage");
     setStorage((RecordStorage) storage);
+  }
+
+  @Override
+  public OutputStream getOutputStream() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
