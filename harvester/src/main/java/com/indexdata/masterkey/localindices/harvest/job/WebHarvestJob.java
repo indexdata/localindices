@@ -425,5 +425,9 @@ public class WebHarvestJob implements HarvestJob {
   @Override
   public void clearUpdated() {
   }
+
+  public synchronized boolean isKillSent() {
+    return false;
+  }
 } // class WebHarvestJob
 
