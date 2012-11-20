@@ -29,7 +29,8 @@ public class WebRobotCache {
     this.proxy = proxy;
   }
 
-  private synchronized String getRobots(URL robUrl) {
+  private synchronized String getRobots(URL robUrl) 
+  {
     String robtxt = cache.get(robUrl);
     // yes, we need to check here too, because some other thread might
     // have been fetching the very same file, and we may have been
