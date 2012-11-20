@@ -41,7 +41,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     updated = true;
   }
 
-  protected synchronized boolean isKillSent() {
+  @Override
+  public synchronized boolean isKillSent() {
     return die;
   }
 
