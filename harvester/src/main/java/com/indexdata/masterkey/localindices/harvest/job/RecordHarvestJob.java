@@ -6,6 +6,8 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.OutputStream;
+
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
@@ -58,5 +60,7 @@ public interface RecordHarvestJob extends HarvestJob {
   public boolean isUpdated();
 
   public void clearUpdated();
+
+  public OutputStream getOutputStream();
 
 }
