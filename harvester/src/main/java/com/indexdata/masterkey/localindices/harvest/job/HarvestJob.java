@@ -54,5 +54,7 @@ public interface HarvestJob extends Runnable {
     public boolean isUpdated();
 
     public void clearUpdated();
+
+    public boolean isKillSent();
     
 }
