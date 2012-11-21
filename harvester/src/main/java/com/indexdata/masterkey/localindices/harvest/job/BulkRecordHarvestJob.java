@@ -60,12 +60,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     this.resource = resource;
     splitDepth = getNumber(resource.getSplitAt(), splitDepth); 
     splitSize  = getNumber(resource.getSplitSize(), splitSize);
-    logger = new StorageJobLogger(getClass(), resource);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     List<TransformationStep> steps = resource.getTransformation().getSteps();
     templates = new Templates[steps.size()];
     int index = 0;
+    logger = new StorageJobLogger(getClass(), resource);
 
     String stepInfo = "";
     String stepScript =""; 
@@ -198,7 +198,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 
   public OutputStream getOutputStream() 
   {
-    return setupTransformation(getStorage()).getOutputStream();
+    transformationStorage = setupTransformation(getStorage());
+    return transformationStorage.getOutputStream();
   }
   
   public String getMessage() {
@@ -211,8 +212,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       if (getStatus() == HarvestStatus.ERROR) {
 	throw new Exception(error);
       }
-      // TODO this is different from old behavior. All insert is now done in one
-      // commit.
+      // This is different from old behavior. All insert is now done in one commit.
       getStorage().setLogger(logger);
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
@@ -237,13 +237,18 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       error = e.getMessage();
       resource.setMessage(e.getMessage());
       logger.error("Download failed.", e);
+    } finally {
+      logger.close();
     }
   }
 
-  //MarcWriter writer; 
   private void downloadList(String[] urls) throws Exception 
   {
-    XmlMarcClient client = new XmlMarcClient(proxy, this);
+    XmlMarcClient client = new XmlMarcClient();
+    client.setHarvestJob(this);
+    client.setProxy(proxy);
+    client.setLogger(logger);
+    client.setHarvestable(resource);
     for (String url : urls) {
       client.download(new URL(url));
     }
