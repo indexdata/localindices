@@ -105,11 +105,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     if (getStatus().equals(HarvestStatus.NEW) || getStatus().equals(HarvestStatus.ERROR))
       this.initialRun = true;
     // this.resource.setMessage(null);
-    logger = new StorageJobLogger(this.getClass(), resource);
   }
 
   @Override
   public void run() {
+    logger = new StorageJobLogger(this.getClass(), resource);
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 
@@ -159,6 +159,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.ERROR, "Storage rollback failed.");
       }
     }
+    logger.close();
   }
 
   private Templates[] getTemplates(File[] files) throws TransformerConfigurationException {
