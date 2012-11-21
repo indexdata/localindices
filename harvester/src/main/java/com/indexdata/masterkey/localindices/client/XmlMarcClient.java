@@ -12,6 +12,7 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
 
+import org.apache.log4j.Logger;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
@@ -19,6 +20,7 @@ import org.marc4j.MarcXmlWriter;
 import org.marc4j.TurboMarcXmlWriter;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
@@ -30,11 +32,10 @@ public class XmlMarcClient implements HarvestClient {
   private Proxy proxy; 
   private RecordHarvestJob harvesterJob;
   
-  public XmlMarcClient(Proxy proxy, RecordHarvestJob harvesterJob) {
-    this.proxy = proxy;
-    this.harvesterJob = harvesterJob;
+  public XmlMarcClient() {
   }
-  	
+ 
+  
   @Override
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
@@ -285,4 +286,27 @@ public class XmlMarcClient implements HarvestClient {
     }
   }
 
+  public void setHarvestJob(RecordHarvestJob parent) {
+    harvesterJob = parent;
+  }
+
+  public void setProxy(Proxy newProxy) {
+    proxy = newProxy;
+  }
+
+  public void setLogger(StorageJobLogger newLogger) {
+    logger = newLogger;
+  }
+  
+  public void setHarvestable(Harvestable newResource) {
+    if (newResource instanceof XmlBulkResource) {
+      resource = (XmlBulkResource) newResource;
+    } else {
+      String errorMsg = new String("XmlMarcClient configured with wrong harvestable type: " + newResource.getClass().getCanonicalName()); 
+      if (logger != null)
+      	logger.fatal(errorMsg);
+      else
+    	Logger.getLogger("").fatal(errorMsg);
+    }
+  }
 }
