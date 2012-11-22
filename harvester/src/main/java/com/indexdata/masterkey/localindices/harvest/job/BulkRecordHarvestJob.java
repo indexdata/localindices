@@ -6,7 +6,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
@@ -15,13 +14,11 @@ import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Node;
 import org.xml.sax.XMLReader;
@@ -46,7 +43,6 @@ import com.indexdata.xml.filter.SplitContentHandler;
  */
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob 
 {
-  private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
@@ -62,33 +58,9 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     splitSize  = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
-    List<TransformationStep> steps = resource.getTransformation().getSteps();
-    templates = new Templates[steps.size()];
-    int index = 0;
     logger = new StorageJobLogger(getClass(), resource);
-
-    String stepInfo = "";
-    String stepScript =""; 
-    try {
-      for (TransformationStep step : steps) {
-	stepInfo =  step.getId() + " " + step.getName();
-	if (step.getScript() != null) {
-	  stepScript = step.getScript();
-	  logger.info("Setting up XSLT template for Step: " + stepInfo);
-	  templates[index] = stf.newTemplates(new StreamSource(new StringReader(step.getScript())));
-	  index++;
-	}
-	else {
-	  logger.warn("Step " + stepInfo + " has not script!");
-	}
-      }
-    } catch (TransformerConfigurationException tce) {
-      error = "Failed to build xslt templates: " + stepInfo;
-      templates = new Templates[0];
-      logger.error("Failed to build XSLT template for Step: " + stepInfo + "Script: " + stepScript);      
-      logger.error(error);
-      setStatus(HarvestStatus.ERROR);
-    }
+    List<TransformationStep> steps = resource.getTransformation().getSteps();
+    setupTemplates(resource, steps);
   }
 
   private int getNumber(String value, int defaultValue) {
