@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.CharArrayReader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -41,7 +43,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   //protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger;
-  protected Templates templates[]; 
+  protected Templates templates[];
+  protected String error; 
 
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
@@ -181,5 +184,32 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
           index++;
         }
         return parent;
-      }  
+      }
+
+  protected void setupTemplates(Harvestable resource, List<TransformationStep> steps) {
+    templates = new Templates[steps.size()];
+    int index = 0;
+    String stepInfo = "";
+    String stepScript =""; 
+    try {
+      for (TransformationStep step : steps) {
+        stepInfo =  step.getId() + " " + step.getName();
+        if (step.getScript() != null) {
+          stepScript = step.getScript();
+          logger.info("Setting up XSLT template for Step: " + stepInfo);
+          templates[index] = stf.newTemplates(new StreamSource(new StringReader(step.getScript())));
+          index++;
+        }
+        else {
+          logger.warn("Step " + stepInfo + " has not script!");
+        }
+      }
+    } catch (TransformerConfigurationException tce) {
+      error = "Failed to build xslt templates: " + stepInfo;
+      templates = new Templates[0];
+      logger.error("Failed to build XSLT template for Step: " + stepInfo + "Script: " + stepScript);      
+      logger.error(error);
+      setStatus(HarvestStatus.ERROR);
+    }
+  }  
 }
