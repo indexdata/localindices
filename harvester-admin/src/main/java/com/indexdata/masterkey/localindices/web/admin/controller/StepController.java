@@ -196,14 +196,12 @@ public class StepController {
   }
 
   /* list resources */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getSteps() {
     setSelectStepMode(false);
     return getStepsCommon();
   }
 
   /* list resources */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getStepsInsertMode() {
     setSelectStepMode(true);
     return getStepsCommon();
