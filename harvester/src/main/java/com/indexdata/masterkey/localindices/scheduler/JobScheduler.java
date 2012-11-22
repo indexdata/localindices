@@ -77,7 +77,7 @@ public class JobScheduler {
 	  ji = new JobInstance(harv, storage, (Proxy) config.get("harvester.http.proxy"),
 	      hbrief.isEnabled());
 	  jobs.put(id, ji);
-	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created.");
+	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
 	  if (!hbrief.isEnabled())
 	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " will be disabled.");
 	  else {
