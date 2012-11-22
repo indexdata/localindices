@@ -45,7 +45,7 @@ public class StorageJobLogger implements LocalIndicesLogger {
   private void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type) {
     try {
       if (logger.getAppender(logFilename) == null) {
-	logAppender = new FileAppender(layout, logFilename, false);
+	logAppender = new FileAppender(layout, logFilename, true);
 	logAppender.setName(logFilename);
 	logger.addAppender(logAppender);
       }
@@ -53,6 +53,16 @@ public class StorageJobLogger implements LocalIndicesLogger {
       logger = Logger.getLogger(loggerClass);
       logger.error("Failed to open per-" + type + " log file (" + logFilename + ")");
     }
+  }
+  
+  public void addAppender(Appender logAppender) 
+  {
+    if (logger.getAppender(logAppender.getName()) == null)
+	logger.addAppender(logAppender);
+  }
+
+  public void removeAppender(Appender logAppender) {
+    logger.removeAppender(logAppender);
   }
 
   public void setIdentify(String identify) {
