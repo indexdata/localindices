@@ -13,7 +13,7 @@ public class DummyXmlBulkResource extends XmlBulkResource {
     super(url);
     setId(1l);
     setName("Test Harvestable");
-    setStorage(new com.indexdata.masterkey.localindices.entity.SolrStorage());
+    setStorage(new com.indexdata.masterkey.localindices.entity.SolrStorageEntity());
     getStorage().setId(1l);
     getStorage().setName("Test Storage");
   }
