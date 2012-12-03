@@ -9,10 +9,8 @@
     <h:panelGrid columns="2">
         <h:outputText value="Harvested URIs:"/>
         <h:inputTextarea cols="100" rows="15" value="#{resourceController.resource.startUrls}" />
-        <!-- 
-            <h:outputText value="Filetype mask:"/>
-            <h:inputText value="#{resourceController.resource.filetypeMasks}"/>
-        -->
+        <h:outputText value="Filetype mask:"/>
+        <h:inputText value="#{resourceController.resource.filetypeMasks}"/>
         <h:outputText value="URI mask:"/>
         <h:inputText value="#{resourceController.resource.uriMasks}"/>
         <h:outputText value="Recursion depth:"/>
