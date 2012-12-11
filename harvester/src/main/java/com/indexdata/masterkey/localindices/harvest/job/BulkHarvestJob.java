@@ -25,10 +25,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
  * 
  * @author jakub
  */
-public class BulkHarvestJob implements HarvestJob {
+public class BulkHarvestJob extends AbstractHarvestJob  {
   private LocalIndicesLogger logger;
   private HarvestStorage storage;
-  private HarvestStatus status;
   private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
@@ -39,7 +38,7 @@ public class BulkHarvestJob implements HarvestJob {
   public BulkHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
-    this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
+    setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     this.resource.setMessage(null);
     logger = new StorageJobLogger(this.getClass(), resource);
   }
@@ -51,21 +50,6 @@ public class BulkHarvestJob implements HarvestJob {
     return die;
   }
 
-  private synchronized void onKillSendt() {
-    die = true;
-  }
-
-  public void kill() {
-    if (status != HarvestStatus.FINISHED) {
-      status = HarvestStatus.KILLED;
-      onKillSendt();
-    }
-  }
-
-  public HarvestStatus getStatus() {
-    return status;
-  }
-
   public void setStorage(HarvestStorage storage) {
     this.storage = storage;
   }
@@ -74,22 +58,18 @@ public class BulkHarvestJob implements HarvestJob {
     return storage;
   }
 
-  public void finishReceived() {
-    status = HarvestStatus.OK;
-  }
-
   public String getMessage() {
     return error;
   }
 
   public void run() {
     try {
-      status = HarvestStatus.RUNNING;
+      setStatus(HarvestStatus.RUNNING);
       storage.setOverwriteMode(resource.getOverwrite());
       downloadList(resource.getUrl().split(" "));
-      status = HarvestStatus.FINISHED;
+      setStatus(HarvestStatus.FINISHED);
     } catch (Exception e) {
-      status = HarvestStatus.ERROR;
+      setStatus(HarvestStatus.ERROR);
       error = e.getMessage();
       resource.setMessage(e.getMessage());
       logger.log(Level.ERROR, "Download failed.", e);
@@ -209,12 +189,13 @@ public class BulkHarvestJob implements HarvestJob {
     os.flush();
   }
 
-  @Override
-  public boolean isUpdated() {
+  public synchronized boolean isKillSent() {
     return false;
   }
 
   @Override
-  public void clearUpdated() {
+  public OutputStream getOutputStream() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

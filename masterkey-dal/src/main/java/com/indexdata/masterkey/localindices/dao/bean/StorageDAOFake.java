@@ -17,7 +17,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
-import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 
@@ -32,21 +32,21 @@ public class StorageDAOFake implements StorageDAO {
     public StorageDAOFake() {
     	storages = new HashMap<Long, Storage>();
 
-    	SolrStorage storage = new SolrStorage();
+    	Storage storage = new SolrStorageEntity();
 		storage.setId(newStorageId());
 		storage.setName("Local Index");
 		storage.setUrl("http://localhost:8080/solr");
 		storage.setEnabled(true);
 		storages.put(storage.getId(), storage);
 		
-		SolrStorage storage2 = new SolrStorage();
+		Storage storage2 = new SolrStorageEntity();
 		storage2.setId(newStorageId());
 		storage2.setName("Staging Index");
 		storage2.setUrl("http://test.indexdata.com/solr");
 		storage2.setEnabled(true);
 		storages.put(storage2.getId(), storage2);
 
-		SolrStorage storage3 = new SolrStorage();
+		Storage storage3 = new SolrStorageEntity();
 		storage3.setId(newStorageId());
 		storage3.setName("Production Index");
 		storage3.setUrl("http://zookeeper.indexdata.com/solr");

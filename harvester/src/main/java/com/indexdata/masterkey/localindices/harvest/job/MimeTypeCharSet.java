@@ -25,13 +25,13 @@ public class MimeTypeCharSet {
     return mimetype;
   }
 
-  boolean isMimeType(String mimetype) {
+  public boolean isMimeType(String mimetype) {
     if (this.mimetype.equals(mimetype))
       return true;
     return false;
   }
 
-  String getCharset() {
+  public String getCharset() {
     return charset;
   }
   

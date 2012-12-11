@@ -24,7 +24,8 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
-import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 
@@ -117,23 +118,23 @@ public class StorageController {
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
   /* add new resource */
   public String prepareSolrStorageToAdd() {
-    storage = new SolrStorage();
+    storage = new SolrStorageEntity();
     return "new_solrstorage";
   }
 
   /* TODO Fix */
   public String prepareZebraStorageToAdd() {
-    storage = new SolrStorage();
+    storage = new SolrStorageEntity();
     return "new_zebrastorage";
   }
 
   public String prepareXmlStorageToAdd() {
-    storage = new SolrStorage();
+    storage = new SolrStorageEntity();
     return "new_xmlstorage";
   }
 
   public String prepareConsoleStorageToAdd() {
-    storage = new SolrStorage();
+    storage = new FileStorageEntity();
     return "new_consolestorage";
   }
 
@@ -149,7 +150,7 @@ public class StorageController {
     storage = getResourceFromRequestParam();
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + storage.getClass().getName());
-    if (storage instanceof SolrStorage) {
+    if (storage instanceof SolrStorageEntity) {
       return "edit_solrstorage";
     }
     /*
@@ -218,8 +219,8 @@ public class StorageController {
   public String getStorageAdmin() {
     Storage storage = getResourceFromRequestParam();
     if (storageAdminSite == null)
-    if (storage instanceof SolrStorage) {
-      SolrStorage solrStorage = (SolrStorage) storage;
+    if (storage instanceof SolrStorageEntity) {
+      Storage solrStorage = (Storage) storage;
       storageAdminSite = solrStorage.getUrl() + "admin";
       return storageAdminSite;     
       //jobLog = "http://localhost:8080/solr/admin/";

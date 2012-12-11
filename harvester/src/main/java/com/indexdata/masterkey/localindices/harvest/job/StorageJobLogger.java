@@ -19,39 +19,50 @@ public class StorageJobLogger implements LocalIndicesLogger {
   private Logger logger; 
   private String identify;
   Layout layout = new PatternLayout("%d %-5p %m\n");
-  Appender storageFileLog  = null;   
-  Appender jobFileLog  = null;   
+  Appender logAppender  = null;   
+
   public StorageJobLogger(Class<? extends Object> loggerClass, Storage resource) {
     
     String logId = "storage-" + (resource != null ? resource.getId() : "null");
     logger = Logger.getLogger(logId);
     String logFilename = "/var/log/masterkey/harvester/" + logId  + ".log";
-    try {
-      storageFileLog = new FileAppender(layout, logFilename, true);
-      logger.addAppender(storageFileLog);
-    } catch (IOException e) {
-      logger = Logger.getLogger(loggerClass);
-      logger.error("Failed to open per-job log file (" + logFilename + ")");
-    }
-    logger.setAdditivity(true);
+    setupAppender(loggerClass,logFilename, "storage");
+    logger.setAdditivity(false);
     if (resource != null)
       setIdentify("STORAGE(" + resource.getId() + " " + resource.getName() + "): ");
   }
 
   public StorageJobLogger(Class<? extends Object> loggerClass, Harvestable resource) {
     String logFilename = HarvestableLog.getHarvesteableJobFilename(resource.getId());
-    logger = Logger.getLogger(loggerClass + "JOB#" + resource.getId() );
-    try {
-      // restart the log on each run
-      jobFileLog = new FileAppender(layout, logFilename, false);
-      logger.addAppender(jobFileLog);
-    } catch (IOException e) {
-      logger = Logger.getLogger(loggerClass);
-      logger.error("Failed to open per-job log file (" + logFilename + ")");
-    }
+    logger = Logger.getLogger(loggerClass.getName() + "JOB#" + resource.getId() );
+    setupAppender(loggerClass, logFilename, "job");
+    logger.setAdditivity(false);
     if (resource != null)
       setIdentify("JOB(" + resource.getId() + " " + resource.getName() + "): ");
     		//"" STORAGE#" + (resource.getStorage() != null? resource.getStorage().getId() : ""));
+  }
+
+  private void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type) {
+    try {
+      if (logger.getAppender(logFilename) == null) {
+	logAppender = new FileAppender(layout, logFilename, true);
+	logAppender.setName(logFilename);
+	logger.addAppender(logAppender);
+      }
+    } catch (IOException e) {
+      logger = Logger.getLogger(loggerClass);
+      logger.error("Failed to open per-" + type + " log file (" + logFilename + ")");
+    }
+  }
+  
+  public void addAppender(Appender logAppender) 
+  {
+    if (logger.getAppender(logAppender.getName()) == null)
+	logger.addAppender(logAppender);
+  }
+
+  public void removeAppender(Appender logAppender) {
+    logger.removeAppender(logAppender);
   }
 
   public void setIdentify(String identify) {
@@ -64,37 +75,37 @@ public class StorageJobLogger implements LocalIndicesLogger {
 
   void debug(StackTraceElement[] stackTrace) {
     for (int index = 0 ; index < stackTrace.length; index++)
-      logger.debug( getIdentify() + " " + stackTrace[index].toString());
+      logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + " " + stackTrace[index].toString(), null);
   }
 
   public void debug(String msg) {
-    logger.debug( getIdentify() + " " + msg);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + " " + msg, null);
   }
 
   public void warnIfNotExpectedResponse(String actual, String expected) {
     if (actual.indexOf(expected) < 0) {
-      logger.warn(getIdentify() + " Unexpected response '" + actual + "' does not contain '" + expected + "'");
+      logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " Unexpected response '" + actual + "' does not contain '" + expected + "'", null);
     }
   }
 
   public void warn(String msg) {
-    logger.warn( getIdentify() + " " + msg);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " " + msg, null);
   }
 
   public void warn(String msg, Throwable t) {
-    logger.warn( getIdentify() + " " + msg, t);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " " + msg, t);
   }
 
   public void info(String msg) {
-    logger.info(getIdentify() + " " + msg);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.INFO, getIdentify() + " " + msg, null);
   }
 
   public void error(String msg) {
-    logger.error(getIdentify() + " " + msg);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.ERROR, getIdentify() + " " + msg, null);
   }
 
   public void fatal(String msg) {
-    logger.fatal(getIdentify() + " " + msg);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.FATAL, getIdentify() + " " + msg, null);
     // System.exit(1);
   }
 
@@ -131,5 +142,10 @@ public class StorageJobLogger implements LocalIndicesLogger {
   @Override
   public void log(Level level, Throwable t) {
     logger.log( level, getIdentify(), t);
+  }
+  
+  public void close() {
+    if (logAppender != null)
+      logger.removeAppender(logAppender);
   }
 }

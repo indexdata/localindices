@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.torus.Layer;
 import com.indexdata.torus.Record;
@@ -56,8 +56,8 @@ public class SearchablesConverter extends Records {
             layer.setServiceProvider(entity.getServiceProvider());
             Storage storage = entity.getStorage();
             
-            if (storage instanceof SolrStorage) {
-            	SolrStorage solrStorage = (SolrStorage) storage;
+            if (storage instanceof SolrStorageEntity) {
+            	Storage solrStorage = (Storage) storage;
                 // Ensure unique zurl
             	
             	layer.setZurl(modifySolrUrl(solrStorage.getUrl()) + "#" + entity.getId());

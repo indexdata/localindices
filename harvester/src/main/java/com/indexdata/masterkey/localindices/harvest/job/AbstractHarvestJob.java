@@ -28,7 +28,7 @@ public abstract class AbstractHarvestJob implements HarvestJob {
     updated = true;
   }
 
-  protected synchronized boolean isKillSent() {
+  public synchronized boolean isKillSent() {
     return die;
   }
 

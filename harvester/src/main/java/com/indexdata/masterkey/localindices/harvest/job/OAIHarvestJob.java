@@ -63,7 +63,6 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     public String getMessage() {
       return message;
     }
-
   }
 
   public OAIHarvestJob(OaiPmhResource resource, Proxy proxy) {
@@ -269,5 +268,11 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     if (date == null)
       return null;
     return new SimpleDateFormat(currentDateFormat).format(date);
+  }
+
+  @Override
+  public OutputStream getOutputStream() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

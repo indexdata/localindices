@@ -19,7 +19,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.xml.factory.XmlFactory;
 
 /**
@@ -38,15 +40,37 @@ public class HarvestStorageFactory {
    */
   public static HarvestStorage getStorage(Harvestable harvestable) {
     HarvestStorage harvestStorage = null;
+    Storage entity = (Storage) harvestable.getStorage();
     /* TODO Extend to create other types */
-    if (harvestable.getStorage() instanceof com.indexdata.masterkey.localindices.entity.SolrStorage) {
-      com.indexdata.masterkey.localindices.entity.SolrStorage entity = (com.indexdata.masterkey.localindices.entity.SolrStorage) harvestable
-	  .getStorage();
+    if (entity instanceof com.indexdata.masterkey.localindices.entity.SolrStorageEntity) {
       SolrStorage storage = new BulkSolrRecordStorage(entity.getUrl(), harvestable);
       storage.setStorageId("" + entity.getId());
       return storage;
     }
-
+    else if (entity instanceof FileStorageEntity) {
+      FileStorage storage = new FileStorage();
+      storage.setHarvestable(harvestable);
+      return storage;
+    }
+    else {
+      if (entity.getIdAsString() != null) {
+	try {
+	  Class<?> storage = Class.forName(entity.getIdAsString());
+	  Object object = storage.newInstance();
+	  if (object instanceof HarvestStorage) {
+	    return (HarvestStorage) object;
+	  }
+	} catch (ClassNotFoundException e) {
+	  e.printStackTrace();
+	} catch (InstantiationException e) {
+	  // TODO Auto-generated catch block
+	  e.printStackTrace();
+	} catch (IllegalAccessException e) {
+	  // TODO Auto-generated catch block
+	  e.printStackTrace();
+	}	
+      }
+    }
     return harvestStorage;
   }
 

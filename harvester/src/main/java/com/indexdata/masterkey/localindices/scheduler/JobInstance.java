@@ -74,7 +74,7 @@ public class JobInstance {
       }
 
     } else if (hable instanceof WebCrawlResource) {
-      harvestJob = new WebHarvestJob((WebCrawlResource) hable, proxy);
+      harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
       harvestJob.setStorage(storage);
     } else {
       throw new IllegalArgumentException("Cannot create instance of the harvester.");
