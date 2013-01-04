@@ -177,7 +177,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
         XMLFilter filter;
         XMLReader parent = reader;
         int index = 0;
-        while (index < templates.length) {
+        while (templates != null && index < templates.length) {
           filter = stf.newXMLFilter(templates[index]);
           filter.setParent(parent);
           parent = filter;
