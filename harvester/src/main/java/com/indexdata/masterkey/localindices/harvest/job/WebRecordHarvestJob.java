@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -95,13 +96,12 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   // private HarvestStorage storage;
   private Proxy proxy;
   private WebCrawlResource resource;
-  private boolean die = false;
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
   private final int hitInterval = 60 * 1000; // ms between hitting the same host
-  private final int minNumWorkers = 20;
-  private final int maxNumWorkers = 100;
+  private final int minNumWorkers = 1;
+  private final int maxNumWorkers = 5;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
   public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
@@ -112,15 +112,11 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     this.error = null;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     logger = new StorageJobLogger(getClass(), resource);
-    List<TransformationStep> steps = resource.getTransformation().getSteps();
-    setupTemplates(resource, steps);
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.log(Level.WARN, "Web harvest received kill signal.");
+    List<TransformationStep> steps = new LinkedList<TransformationStep>();
+    if (resource.getTransformation() != null) {
+      steps = resource.getTransformation().getSteps();
     }
-    return die;
+    setupTemplates(resource, steps);
   }
 
   @Override
@@ -167,6 +163,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 
   private void xmlStart() throws IOException {
     String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" + "<records"
+	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" " + "\n"
 	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
     saveXmlFragment(header);
   }
@@ -347,18 +344,25 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       wthread.start();
     }
     logger.log(Level.DEBUG, "Started threads OK");
-    while (!que.alldone()) {
+    int index = 0; 
+    while (!que.alldone() && !isKillSent()) {
       try {
-	Thread.sleep(30 * 1000);
+	Thread.sleep(1000);
       } catch (InterruptedException ex) {
-	logger.log(Level.DEBUG, "Sleep interrupted, never mind");
+	if (!isKillSent())
+	  logger.log(Level.DEBUG, "Sleep interrupted, never mind");
       }
-      logWorkerStatus();
+      // Only log every 30 second.
+      if ((index % 30) == 0)
+	logWorkerStatus();
+      index++;
     }
-
+    for (CrawlThread worker : workers) {
+      worker.setRunning(false);
+    }
     long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
     String killmsg = "Ok!";
-    if (isKillSendt()) {
+    if (isKillSent()) {
       killmsg = "Killed!";
       // resource.setError("Interruped");
     } else {
@@ -385,7 +389,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
     harvestLoop();
     if (getStatus() == HarvestStatus.RUNNING) {
-      if (isKillSendt()) {
+      if (isKillSent()) {
 	setError("Web Crawl interrupted with a kill signal");
 	try {
 	  getStorage().rollback();
@@ -407,20 +411,21 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   } // run()
 
-  public RecordStorage setupTransformation(RecordStorage storage) {
-    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
-      XMLReader xmlReader;
-      try {
-	xmlReader = createTransformChain(false);
-	return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
+  public RecordStorage setupTransformation(RecordStorage storage) 
+  {
+    if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
+      logger.warn("No Transformation configured.");
+    
+    XMLReader xmlReader;
+    try {
+      xmlReader = createTransformChain(false);
+      return new TransformationChainRecordStorageProxy(storage, xmlReader,
+	  	new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
-      } catch (Exception e) {
-	e.printStackTrace();
-	logger.error(e.getMessage());
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error(e.getMessage());
     }
-    logger.warn("No Transformation Proxy configured.");
     return storage;
   }
 
