@@ -2,6 +2,11 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.GregorianCalendar;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.junit.Before;
 
 import junit.framework.TestCase;
 
@@ -14,9 +19,16 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
   String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
-  String solrUrl = "http://localhost:8080/solr/";
+  // String solrUrl = "http://localhost:8080/solr/";
+  String solrUrl = "http://lui-dev.indexdata.com/solr/";
   RecordStorage recordStorage;
-
+  Logger logger = Logger.getLogger(this.getClass());
+  
+  @Before
+  public void init() {
+    BasicConfigurator.configure();
+  }
+  
   private OaiPmhResource createResource(String url, String prefix, Date from, Date until)
       throws IOException {
     OaiPmhResource resource = new OaiPmhResource();
@@ -43,6 +55,7 @@ public class TestOAIRecordHarvestJob extends TestCase {
   }
 
   public void testClean10DaysNoBulkHarvestJob() throws IOException {
+    logger.info("Logging testClean10DaysNoBulkHarvestJob");
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc",
 	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null);
     resource.setId(1l);
@@ -52,15 +65,16 @@ public class TestOAIRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  @SuppressWarnings("deprecation")
   public void testClean1MonthBulkHarvestJob() throws IOException {
-    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new Date(2012, 1, 1),
-	new Date(2012, 2, 1));
+    logger.info("Logging testClean1MonthBulkHarvestJob");
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new GregorianCalendar(2012, 1, 1).getTime(),
+	new GregorianCalendar(2012, 2, 1).getTime());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue(resource.getFromDate().equals(new GregorianCalendar(2012, 2, 2).getTime()));
   }
 
   public void testCleanFullBulkHarvestJob_OaiDC() throws IOException {
