@@ -54,6 +54,13 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
 	    logger.error("Transformation exception. Save for later ", e);
 	  e.printStackTrace();
 	  transformException = e;
+	  try { 
+	    output.close();
+	  }
+	  catch (IOException ioe) 
+	  {
+	    logger.error("IOException while closing output");
+	  }
 	}
       };
     });
