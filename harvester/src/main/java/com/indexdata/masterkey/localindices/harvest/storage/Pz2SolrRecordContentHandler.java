@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Stack;
 
+import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -23,7 +24,8 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
   private String databaseId;
   private String type;
-
+  private Logger logger = Logger.getLogger(this.getClass());
+  
   public Pz2SolrRecordContentHandler(RecordStorage storage, String database) {
     store = storage;
     databaseId = database;
@@ -44,19 +46,16 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   @Override
   public void endDocument() throws SAXException {
     // TODO Auto-generated method stub
-
   }
 
   @Override
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
-    // TODO Auto-generated method stub
-
+    logger.debug("start prefixMapping: " + prefix + " " + uri);
   }
 
   @Override
   public void endPrefixMapping(String prefix) throws SAXException {
-    // TODO Auto-generated method stub
-
+    logger.debug("end prefixMapping: " + prefix);
   }
 
   @Override
