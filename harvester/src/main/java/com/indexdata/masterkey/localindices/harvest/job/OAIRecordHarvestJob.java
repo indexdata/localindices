@@ -113,15 +113,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 
-    // figure out harvesting period, even though we may end up using
-    // resumptionTokens from the DB
-    Date nextFrom = null;
-    if (resource.getUntilDate() != null)
-      logger.log(Level.INFO, "OAI harvest: until param will be overwritten to yesterday.");
-    resource.setUntilDate(yesterday());
-    nextFrom = new Date();
-    logger.log(Level.INFO, "OAI harvest started. Harvesting from: " 
-		+ resource.getFromDate() + " until: " + resource.getUntilDate());
+    // figure out harvesting period, even though we may end up using resumptionTokens from the DB
+    if (resource.getUntilDate() == null)
+      resource.setUntilDate(yesterday());
+    Date nextFrom = plusOneDay(resource.getUntilDate());
     try {
       getStorage().begin();
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
@@ -133,30 +128,28 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.DEBUG, e.getMessage(), e);
     }
     // if there was no error we move the time marker
-    if (getStatus() != HarvestStatus.ERROR && getStatus() != HarvestStatus.KILLED) {
+    if (getStatus() == HarvestStatus.OK) {
       // TODO persist until and from, trash resumption token
       resource.setFromDate(nextFrom);
       resource.setUntilDate(null);
-      resource.setNormalizationFilter(null);
+      resource.setResumptionToken(null);
       setStatus(HarvestStatus.FINISHED);
       logger.log(Level.INFO, "OAI harvest finished OK. Next from: " + resource.getFromDate());
-      initialRun = false;
-      try {
-	getStorage().commit();
-      } catch (IOException ioe) {
-	setStatus(HarvestStatus.ERROR);
-	resource.setMessage(ioe.getMessage());
-	logger.log(Level.ERROR, "Storage commit failed.");
-      }
     } else {
       if (getStatus().equals(HarvestStatus.KILLED))
 	setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "OAI harvest killed/faced error "
-	  + "- rolling back. Next from param: " + resource.getFromDate());
       try {
-	getStorage().rollback();
+	if (resource.getResumptionToken() != null) {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error "
+	      + "- Commiting up to Resumption Token " + resource.getFromDate());
+	  getStorage().commit();
+	}
+	else {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error - Rollback until " + resource.getFromDate());
+	  getStorage().rollback();
+	}
       } catch (IOException ioe) {
-	logger.log(Level.ERROR, "Storage rollback failed.");
+	logger.log(Level.ERROR, "Storage commit/rollback failed.");
       }
     }
     logger.close();
@@ -191,22 +184,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void harvest(String baseURL, String from, String until, String metadataPrefix,
-      String setSpec, String resumptionToken, RecordStorage storage) throws IOException {
-
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("from", from);
-    map.put("until", until);
-    map.put("metadataprefix", metadataPrefix);
-    map.put("oaisetname", setSpec);
-    map.put("normalizationfilter", resource.getNormalizationFilter());
+      String setSpec, String resumptionToken, RecordStorage storage) throws IOException 
+      {
 
     if (!setupTransformation(resource, metadataPrefix))
       return;
 
     ListRecords listRecords = null;
     if (resumptionToken == null || "".equals(resumptionToken)) {
+      logger.log(Level.INFO, "OAI harvest started. Harvesting from: "  
+	  + resource.getFromDate() + " until: " + resource.getUntilDate());
       listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
     } else {
+      logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
       listRecords = listRecords(baseURL, resumptionToken);
     }
     boolean dataStart = false;
@@ -217,14 +207,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       } catch (TransformerException te) {
 	throw new IOException("Cannot read OAI-PMH protocol errors.", te);
       }
-      OAIError[] errors = null;
-      if ((errors = getErrors(errorNodes)) != null) {
+      OAIError[] errors = getErrors(errorNodes);
+      if (errors != null) {
 	// The error message has been logged, but print out the full record
 	logger.log(Level.DEBUG, "OAI error response: \n" + listRecords.toString());
 	// if this is noRecordsMatch and initial run, something is wrong
 	logger.log(Level.DEBUG, "Parsed errors: #Errors: "
-	    + errors.length + " First ErrorCode: " + errors[0].getCode() + " initialRun: "
-	    + initialRun);
+	    + errors.length + " First ErrorCode: " + errors[0].getCode() + " initialRun: " + initialRun);
 	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")) {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
 	  setStatus(HarvestStatus.KILLED);
@@ -233,6 +222,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  throw new IOException("OAI error " + errors[0].code + ": " + errors[0].message);
       } else {
 	if (!dataStart) {
+	  getStorage().begin();
 	  storage.databaseStart(resource.getId().toString(), null);
 	  if (storage.getOverwriteMode())
 	    storage.purge(false);
@@ -258,10 +248,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       if (resumptionToken == null || resumptionToken.length() == 0) {
 	logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
+	setStatus(HarvestStatus.OK);
 	break;
       } else {
 	logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
-	resource.setNormalizationFilter(resumptionToken);
+	resource.setResumptionToken(resumptionToken);
+	//getStorage().commit();
 	markForUpdate();
 	listRecords = listRecords(baseURL, resumptionToken);
       }
@@ -281,7 +273,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private StreamSource[] filenamesToStreamSources(String[] filenames) {
     StreamSource[] streamSources = new StreamSource[filenames.length];
     for (int index = 0; index < filenames.length; index++) {
-      streamSources[index] = new StreamSource(new File(filenames[index]));
+      streamSources[index] = new StreamSource(new File("src/main/webapp/WEB-INF/stylesheets/" + filenames[index]));
     }
     return streamSources;
   }
@@ -380,6 +372,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private Date yesterday() {
     Calendar c = Calendar.getInstance();
     c.add(Calendar.DAY_OF_MONTH, -1); // back one
+    return c.getTime();
+  }
+
+  private Date plusOneDay(Date date) {
+    Calendar c = Calendar.getInstance();
+    c.setTime(date);
+    c.add(Calendar.DAY_OF_MONTH, 1);
     return c.getTime();
   }
 
