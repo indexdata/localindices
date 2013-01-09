@@ -162,7 +162,8 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   }
 
   private void xmlStart() throws IOException {
-    String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" + "<records"
+    String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" 
+	+ "<records"
 	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" " + "\n"
 	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
     saveXmlFragment(header);
