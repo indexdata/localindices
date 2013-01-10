@@ -92,12 +92,13 @@ public class TestBulkRecordHarvestJob extends TestCase {
       	byte buf[] = new byte[4096];
       	ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
       	int length = 0;
-      	int total = 0;
+      	@SuppressWarnings("unused")
+	int total = 0;
       	while ((length = input.read(buf)) != -1) { 
       	  byteArray.write(buf, 0, length);
       	  total += length;
       	}
-      	System.out.println("Step " + resource  + " length: " + total );
+      	//System.out.println("Step " + resource  + " length: " + total );
       	String template = byteArray.toString("UTF-8");
       	TransformationStep step = new BasicTransformationStep("Step " + index, "Test", template);
       	transformation.addStep(step, index++);
@@ -133,6 +134,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setTransformation(createMarc21Transformation());
     
     RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.purge(true);
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue("Total records != 0", storageStatus.getTotalRecords() == 0); 
@@ -150,6 +152,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource(resourceMarc, null, null, 1, 100);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     StorageStatus storageStatus = recordStorage.getStatus();
     Logger.getLogger(this.getClass()).info("Total records: " + storageStatus.getTotalRecords()); 
@@ -167,6 +170,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -182,6 +186,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -197,6 +202,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);    
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -212,6 +218,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -227,6 +234,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -242,6 +250,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -257,6 +266,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -272,6 +282,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
