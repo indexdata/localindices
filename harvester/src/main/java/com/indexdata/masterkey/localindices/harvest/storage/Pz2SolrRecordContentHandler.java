@@ -50,12 +50,12 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 
   @Override
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
-    logger.debug("start prefixMapping: " + prefix + " " + uri);
+    //logger.trace("start prefixMapping: " + prefix + " " + uri);
   }
 
   @Override
   public void endPrefixMapping(String prefix) throws SAXException {
-    logger.debug("end prefixMapping: " + prefix);
+    //logger.trace("end prefixMapping: " + prefix);
   }
 
   @Override
