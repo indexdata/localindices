@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
  * @author jakub
  */
 public class SchedulerThread implements Runnable {
-  private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private Logger logger = Logger.getLogger(this.getClass());
   private boolean keepRunning;
   private JobScheduler scheduler;
 
@@ -33,8 +33,8 @@ public class SchedulerThread implements Runnable {
     
     while (keepRunning()) {
       try {
-	Thread.sleep(10 * 1000);
-	// logger.log(Level.INFO, "Checking and updating current job list..");
+	Thread.sleep(1000);
+	//logger.log(Level.TRACE, "Checking and updating current job list..");
 	scheduler.checkJobs();
 	scheduler.updateJobs();
 	scheduler.checkJobs();
