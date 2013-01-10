@@ -58,7 +58,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     splitSize  = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
-    setLogger((new StorageJobLogger(getClass(), resource)));
+    setLogger((new FileStorageJobLogger(getClass(), resource)));
     List<TransformationStep> steps = resource.getTransformation().getSteps();
     setupTemplates(resource, steps);
   }

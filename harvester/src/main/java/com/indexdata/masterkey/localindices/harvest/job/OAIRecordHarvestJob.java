@@ -109,7 +109,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-    logger = new StorageJobLogger(this.getClass(), resource);
+    logger = new FileStorageJobLogger(this.getClass(), resource);
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 

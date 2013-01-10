@@ -82,7 +82,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     }
     this.resource = resource;
     this.proxy = proxy;
-    logger = new StorageJobLogger(this.getClass(), resource);
+    logger = new FileStorageJobLogger(this.getClass(), resource);
     
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     if (getStatus().equals(HarvestStatus.NEW) || getStatus().equals(HarvestStatus.ERROR))

@@ -111,7 +111,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     // logger.setLevel(Level.ALL); // While debugging
     this.error = null;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
-    logger = new StorageJobLogger(getClass(), resource);
+    logger = new FileStorageJobLogger(getClass(), resource);
     List<TransformationStep> steps = new LinkedList<TransformationStep>();
     if (resource.getTransformation() != null) {
       steps = resource.getTransformation().getSteps();
