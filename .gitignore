@@ -13,3 +13,4 @@ vpproject/
 *.versionsBackup
 mem.*
 .DS_Store
+deb-src
