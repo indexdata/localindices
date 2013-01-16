@@ -50,6 +50,8 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  * handled on the higher level.
  * 
  * @author jakub
+ * @author Dennis
+ * 
  */
 @SuppressWarnings("unused")
 public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
@@ -109,7 +111,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-    logger = new FileStorageJobLogger(this.getClass(), resource);
+    // TODO: Remove
+    if (logger == null) 
+      logger = new FileStorageJobLogger(this.getClass(), resource);
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 
@@ -135,13 +139,18 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setResumptionToken(null);
       setStatus(HarvestStatus.FINISHED);
       logger.log(Level.INFO, "OAI harvest finished OK. Next from: " + resource.getFromDate());
+      try {
+	getStorage().commit();
+      } catch (IOException e) {
+	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
+      }
     } else {
       if (getStatus().equals(HarvestStatus.KILLED))
 	setStatus(HarvestStatus.FINISHED);
       try {
 	if (resource.getResumptionToken() != null) {
 	  logger.log(Level.INFO, "OAI harvest killed/faced error "
-	      + "- Commiting up to Resumption Token " + resource.getFromDate());
+	      + "- Commiting up to Resumption Token " + resource.getResumptionToken());
 	  getStorage().commit();
 	}
 	else {
