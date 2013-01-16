@@ -14,7 +14,7 @@ import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class TestSolrStorage extends TestCase {
-  Harvestable harvestable ; // = new DummyXmlBulkResource("http://localhost:8080/solr/");
+  Harvestable harvestable = new DummyXmlBulkResource("http://localhost:8080/solr/");
   
   // SOLR Server in container on 8080
   StorageJobLogger logger = new ConsoleStorageJobLogger(TestSolrStorage.class, harvestable); 
