@@ -38,10 +38,10 @@ public class TestBulkRecordHarvestJob extends TestCase {
   //String resourceMarc = "http://lui-dev.indexdata.com/ag/demo_org.mrc";
   String resourceMarc = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
 
-  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
-  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
+//  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
+//  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
 
-  String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
+//  String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
 
   String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
@@ -244,7 +244,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
-
+  
+  /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
@@ -292,5 +293,5 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(250000).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
-
+  */
 }
