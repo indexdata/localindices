@@ -11,6 +11,7 @@ import org.junit.Before;
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
@@ -19,8 +20,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
   String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
-  // String solrUrl = "http://localhost:8080/solr/";
-  String solrUrl = "http://lui-dev.indexdata.com/solr/";
+  String solrUrl = "http://localhost:8080/solr/";
+  //String solrUrl = "http://lui-dev.indexdata.com/solr/";
   RecordStorage recordStorage;
   Logger logger = Logger.getLogger(this.getClass());
   
@@ -29,7 +30,7 @@ public class TestOAIRecordHarvestJob extends TestCase {
     BasicConfigurator.configure();
   }
   
-  private OaiPmhResource createResource(String url, String prefix, Date from, Date until)
+  private OaiPmhResource createResource(String url, String prefix, Date from, Date until, String setName)
       throws IOException {
     OaiPmhResource resource = new OaiPmhResource();
     resource.setEnabled(true);
@@ -39,6 +40,7 @@ public class TestOAIRecordHarvestJob extends TestCase {
     if (until != null) {
       resource.setUntilDate(until);
     }
+    resource.setOaiSetName(setName);
     resource.setMetadataPrefix(prefix);
     resource.setUrl(url);
     resource.setId(1l);
@@ -48,8 +50,9 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
   private RecordHarvestJob doXDaysHarvestJob(RecordStorage recordStorage, OaiPmhResource resource)
       throws IOException {
-    RecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
+    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
     job.setStorage(recordStorage);
+    job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.run();
     return job;
   }
@@ -57,10 +60,9 @@ public class TestOAIRecordHarvestJob extends TestCase {
   public void testClean10DaysNoBulkHarvestJob() throws IOException {
     logger.info("Logging testClean10DaysNoBulkHarvestJob");
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc",
-	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null);
+	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null);
     resource.setId(1l);
-    RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
-    recordStorage.setOverwriteMode(true);
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
@@ -68,9 +70,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
   public void testClean1MonthBulkHarvestJob() throws IOException {
     logger.info("Logging testClean1MonthBulkHarvestJob");
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new GregorianCalendar(2012, 1, 1).getTime(),
-	new GregorianCalendar(2012, 2, 1).getTime());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setOverwriteMode(true);
+	new GregorianCalendar(2012, 2, 1).getTime(), null);
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -78,9 +79,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
   }
 
   public void testCleanFullBulkHarvestJob_OaiDC() throws IOException {
-    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", null, null);
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setOverwriteMode(true);
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", null, null, "Dissertations");
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -88,21 +88,65 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
   public void testClean10DaysHarvestJob_OaiMarc21() throws IOException {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21",
-	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null);
+	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null);
     resource.setId(2l);
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setOverwriteMode(true);
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
   public void testCleanFullBulkHarvestJob_OaiMarc21() throws IOException {
-    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null);
+    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book");
     resource.setId(2l);
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setOverwriteMode(true);
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
+
+  public void testCleanResumptionBulkHarvestJob_OaiMarc21() throws IOException {
+    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book");
+    boolean purge = true;
+    resource.setId(2l);
+    RecordStorage recordStorage = createStorage(resource, purge);
+    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
+      int index = 0;
+      @Override
+      public synchronized boolean isKillSent() {
+	index++; 
+	if (index % 3 == 0) 
+	  kill();
+        return super.isKillSent();
+      } 
+    };
+    job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
+    job.setStorage(recordStorage);
+    job.run();
+    assertTrue(resource.getResumptionToken() != null);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    // Finish the job
+    job = new OAIRecordHarvestJob(resource, null);
+    job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
+    job.setStorage(recordStorage);
+    job.run();
+    assertTrue(resource.getResumptionToken() == null);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    
+  
+  }
+
+  private RecordStorage createStorage(OaiPmhResource resource, boolean purge) throws IOException {
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    SolrStorageEntity storageEntity = new SolrStorageEntity();
+    storageEntity.setId(2l);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
+    recordStorage.setOverwriteMode(false);
+    // We want an empty storage;
+    if (purge) {
+      recordStorage.begin();
+      recordStorage.purge(true);
+    }
+    return recordStorage;
+  }
+
 }
