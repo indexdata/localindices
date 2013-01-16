@@ -19,10 +19,9 @@ public class ConsoleStorageJobLogger extends StorageJobLogger {
   }
 
   protected void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type) {
-    if (logger.getAppender(logFilename) == null) {
-      logAppender = new ConsoleAppender(layout);
-      logAppender.setName(logFilename);
-      logger.addAppender(logAppender);
-    }
+    logger.removeAppender(logger.getAppender(logFilename));
+    logAppender = new ConsoleAppender(layout);
+    logAppender.setName(logFilename);
+    logger.addAppender(logAppender);
   }
 }
