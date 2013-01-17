@@ -4,17 +4,16 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import junit.framework.TestCase;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
-
-import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 
 public class TestOAIRecordHarvestJob extends TestCase {
 
