@@ -65,7 +65,7 @@ public class ConsoleRecordStorage implements RecordStorage {
 
   @Override
   public OutputStream getOutputStream() {
-    throw new RuntimeException("OutputStream interface not supported");
+    return System.out;
   }
 
   @Override
