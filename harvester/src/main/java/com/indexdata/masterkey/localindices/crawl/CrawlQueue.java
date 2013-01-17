@@ -124,7 +124,7 @@ public class CrawlQueue {
 	Long ny = notYet.get(host);
 	Long now = System.currentTimeMillis();
 	if (ny == null || ny < now) {
-	  notYet.put(host, now + 2 * 60 * 1000); // 2 minutes
+	  notYet.put(host, now + 1000); // 1 sec
 	  // When the page is processed, we put a better time there!
 	  // most likely shorter. This stays in case of I/O errors etc
 	  return pg;
@@ -140,7 +140,7 @@ public class CrawlQueue {
 	decrementUnderWork(); // that one is not under work, it went back
       }
       try {
-	Thread.sleep(500);
+	Thread.sleep(0);
 	// just to make sure that other threads can run, if our queue
 	// only contains notyet entries, as can happen near the end of
 	// a job.
