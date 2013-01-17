@@ -25,6 +25,8 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -99,9 +101,9 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
-  private final int hitInterval = 60 * 1000; // ms between hitting the same host
+  private final int hitInterval = 250; // ms between hitting the same host
   private final int minNumWorkers = 1;
-  private final int maxNumWorkers = 5;
+  private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
   public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
@@ -163,19 +165,21 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 
   private void xmlStart() throws IOException {
     String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" 
-	+ "<records"
-	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" " + "\n"
+	+ "<pz:records"
+	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" "
 	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
+    //getStorage().begin();
     saveXmlFragment(header);
   }
 
   public synchronized void saveXmlFragment(String xml) throws IOException {
     OutputStream os = getOutputStream();
     os.write(xml.getBytes());
+    os.write("\n".getBytes());
   }
 
   private void xmlEnd() throws IOException {
-    String footer = "</records>\n";
+    String footer = "</pz:records>\n";
     saveXmlFragment(footer);
   }
 
@@ -240,7 +244,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	try {
 	  SiteRequest site = new SiteRequest();
 	  site.url = new URL(m.group(2));
-	  site.maxdepth = resource.getRecursionDepth();
+	  site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth() : 1;
 	  sites.add(site);
 	  logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'" + " (d=" + site.maxdepth + ")");
 	} catch (MalformedURLException ex) {
@@ -272,8 +276,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	      for (URL u : links) {
 		SiteRequest site = new SiteRequest();
 		site.url = u;
-		site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth()
-		    : 1;
+		site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth() : 1;
 		if (sites.contains(site)) {
 		  logger.log(Level.INFO, "Site " + u.toString() + " is already in the jump list.");
 		} else {
@@ -414,9 +417,12 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 
   public RecordStorage setupTransformation(RecordStorage storage) 
   {
+    /*
     if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
-      logger.warn("No Transformation configured.");
-    
+      logger.debug("No Transformation configured.");
+    */
+    return getStorage();
+    /*
     XMLReader xmlReader;
     try {
       xmlReader = createTransformChain(false);
@@ -428,6 +434,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       logger.error(e.getMessage());
     }
     return storage;
+    */
   }
 
   
