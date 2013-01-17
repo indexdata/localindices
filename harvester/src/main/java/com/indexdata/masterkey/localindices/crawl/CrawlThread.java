@@ -116,6 +116,7 @@ public class CrawlThread implements Runnable {
 	    setStatus(CRAWLTHREAD_PROCESSING);
 	  } catch (IOException ex) {
 	    job.setError("I/O error writing data: " + ex.getMessage());
+	    job.kill();
 	    logger.log(Level.TRACE, xml);
 	  }
 	}
