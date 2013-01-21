@@ -1,9 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.IOException;
-
 import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -14,9 +11,9 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 
 
-public class StorageJobLogger implements LocalIndicesLogger {
+public abstract class StorageJobLogger implements LocalIndicesLogger {
 
-  private Logger logger; 
+  protected Logger logger; 
   private String identify;
   Layout layout = new PatternLayout("%d %-5p %m\n");
   Appender logAppender  = null;   
@@ -42,18 +39,7 @@ public class StorageJobLogger implements LocalIndicesLogger {
     		//"" STORAGE#" + (resource.getStorage() != null? resource.getStorage().getId() : ""));
   }
 
-  private void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type) {
-    try {
-      if (logger.getAppender(logFilename) == null) {
-	logAppender = new FileAppender(layout, logFilename, true);
-	logAppender.setName(logFilename);
-	logger.addAppender(logAppender);
-      }
-    } catch (IOException e) {
-      logger = Logger.getLogger(loggerClass);
-      logger.error("Failed to open per-" + type + " log file (" + logFilename + ")");
-    }
-  }
+  protected abstract void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type);
   
   public void addAppender(Appender logAppender) 
   {
@@ -147,5 +133,13 @@ public class StorageJobLogger implements LocalIndicesLogger {
   public void close() {
     if (logAppender != null)
       logger.removeAppender(logAppender);
+  }
+
+  protected Logger getLogger() {
+    return logger;
+  }
+
+  protected void setLogger(Logger logger) {
+    this.logger = logger;
   }
 }

@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -24,6 +25,8 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -95,13 +98,12 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   // private HarvestStorage storage;
   private Proxy proxy;
   private WebCrawlResource resource;
-  private boolean die = false;
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
-  private final int hitInterval = 60 * 1000; // ms between hitting the same host
-  private final int minNumWorkers = 20;
-  private final int maxNumWorkers = 100;
+  private final int hitInterval = 250; // ms between hitting the same host
+  private final int minNumWorkers = 1;
+  private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
   public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
@@ -111,16 +113,12 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     // logger.setLevel(Level.ALL); // While debugging
     this.error = null;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
-    logger = new StorageJobLogger(getClass(), resource);
-    List<TransformationStep> steps = resource.getTransformation().getSteps();
-    setupTemplates(resource, steps);
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.log(Level.WARN, "Web harvest received kill signal.");
+    logger = new FileStorageJobLogger(getClass(), resource);
+    List<TransformationStep> steps = new LinkedList<TransformationStep>();
+    if (resource.getTransformation() != null) {
+      steps = resource.getTransformation().getSteps();
     }
-    return die;
+    setupTemplates(resource, steps);
   }
 
   @Override
@@ -166,18 +164,22 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   }
 
   private void xmlStart() throws IOException {
-    String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" + "<records"
+    String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" " + "?>\n" 
+	+ "<pz:records"
+	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" "
 	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
+    //getStorage().begin();
     saveXmlFragment(header);
   }
 
   public synchronized void saveXmlFragment(String xml) throws IOException {
     OutputStream os = getOutputStream();
     os.write(xml.getBytes());
+    os.write("\n".getBytes());
   }
 
   private void xmlEnd() throws IOException {
-    String footer = "</records>\n";
+    String footer = "</pz:records>\n";
     saveXmlFragment(footer);
   }
 
@@ -242,7 +244,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	try {
 	  SiteRequest site = new SiteRequest();
 	  site.url = new URL(m.group(2));
-	  site.maxdepth = resource.getRecursionDepth();
+	  site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth() : 1;
 	  sites.add(site);
 	  logger.log(Level.TRACE, "Added start URL '" + m.group(2) + "'" + " (d=" + site.maxdepth + ")");
 	} catch (MalformedURLException ex) {
@@ -274,8 +276,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	      for (URL u : links) {
 		SiteRequest site = new SiteRequest();
 		site.url = u;
-		site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth()
-		    : 1;
+		site.maxdepth = resource.getRecursionDepth() != null ? resource.getRecursionDepth() : 1;
 		if (sites.contains(site)) {
 		  logger.log(Level.INFO, "Site " + u.toString() + " is already in the jump list.");
 		} else {
@@ -347,18 +348,25 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       wthread.start();
     }
     logger.log(Level.DEBUG, "Started threads OK");
-    while (!que.alldone()) {
+    int index = 0; 
+    while (!que.alldone() && !isKillSent()) {
       try {
-	Thread.sleep(30 * 1000);
+	Thread.sleep(1000);
       } catch (InterruptedException ex) {
-	logger.log(Level.DEBUG, "Sleep interrupted, never mind");
+	if (!isKillSent())
+	  logger.log(Level.DEBUG, "Sleep interrupted, never mind");
       }
-      logWorkerStatus();
+      // Only log every 30 second.
+      if ((index % 30) == 0)
+	logWorkerStatus();
+      index++;
     }
-
+    for (CrawlThread worker : workers) {
+      worker.setRunning(false);
+    }
     long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
     String killmsg = "Ok!";
-    if (isKillSendt()) {
+    if (isKillSent()) {
       killmsg = "Killed!";
       // resource.setError("Interruped");
     } else {
@@ -385,7 +393,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
     harvestLoop();
     if (getStatus() == HarvestStatus.RUNNING) {
-      if (isKillSendt()) {
+      if (isKillSent()) {
 	setError("Web Crawl interrupted with a kill signal");
 	try {
 	  getStorage().rollback();
@@ -407,21 +415,26 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   } // run()
 
-  public RecordStorage setupTransformation(RecordStorage storage) {
-    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
-      XMLReader xmlReader;
-      try {
-	xmlReader = createTransformChain(false);
-	return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	    new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
+  public RecordStorage setupTransformation(RecordStorage storage) 
+  {
+    /*
+    if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
+      logger.debug("No Transformation configured.");
+    */
+    return getStorage();
+    /*
+    XMLReader xmlReader;
+    try {
+      xmlReader = createTransformChain(false);
+      return new TransformationChainRecordStorageProxy(storage, xmlReader,
+	  	new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
-      } catch (Exception e) {
-	e.printStackTrace();
-	logger.error(e.getMessage());
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error(e.getMessage());
     }
-    logger.warn("No Transformation Proxy configured.");
     return storage;
+    */
   }
 
   

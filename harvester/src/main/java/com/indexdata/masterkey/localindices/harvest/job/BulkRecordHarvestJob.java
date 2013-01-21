@@ -58,7 +58,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     splitSize  = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
-    logger = new StorageJobLogger(getClass(), resource);
+    setLogger((new FileStorageJobLogger(getClass(), resource)));
     List<TransformationStep> steps = resource.getTransformation().getSteps();
     setupTemplates(resource, steps);
   }
@@ -89,8 +89,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return null;
   }
   
+  boolean debug = false;
   private void debugSource(Source xmlSource) {
-    boolean debug = false;
     if (debug) {
 	logger.debug("Transform xml ");
 	StreamResult debugOut = new StreamResult(System.out);
@@ -184,8 +184,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       if (getStatus() == HarvestStatus.ERROR) {
 	throw new Exception(error);
       }
-      // This is different from old behavior. All insert is now done in one commit.
       getStorage().setLogger(logger);
+      // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())

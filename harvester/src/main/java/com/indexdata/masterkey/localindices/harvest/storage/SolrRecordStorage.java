@@ -100,7 +100,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     databaseProperties = properties;
-    logger.debug("Current Database " + this.database + "New database: " + database);
+    if (this.database != null && !this.database.equals(database)) { 
+      logger.debug("Current Database " + this.database + ". New database: " + database);
+    }
     this.database = database;
   }
 

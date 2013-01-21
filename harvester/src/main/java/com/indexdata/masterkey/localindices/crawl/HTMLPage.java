@@ -379,19 +379,19 @@ public class HTMLPage {
     // FIXME - Use proper XML tools to do this, to avoid problems with
     // bad entities, character sets, etc.
     String xml = "<pz:record>\n";
-    xml += xmlTag("title", title);
+    xml += xmlTag("title", title)  + "\n";
     if (description != null)
-      xml += xmlTag("description", description);
+      xml += xmlTag("description", description) + "\n";
     if (keywords != null) {
       for (String keyword : keywords.split(",")) {
-	xml += xmlTag("subject", keyword);
+	xml += xmlTag("subject", keyword)  + "\n";
       }
     }
     if (author != null) {
-      xml += xmlTag("author", author);
+      xml += xmlTag("author", author)  + "\n";
     }
-    xml += xmlTag("electronic-url", url.toString());
-    xml += xmlTag("fulltext", plainText);
+    xml += xmlTag("electronic-url", url.toString()) + "\n";
+    xml += xmlTag("fulltext", plainText)  + "\n";
     xml += "</pz:record>\n";
     return xml;
   } // makeXml

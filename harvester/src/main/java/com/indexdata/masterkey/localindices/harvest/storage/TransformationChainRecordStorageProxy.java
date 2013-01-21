@@ -12,6 +12,7 @@ import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 
+import org.apache.commons.io.input.TeeInputStream;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
@@ -29,7 +30,7 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
   private StorageJobLogger logger; 
   
   public TransformationChainRecordStorageProxy(final RecordStorage storage,
-      final XMLReader xmlFilter, final ContentHandler storageHandler, final StorageJobLogger logger) throws IOException,
+      final XMLReader xmlFilteredReader, final ContentHandler storageHandler, final StorageJobLogger logger) throws IOException,
       TransformerConfigurationException {
     // this.xmlFilter = xmlFilter;
     this.logger = logger;
@@ -45,7 +46,7 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
 
       private void processDataFromInputStream(PipedInputStream input) {
 	InputSource source = new InputSource(input);
-	SAXSource transformSource = new SAXSource(xmlFilter, source);
+	SAXSource transformSource = new SAXSource(xmlFilteredReader, source);
 	SAXResult result = new SAXResult(storageHandler);
 	try {
 	  transformer.transform(transformSource, result);
@@ -54,6 +55,13 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
 	    logger.error("Transformation exception. Save for later ", e);
 	  e.printStackTrace();
 	  transformException = e;
+	  try { 
+	    output.close();
+	  }
+	  catch (IOException ioe) 
+	  {
+	    logger.error("IOException while closing output");
+	  }
 	}
       };
     });

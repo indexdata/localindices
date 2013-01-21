@@ -14,8 +14,8 @@ public class SimpleStorageStatus implements StorageStatus {
   }
   @Override
   public Long getTotalRecords() {
-    /* Not supported */ 
-    return null;
+    
+    return adds - deletes;
   }
 
   @Override

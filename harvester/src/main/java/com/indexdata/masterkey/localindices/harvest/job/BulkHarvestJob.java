@@ -40,7 +40,7 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
     this.resource = resource;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     this.resource.setMessage(null);
-    logger = new StorageJobLogger(this.getClass(), resource);
+    logger = new FileStorageJobLogger(this.getClass(), resource);
   }
 
   private synchronized boolean isKillSendt() {

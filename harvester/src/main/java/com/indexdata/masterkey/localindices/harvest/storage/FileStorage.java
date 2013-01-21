@@ -30,6 +30,9 @@ public class FileStorage implements RecordStorage {
   Harvestable harvestable;
   OutputStream out;
   private String database;
+  private boolean committed;
+  private long deletes;
+  private long adds;
   
   public FileStorage() {
     
@@ -45,7 +48,7 @@ public class FileStorage implements RecordStorage {
       FileStorageEntity fileStorage = (FileStorageEntity) storage;
       String url = fileStorage.getUrl();
       if (url.startsWith("file://")) {
-	url = url.substring("file:/".length());
+	url = url.substring("file://".length());
       }
       try {
 	current = new File(url);
@@ -76,13 +79,13 @@ public class FileStorage implements RecordStorage {
 
     if (commit) {
       commit();
-      out = new FileOutputStream(current, false);
+//      out = new FileOutputStream(current, false);
     }
   }
 
   public OutputStream getOutputStream() {
     if (out == null) {
-      System.out.println("Error: getOutputStream before bigin. File is not open: " + current.getAbsolutePath());
+      System.out.println("Error: getOutputStream before begin. File is not open: " + (current != null? current.getAbsolutePath() : "Path not set!"));
     }
     return out;
   }
@@ -135,13 +138,11 @@ public class FileStorage implements RecordStorage {
   @Override
   public void setLogger(StorageJobLogger logger) {
     // TODO Auto-generated method stub
-    
   }
 
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
-    // TODO Auto-generated method stub
-    return null;
+    return new SimpleStorageStatus(adds, deletes, committed);
   }
 
 }

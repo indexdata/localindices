@@ -35,6 +35,7 @@ public class CrawlThread implements Runnable {
   private int threadNumber;
   private int hitInterval;
   private int status = CRAWLTHREAD_STARTING;
+  private boolean running; 
 
   public CrawlThread(WebHarvestJobInterface job, Proxy proxy, CrawlQueue que,
       String filterString, int threadNumber, int hitInterval) {
@@ -115,6 +116,7 @@ public class CrawlThread implements Runnable {
 	    setStatus(CRAWLTHREAD_PROCESSING);
 	  } catch (IOException ex) {
 	    job.setError("I/O error writing data: " + ex.getMessage());
+	    job.kill();
 	    logger.log(Level.TRACE, xml);
 	  }
 	}
@@ -134,13 +136,25 @@ public class CrawlThread implements Runnable {
     logger.log(Level.TRACE, "thread " + threadNumber + " starting");
     PageRequest pg;
     setStatus(CRAWLTHREAD_QWAIT);
-    while ((pg = que.get()) != null) {
+    setRunning(true);
+    while ((pg = que.get()) != null && isRunning()) {
       setStatus(CRAWLTHREAD_PROCESSING);
       crawlPage(pg);
       que.decrementUnderWork(); // ok, now we are finished with it
       setStatus(CRAWLTHREAD_QWAIT);
     }
+    // TODO Cannot set interrupted on crawl thread, but at least log it
+    if (isRunning() == false)
+      logger.log(Level.WARN, "thread " + threadNumber + " was stopped");
     setStatus(CRAWLTHREAD_DONE);
     logger.log(Level.TRACE, "thread " + threadNumber + " finished");
   } // run
+
+  public boolean isRunning() {
+    return running;
+  }
+
+  public void setRunning(boolean running) {
+    this.running = running;
+  }
 } // class Crawlthread

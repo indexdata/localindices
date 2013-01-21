@@ -25,7 +25,11 @@
         <h:inputText value="#{resourceController.resource.fromDate}" size="8">
             <f:convertDateTime pattern="dd/MM/yyyy" />
         </h:inputText>
+        <h:outputText value="Harvest until (dd/mm/yyyy):"/>
+        <h:inputText value="#{resourceController.resource.untilDate}" size="8">
+            <f:convertDateTime pattern="dd/MM/yyyy" />
+        </h:inputText>
         <h:outputText value="Resumption token: (overrrides date)"/>
-        <h:inputText value="#{resourceController.resource.normalizationFilter}"/>
+        <h:inputText value="#{resourceController.resource.resumptionToken}"/>
     </h:panelGrid>
 </f:subview>

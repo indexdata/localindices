@@ -35,6 +35,7 @@ import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
@@ -71,7 +72,7 @@ public class SolrStorage implements HarvestStorage {
       if (harvestable != null) {
         storage = harvestable.getStorage();
       }
-      logger = new StorageJobLogger(SolrStorage.class, storage);
+      logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       server = new CommonsHttpSolrServer(url);
       // TODO make configurable 

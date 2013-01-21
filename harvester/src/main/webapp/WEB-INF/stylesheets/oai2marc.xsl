@@ -18,8 +18,19 @@
         version="1.0"
         encoding="UTF-8"/>
 
-  <xsl:template match="//oai:record">
 
+<xsl:template match="/">
+<collection>
+  <xsl:apply-templates/>
+</collection>
+
+</xsl:template>
+
+  <xsl:template match="//oai:record">
+    <xsl:if test="oai:header[@status='deleted']">
+      <delete><xsl:attribute name="id"><xsl:value-of select="oai:header/oai:identifier"/></xsl:attribute></delete>
+    </xsl:if>
+    <xsl:if test="not(oai:header[@status='deleted'])">
       <xsl:variable name="oai-id">
           <xsl:value-of select="oai:header/oai:identifier"/>
       </xsl:variable>
@@ -28,12 +39,12 @@
         <xsl:copy>
           <xsl:copy-of select="@*"/>
           <xsl:copy-of select="*"/>
-          <pz:metadata type="zebra-id">
+          <pz:metadata type="id">
            <xsl:value-of select="$oai-id"/>
           </pz:metadata>
         </xsl:copy>
       </xsl:for-each>
-
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="text()"/>
