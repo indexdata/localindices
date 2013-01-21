@@ -29,7 +29,7 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   // resumption token
   private String resumptionToken;
   // NormalizationFilter (id? Load from other table)
-  private String normalizationFilter;
+  private String encoding;
 
   @Temporal(TemporalType.DATE)
   private Date fromDate;
@@ -80,12 +80,12 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     this.metadataPrefix = metadataPrefix;
   }
 
-  public String getNormalizationFilter() {
-    return normalizationFilter;
+  public String getEncoding() {
+    return encoding;
   }
 
-  public void setNormalizationFilter(String normalizationFilter) {
-    this.normalizationFilter = normalizationFilter;
+  public void setEncoding(String encoding) {
+    this.encoding = encoding;
   }
 
   public String getOaiSetName() {
