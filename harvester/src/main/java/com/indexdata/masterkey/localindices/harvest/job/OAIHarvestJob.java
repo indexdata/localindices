@@ -113,7 +113,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
       // } else {
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
-	  resource.getOaiSetName(), resource.getNormalizationFilter(), out);
+	  resource.getOaiSetName(), resource.getResumptionToken(), out);
       // }
 
     } catch (IOException e) {
@@ -126,7 +126,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
       // TODO persist until and from, trash resumption token
       resource.setFromDate(nextFrom);
       resource.setUntilDate(null);
-      resource.setNormalizationFilter(null);
+      resource.setResumptionToken(null);
       setStatus(HarvestStatus.FINISHED);
       logger.log(Level.INFO, "OAI harvest finished OK. Next from: "
 	  + resource.getFromDate());
@@ -201,7 +201,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
 	break;
       } else {
 	logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
-	resource.setNormalizationFilter(resumptionToken);
+	resource.setResumptionToken(resumptionToken);
 	markForUpdate();
 	listRecords = listRecords(baseURL, resumptionToken);
       }
