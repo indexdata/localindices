@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
-import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.crawl.CrawlThread;
@@ -25,12 +24,8 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
