@@ -1,4 +1,4 @@
 NAME=masterkey-harvester
 VERSION=1.9.8
 DEBIAN_DIST="squeeze"
-UBUNTU_DIST="lucid"
+UBUNTU_DIST=""
