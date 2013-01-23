@@ -83,6 +83,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @ManyToOne(optional = true)
   protected Transformation transformation;
   private Boolean overwrite;
+  private String encoding;
 
   public String getDescription() {
     return description;
@@ -292,5 +293,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
     if (overwrite != null)
       return overwrite;
     return false;
+  }
+
+  public String getEncoding() {
+    return encoding;
+  }
+
+  public void setEncoding(String encoding) {
+    this.encoding = encoding;
   }
 }

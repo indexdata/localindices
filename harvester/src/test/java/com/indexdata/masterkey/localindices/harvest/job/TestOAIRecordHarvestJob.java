@@ -10,6 +10,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
@@ -164,7 +165,7 @@ public class TestOAIRecordHarvestJob extends TestCase {
   
   }
 
-  private RecordStorage createStorage(OaiPmhResource resource, boolean purge) throws IOException {
+  private RecordStorage createStorage(Harvestable resource, boolean purge) throws IOException {
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     resource.getStorage();
     SolrStorageEntity storageEntity = new SolrStorageEntity();
