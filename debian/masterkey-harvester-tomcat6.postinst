@@ -4,8 +4,8 @@ case "$1" in
     configure|upgrade)
 	chown -R tomcat6:adm /var/log/masterkey/harvester
 	chmod g+rs /var/log/masterkey/harvester
-	ln -sf ../../../masterkey/harvester/harvester-context.xml /etc/tomcat6/Catalina/localhost/harvester.xml
-	ln -sf ../../masterkey/harvester/tomcat.policy /etc/tomcat6/policy.d/05harvester.policy
+	ln -sf ../../../masterkey/harvester-admin/harvester-context.xml /etc/tomcat6/Catalina/localhost/harvester.xml
+	ln -sf ../../masterkey/harvester-admin/tomcat.policy /etc/tomcat6/policy.d/05harvester.policy
         ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

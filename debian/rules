@@ -4,9 +4,17 @@ COREPACKAGE = masterkey-harvester
 COREROOT = $(CURDIR)/debian/$(COREPACKAGE)
 #COREDOC = $(COREROOT)/usr/share/doc/$(COREPACKAGE)
 
+ADMINPACKAGE = masterkey-harvester-admin
+ADMINROOT = $(CURDIR)/debian/$(ADMINPACKAGE)
+#COREDOC = $(COREROOT)/usr/share/doc/$(COREPACKAGE)
+
 TOMCAT6PACKAGE = masterkey-harvester-tomcat6
 TOMCAT6ROOT = $(CURDIR)/debian/$(TOMCAT6PACKAGE)
 #TOMCAT6DOC = $(TOMCAT6ROOT)/usr/share/doc/$(TOMCAT6PACKAGE)
+
+ADMINTOMCAT6PACKAGE = masterkey-harvester-tomcat6
+ADMINTOMCAT6ROOT = $(CURDIR)/debian/$(ADMINTOMCAT6PACKAGE)
+#ADMINTOMCAT6DOC = $(ADMINTOMCAT6ROOT)/usr/share/doc/$(ADMINTOMCAT6PACKAGE)
 
 UTIL_PACKAGE = masterkey-harvester-util
 UTIL_ROOT = $(CURDIR)/debian/$(UTIL_PACKAGE)
@@ -30,7 +38,7 @@ WEBAPP = harvester/target/harvester
 build: $(WEBAPP)
 $(WEBAPP):
 	dh_testdir
-	env LD_PRELOAD= mvn package -Pproduction
+	env LD_PRELOAD= mvn -DskipTests=true package -Pproduction
 	touch $@
 
 install: install-stamp
@@ -44,8 +52,8 @@ install-stamp: build
 	unzip harvester/target/harvester.war -d $(COREROOT)/usr/share/masterkey/harvester/
 
 	# Harvester Admin core
-	mkdir -p $(COREROOT)/usr/share/masterkey/harvester-admin
-	unzip harvester-admin/target/harvester-admin.war -d $(COREROOT)/usr/share/masterkey/harvester-admin/
+	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester
+	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester/
 
 	# Harvester plumbing for Tomcat 6
 	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester
@@ -54,10 +62,10 @@ install-stamp: build
 	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
 
 	# Harvester Admin plumbing for Tomcat 6
-	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester-admin
-	cp -p etc/harvester-admin-context.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
-	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
-	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
+	mkdir -p $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
+	cp -p etc/harvester-admin-context.xml $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
+	cp -p debian/tomcat.policy $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
+	mkdir -p $(ADMINTOMCAT6ROOT)/var/log/masterkey/harvester
 
 	touch $@
 
