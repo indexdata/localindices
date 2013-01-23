@@ -1,4 +1,4 @@
-masterkey-harvester (2.0-alpha-2) unstable; urgency=low
+masterkey-harvester (1.9.8-2) unstable; urgency=low
 
   * First real attempt on debian packages
 
