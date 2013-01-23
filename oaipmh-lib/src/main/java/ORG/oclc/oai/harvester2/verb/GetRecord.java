@@ -45,10 +45,10 @@ public class GetRecord extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public GetRecord(String baseURL, String identifier, String metadataPrefix, Proxy proxy)
+    public GetRecord(String baseURL, String identifier, String metadataPrefix, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier, metadataPrefix), proxy);
+        super(getRequestURL(baseURL, identifier, metadataPrefix), proxy, encodingOverride);
     }
     
     /**

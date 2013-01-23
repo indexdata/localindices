@@ -48,10 +48,10 @@ public class ListIdentifiers extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public ListIdentifiers(String baseURL, String from, String until,
-            String set, String metadataPrefix, Proxy proxy)
+            String set, String metadataPrefix, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy);
+        super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy, encodingOverride);
     }
     
     /**
@@ -63,10 +63,10 @@ public class ListIdentifiers extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListIdentifiers(String baseURL, String resumptionToken, Proxy proxy)
+    public ListIdentifiers(String baseURL, String resumptionToken, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, resumptionToken), proxy);
+        super(getRequestURL(baseURL, resumptionToken), proxy, encodingOverride);
     }
     
     /**

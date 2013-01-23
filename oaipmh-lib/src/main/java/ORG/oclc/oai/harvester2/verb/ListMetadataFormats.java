@@ -45,10 +45,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public ListMetadataFormats(String baseURL, Proxy proxy)
+    public ListMetadataFormats(String baseURL, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        this(baseURL, null, proxy);
+        this(baseURL, null, proxy, encodingOverride);
     }
     
     /**
@@ -60,10 +60,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListMetadataFormats(String baseURL, String identifier, Proxy proxy)
+    public ListMetadataFormats(String baseURL, String identifier, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier), proxy);
+        super(getRequestURL(baseURL, identifier), proxy, encodingOverride);
     }
     
     /**
