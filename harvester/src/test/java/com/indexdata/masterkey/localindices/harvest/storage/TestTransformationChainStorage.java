@@ -75,6 +75,7 @@ public class TestTransformationChainStorage extends TestCase {
     conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     int responseCode = conn.getResponseCode();
+    assertTrue("responseCode: " + responseCode, responseCode == 200);
     int contentLength = conn.getContentLength();
     //String contentType = conn.getContentType();
     int total = 0;
@@ -88,6 +89,7 @@ public class TestTransformationChainStorage extends TestCase {
 	total += length;
       }
       assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
+      return ;
     }
   }
 
@@ -99,6 +101,7 @@ public class TestTransformationChainStorage extends TestCase {
     conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     int responseCode = conn.getResponseCode();
+    assertTrue("responseCode: " + responseCode, responseCode == 200);
     int contentLength = conn.getContentLength();
     //String contentType = conn.getContentType();
     int total = 0;
@@ -131,7 +134,7 @@ public class TestTransformationChainStorage extends TestCase {
     transformStorage.begin();
     OutputStream output = transformStorage.getOutputStream();
     Writer writer = new OutputStreamWriter(output);
-    writer.write(xml);
+    writer.write(locPzXml);
     writer.close();
     transformStorage.commit();
   }
@@ -139,6 +142,7 @@ public class TestTransformationChainStorage extends TestCase {
   public void testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage() throws IOException,
       TransformerConfigurationException, ParserConfigurationException, SAXException {
     String[] stylesheets = { oaidc_pmh_xsl, pz2solr_xsl };
+    System.out.println("testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage");
     XMLReader xmlReader = createTransformChain(stylesheets);
     HarvestStorage transformStorage = new TransformationChainStorageProxy(solrStorage, xmlReader);
     transformStorage.begin();
@@ -154,6 +158,7 @@ public class TestTransformationChainStorage extends TestCase {
       TransformerConfigurationException, ParserConfigurationException, SAXException {
     String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl };
     XMLReader xmlReader = createTransformChain(stylesheets);
+    System.out.println("testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage");
     TransformationChainStorageProxy transformStorage = new TransformationChainStorageProxy(
 	solrStorage, xmlReader);
     transformStorage.begin();
@@ -168,6 +173,7 @@ public class TestTransformationChainStorage extends TestCase {
       throws IOException, TransformerConfigurationException, ParserConfigurationException,
       SAXException {
     String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl };
+    System.out.println("testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage");
     harvestableXml.setId(1l);
     // harvestable.setTransformation(transformation)
     XMLReader xmlReader = createTransformChain(stylesheets);
@@ -262,7 +268,7 @@ public class TestTransformationChainStorage extends TestCase {
     // TODO Check records in storage
   }
 
-  String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+  String locPzXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
       + "<pz:collection xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" >\n"
       + "<pz:record mergekey=\"title Adapting to Web standards : author  medium electronic resource\">\n"
       + "  <pz:metadata type=\"id\">15173151</pz:metadata>\n"
