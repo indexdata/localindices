@@ -14,7 +14,6 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 public class TestOAIRecordHarvestJob extends TestCase {
@@ -80,6 +79,14 @@ public class TestOAIRecordHarvestJob extends TestCase {
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     assertTrue(resource.getFromDate().equals(new GregorianCalendar(2012, 2, 2).getTime()));
+  }
+
+  public void testCleanRangeBulkHarvestJob_OaiDC_UTF8() throws IOException {
+    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", new GregorianCalendar(2008, 8, 1).getTime(), new GregorianCalendar(2008, 8, 2).getTime(), null, "UTF-8");
+    RecordStorage recordStorage = createStorage(resource, true);
+    RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
   public void testCleanRangeBulkHarvestJob_OaiDC_iso8859_1() throws IOException {
@@ -158,7 +165,8 @@ public class TestOAIRecordHarvestJob extends TestCase {
   }
 
   private RecordStorage createStorage(OaiPmhResource resource, boolean purge) throws IOException {
-    RecordStorage recordStorage = new ConsoleRecordStorage();
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    resource.getStorage();
     SolrStorageEntity storageEntity = new SolrStorageEntity();
     storageEntity.setId(2l);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
