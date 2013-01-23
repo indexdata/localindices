@@ -1,3 +1,9 @@
+masterkey-harvester (2.0-alpha-2) unstable; urgency=low
+
+  * First real attempt on debian packages
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 23 Jan 2013 12:12:35 +0100
+
 masterkey-harvester (1.9.7-1) unstable; urgency=low
 
   * Initial Debian Release.
