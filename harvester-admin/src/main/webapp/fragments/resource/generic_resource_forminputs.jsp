@@ -60,6 +60,7 @@
         <h:selectOneMenu value="#{resourceController.storage}">
               <f:selectItems value="#{storageController.storageItems}" />
         </h:selectOneMenu>
-
+        <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):"/>
+        <h:inputText  value="#{resourceController.resource.encoding}" size="20" />
     </h:panelGrid>
 </f:subview>
