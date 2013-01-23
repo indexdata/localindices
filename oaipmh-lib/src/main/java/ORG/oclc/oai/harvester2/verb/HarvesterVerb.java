@@ -19,6 +19,8 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
@@ -222,9 +224,9 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public HarvesterVerb(String requestURL, Proxy proxy) throws IOException,
+    public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride) throws IOException,
     ParserConfigurationException, TransformerException, ResponseParsingException {
-        harvest(requestURL, proxy);
+        harvest(requestURL, proxy, encodingOverride);
     }
     
     /**
@@ -236,8 +238,9 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public void harvest(String requestURL, Proxy proxy) throws IOException,
-    ParserConfigurationException, TransformerException, ResponseParsingException {
+    public void harvest(String requestURL, Proxy proxy, String encodingOverride) throws 
+    		IOException, ParserConfigurationException, 
+    		TransformerException, ResponseParsingException {
         this.requestURL = requestURL;
         logger.log(Level.INFO, "requestURL=" + requestURL);
         InputStream in = null;
@@ -253,25 +256,22 @@ public abstract class HarvesterVerb {
             else
                 con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
-            con.setRequestProperty("Accept-Encoding",
-            "compress, gzip, identify");
+            con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
             try {
                 responseCode = con.getResponseCode();
-                logger.log(Level.INFO,"responseCode=" + responseCode);
+                if (responseCode != 200)
+                  logger.log(Level.WARN, "Url: " + url + " ResponseCode: " + responseCode);
+                else if (logger.isDebugEnabled()) {
+                  logger.log(Level.DEBUG, "Url: " + url + " ResponseCode: " + responseCode);
+                }
             } catch (FileNotFoundException e) {
                 // response is majorly broken, retry nevertheless
-                logger.log(Level.INFO, requestURL, e);
+                logger.log(Level.WARN, requestURL, e);
                 responseCode = -1;
             }
             //for some responses the server will tell us when to retry
             //for others we'll use the defaults
-            if (responseCode == -1
-             || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
-             || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
-             || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
-             || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
-             || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
-             || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT) {
+            if (isRetry(responseCode)) {
                 long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
                 if (retrySeconds == -1) {
                     //this is because in HTTP date may be already parsed as seconds
@@ -329,9 +329,19 @@ public abstract class HarvesterVerb {
         }
         
         int contentLength = con.getContentLength();
-        InputStream bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-        bin.mark(contentLength);
-        InputSource data = new InputSource(bin);        
+        InputSource data = new InputSource();
+        InputStream bin = null;
+        if (encodingOverride == null) {
+          bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
+          bin.mark(contentLength);
+          data.setByteStream(bin);
+        }
+        else {
+          bin = new BufferedInputStream(in);
+          Reader reader = new InputStreamReader(bin, encodingOverride);
+          bin.mark(contentLength);
+          data.setCharacterStream(reader);
+        }
 	try {
 	  if (isUseTagSoup()) 
 	    doc = createTagSoupDocument(data);
@@ -358,6 +368,16 @@ public abstract class HarvesterVerb {
             sb.append(tokenizer.nextToken());
         }
         this.schemaLocation = sb.toString();
+    }
+
+    private boolean isRetry(int responseCode) {
+      return responseCode == -1
+       || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+       || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
+       || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
+       || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
+       || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+       || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
     }
 
     private Document createDocument(InputSource data) throws ParserConfigurationException,

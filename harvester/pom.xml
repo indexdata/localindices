@@ -170,7 +170,7 @@
 			<classifier>dom</classifier>
 		</dependency>
 		<dependency>
-			<groupId>tagsoup</groupId>
+			<groupId>org.ccil.cowan.tagsoup</groupId>
 			<artifactId>tagsoup</artifactId>
 			<version>0.9.7</version>
 		</dependency>

@@ -12,6 +12,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
+import org.xml.sax.ext.Locator2;
 
 public class Pz2SolrRecordContentHandler implements ContentHandler {
 
@@ -32,16 +33,22 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
     databaseId = database;
   }
 
-  @Override
-  public void setDocumentLocator(Locator locator) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void startDocument() throws SAXException {
-    // TODO Auto-generated method stub
-    currentText = new StringBuffer();
+    private String encoding = "UTF-8";
+    private Locator2 locator;
+    
+    @Override
+    public void setDocumentLocator(Locator locator) {
+        if (locator instanceof Locator2) {
+            this.locator = (Locator2) locator;
+        }
+    }
+    
+    @Override
+    public void startDocument() throws SAXException {
+        if (locator != null) {
+            this.encoding = locator.getEncoding();
+        }
+        currentText = new StringBuffer(/* "<?xml version=\"1.0\" encoding=\"" + encoding +"\" ?>" */);
   }
 
   @Override
