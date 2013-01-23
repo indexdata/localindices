@@ -224,9 +224,9 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public HarvesterVerb(String requestURL, Proxy proxy) throws IOException,
+    public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride) throws IOException,
     ParserConfigurationException, TransformerException, ResponseParsingException {
-        harvest(requestURL, proxy);
+        harvest(requestURL, proxy, encodingOverride);
     }
     
     /**
@@ -238,7 +238,7 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public void harvest(String requestURL, Proxy proxy) throws 
+    public void harvest(String requestURL, Proxy proxy, String encodingOverride) throws 
     		IOException, ParserConfigurationException, 
     		TransformerException, ResponseParsingException {
         this.requestURL = requestURL;
@@ -266,18 +266,12 @@ public abstract class HarvesterVerb {
                 }
             } catch (FileNotFoundException e) {
                 // response is majorly broken, retry nevertheless
-                logger.log(Level.INFO, requestURL, e);
+                logger.log(Level.WARN, requestURL, e);
                 responseCode = -1;
             }
             //for some responses the server will tell us when to retry
             //for others we'll use the defaults
-            if (responseCode == -1
-             || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
-             || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
-             || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
-             || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
-             || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
-             || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT) {
+            if (isRetry(responseCode)) {
                 long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
                 if (retrySeconds == -1) {
                     //this is because in HTTP date may be already parsed as seconds
@@ -335,12 +329,19 @@ public abstract class HarvesterVerb {
         }
         
         int contentLength = con.getContentLength();
-        InputStream bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-        bin.mark(contentLength);
-        InputSource data = new InputSource(bin);
-        Reader reader = new InputStreamReader(bin);
-        data.setEncoding("ISO-8859-1");
-        data.setCharacterStream(reader);
+        InputSource data = new InputSource();
+        InputStream bin = null;
+        if (encodingOverride == null) {
+          bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
+          bin.mark(contentLength);
+          data.setByteStream(bin);
+        }
+        else {
+          bin = new BufferedInputStream(in);
+          Reader reader = new InputStreamReader(bin, encodingOverride);
+          bin.mark(contentLength);
+          data.setCharacterStream(reader);
+        }
 	try {
 	  if (isUseTagSoup()) 
 	    doc = createTagSoupDocument(data);
@@ -367,6 +368,16 @@ public abstract class HarvesterVerb {
             sb.append(tokenizer.nextToken());
         }
         this.schemaLocation = sb.toString();
+    }
+
+    private boolean isRetry(int responseCode) {
+      return responseCode == -1
+       || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+       || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
+       || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
+       || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
+       || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+       || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
     }
 
     private Document createDocument(InputSource data) throws ParserConfigurationException,

@@ -46,10 +46,10 @@ public class Identify extends HarvesterVerb {
      * @exception MalformedURLException the baseURL is bad
      * @exception IOException an I/O error occurred
      */
-    public Identify(String baseURL, Proxy proxy)
+    public Identify(String baseURL, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL), proxy);
+        super(getRequestURL(baseURL), proxy, encodingOverride);
     }
     
     /**

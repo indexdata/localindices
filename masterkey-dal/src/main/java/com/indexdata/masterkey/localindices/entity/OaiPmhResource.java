@@ -28,9 +28,6 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   private String schemaURI;
   // resumption token
   private String resumptionToken;
-  // NormalizationFilter (id? Load from other table)
-  private String encoding;
-
   @Temporal(TemporalType.DATE)
   private Date fromDate;
   @Temporal(TemporalType.DATE)
@@ -80,14 +77,6 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     this.metadataPrefix = metadataPrefix;
   }
 
-  public String getEncoding() {
-    return encoding;
-  }
-
-  public void setEncoding(String encoding) {
-    this.encoding = encoding;
-  }
-
   public String getOaiSetName() {
     return oaiSetName;
   }
@@ -119,7 +108,7 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     if (!(object instanceof OaiPmhResource)) {
       return false;
     }
-    OaiPmhResource other = (OaiPmhResource) object;
+    Harvestable other = (Harvestable) object;
     if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
       return false;
     }
