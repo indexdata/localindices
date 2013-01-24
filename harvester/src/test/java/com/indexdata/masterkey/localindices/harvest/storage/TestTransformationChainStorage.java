@@ -47,13 +47,13 @@ public class TestTransformationChainStorage extends TestCase {
   Harvestable harvestableXml = new DummyXmlBulkResource(
       "http://localhost:8080/harvester/marc.xml");
 
-  String catalog_gz = "http://localhost:8080/solr/catalog.rdf.gz";
+  String catalog_gz = "http://maki.indexdata.com/marcdata/meta/gutenberg/catalog.rdf.gz";
   Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz);
 
   String marcRecords = "http://lui.indexdata.com:8080/ag/demo_org.mrc";
   Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords);
 
-  String catalog_zip = "http://localhost:8080/solr/catalog.rdf.zip";
+  String catalog_zip = "http://www.gutenberg.org/feeds/catalog.rdf.zip";
 
   // SOLR Server in container on 8080
   String solrUrl = "http://localhost:8080/solr/";
@@ -153,13 +153,17 @@ public class TestTransformationChainStorage extends TestCase {
     //String oai_pmh_oaidc = FileUtils.readFileToString(FileUtils.toFile(this.getClass().getResource("resources/oaipmh_dc.xml")));
 
     Writer writer = new OutputStreamWriter(output);
-    File dump = new File("oai_pmh_oaidc.xml");
-    OutputStream out = new FileOutputStream(dump);
-    out.write(oai_pmh_oaidc.getBytes());
-    out.close();
+    //File dump = new File("oai_pmh_oaidc.xml");
+    //OutputStream out = new FileOutputStream(dump);
+    //out.write(oai_pmh_oaidc.getBytes());
+    //out.close();
     writer.write(oai_pmh_oaidc);
     writer.close();
     transformStorage.commit();
+    String test = "\u2019";
+    String test2 = "’";
+    System.out.println(test);
+    assertTrue(test.equals(test2));
   }
 
   public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage() throws IOException,
@@ -404,7 +408,7 @@ public class TestTransformationChainStorage extends TestCase {
       + "	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
       + "	xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/\n"
       + "	http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">\n"
-      + "	<dc:title xml:lang=\"en-US\">Advancements in Technology: What\u201a\u00c4\u00f4s in beholding for Human Beings?</dc:title>\n"
+      + "	<dc:title xml:lang=\"en-US\">Advancements in Technology: What&#8217;s in beholding for Human Beings?</dc:title>\n"
       + "	<dc:creator>S.S. Iyengar; Louisiana State University</dc:creator>\n"
       + "	<dc:subject xml:lang=\"en-US\">Communication Systems</dc:subject>\n"
       + "	<dc:subject xml:lang=\"en-US\">wireless sensor network, virtual reality, information theory, soft computing, data engineering and architecture</dc:subject>\n"
