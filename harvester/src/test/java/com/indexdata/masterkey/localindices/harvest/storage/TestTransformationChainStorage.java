@@ -147,8 +147,9 @@ public class TestTransformationChainStorage extends TestCase {
     HarvestStorage transformStorage = new TransformationChainStorageProxy(solrStorage, xmlReader);
     transformStorage.begin();
     OutputStream output = transformStorage.getOutputStream();
-
+    
     Writer writer = new OutputStreamWriter(output);
+    System.out.println(oai_pmh_oaidc);
     writer.write(oai_pmh_oaidc);
     writer.close();
     transformStorage.commit();
