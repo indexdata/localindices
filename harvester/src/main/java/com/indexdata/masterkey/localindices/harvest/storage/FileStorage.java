@@ -33,7 +33,7 @@ public class FileStorage implements RecordStorage {
   private boolean committed;
   private long deletes;
   private long adds;
-  
+  private StorageJobLogger logger = null;
   public FileStorage() {
     
   }
@@ -62,6 +62,7 @@ public class FileStorage implements RecordStorage {
 
   public void commit() throws IOException {
     System.out.println("--- Storage write commited ---");
+    committed = true;
     out.close();
     out = null;
     current = null;
@@ -113,31 +114,30 @@ public class FileStorage implements RecordStorage {
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
-    // TODO Auto-generated method stub
-    
+    adds++;
+    // TODO Serialize and write to output file
   }
 
   @Override
   public void add(Record record) {
-    // TODO Auto-generated method stub
-    
+    adds++;
+    // TODO Serialize and write to output file
   }
 
   @Override
   public Record get(String id) {
-    // TODO Auto-generated method stub
+    // Won't implement. 
     return null;
   }
 
   @Override
   public void delete(String id) {
-    // TODO Auto-generated method stub
-    
+    // Won't implement. 
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
-    // TODO Auto-generated method stub
+    this.logger = logger; 
   }
 
   @Override
