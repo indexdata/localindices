@@ -1,8 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +30,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -160,10 +157,6 @@ public class TestTransformationChainStorage extends TestCase {
     writer.write(oai_pmh_oaidc);
     writer.close();
     transformStorage.commit();
-    String test = "\u2019";
-    String test2 = "’";
-    System.out.println(test);
-    assertTrue(test.equals(test2));
   }
 
   public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage() throws IOException,
@@ -402,6 +395,17 @@ public class TestTransformationChainStorage extends TestCase {
 
   String oai_pmh_end_record = "	</ListRecords>\n" + "</OAI-PMH>";
 
+  /* 
+   * This data contains UTF-8 character (’) on purpose. To get this working on non-UTF-8 systems like Mac OS, 
+   * it's crucial to have maven and java to have -Dfile.encoding=UTF-8 everywhere! 
+   * MAVEN_OPTS=-Dfile.encoding=UTF-8 (or sourceEncoding+resourceEncoding in pom) does it for maven and compile. 
+   * But apparently not for the surefire-maven-plugin. Some claims it works with systemPropertiesVariable 
+   * but first by explicit putting it on the command line in surefire plugin configuration it worked. 
+   * 
+   * Damn you, Apple. Get rid of that MacRoman encoding and become 100% UTF-8! 
+   * Damn you, Maven plugins for not using parent settings! 
+   * 
+   */
   String oai_dc = "<oai_dc:dc\n"
       + "	xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"\n"
       + "	xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
