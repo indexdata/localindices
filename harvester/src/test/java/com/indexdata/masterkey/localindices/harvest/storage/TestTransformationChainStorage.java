@@ -44,7 +44,7 @@ public class TestTransformationChainStorage extends TestCase {
   Harvestable harvestableXml = new DummyXmlBulkResource(
       "http://localhost:8080/harvester/marc.xml");
 
-  String catalog_gz = "http://maki.indexdata.com/marcdata/meta/gutenberg/catalog.rdf.gz";
+  String catalog_gz = "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.gz";
   Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz);
 
   String marcRecords = "http://lui.indexdata.com:8080/ag/demo_org.mrc";
