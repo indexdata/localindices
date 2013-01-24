@@ -397,7 +397,7 @@ public class TestTransformationChainStorage extends TestCase {
       + "	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
       + "	xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/\n"
       + "	http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">\n"
-      + "	<dc:title xml:lang=\"en-US\">Advancements in Technology: What\u201a\u00c4\u00f4s in beholding for Human Beings?</dc:title>\n"
+      + "	<dc:title xml:lang=\"en-US\">Advancements in Technology: What’s in beholding for Human Beings?</dc:title>\n"
       + "	<dc:creator>S.S. Iyengar; Louisiana State University</dc:creator>\n"
       + "	<dc:subject xml:lang=\"en-US\">Communication Systems</dc:subject>\n"
       + "	<dc:subject xml:lang=\"en-US\">wireless sensor network, virtual reality, information theory, soft computing, data engineering and architecture</dc:subject>\n"
