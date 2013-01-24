@@ -47,6 +47,12 @@
 					<excludes>
 						<exclude>**/TestOAI*</exclude>
 					</excludes>
+					<systemPropertyVariables>
+					   <file.encoding>UTF-8</file.encoding>
+					</systemPropertyVariables>
+					<encoding>UTF-8</encoding>
+					<inputEncoding>UTF-8</inputEncoding>
+					<outputEncoding>UTF-8</outputEncoding>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -183,6 +189,9 @@
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+        <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding> 
+        <maven.compile.encoding>UTF-8</maven.compile.encoding> 
 		<jersey-version>1.1.1-ea</jersey-version>
 		<netbeans.hint.deploy.server>Tomcat60</netbeans.hint.deploy.server>
 	</properties>
