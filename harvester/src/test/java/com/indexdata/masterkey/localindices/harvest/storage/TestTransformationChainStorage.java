@@ -1,6 +1,8 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,6 +32,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
@@ -147,9 +150,13 @@ public class TestTransformationChainStorage extends TestCase {
     HarvestStorage transformStorage = new TransformationChainStorageProxy(solrStorage, xmlReader);
     transformStorage.begin();
     OutputStream output = transformStorage.getOutputStream();
-    
+    //String oai_pmh_oaidc = FileUtils.readFileToString(FileUtils.toFile(this.getClass().getResource("resources/oaipmh_dc.xml")));
+
     Writer writer = new OutputStreamWriter(output);
-    System.out.println(oai_pmh_oaidc);
+    File dump = new File("oai_pmh_oaidc.xml");
+    OutputStream out = new FileOutputStream(dump);
+    out.write(oai_pmh_oaidc.getBytes());
+    out.close();
     writer.write(oai_pmh_oaidc);
     writer.close();
     transformStorage.commit();
