@@ -11,7 +11,7 @@ public class SolrStorageBackend implements StorageBackend
 	Logger logger =  Logger.getLogger(this.getClass()); 
 	protected File baseDirectory;
 	// Implement as core or ...
-	protected String url = "http://localhost:8080/solr";
+	protected String url = null;
 	private Properties properties;
 	private Thread serverThread = null;
 
