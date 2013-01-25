@@ -39,7 +39,7 @@ public class TestWebRecordHarvestJob extends TestCase {
 
   //String resourceMarc = "http://lui-dev.indexdata.com/ag/demo_org.mrc";
   String resourceWeb = "http://www.indexdata.com";
-  String solrUrl = "http://localhost:8080/solr/";
+  String solrUrl = "http://localhost:8585/solr/";
   RecordStorage recordStorage;
 
   private WebCrawlResource createResource(String url)

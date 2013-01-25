@@ -12,13 +12,15 @@ import junit.framework.TestCase;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
 public class TestSolrStorage extends TestCase {
-  Harvestable harvestable = new DummyXmlBulkResource("http://localhost:8080/solr/");
+  String solrUrl = "http://localhost:8585/solr/";
+  Harvestable harvestable = new DummyXmlBulkResource(solrUrl);
   
-  // SOLR Server in container on 8080
-  StorageJobLogger logger = new ConsoleStorageJobLogger(TestSolrStorage.class, harvestable); 
-  HarvestStorage storage = new SolrStorage("http://localhost:8080/solr/", harvestable);
+  // Console Storage
+  StorageJobLogger logger = new ConsoleStorageJobLogger(TestSolrStorage.class, harvestable);
+  
+  // Solr Storage
+  HarvestStorage storage = new SolrStorage(solrUrl, harvestable);
   String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" 
       + "<add>" 
       + "  <doc>\n"

@@ -42,18 +42,18 @@ import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
   Harvestable harvestableXml = new DummyXmlBulkResource(
-      "http://localhost:8080/harvester/marc.xml");
+      "http://lui-dev.indexdata.com/harvester/marc.xml");
 
   String catalog_gz = "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.gz";
   Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz);
 
-  String marcRecords = "http://lui.indexdata.com:8080/ag/demo_org.mrc";
+  String marcRecords = "http://lui.indexdata.com/ag/demo_org.mrc";
   Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords);
 
   String catalog_zip = "http://www.gutenberg.org/feeds/catalog.rdf.zip";
 
-  // SOLR Server in container on 8080
-  String solrUrl = "http://localhost:8080/solr/";
+  // SOLR Server in container
+  String solrUrl = "http://lui-dev.indexdata.com/solr/";
   //StorageJobLogger logger = new StorageJobLogger(TestTransformationChainStorage.class, harvestable); 
   HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
