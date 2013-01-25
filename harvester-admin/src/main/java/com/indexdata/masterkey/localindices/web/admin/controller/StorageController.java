@@ -223,7 +223,6 @@ public class StorageController {
       Storage solrStorage = (Storage) storage;
       storageAdminSite = solrStorage.getUrl() + "admin";
       return storageAdminSite;     
-      //jobLog = "http://localhost:8080/solr/admin/";
     }
     return "";
   }
