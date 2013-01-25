@@ -23,7 +23,7 @@ public class TestOAIRecordHarvestJob extends TestCase {
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
   
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
-  String solrUrl = "http://localhost:8080/solr/";
+  String solrUrl = "http://localhost:8585/solr/";
   //String solrUrl = "http://lui-dev.indexdata.com/solr/";
   RecordStorage recordStorage;
   Logger logger = Logger.getLogger(this.getClass());
