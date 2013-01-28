@@ -37,6 +37,7 @@ import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
@@ -54,10 +55,10 @@ public class TestTransformationChainStorage extends TestCase {
 
   // SOLR Server in container
   String solrUrl = "http://localhost:8585/solr/";
-  //StorageJobLogger logger = new StorageJobLogger(TestTransformationChainStorage.class, harvestable); 
-  HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
+  SolrStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
   RecordStorage xmlBulkStorage = new BulkSolrRecordStorage(solrUrl, harvestableXml);
+  
   RecordStorage bulkGutenbergStorage = new BulkSolrRecordStorage(solrUrl, harvestableGutenberg);
   RecordStorage bulkMarcStorage = new BulkSolrRecordStorage(solrUrl, harvestableMarc);
   SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
@@ -65,6 +66,8 @@ public class TestTransformationChainStorage extends TestCase {
 
   public TestTransformationChainStorage() {
     harvestableXml.setId(1l);
+    xmlRecordStorage.setLogger(new ConsoleStorageJobLogger(xmlRecordStorage.getClass(), harvestableXml.getStorage()));
+    xmlBulkStorage.setLogger(new ConsoleStorageJobLogger(xmlBulkStorage.getClass(), harvestableXml.getStorage()));
   }
 
   public void testTransformationChain_GZIP_Download() throws IOException,
@@ -182,6 +185,7 @@ public class TestTransformationChainStorage extends TestCase {
     harvestableXml.setId(1l);
     // harvestable.setTransformation(transformation)
     XMLReader xmlReader = createTransformChain(stylesheets);
+    // TODO setLogger on xmlBulkStorage?
     TransformationChainRecordStorageProxy transformStorage = new TransformationChainRecordStorageProxy(
 	xmlBulkStorage, xmlReader, new Pz2SolrRecordContentHandler(xmlBulkStorage, "test"), null);
     transformStorage.begin();
@@ -219,6 +223,7 @@ public class TestTransformationChainStorage extends TestCase {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder db = dbf.newDocumentBuilder();
       Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
+      xmlRecordStorage.setLogger(new ConsoleStorageJobLogger(xmlRecordStorage.getClass(), harvestableXml));
       OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(xmlRecordStorage, "test");
       Result result = new SAXResult(contentHandler);
       transfomer.transform(new DOMSource(doc), result);
@@ -236,6 +241,7 @@ public class TestTransformationChainStorage extends TestCase {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder db = dbf.newDocumentBuilder();
       Document doc = db.parse(new ByteArrayInputStream(oai_pmh_oaidc.getBytes("UTF-8")));
+      xmlBulkStorage.setLogger(new ConsoleStorageJobLogger(xmlBulkStorage.getClass(), harvestableXml));
       OaiPmhDcContentHandler contentHandler = new OaiPmhDcContentHandler(xmlBulkStorage, "test");
       Result result = new SAXResult(contentHandler);
       transfomer.transform(new DOMSource(doc), result);
@@ -262,6 +268,7 @@ public class TestTransformationChainStorage extends TestCase {
     resource.setCurrentStatus("NEW");
     OAIHarvestJob job = new OAIHarvestJob(resource, null);
     BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     XMLReader xmlFilter = createTransformChain(stylesheets);
     TransformationChainRecordStorageProxy storageProxy = new TransformationChainRecordStorageProxy(
 	recordStorage, xmlFilter, new Pz2SolrRecordContentHandler(recordStorage, "test"), null);
