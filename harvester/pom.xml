@@ -9,21 +9,6 @@
 	</parent>
 	<artifactId>harvester</artifactId>
 	<packaging>war</packaging>
-	<profiles>
-		<profile>
-			<id>jdk-1.5</id>
-			<activation>
-				<jdk>1.5</jdk>
-			</activation>
-			<dependencies>
-				<dependency> <!-- depend on JAXB to enable WADL support -->
-					<groupId>com.sun.xml.bind</groupId>
-					<artifactId>jaxb-impl</artifactId>
-					<version>2.1.12</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
 	<name>harvester</name>
 	<build>
 		<finalName>harvester</finalName>
@@ -45,7 +30,7 @@
 				<configuration>
 					<testSourceDirectory>src/test/java</testSourceDirectory>
 					<excludes>
-						<exclude>**/TestOAI*</exclude>
+						<exclude>**/Test*</exclude>
 					</excludes>
 					<systemPropertyVariables>
 					   <file.encoding>UTF-8</file.encoding>
@@ -109,6 +94,161 @@
  -->          
 		</plugins>
 	</build>
+  <profiles>
+    <profile>
+      <id>development</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <deployType>development</deployType>
+      </properties>
+    </profile>
+    <profile>
+      <!--
+        executes integration tests by starting up a servlet container in the
+        integration-test phase
+        this profile uses development properties but overrrides some of them
+        (e.g schema drop/create)
+      -->
+      <id>integration-tests</id>
+      <properties>
+        <deployType>integration</deployType>
+        <!--
+         It should be possible to override properties loaded from filter files
+         with inline properties but Maven 2.0 is buggy, so the following won't
+         work there.
+         -->
+         <!--<hibernate.hbm2ddl.auto>create-drop</hibernate.hbm2ddl.auto>-->
+        <!-- 
+          for int-tests config is embedded in the webaapp, see configuration
+          of the maven-war-plugin for how this is done
+         -->
+         <!--<masterkey.root.config.dir>war://META-INF</masterkey.root.config.dir>-->
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <!--
+              copy configuration to the war
+            -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <configuration>
+              <webResources>
+                <resource>
+                  <directory>${basedir}/src/test/resources/integration/conf</directory>
+                  <targetPath>META-INF</targetPath>
+                </resource>
+              </webResources>
+            </configuration>
+          </plugin>
+          <!-- include compilation of the external tests -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <source>1.6</source>
+              <target>1.6</target>
+              <testExcludes>
+                <exclude>none</exclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/*IntegrationTest.java</exclude>
+                <exclude>**/IntegrationTest*.java</exclude>
+              </excludes>
+              <!-- <skip>true</skip>-->
+            </configuration>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <skip>false</skip>
+                  <excludes>
+                    <exclude>none</exclude>
+                  </excludes>
+                  <includes>
+                    <include>**/*IntegrationTest.java</include>
+                    <include>**/IntegrationTest*.java</include>
+                  </includes>
+                  <systemPropertyVariables>
+                    <jetty.port>8585</jetty.port>
+                  </systemPropertyVariables>
+                  <!-- for old Maven 2 (sigh) -->
+                  <systemProperties>
+                    <property>
+                      <name>jetty.port</name>
+                      <value>8585</value>
+                    </property>
+                  </systemProperties>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+<!-- 
+          <plugin>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>maven-jetty-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>start-jetty</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>run-war</goal>
+                </goals>
+                <configuration>
+                  <contextPath>/service-proxy</contextPath>
+                  <daemon>true</daemon>
+                  <webXml>${project.build.directory}/web.xml</webXml>
+                </configuration>
+              </execution>
+              <execution>
+                <id>stop-jetty</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <stopPort>9991</stopPort>
+              <stopKey>test</stopKey>
+              <systemProperties>
+                <systemProperty>
+                  <name>jetty.port</name>
+                  <value>8585</value>
+                </systemProperty>
+              </systemProperties>
+            </configuration>
+          <dependencies>
+        <dependency>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+          <version>1.1</version>
+          <type>jar</type>
+        </dependency>
+        <dependency>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+          <version>1.2.14</version>
+          <type>jar</type>
+        </dependency>
+          </dependencies>
+          </plugin>
+ -->
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 	<dependencies>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
