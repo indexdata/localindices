@@ -14,3 +14,5 @@ vpproject/
 mem.*
 .DS_Store
 deb-src
+solr.log
+install-stamp
