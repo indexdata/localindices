@@ -201,7 +201,9 @@ public class XmlMarcClient implements HarvestClient {
 	  throw new IOException("Download interputed with a kill signal.");
 	}
       } catch (MarcException e) {
-	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage());
+	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage(),e);
+	if (e.getCause() !=null)
+	  logger.error("Cause: " + e.getCause().getMessage(), e.getCause());
 	if (e.getCause() instanceof EOFException) {
 	  logger.warn("Received EOF when reading record # " + index);
 	}
