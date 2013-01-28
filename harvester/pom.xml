@@ -55,6 +55,7 @@
 					<outputEncoding>UTF-8</outputEncoding>
 				</configuration>
 			</plugin>
+<!-- 
           <plugin>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>maven-jetty-plugin</artifactId>
@@ -72,7 +73,7 @@
               </execution>
               <execution>
                 <id>stop-jetty</id>
-                <phase>test</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>stop</goal>
                 </goals>
@@ -105,6 +106,7 @@
         </dependency>
           </dependencies>
           </plugin>
+ -->          
 		</plugins>
 	</build>
 	<dependencies>
