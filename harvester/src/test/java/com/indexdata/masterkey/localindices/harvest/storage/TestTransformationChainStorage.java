@@ -53,7 +53,7 @@ public class TestTransformationChainStorage extends TestCase {
   String catalog_zip = "http://www.gutenberg.org/feeds/catalog.rdf.zip";
 
   // SOLR Server in container
-  String solrUrl = "http://lui-dev.indexdata.com/solr/";
+  String solrUrl = "http://localhost:8585/solr/";
   //StorageJobLogger logger = new StorageJobLogger(TestTransformationChainStorage.class, harvestable); 
   HarvestStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
