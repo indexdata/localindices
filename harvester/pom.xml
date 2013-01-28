@@ -98,12 +98,6 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-war-plugin</artifactId>
 						<configuration>
-							<webResources>
-								<resource>
-									<directory>${basedir}/src/test/resources/integration/conf</directory>
-									<targetPath>META-INF</targetPath>
-								</resource>
-							</webResources>
 						</configuration>
 					</plugin>
 					<!-- include compilation of the external tests -->
