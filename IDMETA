@@ -1,4 +1,4 @@
 NAME=masterkey-harvester
-VERSION=2.0.0
+VERSION=1.9.9
 DEBIAN_DIST="squeeze"
 UBUNTU_DIST=""
