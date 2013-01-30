@@ -1,26 +1,31 @@
 #!/usr/bin/make -f
 
-COREPACKAGE = masterkey-harvester
-COREROOT = $(CURDIR)/debian/$(COREPACKAGE)
-#COREDOC = $(COREROOT)/usr/share/doc/$(COREPACKAGE)
+BASEPACKAGE = masterkey-harvester
+BASEDIRECTORY = masterkey/harvester
+BASE_SHARE_LOC = /usr/share/$(BASEDIRECTORY)
+BASE_LOG = /usr/log/$(BASEDIRECTORY)
 
-ADMINPACKAGE = masterkey-harvester-admin
+ENGINEPACKAGE = $(BASEPACKAGE)-engine
+ENGINEROOT = $(CURDIR)/debian/$(ENGINEPACKAGE)
+#ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
+
+ADMINPACKAGE = $(BASEPACKAGE)-admin
 ADMINROOT = $(CURDIR)/debian/$(ADMINPACKAGE)
-#COREDOC = $(COREROOT)/usr/share/doc/$(COREPACKAGE)
+#ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
 
-TOMCAT6PACKAGE = masterkey-harvester-tomcat6
+TOMCAT6PACKAGE = $(ENGINEPACKAGE)-tomcat6
 TOMCAT6ROOT = $(CURDIR)/debian/$(TOMCAT6PACKAGE)
 #TOMCAT6DOC = $(TOMCAT6ROOT)/usr/share/doc/$(TOMCAT6PACKAGE)
 CATALINA_HOME= /var/lib/tomcat6
 
-ADMINTOMCAT6PACKAGE = masterkey-harvester-tomcat6
+ADMINTOMCAT6PACKAGE = $(ADMINPACKAGE)-tomcat6
 ADMINTOMCAT6ROOT = $(CURDIR)/debian/$(ADMINTOMCAT6PACKAGE)
 #ADMINTOMCAT6DOC = $(ADMINTOMCAT6ROOT)/usr/share/doc/$(ADMINTOMCAT6PACKAGE)
 
-UTIL_PACKAGE = masterkey-harvester-util
+UTIL_PACKAGE = $(BASEPACKAGE)-utils
 UTIL_ROOT = $(CURDIR)/debian/$(UTIL_PACKAGE)
 
-MYSQL_PACKAGE = masterkey-harvester-mysql
+MYSQL_PACKAGE = $(BASEPACKAGE)-mysql
 MYSQL_ROOT = $(CURDIR)/debian/$(MYSQL_PACKAGE)
 
 clean:
@@ -38,11 +43,12 @@ clean:
 	@echo LD_PRELOAD=$$LD_PRELOAD
 	env LD_PRELOAD= mvn clean
 
-WEBAPP = harvester/target/harvester
+WEBAPP = harvester/target/harvester harvester-admin/target/harvester-admin
 build: $(WEBAPP)
 $(WEBAPP):
 	dh_testdir
-	env LD_PRELOAD= ./mvn_solr.sh package -Pintegration-tests
+#	env LD_PRELOAD= ./mvn_solr.sh package -Pproduction
+	env LD_PRELOAD= mvn package
 	touch $@
 
 install: install-stamp
@@ -52,26 +58,33 @@ install-stamp: build
 	dh_clean -k
 
 	# Harvester core
-	mkdir -p $(COREROOT)/usr/share/masterkey/harvester/
-	unzip harvester/target/harvester.war -d $(COREROOT)/usr/share/masterkey/harvester/
+	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
+	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
 
 	# Harvester Admin core
-	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester
-	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester/
+	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester-admin
+	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester-admin/
 
-	# Harvester plumbing for Tomcat 6. Stylesheet used in includes needs to be in CATALINA_HOME
+	# Harvester plumbing for Tomcat 6. 
 	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester
 	cp -p etc/harvester-context.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
 	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
 	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
-	mkdir -p $(TOMCAT6ROOT)/var/lib/tomcat6
-	cp -r harvester/src/main/webapp/WEB-INF/stylesheets/. $(TOMCAT6ROOT)$(CATALINA_HOME)
 
 	# Harvester Admin plumbing for Tomcat 6
 	mkdir -p $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
 	cp -p etc/harvester-admin-context.xml $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
 	cp -p debian/tomcat.policy $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
 	mkdir -p $(ADMINTOMCAT6ROOT)/var/log/masterkey/harvester
+
+	# Harvester Utilities. Stylesheet used in includes needs to be in CATALINA_HOME
+	mkdir -p $(UTIL_ROOT)$(CATALINA_HOME)
+	cp -r harvester/src/main/webapp/WEB-INF/stylesheets/. $(UTIL_ROOT)$(CATALINA_HOME)
+
+	# Harvester MySQL. Install (My)SQL scripts for installing the initial database 
+	mkdir -p $(MYSQL_ROOT)/usr/share/masterkey/harvester/sql
+	cp -r sql/. $(MYSQL_ROOT)/usr/share/masterkey/harvester/sql/
+
 
 	touch $@
 
