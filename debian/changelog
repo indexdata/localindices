@@ -1,3 +1,9 @@
+masterkey-harvester (1.9.10-1) unstable; urgency=low
+
+  * Third attempt on debian packages
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 30 Jan 2013 13:00:35 +0100
+
 masterkey-harvester (1.9.9-1) unstable; urgency=low
 
   * Second attempt on debian packages
