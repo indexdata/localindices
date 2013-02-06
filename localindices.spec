@@ -1,6 +1,7 @@
+%define idmetaversion %(. ./IDMETA; echo $VERSION|tr -d '\n')
 Summary: Harvestering Service
 Name: masterkey-harvester
-Version: 1.9.6
+Version: %{idmetaversion}
 Release: 1.indexdata
 License: IndexData
 Group: Applications/Internet

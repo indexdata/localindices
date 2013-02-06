@@ -43,6 +43,16 @@ database and user (using mysql console):
     grant all privileges on localindices.* to 'localidxadm'@'localhost' 
                 identified by 'localidxadmpass';
 
+Then you can create the tables by running the following command:
+
+$ mysql -u localidxadm -plocalidxadmpass localindices < /usr/share$ cd /usr/share/masterkey/harvester/sql/localindices.sql
+
+However this is recomended to change the password used here. But it will also be required to change the password set 
+in the webapps: 
+
+- /etc/masterkey/harvester/harvester-context.xml
+- /etc/masterkey/harvester-admin/harvester-admin-context.xml
+
 ---- DataSource
 
 (You can ignore this if you plan to run the harvester from within Netbeans)

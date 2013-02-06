@@ -1,3 +1,33 @@
+masterkey-harvester (2.0.1-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Thu, 31 Jan 2013 19:09:17 +0100
+
+masterkey-harvester (2.0.0-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 31 Jan 2013 14:19:00 +0100
+
+masterkey-harvester (1.9.10-2indexdata) unstable; urgency=low
+
+  * Debian packages for squeeze and wheezy
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 30 Jan 2013 13:55:00 +0100
+
+masterkey-harvester (1.9.10-1) unstable; urgency=low
+
+  * Third attempt on debian packages
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 30 Jan 2013 13:00:35 +0100
+
+masterkey-harvester (1.9.9-1) unstable; urgency=low
+
+  * Second attempt on debian packages
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 30 Jan 2013 12:26:35 +0100
+
 masterkey-harvester (1.9.8-2) unstable; urgency=low
 
   * First real attempt on debian packages

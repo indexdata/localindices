@@ -6,15 +6,15 @@ Build-Depends: debhelper (>= 5), default-jdk, maven2, unzip
 Standards-Version: 3.8.0
 Homepage: http://www.indexdata.dk/masterkey/harvester
 
-Package: masterkey-harvester
+Package: masterkey-harvester-engine
 Architecture: all
 Description: The Harvester, part of the MasterKey suite 
  provides a OAI-PMH and XML bulk harvesting, transformations 
  using pipelines of XSL Transformations into indexes like Solr.
 
-Package: masterkey-harvester-tomcat6
+Package: masterkey-harvester-engine-tomcat6
 Architecture: all
-Depends: tomcat6, masterkey-harvester
+Depends: tomcat6, masterkey-harvester-engine
 Description: Configuration of the Harvester for running under Tomcat 6
 
 Package: masterkey-harvester-admin
@@ -24,5 +24,20 @@ Description: The Harvester Administration, part of the MasterKey suite
 
 Package: masterkey-harvester-admin-tomcat6
 Architecture: all
-Depends: tomcat6
+Depends: tomcat6,masterkey-harvester-admin
 Description: Configuration of the Harvester Administration running under Tomcat 6
+
+Package: masterkey-harvester-utils
+Architecture: all
+Depends: masterkey-harvester-engine-tomcat6
+Description: Installation of extra files (stylesheets)
+
+Package: masterkey-harvester-mysql
+Architecture: all
+Depends: mysql-server
+Description: Creating an initial harvester database with sample data (MySQL)
+
+Package: masterkey-harvester
+Architecture: all
+Depends: masterkey-harvester-admin-tomcat6, masterkey-harvester-engine-tomcat6,masterkey-harvester-mysql
+Description: Meta package to install a complete Harvester with Admin, utilities and database

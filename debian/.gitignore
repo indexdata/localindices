@@ -1,8 +1,8 @@
 files
-masterkey-harvester
+masterkey-harvester-engine
+masterkey-harvester-mysql
 masterkey-harvester-admin
+masterkey-harvester-utils
 masterkey-harvester*-tomcat6
-masterkey-harvester*-tomcat6.debhelper.log
-masterkey-harvester*-tomcat6.substvars
 masterkey-harvester*.debhelper.log
 masterkey-harvester*.substvars

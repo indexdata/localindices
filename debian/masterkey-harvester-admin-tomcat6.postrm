@@ -2,8 +2,8 @@
 
 case "$1" in
     purge|remove)
-	rm -f /etc/tomcat6/Catalina/localhost/service-proxy.xml
-	rm -f /etc/tomcat6/policy.d/05service-proxy.policy
+	rm -f /etc/tomcat6/Catalina/localhost/harvester-admin.xml
+#	rm -f /etc/tomcat6/policy.d/05harvester.policy
         ;;
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         ;;
