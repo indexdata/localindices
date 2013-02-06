@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
+import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.crawl.CrawlThread;
@@ -25,7 +26,9 @@ import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -412,12 +415,10 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 
   public RecordStorage setupTransformation(RecordStorage storage) 
   {
-    /*
     if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
       logger.debug("No Transformation configured.");
-    */
-    return getStorage();
-    /*
+    // return getStorage();
+
     XMLReader xmlReader;
     try {
       xmlReader = createTransformChain(false);
@@ -429,7 +430,6 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       logger.error(e.getMessage());
     }
     return storage;
-    */
   }
 
   
