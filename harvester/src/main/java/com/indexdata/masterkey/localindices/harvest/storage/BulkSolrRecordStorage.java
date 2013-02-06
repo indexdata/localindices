@@ -42,31 +42,45 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   }
 
   private void addRecords() {
-    try {
-      UpdateResponse response = null;
-      int no_docs = docs.size();
-      logger.info("Adding " + no_docs + " records.");
-      response = server.add(docs);
-      if (response.getStatus() != 0)
-	logger.error("Error adding documents");
-      else
-	added += no_docs;
-      docs = new LinkedList<SolrInputDocument>();
-    } catch (SolrException ste) {
-      logger.error("Solr Exception while adding documents. Outstanding adds: " + added + ". Deletes: " + deleted, ste);
-      // TODO add docs to error queue
-      docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage() , ste);
-    } catch (SolrServerException ste) {
-      logger.error("Solr ServerException while adding documents. Outstanding adds: " + added + ". Deletes: " + deleted, ste);
-      // TODO add docs to error queue
-      docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Server Exception while adding records: " + ste.getMessage(), ste);
-    } catch (IOException e) {
-      e.printStackTrace();
-      // TODO Add to failed records queue
-      deleteIds = new LinkedList<String>();
-      throw new RuntimeException("IO Exception while adding records: " + e.getMessage(), e);
+    int retry = 1;
+    while (retry > 0) {
+      try {
+	UpdateResponse response = null;
+	int no_docs = docs.size();
+	logger.info("Adding " + no_docs + " records.");
+	response = server.add(docs);
+	if (response.getStatus() != 0)
+	  logger.error("Error adding documents. Retry: " + retry);
+	else {
+	  added += no_docs;
+	  docs = new LinkedList<SolrInputDocument>();
+	  retry = 0;
+	}
+      } catch (SolrException ste) {
+	logger.error("Solr Exception while adding documents. Outstanding adds: " + added
+	    + ". Deletes: " + deleted, ste);
+	// TODO add docs to error queue
+	if (retry == 0) {
+	  docs = new LinkedList<SolrInputDocument>();
+	  throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage(),
+	      ste);
+	}
+      } catch (SolrServerException ste) {
+	logger.error("Solr Server Exception while adding documents (" + retry
+	    + "). Outstanding adds: " + added + ". Deletes: " + deleted, ste);
+	// TODO add docs to error queue
+	if (retry == 0) {
+	  docs = new LinkedList<SolrInputDocument>();
+	  throw new RuntimeException("Solr Server Exception while adding records: "
+	      + ste.getMessage(), ste);
+	}
+      } catch (IOException e) {
+	e.printStackTrace();
+	// TODO Add to failed records queue
+	deleteIds = new LinkedList<String>();
+	throw new RuntimeException("IO Exception while adding records: " + e.getMessage(), e);
+      }
+      retry--;
     }
   }
 
