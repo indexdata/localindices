@@ -99,8 +99,8 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
-  private final int hitInterval = 250; // ms between hitting the same host
-  private final int minNumWorkers = 1;
+  private final int hitInterval = 0; // ms between hitting the same host
+  private final int minNumWorkers = 5;
   private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
@@ -343,6 +343,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       CrawlThread worker = new CrawlThread(this, proxy, que, "", i, hitInterval);
       Thread wthread = new Thread(worker);
       workers.add(worker);
+      worker.setWorkerThread(wthread);
       wthread.start();
     }
     logger.log(Level.DEBUG, "Started threads OK");
@@ -359,8 +360,10 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	logWorkerStatus();
       index++;
     }
+    que.setFinished();
     for (CrawlThread worker : workers) {
       worker.setRunning(false);
+      
     }
     long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
     String killmsg = "Ok!";
@@ -422,6 +425,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     XMLReader xmlReader;
     try {
       xmlReader = createTransformChain(false);
+      // TODO Add split 
       return new TransformationChainRecordStorageProxy(storage, xmlReader,
 	  	new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
@@ -432,10 +436,12 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     return storage;
   }
 
-  
+  OutputStream finalOutputStream = null; 
   @Override
-  public OutputStream getOutputStream() {
-    return setupTransformation(getStorage()).getOutputStream();
+  public synchronized OutputStream getOutputStream() {
+    if (finalOutputStream  == null) 
+      finalOutputStream = setupTransformation(getStorage()).getOutputStream();
+    return finalOutputStream;
   }
 } // class WebHarvestJob
 
