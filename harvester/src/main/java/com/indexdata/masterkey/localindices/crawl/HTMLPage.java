@@ -136,13 +136,12 @@ public class HTMLPage {
 
   private InputStream request(Proxy proxy) throws IOException {
     HttpURLConnection conn = null;
-    if (url.getProtocol().equalsIgnoreCase("http")
-	|| url.getProtocol().equalsIgnoreCase("https")) {
-      logger.log(Level.TRACE, "Opening connection to " + url.toString());
-    } else {
+    if (!(url.getProtocol().equalsIgnoreCase("http")
+	|| url.getProtocol().equalsIgnoreCase("https"))) {
       throw new IOException("Only HTTP or HTTPS supported " + "(not "
 	  + url.getProtocol() + ") at " + url.toString());
     }
+    logger.log(Level.TRACE, "Opening connection to " + url.toString());
     DisableCertValidation();
     HttpURLConnection.setFollowRedirects(true);
     HttpsURLConnection.setFollowRedirects(true);
