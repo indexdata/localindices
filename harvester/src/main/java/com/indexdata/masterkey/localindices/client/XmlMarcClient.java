@@ -198,7 +198,7 @@ public class XmlMarcClient implements HarvestClient {
 	if (harvesterJob.isKillSent()) {
 	  // Close to end the pipe 
 	  writer.close();
-	  throw new IOException("Download interputed with a kill signal.");
+	  throw new IOException("Download interruted with a kill signal.");
 	}
       } catch (MarcException e) {
 	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage(),e);
@@ -235,8 +235,7 @@ public class XmlMarcClient implements HarvestClient {
     for (int len = -1; (len = is.read(buf)) != -1;) {
       os.write(buf, 0, len);
       if (harvesterJob.isKillSent()) {
-	throw new IOException("Download interputed with a kill signal.");
-	// every megabyte
+	throw new IOException("Download interruted with a kill signal.");
       }
       progress.progress(len);
     }

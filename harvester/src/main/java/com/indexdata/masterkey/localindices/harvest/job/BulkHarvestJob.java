@@ -174,8 +174,7 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
     for (int len = -1; (len = is.read(buf)) != -1;) {
       os.write(buf, 0, len);
       if (isKillSendt()) {
-	throw new IOException("Download interputed with a kill signal.");
-	// every megabyte
+	throw new IOException("Download interruted with a kill signal.");
       }
       copied += len;
       if (num % logBlockNum == 0) {
