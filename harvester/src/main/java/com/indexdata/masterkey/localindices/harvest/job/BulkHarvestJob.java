@@ -194,7 +194,7 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
 
   @Override
   public OutputStream getOutputStream() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new RuntimeException("Not Implemented");
+    //return null;
   }
 }
