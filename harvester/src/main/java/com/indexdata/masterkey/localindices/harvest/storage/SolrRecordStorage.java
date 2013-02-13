@@ -35,7 +35,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void begin() throws IOException {
+  synchronized public void begin() throws IOException {
     super.begin();
     database = harvestable.getId().toString();
     added = 0;
@@ -44,7 +44,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void commit() throws IOException {
+  synchronized public void commit() throws IOException {
     try {
 
       logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
@@ -62,7 +62,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void rollback() throws IOException {
+  synchronized public void rollback() throws IOException {
     try {
       server.rollback();
     } catch (SolrServerException e) {
@@ -73,7 +73,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void purge(boolean commit) throws IOException {
+  synchronized public void purge(boolean commit) throws IOException {
     try {
       if (database == null) {
 	logger.error("purge called before begin.");
@@ -132,7 +132,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     return record;
   }
 
-  public void add(SolrInputDocument document) {
+  private void add(SolrInputDocument document) {
     try {
       UpdateResponse updateResponse = server.add(document);
       if (updateResponse.getStatus() != 0)
@@ -150,12 +150,12 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void add(Map<String, Collection<Serializable>> keyValues) {
+  synchronized public void add(Map<String, Collection<Serializable>> keyValues) {
     add(createDocument(keyValues));
   }
 
   @Override
-  public void add(Record record) {
+  synchronized public void add(Record record) {
     add(createDocument(record));
   }
 
@@ -204,7 +204,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   @Override
-  public void delete(String ids) {
+  synchronized public void delete(String ids) {
     try {
       UpdateResponse updateResponse = server.deleteById(ids);
       if (updateResponse.getStatus() != 0)
