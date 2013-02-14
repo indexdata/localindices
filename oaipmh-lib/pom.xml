@@ -30,7 +30,7 @@
     <dependency>
         <groupId>com.indexdata.io</groupId>
         <artifactId>UTF8InputStream</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
