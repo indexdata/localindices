@@ -40,9 +40,9 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
 //  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
-
+  
 //  String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
-
+  String resourceOIAster = "http://maki.indexdata.com/marcdata/meta/oaister/harvester-index.html";
   String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
   String solrUrl = "http://localhost:8585/solr/";
@@ -128,8 +128,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   
-  public void testCleanNoSplit() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, null, null, 0, 0);
+  private void testCleanMarc21SplitByNumber(int number) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarc, null, null, 0, number);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
@@ -148,25 +148,24 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanSplit100BulkHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, null, null, 1, 100);
-    resource.setTransformation(createMarc21Transformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    recordStorage.setOverwriteMode(true);
-    StorageStatus storageStatus = recordStorage.getStatus();
-    Logger.getLogger(this.getClass()).info("Total records: " + storageStatus.getTotalRecords()); 
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-
-    storageStatus = recordStorage.getStatus();
-    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  public void testCleanMarc21NoSplit() throws IOException, StatusNotImplemented {
+    testCleanMarc21SplitByNumber(0);
   }
 
-  public void testCleanTurboMarcHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 0, 0);
+  public void testCleanMarc21Split1() throws IOException, StatusNotImplemented {
+    testCleanMarc21SplitByNumber(1);
+  }
+
+  public void testCleanMarc21Split100() throws IOException, StatusNotImplemented {
+    testCleanMarc21SplitByNumber(100);
+  }
+
+  public void testCleanMarc21Split1000() throws IOException, StatusNotImplemented {
+    testCleanMarc21SplitByNumber(1000);
+  }
+
+  private void testCleanTurboMarcSplitByNumber(int number) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 0, number);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -181,40 +180,25 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanTurboMarcSplitOneHarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/marc; charset=MARC-8", "application/tmarc", 1, 1);
-    resource.setId(2l);
-    resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    recordStorage.setOverwriteMode(true);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
-    StorageStatus storageStatus = recordStorage.getStatus();
-    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(),        new Long(1002).equals(storageStatus.getAdds()));
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  public void testCleanTurboMarcNoSplit() throws IOException, StatusNotImplemented {
+    testCleanTurboMarcSplitByNumber(0);
   }
 
-  public void testCleanTurboMarcSplit100HarvestJob() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 1, 100);
-    resource.setId(2l);
-    resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);    
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    recordStorage.setOverwriteMode(true);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-
-    StorageStatus storageStatus = recordStorage.getStatus();
-    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  public void testCleanTurboMarcSplit1() throws IOException, StatusNotImplemented {
+    testCleanTurboMarcSplitByNumber(1);
   }
 
-  public void testCleanGZippedSplitOneMarc21() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, 1);
+  public void testCleanTurboMarcSplit100() throws IOException, StatusNotImplemented {
+    testCleanTurboMarcSplitByNumber(100);
+  }
+
+  public void testCleanTurboMarcSplit1000() throws IOException, StatusNotImplemented {
+    testCleanTurboMarcSplitByNumber(1000);
+  }
+
+  private void testCleanGZippedMarc21SplitByNumber(int number) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, number);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -229,8 +213,24 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  public void testCleanGZippedSplit1000TurboMarc() throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc, "application/marc", "application/tmarc", 1, 1000);
+  public void testCleanGZippedMarc21NoSplit() throws IOException, StatusNotImplemented {
+    testCleanGZippedMarc21SplitByNumber(1);
+  }
+
+  public void testCleanGZippedMarc21Split1() throws IOException, StatusNotImplemented {
+    testCleanGZippedMarc21SplitByNumber(1);
+  }
+
+  public void testCleanGZippedMarc21Split100() throws IOException, StatusNotImplemented {
+    testCleanGZippedMarc21SplitByNumber(100);
+  }
+
+  public void testCleanGZippedMarc21Split1000() throws IOException, StatusNotImplemented {
+    testCleanGZippedMarc21SplitByNumber(1000);
+  }
+
+  private void testCleanGZippedTurboMarcSplitByNumber(int number) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", "application/tmarc", 1, number);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -244,6 +244,39 @@ public class TestBulkRecordHarvestJob extends TestCase {
     assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(1002).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
+
+  public void testCleanGZippedTurboMarcNoSplit() throws IOException, StatusNotImplemented {
+    testCleanGZippedTurboMarcSplitByNumber(0);
+  }
+
+  public void testCleanGZippedTurboMarcSplit1() throws IOException, StatusNotImplemented {
+    testCleanGZippedTurboMarcSplitByNumber(1);
+  }
+
+  public void testCleanGZippedTurboMarcSplit100() throws IOException, StatusNotImplemented {
+    testCleanGZippedTurboMarcSplitByNumber(100);
+  }
+
+  public void testCleanGZippedTurboMarcSplit1000() throws IOException, StatusNotImplemented {
+    testCleanGZippedTurboMarcSplitByNumber(1000);
+  }
+
+  public void testCleanJumpPageGZippedSplitTurboMarc() throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource( resourceMarcGZ + " " + resourceMarcGZ, "application/marc", "application/tmarc", 1, 1);
+    resource.setId(2l);
+    resource.setTransformation(createTurboMarcTransformation());
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
+    recordStorage.setOverwriteMode(true);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), 	new Long(2004).equals(storageStatus.getAdds()));
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
   
   /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
