@@ -301,6 +301,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
   }
 
   public void setEncoding(String encoding) {
+    //Force null on empty string 
+    if ("".equals(encoding))
+      	encoding = null;
     this.encoding = encoding;
   }
 }
