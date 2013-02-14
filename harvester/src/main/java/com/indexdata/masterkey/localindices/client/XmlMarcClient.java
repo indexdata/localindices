@@ -61,6 +61,8 @@ public class XmlMarcClient implements HarvestClient {
 	throw new Exception("Http connection failed. (" + responseCode + ")");
       }
       logger.info("Finished - " + url.toString());
+      // TODO HACK HACK HACK
+      Thread.sleep(2000);
     } catch (IOException ioe) {
       throw new Exception("Http connection failed.", ioe);
     }
