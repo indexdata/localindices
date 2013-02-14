@@ -28,11 +28,7 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 

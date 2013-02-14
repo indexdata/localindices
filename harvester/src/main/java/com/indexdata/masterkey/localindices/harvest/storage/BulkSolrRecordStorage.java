@@ -22,7 +22,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     super(solrUrl, harvestable);
   }
 
-  public void add(Record record) {
+  synchronized public void add(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
     if (record.getId() != null)
@@ -33,7 +33,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       addRecords();
   }
 
-  public void delete(String id) {
+  synchronized public void delete(String id) {
     if (docs.size() > 0)
       addRecords();
     deleteIds.add(id);
@@ -105,7 +105,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     }
   }
 
-  public void commit() throws IOException {
+  synchronized public void commit() throws IOException {
     // Flush outstanding operations. Should either be add or delete, not both
     if (docs.size() > 0) {
       addRecords();

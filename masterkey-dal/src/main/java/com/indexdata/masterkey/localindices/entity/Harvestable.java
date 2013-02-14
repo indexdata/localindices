@@ -83,6 +83,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @ManyToOne(optional = true)
   protected Transformation transformation;
   private Boolean overwrite;
+  @Column(nullable=true)
   private String encoding;
 
   public String getDescription() {

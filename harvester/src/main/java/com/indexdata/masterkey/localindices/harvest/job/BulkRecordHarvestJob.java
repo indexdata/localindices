@@ -29,6 +29,7 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
@@ -78,14 +79,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return defaultValue;
   }
 
-  private Record convert(Source source) throws TransformerException {
+  protected Record convert(Source source) throws TransformerException {
     if (source != null) {
       // TODO Need to handle other RecordStore types.
       SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource
 	  .getId().toString()));
       Transformer transformer = stf.newTransformer();
       transformer.transform(source, outputTarget);
-    }
+    }    
     return null;
   }
   
@@ -127,7 +128,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return xmlSource;
   }
 
-  class TransformerConsumer implements MessageConsumer 
+  protected class TransformerConsumer implements MessageConsumer 
   {
     @Override
     public void accept(Node xmlNode) {
