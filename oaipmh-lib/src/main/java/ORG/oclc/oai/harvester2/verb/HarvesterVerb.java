@@ -331,13 +331,14 @@ public abstract class HarvesterVerb {
         int contentLength = con.getContentLength();
         InputSource data = new InputSource();
         InputStream bin = null;
-        // encodingOverride should not be the empty string but apparently it gets stored as such
-        if (encodingOverride == null || encodingOverride.equals("")) {
+        
+        if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
           bin.mark(contentLength);
           data.setByteStream(bin);
         }
         else {
+          logger.info("Enforcing encoding override: '" + encodingOverride + "'");
           bin = new BufferedInputStream(in);
           Reader reader = new InputStreamReader(bin, encodingOverride);
           bin.mark(contentLength);
