@@ -39,7 +39,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   String resourceMarc = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
-//  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
+  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
   
 //  String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
   String resourceOIAster = "http://maki.indexdata.com/marcdata/meta/oaister/harvester-index.html";
@@ -137,7 +137,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.purge(true);
     StorageStatus storageStatus = recordStorage.getStatus();
-    assertTrue("Total records != 0", storageStatus.getTotalRecords() == 0); 
+    long total = storageStatus.getTotalRecords();
+    assertTrue("Total records != 0: " + total, total == 0); 
     recordStorage.setOverwriteMode(true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
