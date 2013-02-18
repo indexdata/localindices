@@ -3,7 +3,9 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -18,6 +20,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus.TransactionState;
 
 public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   Collection<String> deleteIds = new LinkedList<String>();
@@ -26,36 +29,49 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private String database;
   @SuppressWarnings("unused")
   private Map<String, String> databaseProperties;
-  protected int added;
-  protected int deleted;
-  private boolean committed;
-  
+  //protected int added;
+  //protected int deleted;
+  //private boolean committed;
+  private Date transactionId;
+  private boolean delayedPurge = true;
+  private boolean isPurged;
+  private String transactionIdField = "solrLastModified";
+  SolrStorageStatus storageStatus;
+
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
+    try {
+      storageStatus = new SolrStorageStatus(url, databaseField + ":" + harvestable.getId());
+    } catch (MalformedURLException e) {
+      // This would already have been thrown in super. 
+      e.printStackTrace();
+    }
+
   }
 
   @Override
   synchronized public void begin() throws IOException {
     super.begin();
+    transactionId = new Date();
     database = harvestable.getId().toString();
-    added = 0;
-    deleted = 0;
-    committed = false;
+    storageStatus.setTransactionState(TransactionState.InTransaction);
   }
 
   @Override
   synchronized public void commit() throws IOException {
     try {
-
-      logger.info("Committing added " + added + " and deleted " + deleted + " records to database " + database);
+      if (delayedPurge && isPurged) {
+	purgeByTransactionId(false);
+      }
+      logger.info("Committing added " + storageStatus.getAdds() + " and deleted " + storageStatus.getOutstandingDeletes() + " records to database " + database);
       // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
       UpdateResponse response = server.commit(true, false);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
       else	
-	committed = true;
+	storageStatus.setTransactionState(TransactionState.Committed);
     } catch (SolrServerException e) {
-      logger.error("Commit failed when adding " + added + " and deleting " + deleted + " to database " + database, e);
+      logger.error("Commit failed when adding " + storageStatus.getOutstandingAdds() + " and deleting " + storageStatus.getOutstandingDeletes() + " to database " + database, e);
       e.getStackTrace();
       throw new RuntimeException("Commit failed: " + e.getMessage(), e);
     }
@@ -79,12 +95,44 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 	logger.error("purge called before begin.");
 	begin();
       }
-      UpdateResponse response = server.deleteByQuery(databaseField + ":" + database);
-      logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
-      if (commit) {
-	response = server.commit();
-	logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+      if (!delayedPurge || commit == true) {
+	String query = databaseField + ":" + database;
+	UpdateResponse response = server.deleteByQuery(query);
+	logger.info("UpdateResponse on delete(" + query + "): " + response.getStatus() + " " + response.getResponse());
+	if (commit) {
+	  response = server.commit();
+	  logger.info("UpdateResponse on commit delete: " + response.getStatus() + " " + response.getResponse());
+	}
       }
+      else {
+	logger.info("Performing purge later.");
+	isPurged = true; 
+      }
+    } catch (SolrServerException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      throw new RuntimeException("Error purging database (" + database + ")");
+    }
+  }
+
+  /** 
+   * purgeByTransactionId can delete all records either with or without the current transaction id. 
+   * rollback would call this to delete all records with the current transaction id. TODO: Verify that this works on non-committed records... 
+   * Delayed purge would delete all records without the id, thus simulating a purge of all other records.  
+   * 
+   * @param hasId
+   * @throws IOException
+   */
+  public void purgeByTransactionId(boolean hasId) throws IOException {
+    try {
+      if (database == null) {
+	logger.error("purge called before begin.");
+	// throw NotInTransaction
+      }
+      String hasIdString = (hasId ? "" : "!");
+      String query = databaseField + ":" + database + " AND " + hasIdString + transactionIdField  + ":" + transactionId.getTime();
+      UpdateResponse response = server.deleteByQuery(query);
+      logger.info("UpdateResponse on delete (" + query + "): " + response.getStatus() + " " + response.getResponse());
     } catch (SolrServerException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -124,6 +172,10 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
     if (databaseField != null)
       document.setField(databaseField, database);
+    
+    if (transactionId  != null)
+      document.setField(transactionIdField, transactionId.getTime());
+
     return document;
   }
 
@@ -138,7 +190,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (updateResponse.getStatus() != 0)
 	logger.error("Add record (" + document + ") failed. Status: " + updateResponse.getStatus());
       else
-	added++;
+	storageStatus.incrementAdd(1);
     } catch (SolrServerException e) {
       logger.error("SolrServer Exception on add: " + e.getMessage(), e);
       e.printStackTrace();
@@ -210,7 +262,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (updateResponse.getStatus() != 0)
 	logger.error("Delete record (" + ids + ") failed. Status: " + updateResponse.getStatus());
       else
-	deleted++;
+	storageStatus.incrementAdd(1);
     } catch (SolrServerException e) {
       logger.error("SolrServer Exception  on delete: " + e.getMessage());
       e.printStackTrace();
@@ -256,7 +308,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   @Override
   public StorageStatus getStatus()  {
-    return new SimpleStorageStatus(added, deleted, committed);
+    return storageStatus;
   }
 
 }
