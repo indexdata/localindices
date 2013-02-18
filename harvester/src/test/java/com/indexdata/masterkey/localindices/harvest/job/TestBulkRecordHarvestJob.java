@@ -40,6 +40,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
   String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001.xml";
   String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002.xml";
+  String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
@@ -176,7 +177,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   private void testCleanTurboMarcSplitByNumber(int number, boolean clean, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc0, "application/marc", "application/tmarc", 0, number, overwrite);
+    XmlBulkResource resource = createResource(resourceTurboMarc0, "application/marc", "application/tmarc", 0, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
