@@ -73,19 +73,13 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     } catch (SolrServerException e) {
       logger.error("Commit failed when adding " + storageStatus.getOutstandingAdds() + " and deleting " + storageStatus.getOutstandingDeletes() + " to database " + database, e);
       e.getStackTrace();
-      throw new RuntimeException("Commit failed: " + e.getMessage(), e);
+      throw new IOException("Commit failed: " + e.getMessage(), e);
     }
   }
 
   @Override
   synchronized public void rollback() throws IOException {
-    try {
-      server.rollback();
-    } catch (SolrServerException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      throw new RuntimeException("Rollback failed: " + e.getMessage(), e);
-    }
+      purgeByTransactionId(true);
   }
 
   @Override
@@ -109,15 +103,15 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 	isPurged = true; 
       }
     } catch (SolrServerException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
-      throw new RuntimeException("Error purging database (" + database + ")");
+      throw new IOException("Error purging database (" + database + ")", e);
     }
   }
 
   /** 
    * purgeByTransactionId can delete all records either with or without the current transaction id. 
-   * rollback would call this to delete all records with the current transaction id. TODO: Verify that this works on non-committed records... 
+   * rollback would call this to delete all records with the current transaction id. 
+   * TODO: Verify that this works on non-committed records... 
    * Delayed purge would delete all records without the id, thus simulating a purge of all other records.  
    * 
    * @param hasId
@@ -134,9 +128,8 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       UpdateResponse response = server.deleteByQuery(query);
       logger.info("UpdateResponse on delete (" + query + "): " + response.getStatus() + " " + response.getResponse());
     } catch (SolrServerException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
-      throw new RuntimeException("Error purging database (" + database + ")");
+      throw new IOException("Error purging database (" + database + ")", e);
     }
   }
 
