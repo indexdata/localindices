@@ -54,6 +54,8 @@ public class SolrStorage implements HarvestStorage {
   protected Collection<SolrInputDocument> documentList = null;
   private boolean override = false;
   String storageId = "";  
+  SolrStorageStatus storageStatus;
+  String databaseField = "database:";
   
   public SolrStorage(Harvestable harvestable) {
     this.harvestable = harvestable;
@@ -63,9 +65,11 @@ public class SolrStorage implements HarvestStorage {
   public SolrStorage(String solrUrl, Harvestable harvestable) {
     this.harvestable = harvestable;
     url = solrUrl;
+
     init();
   }
 
+  @SuppressWarnings("deprecation")
   public void init() {
     try {
       Storage storage = null;
@@ -86,7 +90,8 @@ public class SolrStorage implements HarvestStorage {
       server.setAllowCompression(true);
       server.setMaxRetries(1); // defaults to 0. > 1 not recommended.
       server.setParser(new XMLResponseParser());
-
+      
+      storageStatus = new SolrStorageStatus(url, databaseField + harvestable.getId());
     } catch (MalformedURLException e) {
       throw new RuntimeException("'url' is not a valid URL: " + System.getProperty("url", url), e);
     }
@@ -117,6 +122,7 @@ public class SolrStorage implements HarvestStorage {
 	logger.info("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
 	response = server.commit();
 	logger.info("CommitResponse: " + response.getStatus() + " " + response.getResponse());
+	storageStatus.setTransactionState(StorageStatus.TransactionState.Committed);
 
     } catch (SolrServerException e) {
       logger.error("Solr Server Exception: " + e.getMessage());
@@ -128,6 +134,7 @@ public class SolrStorage implements HarvestStorage {
   @Override
   public void rollback() throws IOException {
     try {
+      // TODO rewrite rollback to use purgeByTransactionId()
       server.rollback();
     } catch (SolrServerException e) {
       e.printStackTrace();
@@ -138,7 +145,7 @@ public class SolrStorage implements HarvestStorage {
   @Override
   public void purge(boolean commit) throws IOException {
     try {
-      UpdateResponse response = server.deleteByQuery("database:" + harvestable.getId());
+      UpdateResponse response = server.deleteByQuery(databaseField + harvestable.getId());
       logger.info("UpdateResponse on delete: " + response.getStatus() + " " + response.getResponse());
       if (commit) {
 	response = server.commit();
@@ -172,5 +179,10 @@ public class SolrStorage implements HarvestStorage {
 
   public void setStorageId(String storageId) {
     this.storageId = storageId;
+  }
+  
+  public StorageStatus getStatus() {
+    
+    return storageStatus;
   }
 }
