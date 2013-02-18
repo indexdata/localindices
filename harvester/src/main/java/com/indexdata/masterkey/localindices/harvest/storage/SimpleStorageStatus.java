@@ -4,18 +4,29 @@ public class SimpleStorageStatus implements StorageStatus {
 
   Long adds;
   Long deletes;
+  Long total;
   TransactionState state = TransactionState.NoTransaction;
 
   public SimpleStorageStatus(long adds, long deletes, boolean committed) {
     this.adds = adds;
     this.deletes = deletes;
+    this.total = null;
     this.state = (committed ? TransactionState.Committed : TransactionState.InTransaction);
-    
   }
+
+  public SimpleStorageStatus(long adds, long deletes, boolean committed, Long total) {
+    this.adds = adds;
+    this.deletes = deletes;
+    this.total = total;
+    this.state = (committed ? TransactionState.Committed : TransactionState.InTransaction);
+  }
+
   @Override
   public Long getTotalRecords() {
-    
-    return adds - deletes;
+    if (total == null)
+      return adds - deletes;
+    else 
+      return total;
   }
 
   @Override
