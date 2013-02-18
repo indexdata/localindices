@@ -37,9 +37,9 @@ public class TestBulkRecordHarvestJob extends TestCase {
   private static final int NO_RECORDS = 1002;
   //String resourceMarc = "http://lui-dev.indexdata.com/ag/demo_org.mrc";
   long records_in_marc = 1002;
-  String resourceMarc0 = "http://lui-dev.indexdata.com/koha/koha-small.0000000.xml";
-  String resourceMarc1 = "http://lui-dev.indexdata.com/koha/koha-small.0000001.xml";
-  String resourceMarc2 = "http://lui-dev.indexdata.com/koha/koha-small.0000002.xml";
+  String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001.xml";
+  String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002.xml";
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
