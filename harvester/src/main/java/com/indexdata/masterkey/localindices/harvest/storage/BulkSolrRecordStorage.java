@@ -17,7 +17,6 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   Collection<SolrInputDocument> docs = new LinkedList<SolrInputDocument>();
   List<String> deleteIds = new LinkedList<String>();
   Integer limit = 1000; 
-  //LocalIndicesLogger logger; 
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
   }
@@ -44,21 +43,22 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   private void addRecords() {
     int retry = 1;
     while (retry > 0) {
+      int no_docs = docs.size();
       try {
 	UpdateResponse response = null;
-	int no_docs = docs.size();
+	;
 	logger.info("Adding " + no_docs + " records.");
 	response = server.add(docs);
 	if (response.getStatus() != 0)
 	  logger.error("Error adding documents. Retry: " + retry);
 	else {
-	  added += no_docs;
+	  storageStatus.incrementAdd(no_docs);
 	  docs = new LinkedList<SolrInputDocument>();
 	  retry = 0;
 	}
       } catch (SolrException ste) {
-	logger.error("Solr Exception while adding documents. Outstanding adds: " + added
-	    + ". Deletes: " + deleted, ste);
+	logger.error("Solr Exception while adding documents. Outstanding adds: " + no_docs
+	    + ". Deletes: " + deleteIds.size() , ste);
 	// TODO add docs to error queue
 	if (retry == 0) {
 	  docs = new LinkedList<SolrInputDocument>();
@@ -67,7 +67,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 	}
       } catch (SolrServerException ste) {
 	logger.error("Solr Server Exception while adding documents (" + retry
-	    + "). Outstanding adds: " + added + ". Deletes: " + deleted, ste);
+	    + "). Outstanding adds: " + no_docs + ". Deletes: " + deleteIds.size(), ste);
 	// TODO add docs to error queue
 	if (retry == 0) {
 	  docs = new LinkedList<SolrInputDocument>();
@@ -93,7 +93,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       if (response.getStatus() != 0)
 	logger.error("Error deleting documents: " + response.getResponse());
       else
-	deleted += no_docs;
+	storageStatus.incrementDelete(no_docs);
       deleteIds = new LinkedList<String>();
     } catch (SolrServerException e) {
       // TODO Add to failed records queue
