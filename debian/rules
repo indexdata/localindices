@@ -48,6 +48,8 @@ build: $(WEBAPP)
 $(WEBAPP):
 	dh_testdir
 #	env LD_PRELOAD= ./mvn_solr.sh package -Pproduction
+#	env PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/share/bina:/usr/lib/jvm/java-6-openjdk-amd64/bin mvn package
+	pwd 
 	env LD_PRELOAD= mvn package
 	touch $@
 
