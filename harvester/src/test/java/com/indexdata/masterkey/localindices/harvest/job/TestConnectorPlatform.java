@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+import org.apache.noggit.JSONWriter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContentHandler;
@@ -70,6 +74,28 @@ public class TestConnectorPlatform extends TestCase {
     
   }
 
+  @SuppressWarnings("unchecked")
+  private JSONObject testCreateHarvestRequest(String resumptiontoken, Date startDate, Date endDate) {
+    	JSONObject request = new JSONObject();
+    	SimpleDateFormat format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+    	if (resumptiontoken != null)
+    	  request.put("resumptiontoken", resumptiontoken);
+    	if (startDate != null) 
+    	  request.put("startDate", format.format(startDate));
+    	if (endDate != null)
+  	  request.put("endDate", format.format(endDate));
+    	return request;
+  }
+  
+  public void testHarvestRequest() throws IOException 
+  {
+    JSONObject request = testCreateHarvestRequest("2012-01-01", new Date(2000, 0, 1), new Date(2012, 11, 31));
+    StringWriter out = new StringWriter();
+    request.writeJSONString(out);
+    String jsonText = out.toString();
+    System.out.print(jsonText);
+  }
+  
   class PzHandler implements ContentHandler {
     private Object value;
     private boolean end = false;
@@ -129,5 +155,6 @@ public class TestConnectorPlatform extends TestCase {
       return true;
     }
   }
+
   
 }
