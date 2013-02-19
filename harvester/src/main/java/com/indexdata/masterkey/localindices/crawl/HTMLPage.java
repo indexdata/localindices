@@ -136,13 +136,12 @@ public class HTMLPage {
 
   private InputStream request(Proxy proxy) throws IOException {
     HttpURLConnection conn = null;
-    if (url.getProtocol().equalsIgnoreCase("http")
-	|| url.getProtocol().equalsIgnoreCase("https")) {
-      logger.log(Level.TRACE, "Opening connection to " + url.toString());
-    } else {
+    if (!(url.getProtocol().equalsIgnoreCase("http")
+	|| url.getProtocol().equalsIgnoreCase("https"))) {
       throw new IOException("Only HTTP or HTTPS supported " + "(not "
 	  + url.getProtocol() + ") at " + url.toString());
     }
+    logger.log(Level.TRACE, "Opening connection to " + url.toString());
     DisableCertValidation();
     HttpURLConnection.setFollowRedirects(true);
     HttpsURLConnection.setFollowRedirects(true);
@@ -378,7 +377,9 @@ public class HTMLPage {
   public String toPazpar2Metadata() {
     // FIXME - Use proper XML tools to do this, to avoid problems with
     // bad entities, character sets, etc.
-    String xml = "<pz:record>\n";
+    String xml = "<pz:record>\n"
+	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" "
+	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
     xml += xmlTag("title", title)  + "\n";
     if (description != null)
       xml += xmlTag("description", description) + "\n";
@@ -391,6 +392,8 @@ public class HTMLPage {
       xml += xmlTag("author", author)  + "\n";
     }
     xml += xmlTag("electronic-url", url.toString()) + "\n";
+    // For Solr
+    xml += xmlTag("id", url.toString())  + "\n";
     xml += xmlTag("fulltext", plainText)  + "\n";
     xml += "</pz:record>\n";
     return xml;

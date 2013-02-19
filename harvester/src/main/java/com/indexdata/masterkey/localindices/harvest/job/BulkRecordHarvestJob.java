@@ -78,14 +78,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return defaultValue;
   }
 
-  private Record convert(Source source) throws TransformerException {
+  protected Record convert(Source source) throws TransformerException {
     if (source != null) {
       // TODO Need to handle other RecordStore types.
       SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource
 	  .getId().toString()));
       Transformer transformer = stf.newTransformer();
       transformer.transform(source, outputTarget);
-    }
+    }    
     return null;
   }
   
@@ -127,7 +127,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return xmlSource;
   }
 
-  class TransformerConsumer implements MessageConsumer 
+  protected class TransformerConsumer implements MessageConsumer 
   {
     @Override
     public void accept(Node xmlNode) {

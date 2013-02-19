@@ -36,6 +36,7 @@ public class CrawlThread implements Runnable {
   private int hitInterval;
   private int status = CRAWLTHREAD_STARTING;
   private boolean running; 
+  private Thread workerThread;
 
   public CrawlThread(WebHarvestJobInterface job, Proxy proxy, CrawlQueue que,
       String filterString, int threadNumber, int hitInterval) {
@@ -156,5 +157,13 @@ public class CrawlThread implements Runnable {
 
   public void setRunning(boolean running) {
     this.running = running;
+  }
+
+  public Thread getWorkerThread() {
+    return workerThread;
+  }
+
+  public void setWorkerThread(Thread workerThread) {
+    this.workerThread = workerThread;
   }
 } // class Crawlthread

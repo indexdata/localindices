@@ -7,7 +7,7 @@ BASE_LOG = /usr/log/$(BASEDIRECTORY)
 
 ENGINEPACKAGE = $(BASEPACKAGE)-engine
 ENGINEROOT = $(CURDIR)/debian/$(ENGINEPACKAGE)
-#ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
+ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
 
 ADMINPACKAGE = $(BASEPACKAGE)-admin
 ADMINROOT = $(CURDIR)/debian/$(ADMINPACKAGE)
@@ -62,6 +62,8 @@ install-stamp: build
 	# Harvester core
 	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
 	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
+	mkdir -p $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
+	cp README $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 
 	# Harvester Admin core
 	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester-admin

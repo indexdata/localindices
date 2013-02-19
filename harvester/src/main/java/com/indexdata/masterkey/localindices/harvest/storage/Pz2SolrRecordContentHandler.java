@@ -18,6 +18,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 
   RecordStorage store;
   private RecordImpl record = null;
+  private Map<String,String> prefixes = new HashMap<String, String>();
   private Map<String, Collection<Serializable>> keyValues = null;
   private StringBuffer currentText = null;
   private boolean inHeader = false;
@@ -33,6 +34,7 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
     databaseId = database;
   }
 
+    @SuppressWarnings("unused")
     private String encoding = "UTF-8";
     private Locator2 locator;
     
@@ -59,11 +61,13 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   @Override
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
     //logger.trace("start prefixMapping: " + prefix + " " + uri);
+    prefixes.put(prefix, uri);
   }
 
   @Override
   public void endPrefixMapping(String prefix) throws SAXException {
     //logger.trace("end prefixMapping: " + prefix);
+    prefixes.remove(prefix);
   }
 
   @Override
@@ -148,7 +152,6 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
 
   @Override
   public void skippedEntity(String name) throws SAXException {
-    // TODO Auto-generated method stub
-
+    logger.trace("Skipped Entity: " + name);
   }
 }

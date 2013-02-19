@@ -314,7 +314,8 @@ public abstract class HarvesterVerb {
         }
 
         String contentEncoding = con.getHeaderField("Content-Encoding");
-        logger.log(Level.INFO, "contentEncoding=" + contentEncoding);
+        if (contentEncoding != null)
+          logger.log(Level.INFO, "Content-Encoding: " + contentEncoding);
         if ("compress".equals(contentEncoding)) {
             @SuppressWarnings("resource")
 	    ZipInputStream zis = new ZipInputStream(con.getInputStream());
@@ -331,12 +332,14 @@ public abstract class HarvesterVerb {
         int contentLength = con.getContentLength();
         InputSource data = new InputSource();
         InputStream bin = null;
-        if (encodingOverride == null) {
+        
+        if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
           bin.mark(contentLength);
           data.setByteStream(bin);
         }
         else {
+          logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
           bin = new BufferedInputStream(in);
           Reader reader = new InputStreamReader(bin, encodingOverride);
           bin.mark(contentLength);

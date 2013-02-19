@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
+import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.crawl.CrawlThread;
@@ -25,7 +26,9 @@ import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -96,8 +99,8 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
-  private final int hitInterval = 250; // ms between hitting the same host
-  private final int minNumWorkers = 1;
+  private final int hitInterval = 0; // ms between hitting the same host
+  private final int minNumWorkers = 5;
   private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
 
@@ -340,6 +343,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       CrawlThread worker = new CrawlThread(this, proxy, que, "", i, hitInterval);
       Thread wthread = new Thread(worker);
       workers.add(worker);
+      worker.setWorkerThread(wthread);
       wthread.start();
     }
     logger.log(Level.DEBUG, "Started threads OK");
@@ -356,8 +360,10 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	logWorkerStatus();
       index++;
     }
+    que.setFinished();
     for (CrawlThread worker : workers) {
       worker.setRunning(false);
+      
     }
     long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
     String killmsg = "Ok!";
@@ -412,15 +418,14 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 
   public RecordStorage setupTransformation(RecordStorage storage) 
   {
-    /*
     if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
       logger.debug("No Transformation configured.");
-    */
-    return getStorage();
-    /*
+    // return getStorage();
+
     XMLReader xmlReader;
     try {
       xmlReader = createTransformChain(false);
+      // TODO Add split 
       return new TransformationChainRecordStorageProxy(storage, xmlReader,
 	  	new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
 
@@ -429,13 +434,14 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       logger.error(e.getMessage());
     }
     return storage;
-    */
   }
 
-  
+  OutputStream finalOutputStream = null; 
   @Override
-  public OutputStream getOutputStream() {
-    return setupTransformation(getStorage()).getOutputStream();
+  public synchronized OutputStream getOutputStream() {
+    if (finalOutputStream  == null) 
+      finalOutputStream = setupTransformation(getStorage()).getOutputStream();
+    return finalOutputStream;
   }
 } // class WebHarvestJob
 

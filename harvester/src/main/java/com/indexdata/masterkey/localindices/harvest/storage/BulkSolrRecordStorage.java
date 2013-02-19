@@ -17,12 +17,11 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   Collection<SolrInputDocument> docs = new LinkedList<SolrInputDocument>();
   List<String> deleteIds = new LinkedList<String>();
   Integer limit = 1000; 
-  //LocalIndicesLogger logger; 
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
   }
 
-  public void add(Record record) {
+  synchronized public void add(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
     if (record.getId() != null)
@@ -33,7 +32,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       addRecords();
   }
 
-  public void delete(String id) {
+  synchronized public void delete(String id) {
     if (docs.size() > 0)
       addRecords();
     deleteIds.add(id);
@@ -42,31 +41,46 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   }
 
   private void addRecords() {
-    try {
-      UpdateResponse response = null;
+    int retry = 1;
+    while (retry > 0) {
       int no_docs = docs.size();
-      logger.info("Adding " + no_docs + " records.");
-      response = server.add(docs);
-      if (response.getStatus() != 0)
-	logger.error("Error adding documents");
-      else
-	added += no_docs;
-      docs = new LinkedList<SolrInputDocument>();
-    } catch (SolrException ste) {
-      logger.error("Solr Exception while adding documents. Outstanding adds: " + added + ". Deletes: " + deleted, ste);
-      // TODO add docs to error queue
-      docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage() , ste);
-    } catch (SolrServerException ste) {
-      logger.error("Solr ServerException while adding documents. Outstanding adds: " + added + ". Deletes: " + deleted, ste);
-      // TODO add docs to error queue
-      docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Server Exception while adding records: " + ste.getMessage(), ste);
-    } catch (IOException e) {
-      e.printStackTrace();
-      // TODO Add to failed records queue
-      deleteIds = new LinkedList<String>();
-      throw new RuntimeException("IO Exception while adding records: " + e.getMessage(), e);
+      try {
+	UpdateResponse response = null;
+	;
+	logger.info("Adding " + no_docs + " records.");
+	response = server.add(docs);
+	if (response.getStatus() != 0)
+	  logger.error("Error adding documents. Retry: " + retry);
+	else {
+	  storageStatus.incrementAdd(no_docs);
+	  docs = new LinkedList<SolrInputDocument>();
+	  retry = 0;
+	}
+      } catch (SolrException ste) {
+	logger.error("Solr Exception while adding documents. Outstanding adds: " + no_docs
+	    + ". Deletes: " + deleteIds.size() , ste);
+	// TODO add docs to error queue
+	if (retry == 0) {
+	  docs = new LinkedList<SolrInputDocument>();
+	  throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage(),
+	      ste);
+	}
+      } catch (SolrServerException ste) {
+	logger.error("Solr Server Exception while adding documents (" + retry
+	    + "). Outstanding adds: " + no_docs + ". Deletes: " + deleteIds.size(), ste);
+	// TODO add docs to error queue
+	if (retry == 0) {
+	  docs = new LinkedList<SolrInputDocument>();
+	  throw new RuntimeException("Solr Server Exception while adding records: "
+	      + ste.getMessage(), ste);
+	}
+      } catch (IOException e) {
+	e.printStackTrace();
+	// TODO Add to failed records queue
+	deleteIds = new LinkedList<String>();
+	throw new RuntimeException("IO Exception while adding records: " + e.getMessage(), e);
+      }
+      retry--;
     }
   }
 
@@ -79,7 +93,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       if (response.getStatus() != 0)
 	logger.error("Error deleting documents: " + response.getResponse());
       else
-	deleted += no_docs;
+	storageStatus.incrementDelete(no_docs);
       deleteIds = new LinkedList<String>();
     } catch (SolrServerException e) {
       // TODO Add to failed records queue
@@ -91,7 +105,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     }
   }
 
-  public void commit() throws IOException {
+  synchronized public void commit() throws IOException {
     // Flush outstanding operations. Should either be add or delete, not both
     if (docs.size() > 0) {
       addRecords();

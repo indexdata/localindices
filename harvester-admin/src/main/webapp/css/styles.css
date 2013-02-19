@@ -130,7 +130,7 @@ tfoot td, tfoot th {
 
 tbody tr:hover td {
     color: #333;
-    background: #fafafa;
+    background: #FF0000;
 }
 
 tbody tr:hover td a {

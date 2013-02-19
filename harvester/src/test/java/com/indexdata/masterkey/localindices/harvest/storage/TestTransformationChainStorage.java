@@ -279,6 +279,10 @@ public class TestTransformationChainStorage extends TestCase {
     job.run();
     // TODO Check records in storage
   }
+  
+  public void testReadingMultipleXmlFiles() {
+    
+  }
 
   String locPzXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
       + "<pz:collection xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" >\n"

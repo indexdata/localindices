@@ -27,11 +27,8 @@ import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.FileStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
@@ -126,8 +123,8 @@ public class TestWebRecordHarvestJob extends TestCase {
     
     resource.setStorage(fileStorageEntity);
     
-    FileStorage recordStorage = new FileStorage();
-    recordStorage.setHarvestable(resource);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    //recordStorage.setHarvestable(resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.begin();
     recordStorage.purge(true);
@@ -137,7 +134,7 @@ public class TestWebRecordHarvestJob extends TestCase {
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
     storageStatus = recordStorage.getStatus();
-    // assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
     assertTrue("Add records failed " + storageStatus.getAdds(), new Long(0).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);

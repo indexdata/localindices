@@ -83,6 +83,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @ManyToOne(optional = true)
   protected Transformation transformation;
   private Boolean overwrite;
+  @Column(nullable=true)
   private String encoding;
 
   public String getDescription() {
@@ -300,6 +301,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
   }
 
   public void setEncoding(String encoding) {
+    //Force null on empty string 
+    if ("".equals(encoding))
+      	encoding = null;
     this.encoding = encoding;
   }
 }
