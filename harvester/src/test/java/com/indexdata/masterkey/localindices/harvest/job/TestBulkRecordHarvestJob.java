@@ -35,12 +35,13 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 public class TestBulkRecordHarvestJob extends TestCase {
 
   private static final int NO_RECORDS = 1002;
-  //String resourceMarc = "http://lui-dev.indexdata.com/ag/demo_org.mrc";
+  //String resourceMarc0 = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
   long records_in_marc = 1002;
-  String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001.xml";
-  String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002.xml";
-  String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
+  String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
+  String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
+  String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
+  //String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  //String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
@@ -134,7 +135,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   private void testMarc21SplitByNumber(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceMarc0, null, null, 0, number, overwrite);
+    XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 0, number, overwrite);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
@@ -177,7 +178,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   private void testCleanTurboMarcSplitByNumber(int number, boolean clean, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource(resourceTurboMarc0, "application/marc", "application/tmarc", 0, number, overwrite);
+    XmlBulkResource resource = createResource(resourceMarc0, "application/marc; charset=MARC8", "application/tmarc", 0, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -217,9 +218,9 @@ public class TestBulkRecordHarvestJob extends TestCase {
       purgeStorage(recordStorage);
       
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
   private void testCleanGZippedMarc21SplitByNumber(int number, boolean overwrite, 
@@ -280,8 +281,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     testCleanGZippedTurboMarcSplitByNumber(1000);
   }
 
-  public void testJumpPageGZippedTurboMarcSplitBy(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    XmlBulkResource resource = createResource( resourceMarc0 + " " + resourceMarc1, "application/marc", "application/tmarc", 1, number, overwrite);
+  public void testUrlGZippedTurboMarc(String url, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource( url, "application/marc; charset=MARC-8", "application/tmarc", 1, 100, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
@@ -291,7 +292,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
-    checkStorageStatus(recordStorage.getStatus(), 2 * NO_RECORDS, 0, 2 * NO_RECORDS);
+    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
   private void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
@@ -306,9 +307,19 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   public void testCleanJumpPageGZippedTurboMarcSplitBy(int number, boolean clear, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
-    testJumpPageGZippedTurboMarcSplitBy(1, true, true, 1002); 
+    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, true, true, 2004); 
   }
 
+  public void testMultiGZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
+  }
+  
+  public void testMulti2GZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
+    testUrlGZippedTurboMarc(resourceMarc2, false, false, 3006); 
+  }
   
   /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
