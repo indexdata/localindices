@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Stack;
 
 import org.apache.noggit.JSONWriter;
 import org.json.simple.JSONArray;
@@ -101,6 +102,8 @@ public class TestConnectorPlatform extends TestCase {
     private boolean end = false;
     private String key;
     private boolean inRecords;
+    private boolean inRecord;
+    private Stack<String> stack = new Stack<String>();
                     
     public Object getValue(){
       return value;
@@ -120,38 +123,60 @@ public class TestConnectorPlatform extends TestCase {
     }
 
     public boolean primitive(Object value) throws ParseException, IOException {
-      if(key != null){
+      if(key != null && inRecord){
           this.value = value;
-          key = null;
+          System.out.println("<metadata type=\"" + key + "\">" + value + "</metadata>");
       }
       return true;
     }
 
     public boolean startArray() throws ParseException, IOException {
+      stack.push("inArray");
       return true;
     }
 
           
     public boolean startObject() throws ParseException, IOException {
+      stack.push("inObject");
+      if (inRecords && key.equals("records")) {
+	System.out.println("<record>");
+	inRecord = true;
+      }
+      else if (inRecord) {
+	
+      }
       return true;
     }
 
     public boolean startObjectEntry(String key) throws ParseException, IOException {
+      
+      if (key != null)
+	stack.push(key);
       this.key = key;
-      if (key.equals("records"))
+      if ("records".equals(key)) 
 	inRecords = true;
       return true;
     }
           
     public boolean endArray() throws ParseException, IOException {
+      String in = stack.pop();
+      assertTrue("Not in array: " + in, "in".equals(in));
       return false;
     }
 
     public boolean endObject() throws ParseException, IOException {
+      String in= stack.pop();
+      assertTrue("Not in object: " + in, "inObject".equals(in));
       return true;
     }
 
     public boolean endObjectEntry() throws ParseException, IOException {
+      if (key.equals("record")) 
+	inRecord = false;
+      if (key.equals("records")) 
+	inRecords = false;
+      key = null;
+      key = stack.pop();
       return true;
     }
   }
