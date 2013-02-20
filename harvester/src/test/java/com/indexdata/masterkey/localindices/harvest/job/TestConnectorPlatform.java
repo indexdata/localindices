@@ -1,62 +1,59 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Stack;
 
-import org.apache.noggit.JSONWriter;
+import junit.framework.TestCase;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContentHandler;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import junit.framework.TestCase;
+import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 
 public class TestConnectorPlatform extends TestCase {
   
   String session = "{\"id\":3}";
+  HarvestConnectorResource resource; 
   
-  public void testExampleJsonParsing() throws ParseException {
-    JSONParser parser = new JSONParser();
-    Object object = parser.parse(session);
-    if (object instanceof JSONObject) {
-      JSONObject json = (JSONObject) object;
-      Object id = json.get("id");
-      if (id instanceof Number) {
-	Number number = (Number) id;
-	System.out.println("Number: " + number);
-      }
+  private String createConnectorFromResource(String resource) throws IOException {
+    InputStream input = getClass().getResourceAsStream(resource);
+      	
+    assertTrue(input != null);
+    byte buf[] = new byte[4096];
+    ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+    int length = 0;
+    @SuppressWarnings("unused")
+    int total = 0;
+    while ((length = input.read(buf)) != -1) { 
+      byteArray.write(buf, 0, length);
+      total += length;
     }
+    String connector = byteArray.toString("UTF-8");
+    return connector;
   }
 
-  public void testHarvestParsing() throws ParseException, IOException {
-    InputStream in = getClass().getResourceAsStream("resources/harvest.json");
-    Reader reader = new InputStreamReader(in);
-    JSONParser parser = new JSONParser();
-    Object object = parser.parse(reader); // TODO add container factory, so we get ordered lists
+  
+  public void testSessionParsing() throws ParseException {
     
-    if (object instanceof JSONObject) {
-      JSONObject json = (JSONObject) object;
-      Object recordsObj = json.get("records");
-      if (recordsObj instanceof JSONArray) {
-	JSONArray records = (JSONArray) recordsObj;
-	int size= records.size();
-	System.out.println("<collections size=\"" + size + "\">");
-	for (Object recordObj: records) {
-	  System.out.println("<record>");
-	  if (recordObj instanceof JSONObject) {
-	      printRecord((JSONObject) recordObj);
-	  }
-	  System.out.println("</record>");
-	}
-	System.out.println("</collections>");
-      }
+  }
+
+  public void testDownload() throws ParseException, IOException {
+    HarvestConnectorResource resource = new HarvestConnectorResource();
+    resource.setUrl("http://usi03.indexdata.com:9010/connector");
+    resource.setInitData("{}");
+    resource.setConnector(createConnectorFromResource("resources/id.cf"));
+    HarvestConnectorClient client = new HarvestConnectorClient(resource);
+    try {
+      client.download(null);
+    } catch (Exception exp) {
+      System.out.println(exp.getMessage());
+      exp.printStackTrace();
     }
   }
 
@@ -72,25 +69,16 @@ public class TestConnectorPlatform extends TestCase {
 	  System.out.println("<metadata type=\"" + key + "\">" +  obj + "</metadata>");
       }
     }
-    
   }
 
-  @SuppressWarnings("unchecked")
-  private JSONObject testCreateHarvestRequest(String resumptiontoken, Date startDate, Date endDate) {
-    	JSONObject request = new JSONObject();
-    	SimpleDateFormat format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-    	if (resumptiontoken != null)
-    	  request.put("resumptiontoken", resumptiontoken);
-    	if (startDate != null) 
-    	  request.put("startDate", format.format(startDate));
-    	if (endDate != null)
-  	  request.put("endDate", format.format(endDate));
-    	return request;
+  private JSONObject testCreateHarvestRequest(String resumptiontoken, String startDate, String endDate) {
+    HarvestConnectorClient client = new HarvestConnectorClient(resource); 
+    return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
   
   public void testHarvestRequest() throws IOException 
   {
-    JSONObject request = testCreateHarvestRequest("2012-01-01", new Date(2000, 0, 1), new Date(2012, 11, 31));
+    JSONObject request = testCreateHarvestRequest("2012-01-01", "2000-01-01", "2012-12-31");
     StringWriter out = new StringWriter();
     request.writeJSONString(out);
     String jsonText = out.toString();
