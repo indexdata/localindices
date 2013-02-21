@@ -17,7 +17,8 @@ import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 
 public class TestConnectorPlatform extends TestCase {
-  
+  //String cfServer = "http://usi03.indexdata.com:9010/connector";
+  String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
   HarvestConnectorResource resource; 
   
@@ -45,7 +46,7 @@ public class TestConnectorPlatform extends TestCase {
 
   public void testDownload() throws ParseException, IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
-    resource.setUrl("http://usi03.indexdata.com:9010/connector");
+    resource.setUrl(cfServer);
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource("resources/id.cf"));
     HarvestConnectorClient client = new HarvestConnectorClient(resource);
