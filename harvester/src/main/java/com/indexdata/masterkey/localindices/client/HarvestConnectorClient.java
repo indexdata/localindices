@@ -36,14 +36,17 @@ public class HarvestConnectorClient implements HarvestClient {
     createSession(resource.getUrl());
     // fetchConnector(cfrepo, resource); 
     uploadConnector(resource.getConnector());
-    //init(); 
+    System.out.println("Log: " + getLog()); 
+    init(); 
+    System.out.println("Log: " + getLog()); 
     harvest(resource.getResumptionToken(), resource.getStartDate(), resource.getEndDate());
+    System.out.println("Log: " + getLog()); 
     logger.log(Level.INFO, "Finished - " + url.toString());
     return 0;
 }
   
   private void uploadConnector(String connector) throws Exception {
-    HttpURLConnection conn = createConnection("load_cf");
+    HttpURLConnection conn = createConnectionJSON("load_cf");
     conn.setDoOutput(true);
     DataOutputStream out = new DataOutputStream(conn.getOutputStream());
     out.writeBytes(connector);
@@ -57,11 +60,11 @@ public class HarvestConnectorClient implements HarvestClient {
   
 
   private void init() throws Exception {
-    HttpURLConnection conn = createConnection("run_task_opt/init");
+    HttpURLConnection conn = createConnectionJSON("run_task_opt/init");
     String initData = resource.getInitData();
     if ( initData != null) {
       conn.setDoOutput(true);
-      conn.setRequestProperty("Content-length", "" + initData.length());
+      conn.setRequestProperty("Content-Length", "" + initData.length());
       DataOutputStream out = new DataOutputStream(conn.getOutputStream());
       out.writeBytes(initData);
       out.flush();
@@ -77,7 +80,7 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   private void createSession(String url) throws Exception {
-    HttpURLConnection conn = createConnection(null);
+    HttpURLConnection conn = createConnectionJSON(null);
     int rc = conn.getResponseCode();
     if (rc == 200) {
       parseSessionResponse(conn.getInputStream(), conn.getContentLength());
@@ -85,7 +88,7 @@ public class HarvestConnectorClient implements HarvestClient {
     }
   }
 
-  private HttpURLConnection createConnection(String task) throws Exception {
+  private HttpURLConnection createConnectionRaw(String task) throws Exception {
     HttpURLConnection conn = null; 
     String urlString = resource.getUrl() + (sessionId != null ? "/" + sessionId : "") + (task != null ? "/" + task : "");
     URL url = new URL(urlString);
@@ -95,7 +98,13 @@ public class HarvestConnectorClient implements HarvestClient {
       conn = (HttpURLConnection) url.openConnection(proxy);
     else
       conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestProperty("Content-Type", "Application/json");
+    conn.setRequestMethod("POST");
+    return conn; 
+  }
+
+  private HttpURLConnection createConnectionJSON(String task) throws Exception {
+    HttpURLConnection conn = createConnectionRaw(task); 
+    conn.setRequestProperty("Content-Type", "application/json");
     conn.setRequestMethod("POST");
 
     return conn; 
@@ -103,13 +112,13 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private void harvest(String resumptiontoken, String startDate, String endDate) throws Exception 
   {
-      HttpURLConnection conn = createConnection("run_task/harvest");
+      HttpURLConnection conn = createConnectionJSON("run_task/harvest");
       JSONObject jsonObj = createHarvestRequest(resumptiontoken, startDate, endDate);
       if (jsonObj == null) 
 	throw new Exception("Error creating JSON harvest request object");
       String postdata = jsonObj.toJSONString();
       conn.setDoOutput(true);
-      conn.setRequestProperty("Content-length", "" + postdata.length());
+      conn.setRequestProperty("Content-Length", "" + postdata.length());
       OutputStream output = conn.getOutputStream();
       DataOutputStream  data = new DataOutputStream(output);
       data.writeBytes(postdata);
@@ -123,10 +132,43 @@ public class HarvestConnectorClient implements HarvestClient {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
       else {
+	System.out.println(getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
       }
 }
 	
+  private String getLog() throws Exception {
+    HttpURLConnection conn = createConnectionJSON("log");
+    JSONObject jsonObj = new JSONObject();
+    String postdata = jsonObj.toJSONString();
+    System.out.print(postdata);
+    conn.setDoOutput(true);
+    conn.setRequestProperty("Content-Length", "" + postdata.length());
+    OutputStream output = conn.getOutputStream();
+    DataOutputStream  data = new DataOutputStream(output);
+    data.writeBytes(postdata);
+    data.flush();
+    data.close();
+    
+    int responseCode = conn.getResponseCode();
+    int contentLength = conn.getContentLength();
+    // String contentType = conn.getContentType();
+    if (responseCode == 200) {
+      	StringBuffer stringBuffer = new StringBuffer();
+      	InputStream in = conn.getInputStream();
+      	byte[] b = new byte[4096];
+      	while (in.read(b) != -1) {
+      	  stringBuffer.append(b);
+      	}
+      	System.out.print("Read vs Content-Length: " + stringBuffer.length() + " " + contentLength);
+      	return stringBuffer.toString();
+    }
+    else {
+	System.out.println(getLog()); 
+	throw new Exception("Error: ResponseCode:" + responseCode);
+    }
+  }
+
   @SuppressWarnings("unused")
   private void printRecord(JSONObject record) {
     for (Object key: record.keySet()) {
@@ -204,7 +246,7 @@ public class HarvestConnectorClient implements HarvestClient {
     if (detailTokenArrayObj != null && detailTokenArrayObj instanceof JSONArray) {
 	for (Object detailTokenObj : (JSONArray) detailTokenArrayObj) {
 	  if (detailTokenObj instanceof String) {
-	    HttpURLConnection conn = createConnection("run_task/detail");
+	    HttpURLConnection conn = createConnectionJSON("run_task/detail");
 	    JSONObject detailRequest = createDetailRequest((String) detailTokenObj);
 	    conn.setDoOutput(true);
 	    DataOutputStream out = new DataOutputStream(conn.getOutputStream());
@@ -249,7 +291,7 @@ public class HarvestConnectorClient implements HarvestClient {
     JSONObject request = new JSONObject();
     if (detailToken == null)
       throw new RuntimeException("Missing parameter detailtoken");
-     request.put("detailToken", detailToken);
+     request.put("detailtoken", detailToken);
     return request;
   }
 
