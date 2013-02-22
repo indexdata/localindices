@@ -39,11 +39,6 @@ public class TestConnectorPlatform extends TestCase {
     return connector;
   }
 
-  
-  public void testSessionParsing() throws ParseException {
-    
-  }
-
   public void testDownload() throws ParseException, IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setUrl(cfServer);
@@ -53,11 +48,12 @@ public class TestConnectorPlatform extends TestCase {
     try {
       client.download(null);
     } catch (Exception exp) {
-      System.out.println(exp.getMessage());
+      System.out.println(exp.getMessage()); 
       exp.printStackTrace();
     }
   }
 
+  @SuppressWarnings("unused")
   private void printRecord(JSONObject record) {
     for (Object key: record.keySet()) {
       if (key instanceof String) {
@@ -76,16 +72,7 @@ public class TestConnectorPlatform extends TestCase {
     HarvestConnectorClient client = new HarvestConnectorClient(resource); 
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
-  
-  public void testHarvestRequest() throws IOException 
-  {
-    JSONObject request = testCreateHarvestRequest("2012-01-01", "2000-01-01", "2012-12-31");
-    StringWriter out = new StringWriter();
-    request.writeJSONString(out);
-    String jsonText = out.toString();
-    System.out.print(jsonText);
-  }
-  
+    
   class PzHandler implements ContentHandler {
     private Object value;
     private boolean end = false;
