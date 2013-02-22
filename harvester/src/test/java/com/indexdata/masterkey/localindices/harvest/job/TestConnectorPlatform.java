@@ -17,8 +17,8 @@ import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 
 public class TestConnectorPlatform extends TestCase {
-  //String cfServer = "http://usi03.indexdata.com:9010/connector";
-  String cfServer = "http://satay.index:9000/connector";
+  String cfServer = "http://usi03.indexdata.com:9010/connector";
+  //String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
   HarvestConnectorResource resource; 
   
@@ -39,11 +39,26 @@ public class TestConnectorPlatform extends TestCase {
     return connector;
   }
 
-  public void testDownload() throws ParseException, IOException {
+  public void testDownload_indexdata() throws ParseException, IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setUrl(cfServer);
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource("resources/id.cf"));
+    HarvestConnectorClient client = new HarvestConnectorClient(resource);
+    try {
+      client.download(null);
+    } catch (Exception exp) {
+      System.out.println(exp.getMessage()); 
+      exp.printStackTrace();
+    }
+  }
+
+  public void testDownload_sheetmusicconsortium() throws ParseException, IOException {
+    HarvestConnectorResource resource = new HarvestConnectorResource();
+    resource.setUrl(cfServer);
+    resource.setInitData("{}");
+    resource.setSleep(new Long(500));
+    resource.setConnector(createConnectorFromResource("resources/sheetmusicconsortium.cf"));
     HarvestConnectorClient client = new HarvestConnectorClient(resource);
     try {
       client.download(null);
