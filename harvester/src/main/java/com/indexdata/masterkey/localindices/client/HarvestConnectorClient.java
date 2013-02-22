@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,11 +10,15 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ContainerFactory;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -29,19 +34,32 @@ public class HarvestConnectorClient implements HarvestClient {
     this.resource = resource; 
   }
 
+  ContainerFactory containerFactory = new ContainerFactory(){
+    @SuppressWarnings("rawtypes")
+    public List creatArrayContainer() {
+      return new LinkedList();
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Map createObjectContainer() {
+      return new LinkedHashMap();
+    }
+                        
+  };
+
+  
   @Override
   public int download(URL url) throws Exception 
   {
 
     createSession(resource.getUrl());
     // fetchConnector(cfrepo, resource); 
+    logger.log(Level.INFO, "Starting - " + resource);
     uploadConnector(resource.getConnector());
-    System.out.println("Log: " + getLog()); 
-    init(); 
-    System.out.println("Log: " + getLog()); 
+    init();
     harvest(resource.getResumptionToken(), resource.getStartDate(), resource.getEndDate());
     System.out.println("Log: " + getLog()); 
-    logger.log(Level.INFO, "Finished - " + url.toString());
+    logger.log(Level.INFO, "Finished - " + resource);
     return 0;
 }
   
@@ -54,7 +72,7 @@ public class HarvestConnectorClient implements HarvestClient {
     out.close();
     int rc = conn.getResponseCode();
     if (rc != 200) {
-      throw new Exception("Unable to upload connector. Response Code: " + 200);
+      throw new Exception("Unable to upload connector. Response Code: " + rc);
     }
   }
   
@@ -154,28 +172,26 @@ public class HarvestConnectorClient implements HarvestClient {
     int contentLength = conn.getContentLength();
     // String contentType = conn.getContentType();
     if (responseCode == 200) {
-      	StringBuffer stringBuffer = new StringBuffer();
       	InputStream in = conn.getInputStream();
-      	byte[] b = new byte[4096];
-      	while (in.read(b) != -1) {
-      	  stringBuffer.append(b);
-      	}
-      	System.out.print("Read vs Content-Length: " + stringBuffer.length() + " " + contentLength);
-      	return stringBuffer.toString();
+      	DataInputStream dataStream = new DataInputStream(in);
+      	byte[] b = new byte[contentLength];
+      	dataStream.readFully(b);
+      	System.out.println("Read vs Content-Length: " + b.length + " " + contentLength);
+      	return new String(b,"UTF-8");
     }
     else {
-	System.out.println(getLog()); 
+	//System.out.println(getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings({ "unused", "rawtypes" })
   private void printRecord(JSONObject record) {
     for (Object key: record.keySet()) {
       if (key instanceof String) {
 	Object obj = record.get(key); 
-	if (obj instanceof JSONArray) {
-	  for (Object value: (JSONArray) obj)
+	if (obj instanceof List) {
+	  for (Object value: (List) obj)
 	    System.out.println("<metadata type=\"" + key + "\">" +  value + "</metadata>");
 	}
 	else 
@@ -184,67 +200,82 @@ public class HarvestConnectorClient implements HarvestClient {
     }
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
     Reader reader = new InputStreamReader(inputStream);
     JSONParser parser = new JSONParser();
-    Object object = parser.parse(reader); // TODO add container factory, so we get ordered lists
+    Object object = parser.parse(reader, containerFactory);
     
-    if (object instanceof JSONObject) {
-      JSONObject json = (JSONObject) object;
+    if (object instanceof Map) {
+      Map json = (Map) object;
       Object recordsObj = json.get("records");
-      if (recordsObj instanceof JSONArray) {
-	JSONArray records = (JSONArray) recordsObj;
+      if (recordsObj instanceof List) {
+	List records = (List) recordsObj;
 	int size= records.size();
 	System.out.println("<collections size=\"" + size + "\">");
 	for (Object recordObj: records) {
 	  System.out.println("<record>");
-	  if (recordObj instanceof JSONObject) {
-	    JSONObject record = (JSONObject) recordObj; 
+	  if (recordObj instanceof Map) {
+	    Map record = (Map) recordObj; 
+	    pause();
 	    harvestDetails(record);
-	    //store(record);
+	    JSONObject obj = new JSONObject();
+	    obj.putAll(record);
+	    System.out.println(obj.toJSONString());
+	    //job.store(record);
 	  }
 	  System.out.println("</record>");
 	}
 	System.out.println("</collections>");
       }
       Object resumptionTokensArray = json.get("resumptiontokens");
-      if (resumptionTokensArray instanceof JSONArray) {
-	JSONArray records = (JSONArray) recordsObj;
-	int size= records.size();
+      if (resumptionTokensArray instanceof List) {
+	List resumptionArray = (List) resumptionTokensArray;
+	int size= resumptionArray.size();
 	System.out.println("<resumptiontokens size=\"" + size + "\">");
-	for (Object resumptionTokenObj: records) {
+	for (Object resumptionTokenObj: resumptionArray) {
 	  if (resumptionTokenObj instanceof String) {
 	    System.out.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
-	    Thread.sleep(1000);
+	    pause();
 	    harvest((String) resumptionTokenObj, resource.getStartDate(), resource.getEndDate());
 	  }
-	  System.out.println("</resumptiontokens>");
 	}
+	System.out.println("</resumptiontokens>");
       }
     }
   }
 
-  private JSONObject parseDetailResponse(InputStream inputStream, int contentLength) throws IOException, ParseException 
+  private void pause() throws InterruptedException {
+    Long sleep = resource.getSleep();
+    if (sleep != null) {
+      logger.debug("Sleeping " + sleep + " before next harvest");
+      Thread.sleep(resource.getSleep());
+    }
+  }
+
+  @SuppressWarnings("rawtypes")
+  private Map parseDetailResponse(InputStream inputStream, int contentLength) throws IOException, ParseException 
   {
     Reader reader = new InputStreamReader(inputStream);
     JSONParser parser = new JSONParser();
-    Object object = parser.parse(reader); // TODO add container factory, so we get ordered lists
+    Object object = parser.parse(reader, containerFactory);
     
-    if (object instanceof JSONObject) {
-      JSONObject json = (JSONObject) object;
+    if (object instanceof Map) {
+      Map json = (Map) object;
       return json; 
     }
-    logger.warn("No JSONObject in detailed response");
+    logger.warn("No Map in detailed response");
     return null;
   }
 
   
-  private void harvestDetails(JSONObject record) throws Exception 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void harvestDetails(Map record) throws Exception 
   {
     // printRecord(record);
     Object detailTokenArrayObj = record.get("detailtoken");
-    if (detailTokenArrayObj != null && detailTokenArrayObj instanceof JSONArray) {
-	for (Object detailTokenObj : (JSONArray) detailTokenArrayObj) {
+    if (detailTokenArrayObj != null && detailTokenArrayObj instanceof List) {
+	for (Object detailTokenObj : (List) detailTokenArrayObj) {
 	  if (detailTokenObj instanceof String) {
 	    HttpURLConnection conn = createConnectionJSON("run_task/detail");
 	    JSONObject detailRequest = createDetailRequest((String) detailTokenObj);
@@ -252,11 +283,13 @@ public class HarvestConnectorClient implements HarvestClient {
 	    DataOutputStream out = new DataOutputStream(conn.getOutputStream());
 	    out.writeBytes(detailRequest.toJSONString());
 	    out.flush();
-	    parseDetailResponse(conn.getInputStream(), conn.getContentLength());
-	    //record.putAll(detailedObj);
+	    Map detailedObj = parseDetailResponse(conn.getInputStream(), conn.getContentLength());
+	    record.putAll(detailedObj);
 	  }
 	}
     }
+    else 
+      logger.info("Not detail record for" + record.get("url"));
   }
 
   @SuppressWarnings("unchecked")
@@ -295,12 +328,13 @@ public class HarvestConnectorClient implements HarvestClient {
     return request;
   }
 
+  @SuppressWarnings("rawtypes")
   private String parseSessionResponse(InputStream in, long contentLength) throws ParseException, IOException {
     JSONParser parser = new JSONParser();
     sessionId = null;
     Object object = parser.parse(new InputStreamReader(in));
-    if (object instanceof JSONObject) {
-      JSONObject json = (JSONObject) object;
+    if (object instanceof Map) {
+      Map json = (Map) object;
       Object id = json.get("id");
       if (id instanceof Number) {
 	Number number = (Number) id;
