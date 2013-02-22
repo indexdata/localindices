@@ -3,7 +3,8 @@ C=id.cf
 if test "$1"; then
 	C=$1
 fi
-H=http://satay.index:9000/connector
+H=http://usi03.indexdata.com:9010/connector
+#H=http://satay.index:9000/connector
 # Create session (empty content)
 curl -D ws.headers --output ws.log --data-binary "" $H
 # Parse it
