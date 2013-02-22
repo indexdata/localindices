@@ -46,6 +46,7 @@ public class HarvestConnectorClient implements HarvestClient {
     }
                         
   };
+  private int recordCount = 0;
 
   
   @Override
@@ -104,6 +105,8 @@ public class HarvestConnectorClient implements HarvestClient {
       parseSessionResponse(conn.getInputStream(), conn.getContentLength());
       logger.info("New Session (" + sessionId + ") created");
     }
+    else 
+      System.err.println("Error creating session: " + rc);
   }
 
   private HttpURLConnection createConnectionRaw(String task) throws Exception {
@@ -150,7 +153,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
       else {
-	System.out.println(getLog()); 
+	System.err.println(getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
       }
 }
@@ -214,7 +217,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	int size= records.size();
 	System.out.println("<collections size=\"" + size + "\">");
 	for (Object recordObj: records) {
-	  System.out.println("<record>");
+	  System.out.println("<record index=\"" + recordCount++  + "\">");
 	  if (recordObj instanceof Map) {
 	    Map record = (Map) recordObj; 
 	    pause();
@@ -283,8 +286,14 @@ public class HarvestConnectorClient implements HarvestClient {
 	    DataOutputStream out = new DataOutputStream(conn.getOutputStream());
 	    out.writeBytes(detailRequest.toJSONString());
 	    out.flush();
-	    Map detailedObj = parseDetailResponse(conn.getInputStream(), conn.getContentLength());
-	    record.putAll(detailedObj);
+	    int rc = conn.getResponseCode();
+	    if (rc == 200)  {
+	      Map detailedObj = parseDetailResponse(conn.getInputStream(), conn.getContentLength());
+	      record.putAll(detailedObj);
+	    } else {
+	      	System.err.println("Error getting detail for " + (String) detailTokenObj + ". Response Code: " + rc + ":\n" + getLog());
+	    }
+	    
 	  }
 	}
     }
