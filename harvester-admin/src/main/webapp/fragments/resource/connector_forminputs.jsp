@@ -23,7 +23,7 @@
         <h:inputText value="#{resourceController.resource.untilDate}" size="8">
             <f:convertDateTime pattern="dd/MM/yyyy" />
         </h:inputText>
-        <h:outputText value="Resumption token: (overrrides date)"/>
+        <h:outputText value="Resumption token: "/>
         <h:inputText value="#{resourceController.resource.resumptionToken}"/>
         <h:outputText value="Delay between requests (milliseconds): "/>
         <h:inputText value="#{resourceController.resource.sleep}"/>
