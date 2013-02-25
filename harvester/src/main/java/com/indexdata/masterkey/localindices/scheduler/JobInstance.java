@@ -5,17 +5,31 @@
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.utils.CronLine;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.entity.*;
-import com.indexdata.masterkey.localindices.harvest.job.*;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.Proxy;
 import java.util.Calendar;
 import java.util.Date;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.BulkHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.utils.CronLine;
 
 /**
  * A JobInstance is one instance of a harvesting job managed by the scheduler.
@@ -55,7 +69,7 @@ public class JobInstance {
 	int hr = cal.get(Calendar.HOUR_OF_DAY);
 	cronLine = new CronLine(min + " " + hr + " " + "* * *");
 	logger.log(Level.WARN,
-	    "Job scheduled with lower than daily granularity. Schedule overrriden to " + cronLine);
+	    "Job scheduled with lower than daily granularity. Schedule overridden to " + cronLine);
       }
       if (storage instanceof RecordStorage) {
 	harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
@@ -75,6 +89,20 @@ public class JobInstance {
 
     } else if (hable instanceof WebCrawlResource) {
       harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
+      harvestJob.setStorage(storage);
+    } else if (hable instanceof HarvestConnectorResource) {
+      // hable.getJobClass();
+      try {
+	Constructor<?> constructor = Class.forName("com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob").getConstructor(hable.getClass(), Proxy.class);
+	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy);
+      } catch (Exception e) {
+	logger.error("failed to use reflection", e);
+	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy);
+	e.printStackTrace();
+      }
+      //Car.class.getConstructor(String.class).newInstance("Lightning McQueen");
+      //harvestJob.setResouce(resouce);
+      //harvestJob.setProxy();
       harvestJob.setStorage(storage);
     } else {
       throw new IllegalArgumentException("Cannot create instance of the harvester.");
