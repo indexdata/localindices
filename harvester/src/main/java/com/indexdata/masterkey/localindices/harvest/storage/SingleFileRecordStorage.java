@@ -6,16 +6,14 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
  * Simple, single file storage.
@@ -32,6 +30,7 @@ public class SingleFileRecordStorage extends SingleFileStorage implements Record
     super(harvestable);
   }
 
+  @SuppressWarnings("unused")
   private String outFileName;
   private OutputStream fos;
 
