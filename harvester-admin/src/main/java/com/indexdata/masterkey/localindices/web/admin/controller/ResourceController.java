@@ -331,22 +331,23 @@ public class ResourceController {
   /* add new resource */
   public String prepareOaiPmhResourceToAdd() {
     resource = new OaiPmhResource();
-    return "new_oaipmh";
+    resource.getClass().getSimpleName();
+    return "new_OaiPmhResource";
   }
 
   public String prepareConnectorResourceToAdd() {
     resource = new HarvestConnectorResource();
-    return "new_webcrawl";
+    return "new_HarvestConnectorResource";
   }
 
   public String prepareWebCrawlResourceToAdd() {
     resource = new WebCrawlResource();
-    return "new_webcrawl";
+    return "new_WebCrawlResource";
   }
 
   public String prepareXmlBulkResourceToAdd() {
     resource = new XmlBulkResource();
-    return "new_xmlbulk";
+    return "new_XmlBulkResource";
   }
 
   public String addResource() {
@@ -360,9 +361,11 @@ public class ResourceController {
   public String prepareResourceToEdit() {
     resource = getResourceFromRequestParam();
     postDePersist();
-    logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getName());
+    logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getSimpleName());
+    String type = resource.getClass().getSimpleName();
+    return "edit_" + type;
+/*
     if (resource instanceof OaiPmhResource) {
-      return "edit_oaipmh";
     } else if (resource instanceof WebCrawlResource) {
       return "edit_webcrawl";
     } else if (resource instanceof XmlBulkResource) {
@@ -371,6 +374,7 @@ public class ResourceController {
       logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
       return "failure";
     }
+*/
   }
 
   /* update resource */
@@ -500,6 +504,14 @@ public class ResourceController {
     return o;
   }
 
+  /* objects from request */
+  public String getActionFromRequestParam() {
+      String param = FacesContext.getCurrentInstance().getExternalContext()
+	  .getRequestParameterMap().get("action");
+    return param;
+  }
+
+  
   public String getTransformation() {
     if (resource != null && resource.getTransformation() != null)
       return resource.getTransformation().getId().toString();
