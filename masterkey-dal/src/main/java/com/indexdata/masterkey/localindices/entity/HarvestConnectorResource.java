@@ -1,7 +1,11 @@
 package com.indexdata.masterkey.localindices.entity;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
@@ -17,10 +21,13 @@ public class HarvestConnectorResource extends Harvestable {
   private String proxy;  	
   @Column(length = 4096)
   private String initData;  	
-  @Column(length = 1024000)
+  @Column(name="script", length = 1024000)
   private String connector;
-  private String startData;
-  private String endDate;
+  
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date fromDate;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date untilDate;
   private String resumptionToken;
   private String isPersistence;
   @Column(length = 4096)
@@ -35,22 +42,23 @@ public class HarvestConnectorResource extends Harvestable {
     this.connector = connector;
   }
 
-  public String getStartDate() {
-    return startData;
+  public Date getFromDate() {
+    return fromDate;
   }
 
-  public void setStartDate(String fromData) {
-    this.startData = fromData;
+  public void setFromDate(Date date) {
+    this.fromDate = date;
   }
 
-  public String getEndDate() {
-    return endDate;
+  public Date getUntilDate() {
+    return untilDate;
+  }
+  
+  public void setUntilDate(Date date) {
+    this.untilDate = date;
   }
 
-  public void setEndDate(String endDate) {
-    this.endDate = endDate;
-  }
-
+  
   public String getResumptionToken() {
     return resumptionToken;
   }
