@@ -1,5 +1,11 @@
 package com.indexdata.masterkey.localindices.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@Entity
+@XmlRootElement(name = "connector")
 public class HarvestConnectorResource extends Harvestable {
   
   /**
@@ -9,12 +15,15 @@ public class HarvestConnectorResource extends Harvestable {
   private String username;  	
   private String password;  	
   private String proxy;  	
+  @Column(length = 4096)
   private String initData;  	
+  @Column(length = 1024000)
   private String connector;
   private String startData;
   private String endDate;
   private String resumptionToken;
   private String isPersistence;
+  @Column(length = 4096)
   private String url;
   private Long   sleep;
   
