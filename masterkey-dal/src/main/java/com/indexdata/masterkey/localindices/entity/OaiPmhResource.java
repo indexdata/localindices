@@ -28,9 +28,9 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   private String schemaURI;
   // resumption token
   private String resumptionToken;
-  @Temporal(TemporalType.DATE)
+  @Temporal(TemporalType.TIMESTAMP)
   private Date fromDate;
-  @Temporal(TemporalType.DATE)
+  @Temporal(TemporalType.TIMESTAMP)
   private Date untilDate;
   private String dateFormat;
 
