@@ -44,7 +44,7 @@ public class TestConnectorPlatform extends TestCase {
     resource.setUrl(cfServer);
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource("resources/id.cf"));
-    HarvestConnectorClient client = new HarvestConnectorClient(resource);
+    HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     try {
       client.download(null);
     } catch (Exception exp) {
@@ -57,9 +57,9 @@ public class TestConnectorPlatform extends TestCase {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setUrl(cfServer);
     resource.setInitData("{}");
-    resource.setSleep(new Long(500));
+    resource.setSleep(new Long(10000));
     resource.setConnector(createConnectorFromResource("resources/sheetmusicconsortium.cf"));
-    HarvestConnectorClient client = new HarvestConnectorClient(resource);
+    HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     try {
       client.download(null);
     } catch (Exception exp) {
@@ -84,7 +84,7 @@ public class TestConnectorPlatform extends TestCase {
   }
 
   private JSONObject testCreateHarvestRequest(String resumptiontoken, String startDate, String endDate) {
-    HarvestConnectorClient client = new HarvestConnectorClient(resource); 
+    HarvestConnectorClient client = new HarvestConnectorClient(resource, null); 
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
     
