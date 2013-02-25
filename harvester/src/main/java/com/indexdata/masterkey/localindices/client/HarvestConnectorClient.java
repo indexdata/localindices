@@ -30,8 +30,25 @@ public class HarvestConnectorClient implements HarvestClient {
   String sessionId;
   Proxy proxy = null; 
   
-  public HarvestConnectorClient(HarvestConnectorResource resource) {
+  public class HarvestToken  {
+    public String resumptionToken; 
+    public String startDate;
+    public String endDate; 
+    //  Other values? 
+    HarvestToken(String token, String start, String end) {
+      resumptionToken = token; 
+      startDate = start;
+      endDate = end;
+    }
+
+  }
+  
+  List <HarvestToken> jobs = new LinkedList<HarvestToken>();
+  
+
+  public HarvestConnectorClient(HarvestConnectorResource resource, Proxy proxy) {
     this.resource = resource; 
+    this.proxy = proxy;
   }
 
   ContainerFactory containerFactory = new ContainerFactory(){
@@ -52,13 +69,17 @@ public class HarvestConnectorClient implements HarvestClient {
   @Override
   public int download(URL url) throws Exception 
   {
-
     createSession(resource.getUrl());
-    // fetchConnector(cfrepo, resource); 
+    // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
+
     uploadConnector(resource.getConnector());
     init();
-    harvest(resource.getResumptionToken(), resource.getStartDate(), resource.getEndDate());
+
+    jobs.add(new HarvestToken(resource.getResumptionToken(), resource.getStartDate(), resource.getEndDate()));
+    while (!jobs.isEmpty()) 
+      harvest(jobs.get(0));
+    
     System.out.println("Log: " + getLog()); 
     logger.log(Level.INFO, "Finished - " + resource);
     return 0;
@@ -81,7 +102,21 @@ public class HarvestConnectorClient implements HarvestClient {
   private void init() throws Exception {
     HttpURLConnection conn = createConnectionJSON("run_task_opt/init");
     String initData = resource.getInitData();
-    if ( initData != null) {
+    JSONParser parser = new JSONParser();
+    JSONObject jsonObj = new JSONObject();
+    try {
+     if (initData != null && !initData.equals(""))
+       jsonObj = (JSONObject) parser.parse(initData);
+    
+    } catch (ParseException pe) {
+      logger.error("Failed to parse init data");
+      throw new Exception("Failed to parse init data", pe);
+    }
+    addField(jsonObj, "username", resource.getUsername());
+    addField(jsonObj, "password", resource.getPassword());
+    addField(jsonObj, "proxy",    resource.getProxy());
+    
+    if ( initData != null && !"".equals(initData)) {
       conn.setDoOutput(true);
       conn.setRequestProperty("Content-Length", "" + initData.length());
       DataOutputStream out = new DataOutputStream(conn.getOutputStream());
@@ -96,6 +131,12 @@ public class HarvestConnectorClient implements HarvestClient {
     String error = "Unable to do init request. Response code: " + rc ;
     logger.warn(error);
     throw new Exception(error); 
+  }
+
+  @SuppressWarnings("unchecked")
+  private void addField(JSONObject jsonObj, String fieldname, String value) {
+    if (value != null && !value.equals("")) 
+      jsonObj.put(fieldname, value);
   }
 
   private void createSession(String url) throws Exception {
@@ -131,10 +172,10 @@ public class HarvestConnectorClient implements HarvestClient {
     return conn; 
   }
 
-  private void harvest(String resumptiontoken, String startDate, String endDate) throws Exception 
+  private void harvest(HarvestToken parameters) throws Exception 
   {
       HttpURLConnection conn = createConnectionJSON("run_task/harvest");
-      JSONObject jsonObj = createHarvestRequest(resumptiontoken, startDate, endDate);
+      JSONObject jsonObj = createHarvestRequest(parameters.resumptionToken, parameters.startDate, parameters.endDate);
       if (jsonObj == null) 
 	throw new Exception("Error creating JSON harvest request object");
       String postdata = jsonObj.toJSONString();
@@ -240,12 +281,16 @@ public class HarvestConnectorClient implements HarvestClient {
 	  if (resumptionTokenObj instanceof String) {
 	    System.out.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
 	    pause();
-	    harvest((String) resumptionTokenObj, resource.getStartDate(), resource.getEndDate());
+	    add((String) resumptionTokenObj, resource.getStartDate(), resource.getEndDate());
 	  }
 	}
 	System.out.println("</resumptiontokens>");
       }
     }
+  }
+
+  private void add(String resumptionTokenObj, String startDate, String endDate) {
+    
   }
 
   private void pause() throws InterruptedException {
