@@ -65,8 +65,8 @@ public class ConnectorHarvestJob extends AbstractHarvestJob  {
     try {
       setStatus(HarvestStatus.RUNNING);
       storage.setOverwriteMode(resource.getOverwrite());
-      HarvestConnectorClient client = new HarvestConnectorClient(resource);
-      // TODO the client needs to build it's urls 
+      HarvestConnectorClient client = new HarvestConnectorClient(resource, proxy);
+      // The client will build it's urls 
       client.download(null);
       setStatus(HarvestStatus.FINISHED);
     } catch (Exception e) {
