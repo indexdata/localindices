@@ -26,7 +26,6 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
   private String databaseId;
   private String type;
-  @SuppressWarnings("unused")
   private Logger logger = Logger.getLogger(this.getClass());
   
   public Pz2SolrRecordContentHandler(RecordStorage storage, String database) {
