@@ -10,6 +10,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,10 +34,10 @@ public class HarvestConnectorClient implements HarvestClient {
   
   public class HarvestToken  {
     public String resumptionToken; 
-    public String startDate;
-    public String endDate; 
+    public Date startDate;
+    public Date endDate; 
     //  Other values? 
-    HarvestToken(String token, String start, String end) {
+    HarvestToken(String token, Date start, Date end) {
       resumptionToken = token; 
       startDate = start;
       endDate = end;
@@ -76,7 +78,7 @@ public class HarvestConnectorClient implements HarvestClient {
     uploadConnector(resource.getConnector());
     init();
 
-    jobs.add(new HarvestToken(resource.getResumptionToken(), resource.getStartDate(), resource.getEndDate()));
+    add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
     while (!jobs.isEmpty()) 
       harvest(jobs.get(0));
     
@@ -171,11 +173,19 @@ public class HarvestConnectorClient implements HarvestClient {
 
     return conn; 
   }
+  
+  String currentDateFormat = "yyyy-MM-dd";
+  private String formatDate(Date date) {
+    if (date == null)
+      return null;
+    return new SimpleDateFormat(currentDateFormat).format(date);
+  }
+
 
   private void harvest(HarvestToken parameters) throws Exception 
   {
       HttpURLConnection conn = createConnectionJSON("run_task/harvest");
-      JSONObject jsonObj = createHarvestRequest(parameters.resumptionToken, parameters.startDate, parameters.endDate);
+      JSONObject jsonObj = createHarvestRequest(parameters.resumptionToken, formatDate(parameters.startDate), formatDate(parameters.endDate));
       if (jsonObj == null) 
 	throw new Exception("Error creating JSON harvest request object");
       String postdata = jsonObj.toJSONString();
@@ -281,7 +291,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	  if (resumptionTokenObj instanceof String) {
 	    System.out.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
 	    pause();
-	    add((String) resumptionTokenObj, resource.getStartDate(), resource.getEndDate());
+	    add((String) resumptionTokenObj, resource.getFromDate(), resource.getUntilDate());
 	  }
 	}
 	System.out.println("</resumptiontokens>");
@@ -289,8 +299,8 @@ public class HarvestConnectorClient implements HarvestClient {
     }
   }
 
-  private void add(String resumptionTokenObj, String startDate, String endDate) {
-    
+  private void add(String resumptionTokenObj, Date startDate, Date endDate) {
+    new HarvestToken(resumptionTokenObj, startDate, endDate); 
   }
 
   private void pause() throws InterruptedException {
