@@ -25,5 +25,7 @@
         </h:inputText>
         <h:outputText value="Resumption token: (overrrides date)"/>
         <h:inputText value="#{resourceController.resource.resumptionToken}"/>
+        <h:outputText value="Delay between requests (milliseconds): "/>
+        <h:inputText value="#{resourceController.resource.sleep}"/>
     </h:panelGrid>
 </f:subview>
