@@ -39,6 +39,7 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -331,6 +332,11 @@ public class ResourceController {
   public String prepareOaiPmhResourceToAdd() {
     resource = new OaiPmhResource();
     return "new_oaipmh";
+  }
+
+  public String prepareConnectorResourceToAdd() {
+    resource = new HarvestConnectorResource();
+    return "new_webcrawl";
   }
 
   public String prepareWebCrawlResourceToAdd() {
