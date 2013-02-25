@@ -16,7 +16,7 @@ public class HarvestConnectorResource extends Harvestable {
   private String resumptionToken;
   private String isPersistence;
   private String url;
-  private Long sleep;
+  private Long   sleep;
   
   public String getConnector() {
     return connector;
