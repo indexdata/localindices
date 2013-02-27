@@ -406,7 +406,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public OutputStream getOutputStream() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new RuntimeException("No implemented!");
+  }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
   }
 }
