@@ -57,11 +57,11 @@ public class FileStorage implements RecordStorage {
 	throw new IOException(npe);
       }
     }
-    System.out.println("--- Storage write begun ---");
+    logger.debug("--- Storage write begin ---");
   }
 
   public void commit() throws IOException {
-    System.out.println("--- Storage write commited ---");
+    logger.debug("--- Storage write commited ---");
     committed = true;
     out.close();
     out = null;
@@ -69,11 +69,11 @@ public class FileStorage implements RecordStorage {
   }
 
   public void rollback() throws IOException {
-    System.out.println("--- Storage write rolled back, last write discarded ---");
+    logger.debug("--- Storage write rolled back, last write discarded ---");
   }
 
   public void purge(boolean commit) throws IOException {
-    System.out.println("--- Storage write purged, all previous write discarded ---");
+    logger.debug("--- Storage write purged, all previous write discarded ---");
     if (out != null)
       out.close();
     out = new FileOutputStream(current, false);
@@ -86,13 +86,13 @@ public class FileStorage implements RecordStorage {
 
   public OutputStream getOutputStream() {
     if (out == null) {
-      System.out.println("Error: getOutputStream before begin. File is not open: " + (current != null? current.getAbsolutePath() : "Path not set!"));
+      logger.error("Error: getOutputStream before begin. File is not open: " + (current != null? current.getAbsolutePath() : "Path not set!"));
     }
     return out;
   }
 
   public void setOverwriteMode(boolean mode) {
-    System.out.println("--- OverwriteMode set to " + mode);
+    logger.debug("--- OverwriteMode set to " + mode);
     overwriteMode = mode;
   }
 
@@ -103,12 +103,12 @@ public class FileStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     this.database = database;
-    System.out.println("Database name: " + database);
+    logger.debug("Database name: " + database);
   }
 
   @Override
   public void databaseEnd() {
-    System.out.println("Database ended: " + database);
+    logger.debug("Database ended: " + database);
     
   }
 
@@ -121,7 +121,6 @@ public class FileStorage implements RecordStorage {
   @Override
   public void add(Record record) {
     adds++;
-    // TODO Serialize and write to output file
   }
 
   @Override
@@ -143,6 +142,11 @@ public class FileStorage implements RecordStorage {
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
     return new SimpleStorageStatus(adds, deletes, committed);
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, database);
   }
 
 }
