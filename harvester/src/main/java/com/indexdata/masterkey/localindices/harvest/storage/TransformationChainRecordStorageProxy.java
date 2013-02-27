@@ -112,4 +112,9 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
     return getTarget().getStatus();
   }
 
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return getTarget().getContentHandler();
+  }
+
 }
