@@ -14,7 +14,6 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 public class TestOAIRecordHarvestJob extends TestCase {
@@ -36,7 +35,11 @@ public class TestOAIRecordHarvestJob extends TestCase {
   private OaiPmhResource createResource(String url, String prefix, Date from, Date until, String setName, String encoding)
       throws IOException {
     OaiPmhResource resource = new OaiPmhResource();
+    resource.setUrl(url);
+    resource.setId(1l);
+    resource.setCurrentStatus("NEW");
     resource.setEnabled(true);
+    // OAI-PMH specific
     if (from != null) {
       resource.setFromDate(from);
     }
@@ -45,9 +48,6 @@ public class TestOAIRecordHarvestJob extends TestCase {
     }
     resource.setOaiSetName(setName);
     resource.setMetadataPrefix(prefix);
-    resource.setUrl(url);
-    resource.setId(1l);
-    resource.setCurrentStatus("NEW");
     resource.setEncoding(encoding);
     return resource;
   }
