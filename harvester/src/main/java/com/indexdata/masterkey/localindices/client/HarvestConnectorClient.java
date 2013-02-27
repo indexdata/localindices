@@ -7,10 +7,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -25,13 +27,17 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 public class HarvestConnectorClient implements HarvestClient {
-  Logger logger = Logger.getLogger(getClass());
-  HarvestConnectorResource resource;
-  String sessionId;
-  Proxy proxy = null; 
-  
+  private Logger logger = Logger.getLogger(getClass());
+  private HarvestConnectorResource resource;
+  private String sessionId;
+  private Proxy proxy = null; 
+  private RecordHarvestJob job; 
+  RecordStorage storage; 
+
   public class HarvestToken  {
     public String resumptionToken; 
     public Date startDate;
@@ -46,7 +52,11 @@ public class HarvestConnectorClient implements HarvestClient {
   }
   
   List <HarvestToken> jobs = new LinkedList<HarvestToken>();
-  
+
+  public void setHarvestJob(RecordHarvestJob parent) {
+    job = parent;
+  }
+
 
   public HarvestConnectorClient(HarvestConnectorResource resource, Proxy proxy) {
     this.resource = resource; 
@@ -71,18 +81,20 @@ public class HarvestConnectorClient implements HarvestClient {
   @Override
   public int download(URL url) throws Exception 
   {
+    storage = job.getStorage();
     createSession(resource.getUrl());
     // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
 
     uploadConnector(resource.getConnector());
     init();
-
     add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
-    while (!jobs.isEmpty()) 
-      harvest(jobs.get(0));
+    while (!jobs.isEmpty()) { 
+      harvest(jobs.remove(0));
+    }
     
-    System.out.println("Log: " + getLog()); 
+    // TODO save log. 
+    // System.err.println("Log: " + getLog()); 
     logger.log(Level.INFO, "Finished - " + resource);
     return 0;
 }
@@ -213,7 +225,7 @@ public class HarvestConnectorClient implements HarvestClient {
     HttpURLConnection conn = createConnectionJSON("log");
     JSONObject jsonObj = new JSONObject();
     String postdata = jsonObj.toJSONString();
-    System.out.print(postdata);
+    System.err.print(postdata);
     conn.setDoOutput(true);
     conn.setRequestProperty("Content-Length", "" + postdata.length());
     OutputStream output = conn.getOutputStream();
@@ -230,29 +242,52 @@ public class HarvestConnectorClient implements HarvestClient {
       	DataInputStream dataStream = new DataInputStream(in);
       	byte[] b = new byte[contentLength];
       	dataStream.readFully(b);
-      	System.out.println("Read vs Content-Length: " + b.length + " " + contentLength);
+      	System.err.println("Read vs Content-Length: " + b.length + " " + contentLength);
       	return new String(b,"UTF-8");
     }
     else {
-	//System.out.println(getLog()); 
+	//System.err.println(getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
-
-  @SuppressWarnings({ "unused", "rawtypes" })
-  private void printRecord(JSONObject record) {
-    for (Object key: record.keySet()) {
-      if (key instanceof String) {
+  
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void postRecord(JSONObject record) throws IOException {
+    Map<String, Collection<Serializable>> solrRecord = new LinkedHashMap<String, Collection<Serializable>>();
+    recordCount++;
+    for (Object keyObj: record.keySet()) {
+      if (keyObj instanceof String) {
+	String key = (String) keyObj;
 	Object obj = record.get(key); 
-	if (obj instanceof List) {
-	  for (Object value: (List) obj)
-	    System.out.println("<metadata type=\"" + key + "\">" +  value + "</metadata>");
+
+	Collection<Serializable> collection = new LinkedList<Serializable>();
+	if (obj instanceof String) {
+	  collection.add((String) obj);
+	  solrRecord.put(key, collection);
+	} else if (obj instanceof Collection<?>) {
+	  collection = (Collection<Serializable>) obj;
+	  /*
+	  for (Serializable value: (List<Serializable>) obj) {
+	    collection.add(value);
+	  }
+	  */
+	  solrRecord.put(key, collection);
+	} else if (obj instanceof Map) {
+	  //TODO flatten objects correctly
+	  JSONObject jsonObject = new JSONObject();
+	  jsonObject.putAll((Map) obj);
+	  collection.add(jsonObject.toJSONString());
+	  solrRecord.put(key, collection);
+	} else {
+	  System.err.println("Wrong key type: " + keyObj.getClass().toString());
 	}
-	else 
-	  System.out.println("<metadata type=\"" + key + "\">" +  obj + "</metadata>");
+	if ("url".equals(key)) 
+	  solrRecord.put("id", collection);
       }
     }
+    storage.add(solrRecord);
   }
+
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
@@ -265,42 +300,36 @@ public class HarvestConnectorClient implements HarvestClient {
       Object recordsObj = json.get("records");
       if (recordsObj instanceof List) {
 	List records = (List) recordsObj;
-	int size= records.size();
-	System.out.println("<collections size=\"" + size + "\">");
 	for (Object recordObj: records) {
-	  System.out.println("<record index=\"" + recordCount++  + "\">");
 	  if (recordObj instanceof Map) {
 	    Map record = (Map) recordObj; 
 	    pause();
 	    harvestDetails(record);
 	    JSONObject obj = new JSONObject();
 	    obj.putAll(record);
-	    System.out.println(obj.toJSONString());
+	    postRecord(obj);
 	    //job.store(record);
 	  }
-	  System.out.println("</record>");
 	}
-	System.out.println("</collections>");
       }
       Object resumptionTokensArray = json.get("resumptiontokens");
       if (resumptionTokensArray instanceof List) {
 	List resumptionArray = (List) resumptionTokensArray;
-	int size= resumptionArray.size();
-	System.out.println("<resumptiontokens size=\"" + size + "\">");
+	//System.err.println("<resumptiontokens size=\"" + size + "\">");
 	for (Object resumptionTokenObj: resumptionArray) {
 	  if (resumptionTokenObj instanceof String) {
-	    System.out.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
+	    // System.err.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
 	    pause();
 	    add((String) resumptionTokenObj, resource.getFromDate(), resource.getUntilDate());
 	  }
 	}
-	System.out.println("</resumptiontokens>");
+	// System.err.println("</resumptiontokens>");
       }
     }
   }
 
   private void add(String resumptionTokenObj, Date startDate, Date endDate) {
-    new HarvestToken(resumptionTokenObj, startDate, endDate); 
+    jobs.add(new HarvestToken(resumptionTokenObj, startDate, endDate)); 
   }
 
   private void pause() throws InterruptedException {
