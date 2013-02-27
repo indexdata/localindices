@@ -96,4 +96,9 @@ public class SingleFileRecordStorage extends SingleFileStorage implements Record
     return null;
   }
 
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, null);
+  }
+
 }
