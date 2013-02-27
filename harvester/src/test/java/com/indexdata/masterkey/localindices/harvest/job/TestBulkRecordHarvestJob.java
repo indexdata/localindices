@@ -1,8 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -14,17 +12,12 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
-import junit.framework.TestCase;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
-import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -32,7 +25,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
-public class TestBulkRecordHarvestJob extends TestCase {
+public class TestBulkRecordHarvestJob extends JobTester {
 
   private static final int NO_RECORDS = 1002;
   //String resourceMarc0 = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
@@ -89,32 +82,6 @@ public class TestBulkRecordHarvestJob extends TestCase {
     transformer.transform(xmlSource, new StreamResult(System.out));
   }
   
-  private Transformation createTransformationFromResources(String [] steps) throws IOException {
-    Transformation transformation = new BasicTransformation();
-    int index = 0; 
-    for (String resource : steps) {
-      	InputStream input = getClass().getResourceAsStream(resource);
-      	
-      	assertTrue(input != null);
-      	byte buf[] = new byte[4096];
-      	ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-      	int length = 0;
-      	@SuppressWarnings("unused")
-	int total = 0;
-      	while ((length = input.read(buf)) != -1) { 
-      	  byteArray.write(buf, 0, length);
-      	  total += length;
-      	}
-      	//System.out.println("Step " + resource  + " length: " + total );
-      	String template = byteArray.toString("UTF-8");
-      	TransformationStep step = new BasicTransformationStep("Step " + index, "Test", template);
-      	transformation.addStep(step, index++);
-    }
-    transformation.setId(1l);
-    transformation.setName("Test");
-    return transformation;
-  }
-
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, XmlBulkResource resource)
       throws IOException {
     AbstractRecordHarvestJob job = new BulkRecordHarvestJob(resource, null);
