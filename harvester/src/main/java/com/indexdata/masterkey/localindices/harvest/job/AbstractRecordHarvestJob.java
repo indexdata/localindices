@@ -14,11 +14,20 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.w3c.dom.Node;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
@@ -26,8 +35,10 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.xml.factory.XmlFactory;
+import com.indexdata.xml.filter.MessageConsumer;
 
 /**
  * Specifies the simplest common behaviour of all HarvestJobs that otherwise
@@ -44,7 +55,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   protected SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger;
   protected Templates templates[];
-  protected String error; 
+  protected String error;
+  boolean debug = false; 
 
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
@@ -211,5 +223,74 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       logger.error(error);
       setStatus(HarvestStatus.ERROR);
     }
+  }
+
+  private void debugSource(Source xmlSource) {
+    if (debug) {
+        logger.debug("Transform xml ");
+        StreamResult debugOut = new StreamResult(System.out);
+        try {
+          stf.newTransformer().transform(xmlSource, debugOut);
+  
+        } catch (Exception e) {
+          logger.debug("Unable to print XML: " + e.getMessage());
+        }
+    }
+  }
+
+  private void debugSource(Node xml) {
+    debugSource(new DOMSource(xml));
+  }
+  protected class TransformerConsumer implements MessageConsumer 
+  {
+    @Override
+    public void accept(Node xmlNode) {
+      accept(new DOMSource(xmlNode));
+    }
+
+    @Override
+    public void accept(Source xmlNode) {
+      try {
+	convert(transformNode(xmlNode));
+      } catch (TransformerException e) {
+	logger.error("Failed to transform or convert xmlNode: " + e.getMessage() + " " + xmlNode.toString());
+	e.printStackTrace();
+      }
+    }
+  }
+
+  protected Source transformNode(Source xmlSource) throws TransformerException {
+    Transformer transformer;
+    if (templates == null)
+      return xmlSource;
+    // TODO parallel with message queues? 
+    for (Templates template : templates) {
+      transformer = template.newTransformer();
+      DOMResult result = new DOMResult();
+      debugSource(xmlSource);
+      transformer.transform(xmlSource, result);
+      debugSource(result.getNode());
+      
+      if (result.getNode() == null) {
+        logger.warn("transformNode: No Node found");
+        xmlSource = new DOMSource();
+      } else
+        xmlSource = new DOMSource(result.getNode());
+    }
+    return xmlSource;
   }  
+  
+  protected Record convert(Source source) throws TransformerException {
+    if (source != null) {
+      // TODO Need to handle other RecordStore types.
+      ContentHandler pzContentHandler = getStorage().getContentHandler();
+      SAXResult outputTarget = new SAXResult(pzContentHandler);
+      Transformer transformer = stf.newTransformer();
+      transformer.transform(source, outputTarget);
+    }    
+    return null;
+  }
+  
+  protected abstract Harvestable getHarvestable();
+
 }

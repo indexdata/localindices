@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.harvest.storage.DatabaseContenthandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
@@ -35,6 +36,11 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
     return getTarget().getStatus();
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return getTarget().getContentHandler();
   }
 
 }

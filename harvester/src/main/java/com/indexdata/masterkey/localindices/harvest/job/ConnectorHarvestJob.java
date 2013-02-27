@@ -14,25 +14,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
+import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
+import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
  * This class handles a Harvest Connector Job
  * 
  * @author jakub
  */
-public class ConnectorHarvestJob extends AbstractHarvestJob  {
+public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private LocalIndicesLogger logger;
-  private HarvestStorage storage;
   private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private HarvestConnectorResource resource;
   private Proxy proxy;
   private boolean die = false;
+  private RecordStorage transformationStorage;
 
   public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -50,11 +55,8 @@ public class ConnectorHarvestJob extends AbstractHarvestJob  {
   }
 
   public void setStorage(HarvestStorage storage) {
-    this.storage = storage;
-  }
-
-  public HarvestStorage getStorage() {
-    return storage;
+    if (storage instanceof RecordStorage) 
+      super.setStorage((RecordStorage) storage); 
   }
 
   public String getMessage() {
@@ -64,8 +66,9 @@ public class ConnectorHarvestJob extends AbstractHarvestJob  {
   public void run() {
     try {
       setStatus(HarvestStatus.RUNNING);
-      storage.setOverwriteMode(resource.getOverwrite());
+      getStorage().setOverwriteMode(resource.getOverwrite());
       HarvestConnectorClient client = new HarvestConnectorClient(resource, proxy);
+      client.setHarvestJob(this);
       // The client will build it's urls 
       client.download(null);
       setStatus(HarvestStatus.FINISHED);
@@ -77,8 +80,9 @@ public class ConnectorHarvestJob extends AbstractHarvestJob  {
     }
   }
 
+  @SuppressWarnings("unused")
   private void store(InputStream is, int contentLenght) throws Exception {
-    pipe(is, storage.getOutputStream(), contentLenght);
+    pipe(is, getStorage().getOutputStream(), contentLenght);
   }
 
   private void pipe(InputStream is, OutputStream os, int total) throws IOException {
@@ -108,9 +112,32 @@ public class ConnectorHarvestJob extends AbstractHarvestJob  {
     return false;
   }
 
+  public RecordStorage setupTransformation(RecordStorage storage) {
+    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
+      XMLReader xmlReader;
+      try {
+	xmlReader = createTransformChain(true);
+	SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1, 1);
+	xmlReader.setContentHandler(splitHandler);
+	return new SplitTransformationChainRecordStorageProxy(storage, xmlReader, null);
+      } catch (Exception e) {
+	e.printStackTrace();
+	logger.error(e.getMessage());
+      }
+    }
+    logger.warn("No Transformation Proxy configured.");
+    return storage;
+  }
+
   @Override
   public OutputStream getOutputStream() {
-    throw new RuntimeException("Not Implemented");
-    //return null;
+    transformationStorage = setupTransformation(getStorage());
+    return transformationStorage.getOutputStream();
   }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
+  }
+  
 }
