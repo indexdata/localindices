@@ -304,4 +304,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     return storageStatus;
   }
 
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, database);
+  }
+
 }
