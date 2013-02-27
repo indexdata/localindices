@@ -93,4 +93,9 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     return storage.getStatus();
   }
 
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return storage.getContentHandler();
+  }
+
 }
