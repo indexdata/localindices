@@ -18,9 +18,10 @@
                 src/test/java
             </directory>		  
 		      <includes>
-		          <include>**/*.json</include>
-		          <include>**/*.xsl</include>
-			  <include>**/*.xml</include>
+                <include>**/*.cf</include>
+                <include>**/*.json</include>
+		        <include>**/*.xsl</include>
+			    <include>**/*.xml</include>
 		      </includes>
 		  </testResource>
 		</testResources>
