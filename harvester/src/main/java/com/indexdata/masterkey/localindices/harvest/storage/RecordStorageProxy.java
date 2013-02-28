@@ -64,13 +64,14 @@ public abstract class RecordStorageProxy implements RecordStorage {
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
-    storage.add(keyValues);
+    add(new RecordImpl(keyValues));
   }
 
   @Override
   public void add(Record record) {
     storage.add(record);
   }
+
 
   @Override
   public Record get(String id) {
