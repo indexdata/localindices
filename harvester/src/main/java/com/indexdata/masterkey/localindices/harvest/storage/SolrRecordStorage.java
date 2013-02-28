@@ -63,7 +63,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (delayedPurge && isPurged) {
 	purgeByTransactionId(false);
       }
-      logger.info("Committing added " + storageStatus.getAdds() + " and deleted " + storageStatus.getOutstandingDeletes() + " records to database " + database);
+      logger.info("Committing " + storageStatus.getOutstandingAdds() + " added and " + storageStatus.getOutstandingDeletes() + " deleted records to database " + database);
       // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
       UpdateResponse response = server.commit(true, false);
       if (response.getStatus() != 0)
