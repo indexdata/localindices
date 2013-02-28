@@ -136,7 +136,7 @@ public class TestWebRecordHarvestJob extends TestCase {
     storageStatus = recordStorage.getStatus();
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     assertTrue("Deleted records failed " + storageStatus.getDeletes(), new Long(0).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), new Long(0).equals(storageStatus.getAdds()));
+    assertTrue("Add records failed " + storageStatus.getAdds(), new Long(16).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
