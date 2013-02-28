@@ -28,6 +28,7 @@ import org.json.simple.parser.ParseException;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 public class HarvestConnectorClient implements HarvestClient {
@@ -92,7 +93,6 @@ public class HarvestConnectorClient implements HarvestClient {
     while (!jobs.isEmpty()) { 
       harvest(jobs.remove(0));
     }
-    
     // TODO save log. 
     // System.err.println("Log: " + getLog()); 
     logger.log(Level.INFO, "Finished - " + resource);
@@ -253,7 +253,8 @@ public class HarvestConnectorClient implements HarvestClient {
   
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void postRecord(JSONObject record) throws IOException {
-    Map<String, Collection<Serializable>> solrRecord = new LinkedHashMap<String, Collection<Serializable>>();
+    Map<String, Collection<Serializable>> mapValues = new LinkedHashMap<String, Collection<Serializable>>();
+    RecordImpl pzRecord = new RecordImpl(mapValues);
     recordCount++;
     for (Object keyObj: record.keySet()) {
       if (keyObj instanceof String) {
@@ -263,7 +264,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	Collection<Serializable> collection = new LinkedList<Serializable>();
 	if (obj instanceof String) {
 	  collection.add((String) obj);
-	  solrRecord.put(key, collection);
+	  mapValues.put(key, collection);
 	} else if (obj instanceof Collection<?>) {
 	  collection = (Collection<Serializable>) obj;
 	  /*
@@ -271,21 +272,24 @@ public class HarvestConnectorClient implements HarvestClient {
 	    collection.add(value);
 	  }
 	  */
-	  solrRecord.put(key, collection);
+	  mapValues.put(key, collection);
 	} else if (obj instanceof Map) {
 	  //TODO flatten objects correctly
 	  JSONObject jsonObject = new JSONObject();
 	  jsonObject.putAll((Map) obj);
 	  collection.add(jsonObject.toJSONString());
-	  solrRecord.put(key, collection);
+	  mapValues.put(key, collection);
 	} else {
 	  System.err.println("Wrong key type: " + keyObj.getClass().toString());
 	}
-	if ("url".equals(key)) 
-	  solrRecord.put("id", collection);
+	if ("url".equals(key)) {
+	  String firstUrl = (String) collection.iterator().next();
+	  pzRecord.setId(resource.getId().toString() + "-" + firstUrl);
+	  pzRecord.setDatabase(resource.getId().toString());
+	}
       }
     }
-    storage.add(solrRecord);
+    storage.add(pzRecord);
   }
 
 
