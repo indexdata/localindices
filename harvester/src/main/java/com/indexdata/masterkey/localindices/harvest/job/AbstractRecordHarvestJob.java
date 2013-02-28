@@ -90,7 +90,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   }
 
   @Override
-  public final RecordStorage getStorage() {
+  public RecordStorage getStorage() {
     return this.storage;
   }
 
