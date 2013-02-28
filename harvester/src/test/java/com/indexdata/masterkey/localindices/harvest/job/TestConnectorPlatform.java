@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Stack;
 
-import junit.framework.TestCase;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContentHandler;
 import org.json.simple.parser.JSONParser;
@@ -16,8 +14,8 @@ import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
@@ -54,8 +52,10 @@ public class TestConnectorPlatform extends JobTester {
     return resource;
   }
 
-  public void testDownload_indexdata() throws ParseException, IOException {
+  /*
+  private void testDownload_indexdata() throws ParseException, IOException {
     HarvestConnectorResource resource = createResource("resources/id.cf");
+    RecordStorage recordStorage = createStorage(resource);
     HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     try {
       client.download(null);
@@ -65,7 +65,7 @@ public class TestConnectorPlatform extends JobTester {
     }
   }
 
-  public void testDownload_sheetmusicconsortium() throws ParseException, IOException {
+  private void testDownload_sheetmusicconsortium() throws ParseException, IOException {
     HarvestConnectorResource resource = createResource("resources/sheetmusicconsortium.cf");
     resource.setSleep(new Long(10000));
     HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
@@ -76,7 +76,7 @@ public class TestConnectorPlatform extends JobTester {
       exp.printStackTrace();
     }
   }
-
+*/
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage,
       HarvestConnectorResource resource) throws IOException {
     AbstractRecordHarvestJob job = new ConnectorHarvestJob(resource, null);
@@ -87,7 +87,7 @@ public class TestConnectorPlatform extends JobTester {
   }
 
   private RecordStorage createStorage(HarvestConnectorResource resource) {
-    RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     Storage storageEntity = new SolrStorageEntity();
     storageEntity.setId(1l);
     storageEntity.setUrl(solrUrl);
