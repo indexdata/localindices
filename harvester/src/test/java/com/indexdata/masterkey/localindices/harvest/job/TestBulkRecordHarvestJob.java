@@ -21,7 +21,6 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
@@ -106,7 +105,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
-    RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     if (clear) { 
       purgeStorage(recordStorage);
@@ -268,21 +267,22 @@ public class TestBulkRecordHarvestJob extends JobTester {
 		new Long(delete).equals(storageStatus.getDeletes()));
     assertTrue("Add records failed " + storageStatus.getAdds(), 
 		new Long(add).equals(storageStatus.getAdds()));
-    assertTrue("Total records failed" + storageStatus.getTotalRecords(), 
-		new Long(total).equals(storageStatus.getTotalRecords()));
+    long totalFound = storageStatus.getTotalRecords();
+    assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
+		new Long(total).equals(totalFound));
   }
 
-  public void testCleanJumpPageGZippedTurboMarcSplitBy(int number, boolean clear, boolean overwrite, 
+  public void testCleanJumpPageGZippedTurboMarcSplitBy100(int number, boolean clear, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, true, true, 2004); 
   }
 
-  public void testMultiGZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+  public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
     testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
   }
   
-  public void testMulti2GZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+  public void testMulti2GZippedTurboMarcThreeJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
     testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
     testUrlGZippedTurboMarc(resourceMarc2, false, false, 3006); 
