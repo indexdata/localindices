@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContainerFactory;
 import org.json.simple.parser.JSONParser;
@@ -28,11 +27,12 @@ import org.json.simple.parser.ParseException;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 public class HarvestConnectorClient implements HarvestClient {
-  private Logger logger = Logger.getLogger(getClass());
+  private StorageJobLogger logger; 
   private HarvestConnectorResource resource;
   private String sessionId;
   private Proxy proxy = null; 
@@ -56,6 +56,7 @@ public class HarvestConnectorClient implements HarvestClient {
 
   public void setHarvestJob(RecordHarvestJob parent) {
     job = parent;
+    logger = job.getLogger();
   }
 
 
@@ -93,8 +94,7 @@ public class HarvestConnectorClient implements HarvestClient {
     while (!jobs.isEmpty()) { 
       harvest(jobs.remove(0));
     }
-    // TODO save log. 
-    // System.err.println("Log: " + getLog()); 
+    logger.log(Level.INFO, "Engine Log:\n" + getLog()); 
     logger.log(Level.INFO, "Finished - " + resource);
     return 0;
 }
@@ -159,16 +159,18 @@ public class HarvestConnectorClient implements HarvestClient {
     if (rc == 200) {
       parseSessionResponse(conn.getInputStream(), conn.getContentLength());
       logger.info("New Session (" + sessionId + ") created");
+      return ; 
     }
-    else 
-      System.err.println("Error creating session: " + rc);
+    String error = "Error creating session on " + url + ". Return code: " + rc;
+    logger.error(error);
+    throw new Exception(error);
   }
 
   private HttpURLConnection createConnectionRaw(String task) throws Exception {
     HttpURLConnection conn = null; 
     String urlString = resource.getUrl() + (sessionId != null ? "/" + sessionId : "") + (task != null ? "/" + task : "");
     URL url = new URL(urlString);
-    logger.log(Level.INFO, "Starting " + task + ": " + url.toString());
+    logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
 
     if (proxy != null)
       conn = (HttpURLConnection) url.openConnection(proxy);
@@ -216,7 +218,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
       else {
-	System.err.println(getLog()); 
+	logger.error("Failed to harvest. Engine Log:" + getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
       }
 }
@@ -225,7 +227,6 @@ public class HarvestConnectorClient implements HarvestClient {
     HttpURLConnection conn = createConnectionJSON("log");
     JSONObject jsonObj = new JSONObject();
     String postdata = jsonObj.toJSONString();
-    System.err.print(postdata);
     conn.setDoOutput(true);
     conn.setRequestProperty("Content-Length", "" + postdata.length());
     OutputStream output = conn.getOutputStream();
@@ -242,11 +243,9 @@ public class HarvestConnectorClient implements HarvestClient {
       	DataInputStream dataStream = new DataInputStream(in);
       	byte[] b = new byte[contentLength];
       	dataStream.readFully(b);
-      	System.err.println("Read vs Content-Length: " + b.length + " " + contentLength);
       	return new String(b,"UTF-8");
     }
     else {
-	//System.err.println(getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
@@ -280,15 +279,17 @@ public class HarvestConnectorClient implements HarvestClient {
 	  collection.add(jsonObject.toJSONString());
 	  mapValues.put(key, collection);
 	} else {
-	  System.err.println("Wrong key type: " + keyObj.getClass().toString());
+	  logger.warn("Unhandled value type: " + keyObj.getClass().toString());
 	}
-	if ("url".equals(key)) {
-	  String firstUrl = (String) collection.iterator().next();
-	  pzRecord.setId(resource.getId().toString() + "-" + firstUrl);
-	  pzRecord.setDatabase(resource.getId().toString());
+	/* Generate key based on database and (id or url) 
+	 * Id take precedence over url */ 
+	if ("id".equals(key) || ("url".equals(key) && pzRecord.getId() == null)) {
+	  String firstValue = (String) collection.iterator().next();
+	  pzRecord.setId(resource.getId().toString() + "-" + firstValue);
 	}
       }
     }
+    pzRecord.setDatabase(resource.getId().toString());
     storage.add(pzRecord);
   }
 
@@ -319,15 +320,13 @@ public class HarvestConnectorClient implements HarvestClient {
       Object resumptionTokensArray = json.get("resumptiontokens");
       if (resumptionTokensArray instanceof List) {
 	List resumptionArray = (List) resumptionTokensArray;
-	//System.err.println("<resumptiontokens size=\"" + size + "\">");
 	for (Object resumptionTokenObj: resumptionArray) {
 	  if (resumptionTokenObj instanceof String) {
-	    // System.err.println("<resumptiontoken>" + resumptionTokenObj + "</resumptionToken>");
+	    logger.debug("resumptiontoken received: " + resumptionTokenObj);
 	    pause();
 	    add((String) resumptionTokenObj, resource.getFromDate(), resource.getUntilDate());
 	  }
 	}
-	// System.err.println("</resumptiontokens>");
       }
     }
   }
@@ -379,7 +378,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	      Map detailedObj = parseDetailResponse(conn.getInputStream(), conn.getContentLength());
 	      record.putAll(detailedObj);
 	    } else {
-	      	System.err.println("Error getting detail for " + (String) detailTokenObj + ". Response Code: " + rc + ":\n" + getLog());
+	      	logger.warn("Error getting detail for " + (String) detailTokenObj + ". Response Code: " + rc + ":\n" + getLog());
 	    }
 	    
 	  }
