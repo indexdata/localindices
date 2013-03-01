@@ -21,7 +21,6 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
@@ -34,7 +33,6 @@ import com.indexdata.xml.filter.SplitContentHandler;
  * @author jakub
  */
 public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
-  private StorageJobLogger logger;
   private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
