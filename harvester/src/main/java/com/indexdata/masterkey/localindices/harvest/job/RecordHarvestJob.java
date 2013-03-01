@@ -58,4 +58,7 @@ public interface RecordHarvestJob extends HarvestJob {
   boolean isUpdated();
 
   void clearUpdated();
+  
+  StorageJobLogger getLogger();
+  void setLogger(StorageJobLogger job);
 }
