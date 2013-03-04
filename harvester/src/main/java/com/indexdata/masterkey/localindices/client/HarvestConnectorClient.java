@@ -91,11 +91,16 @@ public class HarvestConnectorClient implements HarvestClient {
     uploadConnector(resource.getConnector());
     init();
     add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
-    while (!jobs.isEmpty()) { 
+    while (!job.isKillSent() && !jobs.isEmpty()) { 
       harvest(jobs.remove(0));
     }
-    logger.log(Level.INFO, "Engine Log:\n" + getLog()); 
-    logger.log(Level.INFO, "Finished - " + resource);
+    if (job.isKillSent()) {
+      logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
+    }
+    else {
+      logger.log(Level.INFO, "Engine Log:\n" + getLog()); 
+      logger.log(Level.INFO, "Finished - " + resource);
+    }
     return 0;
 }
   
@@ -309,11 +314,12 @@ public class HarvestConnectorClient implements HarvestClient {
 	  if (recordObj instanceof Map) {
 	    Map record = (Map) recordObj; 
 	    pause();
+	    if (job.isKillSent())
+	      return ;
 	    harvestDetails(record);
 	    JSONObject obj = new JSONObject();
 	    obj.putAll(record);
 	    postRecord(obj);
-	    //job.store(record);
 	  }
 	}
       }
