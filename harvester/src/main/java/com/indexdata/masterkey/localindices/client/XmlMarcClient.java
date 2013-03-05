@@ -12,6 +12,8 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.transform.dom.DOMResult;
+
 import org.apache.log4j.Logger;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
@@ -25,6 +27,7 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 
 public class XmlMarcClient implements HarvestClient {
   protected StorageJobLogger logger; 
@@ -182,21 +185,33 @@ public class XmlMarcClient implements HarvestClient {
 
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
-    OutputStream output = harvesterJob.getOutputStream();
+    //OutputStream output = harvesterJob.getOutputStream();
     MarcWriter writer;
     MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(resource.getOutputSchema());
+    boolean isTurboMarc = false;
     if (mimetypeCharset.isMimeType("application/tmarc")) {
-    	writer = new TurboMarcXmlWriter(output, true);
+    	isTurboMarc = true;
     	logger.info("Setting up Binary MARC to TurboMarc converter");
     }
     else { 
   	logger.info("Setting up Binary MARC to MarcXml converter");
- 	writer = new MarcXmlWriter(output, true);
+ 	//writer = new MarcXmlWriter(output, true);
     }
     while (reader.hasNext()) {
       try {
 	org.marc4j.marc.Record record = reader.next();
+	DOMResult result = new DOMResult(); 
+	if (isTurboMarc)
+	  writer = new TurboMarcXmlWriter(result);
+	else 
+	  writer = new MarcXmlWriter(result);
 	writer.write(record);
+	writer.close();
+	if (record.getLeader().getTypeOfRecord() == 'd')
+	  harvesterJob.getStorage().delete(record.getId().toString());
+	else
+	  harvesterJob.getStorage().add(new RecordDOMImpl(record.getId().toString(), null, result.getNode()));
+	
 	if (harvesterJob.isKillSent()) {
 	  // Close to end the pipe 
 	  writer.close();
@@ -214,7 +229,7 @@ public class XmlMarcClient implements HarvestClient {
       if ((++index) % 1000 == 0)
 	logger.info("Marc record read: " + index);
     }
-    writer.close();
+    //writer.close();
 
     logger.info("Marc record read total: " + index);
   }
