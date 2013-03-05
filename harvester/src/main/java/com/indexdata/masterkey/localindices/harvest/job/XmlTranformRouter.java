@@ -1,8 +1,8 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.StringBufferInputStream;
+
 import java.util.Queue;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 
 import javax.xml.transform.Source;
@@ -20,7 +20,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "deprecation" })
 public class XmlTranformRouter implements MessageRouter {
 
   private BlockingQueue input; 
@@ -109,8 +109,8 @@ public class XmlTranformRouter implements MessageRouter {
 
   @Override
   public void setInput(Queue input) {
-    if (input instanceof BlockingDeque)
-      this.input = (BlockingDeque) input;
+    if (input instanceof BlockingQueue)
+      this.input = (BlockingQueue) input;
     else 
       throw new RuntimeException("Requires a blocking input queue");
   }
