@@ -3,6 +3,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
@@ -85,15 +86,12 @@ import org.apache.log4j.Logger;
  *         easy to do with N threads in parallel. - Detect and convert character
  *         sets, if possible
  */
-public class WebHarvestJob implements WebHarvestJobInterface {
+public class WebHarvestJob extends AbstractHarvestJob implements WebHarvestJobInterface {
 
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
-  private HarvestStorage storage;
-  private HarvestStatus status;
   private Proxy proxy;
   private String error;
   private WebCrawlResource resource;
-  private boolean die = false;
   private Vector<SiteRequest> sites;
   private CrawlQueue que;
   private WebRobotCache robotCache;
@@ -108,51 +106,16 @@ public class WebHarvestJob implements WebHarvestJobInterface {
     robotCache = new WebRobotCache(proxy);
     logger.setLevel(Level.ALL); // While debugging
     this.error = null;
-    this.status = HarvestStatus.valueOf(resource.getCurrentStatus());
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.log(Level.WARN, "Web harvest received kill signal.");
-    }
-    return die;
-  }
-
-  private synchronized void onKillSendt() {
-    die = true;
-  }
-
-  public void kill() {
-    if (status != HarvestStatus.FINISHED) {
-      status = HarvestStatus.KILLED;
-      onKillSendt();
-    }
-  }
-
-  public HarvestStatus getStatus() {
-    return status;
-  }
-
-  public void setStorage(HarvestStorage storage) {
-    this.storage = storage;
-  }
-
-  public HarvestStorage getStorage() {
-    return this.storage;
+    setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
   }
 
   public WebRobotCache getRobotCache() {
     return robotCache;
-
-  }
-
-  public void finishReceived() {
-    status = HarvestStatus.OK;
   }
 
   // Set an "error" message to report progress
   public synchronized void setStatusMsg(String e) {
-    if (status == HarvestStatus.RUNNING) {
+    if (getStatus() == HarvestStatus.RUNNING) {
       resource.setMessage(e);
       error = e;
       // logger.log(Level.TRACE, "Reporting status " + e);
@@ -163,7 +126,7 @@ public class WebHarvestJob implements WebHarvestJobInterface {
 
   public synchronized void setError(String e) {
     this.error = e;
-    status = HarvestStatus.ERROR;
+    setStatus(HarvestStatus.ERROR);
     resource.setMessage(e);
     logger.log(Level.ERROR, e);
     if (que != null) {
@@ -182,7 +145,7 @@ public class WebHarvestJob implements WebHarvestJobInterface {
   }
 
   public synchronized void saveXmlFragment(String xml) throws IOException {
-    OutputStream os = storage.getOutputStream();
+    OutputStream os = getStorage().getOutputStream();
     os.write(xml.getBytes());
   }
 
@@ -368,9 +331,9 @@ public class WebHarvestJob implements WebHarvestJobInterface {
 
     long elapsed = (System.currentTimeMillis() - startTime) / 1000; // sec
     String killmsg = "Ok!";
-    if (isKillSendt()) {
+    if (isKillSent()) {
       killmsg = "Killed!";
-      // resource.setError("Interruped");
+      // resource.setError("Interrupted");
     } else {
       // resource.setError("OK. " + que.numSeen() + " pages harvested");
     }
@@ -379,8 +342,9 @@ public class WebHarvestJob implements WebHarvestJobInterface {
   }
 
   public void run() {
-    status = HarvestStatus.RUNNING;
+    setStatus(HarvestStatus.RUNNING);
     setStatusMsg("");
+    HarvestStorage storage = getStorage();
     if (storage == null) {
       setError("Internal error: no storage set");
       return;
@@ -393,8 +357,8 @@ public class WebHarvestJob implements WebHarvestJobInterface {
       return;
     }
     harvestLoop();
-    if (status == HarvestStatus.RUNNING) {
-      if (isKillSendt()) {
+    if (getStatus() == HarvestStatus.RUNNING) {
+      if (isKillSent()) {
 	setError("Web Crawl interrupted with a kill signal");
 	try {
 	  storage.rollback();
@@ -406,7 +370,7 @@ public class WebHarvestJob implements WebHarvestJobInterface {
 	  xmlEnd();
 	  storage.commit();
 	  resource.setMessage("OK. " + que.numSeen() + " pages harvested");
-	  status = HarvestStatus.FINISHED;
+	  setStatus(HarvestStatus.FINISHED);
 	  // setError("All done - but we call it an error so we can do again");
 	} catch (IOException ex) {
 	  setError("I/O error on storage.commit: " + ex.getMessage());
@@ -416,15 +380,6 @@ public class WebHarvestJob implements WebHarvestJobInterface {
     }
   } // run()
 
-  @Override
-  public boolean isUpdated() {
-    return false;
-  }
-
-  @Override
-  public void clearUpdated() {
-  }
-
   public synchronized boolean isKillSent() {
     return false;
   }
@@ -433,6 +388,17 @@ public class WebHarvestJob implements WebHarvestJobInterface {
   public OutputStream getOutputStream() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public void setJobThread(Thread thread) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
   }
 } // class WebHarvestJob
 
