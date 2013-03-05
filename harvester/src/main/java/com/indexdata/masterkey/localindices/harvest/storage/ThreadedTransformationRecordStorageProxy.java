@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,8 +18,9 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   private Templates[] templates; 
   private BlockingQueue<Object> source = new LinkedBlockingQueue<Object>();
   private BlockingQueue<Object> result;
-  private BlockingQueue<Object> error;
-  private Thread lastThread = null; 
+  private BlockingQueue<Object> error = new LinkedBlockingQueue<Object>();
+  private Thread lastThread = null;
+  private String databaseID; 
   
   
   public ThreadedTransformationRecordStorageProxy(RecordStorage storage, Templates[] templates, StorageJobLogger logger) throws IOException,
@@ -44,14 +46,19 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
         current = new LinkedBlockingQueue();
         router.setOutput(current);
         Thread thread = new Thread(router);
-        thread.setName("XmlTransfomrRouter " + index++); 
+        thread.setName("XmlTransformerRouter " + index++); 
         thread.start();
         lastThread = thread;
       }
     result = current;
   }  
 
-  
+  @Override
+  public void databaseStart(String database, Map<String, String> properties) {
+    databaseID = database;
+    super.databaseStart(database, properties);
+  }
+
   @Override 
   public void add(Record record) {
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
@@ -66,12 +73,32 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
     store();
   }
 
+  @Override 
+  public void delete(String id) {
+    RecordImpl record = new RecordImpl();
+    record.setId(id);
+    record.setDatabase(databaseID);
+    
+    while (true) {
+      try {
+	source.put(record);
+	break; 
+      } catch (InterruptedException ie) {
+	logger.warn("Unable to put record" + record + ". Id: " + id + ". Retrying.");
+      }
+    }
+    store();
+  }
+
   private void store() {
     while (!result.isEmpty()) {
       Object object = result.remove();
       if (object instanceof RecordDOMImpl) {
 	RecordDOMImpl record = (RecordDOMImpl) object;
-	super.add(record);
+	if (record.isDeleted())
+	    super.delete(record.getId());
+	else
+	  super.add(record);
       }
     }
   }
