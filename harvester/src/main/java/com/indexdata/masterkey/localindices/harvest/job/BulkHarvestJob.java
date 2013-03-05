@@ -17,6 +17,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
@@ -33,7 +34,6 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
   private Proxy proxy;
-  private boolean die = false;
 
   public BulkHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -41,13 +41,6 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     this.resource.setMessage(null);
     logger = new FileStorageJobLogger(this.getClass(), resource);
-  }
-
-  private synchronized boolean isKillSendt() {
-    if (die) {
-      logger.log(Level.WARN, "Bulk harvest received kill signal.");
-    }
-    return die;
   }
 
   public void setStorage(HarvestStorage storage) {
@@ -173,7 +166,7 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
     byte[] buf = new byte[blockSize];
     for (int len = -1; (len = is.read(buf)) != -1;) {
       os.write(buf, 0, len);
-      if (isKillSendt()) {
+      if (isKillSent()) {
 	throw new IOException("Download interruted with a kill signal.");
       }
       copied += len;
@@ -188,13 +181,23 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
     os.flush();
   }
 
+  @Override
   public synchronized boolean isKillSent() {
-    return false;
+    boolean die = super.isKillSent();
+    if (die) {
+      logger.log(Level.WARN, "Bulk harvest received kill signal.");
+    }
+    return die;
   }
 
   @Override
   public OutputStream getOutputStream() {
     throw new RuntimeException("Not Implemented");
     //return null;
+  }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
   }
 }
