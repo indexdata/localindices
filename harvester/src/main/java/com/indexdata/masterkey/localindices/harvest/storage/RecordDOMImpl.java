@@ -24,6 +24,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     super(record.getValues());
     setId(record.getId());
     setDatabase(record.getDatabase());
+    setDeleted(record.isDeleted());
   }
 
   public RecordDOMImpl(String id, String database, Node node) {
