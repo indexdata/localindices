@@ -14,6 +14,7 @@ import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
@@ -41,6 +42,11 @@ public class TestConnectorPlatform extends JobTester {
     String connector = byteArray.toString("UTF-8");
     return connector;
   }
+  
+  private Transformation createPzTransformation() throws IOException {
+    String[] resourceSteps = { "resources/pz2-url2id.xsl"};
+    return createTransformationFromResources(resourceSteps);
+  }
 
   private HarvestConnectorResource createResource(String connector) throws IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
@@ -49,6 +55,7 @@ public class TestConnectorPlatform extends JobTester {
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource(connector));
     resource.setCurrentStatus("NEW");
+    resource.setTransformation(createPzTransformation());
     return resource;
   }
 
