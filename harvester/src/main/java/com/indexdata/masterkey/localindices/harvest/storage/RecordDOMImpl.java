@@ -29,10 +29,10 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   public RecordDOMImpl(String id, String database, Node node) {
     setId(id);
     setDatabase(database);
-    init(node);
+    setNode(node);
   }
 
-  public void init(Node node) {
+  public void setNode(Node node) {
     getValues().clear();
     merge(node);
   }
