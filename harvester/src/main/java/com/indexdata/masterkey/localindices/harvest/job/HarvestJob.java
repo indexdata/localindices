@@ -60,4 +60,6 @@ public interface HarvestJob extends Runnable {
     boolean isKillSent();
 
     OutputStream getOutputStream();
+    
+    void setJobThread(Thread thread);
 }
