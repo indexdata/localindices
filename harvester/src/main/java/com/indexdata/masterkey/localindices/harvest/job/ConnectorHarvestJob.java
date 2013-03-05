@@ -41,6 +41,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private RecordStorage streamTransformationStorage;
   private RecordStorage transformationStorage;
   private Thread jobThread = null;
+  private boolean useParallel = true;
   
   public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -70,8 +71,9 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 
   public void run() {
     try {
+      templates = lookupTransformationTemplates(resource.getTransformation());
       setStatus(HarvestStatus.RUNNING);
-      RecordStorage storage = super.getStorage(); 
+      RecordStorage storage = getStorage(); 
       storage.setOverwriteMode(resource.getOverwrite());
       storage.begin();
       storage.databaseStart(resource.getId().toString(), null);
@@ -122,8 +124,13 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   public synchronized RecordStorage getStorage() {
     if (transformationStorage == null) {
       try {
-	transformationStorage = new ThreadedTransformationRecordStorageProxy(super.getStorage(), templates,
+	if (useParallel)
+	  transformationStorage = new ThreadedTransformationRecordStorageProxy(super.getStorage(), templates,
 	    logger);
+	else
+	  transformationStorage = new TransformationRecordStorageProxy(super.getStorage(), templates,
+		    logger);
+	  
       } catch (TransformerConfigurationException e) {
 	e.printStackTrace();
       } catch (IOException e) {
