@@ -78,7 +78,6 @@ public class HarvestConnectorClient implements HarvestClient {
                         
   };
   private int recordCount = 0;
-
   
   @Override
   public int download(URL url) throws Exception 
