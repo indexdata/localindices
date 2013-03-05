@@ -128,6 +128,8 @@ public class JobInstance {
     if (harvestingThread == null || !harvestingThread.isAlive()) {
       harvestingThread = new Thread(harvestJob);
       harvestingThread.start();
+      if (harvestJob != null)
+		harvestJob.setJobThread(harvestingThread);
       if (harvestable.getInitiallyHarvested() == null)
 	harvestable.setInitiallyHarvested(new Date());
       harvestable.setLastHarvestStarted(new Date());
