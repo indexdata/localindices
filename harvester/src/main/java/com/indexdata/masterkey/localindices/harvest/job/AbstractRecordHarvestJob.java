@@ -46,10 +46,9 @@ import com.indexdata.xml.filter.MessageConsumer;
  * 
  * @author jakub
  */
-public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
-  private boolean updated;
+public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
-  private HarvestStatus status;
+  //private HarvestStatus status;
   private boolean die;
   //protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
@@ -58,30 +57,9 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   protected String error;
   boolean debug = false; 
 
-  protected final void setStatus(HarvestStatus status) {
-    this.status = status;
-  }
-
-  protected final void markForUpdate() {
-    updated = true;
-  }
-
   @Override
   public synchronized boolean isKillSent() {
     return die;
-  }
-
-  @Override
-  public final synchronized void kill() {
-    if (status == HarvestStatus.RUNNING) {
-      status = HarvestStatus.KILLED;
-    }
-    die = true;
-  }
-
-  @Override
-  public final HarvestStatus getStatus() {
-    return status;
   }
 
   @Override
@@ -95,27 +73,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   }
 
   @Override
-  public final synchronized void finishReceived() {
-    if (status != null && status.equals(HarvestStatus.FINISHED)) {
-      status = HarvestStatus.OK;
-    }
-  }
-
-  @Override
   public abstract String getMessage();
-
-  @Override
-  public final boolean isUpdated() {
-    return updated;
-  }
-
-  @Override
-  public final void clearUpdated() {
-    updated = false;
-  }
-
-  @Override
-  public abstract void run();
 
   @SuppressWarnings("unused")
   private Templates[] getTemplates(String[] stringTemplates)
@@ -290,7 +248,5 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     }    
     return null;
   }
-  
-  protected abstract Harvestable getHarvestable();
 
 }
