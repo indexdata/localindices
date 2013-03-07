@@ -1,5 +1,6 @@
 package ORG.oclc.oai.harvester2.verb;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
@@ -7,11 +8,17 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.Node;
 
-class XPathHelper<T> {
+public class XPathHelper<T> {
   QName qname;
+  NamespaceContext nsContext = null;
 
-  XPathHelper(QName type) {
+  public XPathHelper(QName type) {
     qname = type;
+  }
+  
+  public XPathHelper(QName type, NamespaceContext context) {
+    qname = type;
+    nsContext = context;
   }
 
   @SuppressWarnings("unchecked")
@@ -19,7 +26,8 @@ class XPathHelper<T> {
     XPathExpression expr = HarvesterVerb.xPathExprMap.get(xpath);
     if (expr == null) {
       XPath xPath = HarvesterVerb.createXPath();
-      xPath.setNamespaceContext(new OaiPmhNamespaceContext());
+      if (nsContext != null)
+	xPath.setNamespaceContext(nsContext);
       expr = xPath.compile(xpath);
       HarvesterVerb.xPathExprMap.put(xpath, expr);
     }
