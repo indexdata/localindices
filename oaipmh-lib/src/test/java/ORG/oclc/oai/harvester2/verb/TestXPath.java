@@ -32,7 +32,7 @@ public class TestXPath extends TestCase {
     return doc;
   }
   public void testXPathNamespaceRoot() throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-    XPathHelper<NodeList> helper = new XPathHelper<NodeList>(XPathConstants.NODESET);
+    XPathHelper<NodeList> helper = new XPathHelper<NodeList>(XPathConstants.NODESET, new OaiPmhNamespaceContext());
     ByteArrayInputStream buffer = new ByteArrayInputStream(xmlWithNamespace.getBytes("UTF-8"));
     Document doc = readXML(buffer);
     NodeList list = helper.evaluate(doc, "/");
@@ -50,15 +50,16 @@ public class TestXPath extends TestCase {
     list = helper.evaluate(doc, "/oai20:OAI-PMH/oai20:ListRecords/oai20:record");
     assertTrue("Wrong size " + list.getLength(), list.getLength() == 10); 
 
-    XPathHelper<Node> nodeHelper = new XPathHelper<Node>(XPathConstants.NODE);
+    XPathHelper<Node> nodeHelper = new XPathHelper<Node>(XPathConstants.NODE, new OaiPmhNamespaceContext());
     
     Node headerNode = nodeHelper.evaluate(list.item(0), "oai20:header");
+    assertTrue("No header list found", headerNode != null);
     assertTrue("Not Header: " + headerNode.getNodeName(), headerNode.getLocalName() == "header"); 
     
     Node identifierNode = nodeHelper.evaluate(list.item(0), "oai20:header/oai20:identifier");
     assertTrue("Not Identifier" + identifierNode.getNodeName(), identifierNode.getLocalName() == "identifier");
     
-    XPathHelper<String> stringHelper = new XPathHelper<String>(XPathConstants.STRING);
+    XPathHelper<String> stringHelper = new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
     
     String identifier  = stringHelper.evaluate(list.item(0), "oai20:header/oai20:identifier/text()");
     assertTrue("Identifier: " + identifier, identifier.equals("oai:intechopen.com:1")); 
