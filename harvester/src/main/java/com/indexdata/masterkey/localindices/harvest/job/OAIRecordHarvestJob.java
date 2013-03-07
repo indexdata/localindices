@@ -33,6 +33,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -40,7 +41,11 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 
 /**
@@ -63,6 +68,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private boolean initialRun = true;
   private String[] oai_dc_pz = { "oai_dc.xsl" };
   private String[] oai_marc21_pz = { "oai2marc.xsl", "marc21.xsl" };
+  private RecordStorage transformationStorage;
+  private boolean useParallel = true;
+
   @Override
   public String getMessage() {
     return resource.getMessage();
@@ -239,11 +247,17 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
 	NodeList list;
 	try {
-	  list = listRecords.getNodeList("/");
-	  for (int index = 0; index < list.getLength(); index++) {
+	  list = listRecords.getRecords();
+	  int count = list.getLength();
+	  for (int index = 0; index < count; index++) {
 	    Node node = list.item(index);
-	    Node newNode = transformNode(node);
-	    Record record = convert(newNode);
+	    Record record = convert(node);
+	    node = transformNode(node);
+	    if (record.isDeleted())
+	      getStorage().delete(record.getId());
+	    else
+	      getStorage().add(record);
+	      
 	    storeRecord(record);
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
@@ -296,14 +310,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private Record convert(Node node) throws TransformerException {
-    // TODO Need to handle other RecordStore types.
-    SAXResult outputTarget = new SAXResult(new Pz2SolrRecordContentHandler(getStorage(), resource
-	.getId().toString()));
+  // TODO Fix: stupid name.  
+  private RecordDOMImpl convert(Node node) throws TransformerException 
+  {
     Transformer transformer = stf.newTransformer();
-    DOMSource xmlSource = new DOMSource(node);
-    transformer.transform(xmlSource, outputTarget);
-    return null;
+    NodeList list = HarvesterVerb.getNodeList(node, "//oai20:record/oai20:header");
+    //Node identifier = findChildNode(node); 
+    int count = list.getLength();
+    String id = HarvesterVerb.getSingleString(node, "oai20:record/oai20:header/oai20:identifier/text()");
+    String isDeleted = HarvesterVerb.getSingleString(node, "/record[@status]"); 
+    RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node);
+    if ("deleted".equalsIgnoreCase(isDeleted)) 
+      record.setDeleted(true);
+    return record;
   }
 
   private boolean isDelete(Record node) {
@@ -413,4 +432,25 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   protected Harvestable getHarvestable() {
     return resource;
   }
+  
+  @Override
+  public synchronized RecordStorage getStorage() {
+    if (transformationStorage == null) {
+      try {
+	if (useParallel )
+	  transformationStorage = new ThreadedTransformationRecordStorageProxy(super.getStorage(), templates,
+	    logger);
+	else
+	  transformationStorage = new TransformationRecordStorageProxy(super.getStorage(), templates,
+		    logger);
+	  
+      } catch (TransformerConfigurationException e) {
+	e.printStackTrace();
+      } catch (IOException e) {
+	e.printStackTrace();
+      }
+    }
+    return transformationStorage;
+  }
+
 }
