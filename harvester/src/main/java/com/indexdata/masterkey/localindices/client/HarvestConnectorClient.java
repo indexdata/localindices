@@ -77,6 +77,7 @@ public class HarvestConnectorClient implements HarvestClient {
     }
                         
   };
+  @SuppressWarnings("unused")
   private int recordCount = 0;
   
   @Override

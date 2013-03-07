@@ -78,7 +78,6 @@ public class XmlTranformRouter implements MessageRouter {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private Source extractSource(Record take) {
     Source xmlSource = null;  
     if (take instanceof RecordDOM) {

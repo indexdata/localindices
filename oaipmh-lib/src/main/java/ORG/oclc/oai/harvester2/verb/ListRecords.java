@@ -16,18 +16,19 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URLEncoder;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 /**
  * This class represents an ListRecords response on either the server or
