@@ -19,7 +19,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pz2Namespace = "http://www.indexdata.com/pazpar2";
   private String pzRecord = "pz:record";
   private String pzMetadata = "pz:metadata";
-
+  private Node node = null;
+  
   public RecordDOMImpl(Record record) {
     super(record.getValues());
     setId(record.getId());
@@ -35,12 +36,14 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
 
   public void setNode(Node node) {
     getValues().clear();
-    merge(node);
+    this.node = node;
   }
 
   /**
    * Merge a XML node into a record
    * @param node
+   * 
+   * TODO Only works on PZ nodes
    */
   public void merge(Node node) {
     if (Node.DOCUMENT_NODE == node.getNodeType()) {
@@ -54,6 +57,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     }
   }
 
+  // TODO Only works on PZ nodes
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void serializeNode(Node node) {
     if (node.getLocalName().equals("metadata")) {
@@ -78,6 +82,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   }
 
   public Node toNode() {
+    if (node != null) 
+      return node;
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder;
     try {
