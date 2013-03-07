@@ -55,8 +55,6 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-//import org.apache.xpath.XPathAPI;
-import com.sun.org.apache.xpath.internal.XPathAPI;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,7 +77,6 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
  * 
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
-@SuppressWarnings("restriction")
 public abstract class HarvesterVerb {
     private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
@@ -87,18 +84,34 @@ public abstract class HarvesterVerb {
     private final static int HTTP_RETRY_TIMEOUT = 600; //secs
 
     /* Primary OAI namespaces */
-    public static final String SCHEMA_LOCATION_V2_0 = "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_GET_RECORD = "http://www.openarchives.org/OAI/1.1/OAI_GetRecord http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_IDENTIFY = "http://www.openarchives.org/OAI/1.1/OAI_Identify http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_IDENTIFIERS = "http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_METADATA_FORMATS = "http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_RECORDS = "http://www.openarchives.org/OAI/1.1/OAI_ListRecords http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_SETS = "http://www.openarchives.org/OAI/1.1/OAI_ListSets http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
+    public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
+    public static final String SCHEMA_LOCATION_V2_0 = NAMESPACE_V2_0 + " http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
+    
+    public static final String NAMESPACE_V1_1 = "http://www.openarchives.org/OAI/1.1/";
+    
+    public static final String NAMESPACE_V1_1_GET_RECORD = NAMESPACE_V1_1 + "OAI_GetRecord";
+    public static final String SCHEMA_LOCATION_V1_1_GET_RECORD = NAMESPACE_V1_1_GET_RECORD + " http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd";
+    
+    public static final String NAMESPACE_V1_1_IDENTIFY = NAMESPACE_V1_1 + "OAI_Identify";
+    public static final String SCHEMA_LOCATION_V1_1_IDENTIFY = NAMESPACE_V1_1_IDENTIFY + " http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd";
+    
+    public static final String NAMESPACE_V1_1_LIST_IDENTIFIERS = NAMESPACE_V1_1 + "OAI_ListIdentify";
+    public static final String SCHEMA_LOCATION_V1_1_LIST_IDENTIFIERS = NAMESPACE_V1_1_LIST_IDENTIFIERS + " http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd";
+    
+    public static final String NAMESPACE_V1_1_LIST_METADATA_FORMATS = NAMESPACE_V1_1 + "OAI_ListMetadataFormats";
+    public static final String SCHEMA_LOCATION_V1_1_LIST_METADATA_FORMATS = NAMESPACE_V1_1_LIST_METADATA_FORMATS + " http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd";
+
+    public static final String NAMESPACE_V1_1_LIST_RECORDS = NAMESPACE_V1_1 + "OAI_ListRecords";
+    public static final String SCHEMA_LOCATION_V1_1_LIST_RECORDS = NAMESPACE_V1_1_LIST_RECORDS + " http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd";
+    
+    public static final String NAMESPACE_V1_1_LIST_SETS = NAMESPACE_V1_1 + "OAI_ListSets";
+    public static final String SCHEMA_LOCATION_V1_1_LIST_SETS = NAMESPACE_V1_1_LIST_SETS + " http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
+
     private Document doc = null;
     private String schemaLocation = null;
     private String requestURL = null;
     private static HashMap<Thread, DocumentBuilder> builderMap = new HashMap<Thread, DocumentBuilder>();
-    private static Element namespaceElement = null;
+    public static Element namespaceElement = null;
     private static DocumentBuilderFactory factory = null;
     private boolean useTagSoup = false;
     private static HashMap<Thread, TransformerFactory> transformerFactoryMap = new HashMap<Thread, TransformerFactory>();
@@ -192,13 +205,18 @@ public abstract class HarvesterVerb {
      * @return a NodeList of /oai:OAI-PMH/oai:error elements
      * @throws TransformerException
      */
-    public NodeList getErrors() throws TransformerException {
-        if (SCHEMA_LOCATION_V2_0.equals(getSchemaLocation())) {
-            //return getNodeList("/oai20:OAI-PMH/oai20:error");
-          return getNodeList("/OAI-PMH/error");
-        } else {
-            return null;
+    public NodeList getErrors() throws TransformerException 
+    {
+      	String schemas = getSchemaLocation();
+        if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
+            return getNodeList("/oai20:OAI-PMH/oai20:error");
         }
+        else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1)  {
+          return getNodeList("/oai11:OAI-PMH/oai11:error");
+          
+        }
+        else   
+          return getNodeList("/OAI-PMH/error");
     }
     
     /**
@@ -436,8 +454,13 @@ public abstract class HarvesterVerb {
         return getSingleString(getDocument(), xpath);
     }
     
-  public String getSingleString(Node node, String xpath) throws TransformerException {
-      return XPathAPI.eval(node, xpath, namespaceElement).str();
+  public static String getSingleString(Node node, String xpath) throws TransformerException {
+    XPathHelper<String> stringHelper =  new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
+    try {
+      return  stringHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException xpee) {
+       throw new TransformerException("Failed to evaluate XPath expression: " + xpath, xpee);
+     }
   }
     
     /**
@@ -449,23 +472,67 @@ public abstract class HarvesterVerb {
      */
   
   static HashMap<String, XPathExpression> xPathExprMap = new HashMap<String, XPathExpression>();
+
+  public NodeList getNodeList(String xpath) throws TransformerException {
+    return getNodeList(getDocument(), xpath);
+  }
   
-    public NodeList getNodeList(String xpath) throws TransformerException {
-      //return XPathAPI.selectNodeList(getDocument(), xpath, namespaceElement);
-      try {
-	XPathExpression expr = xPathExprMap.get(xpath); 
-	if (expr == null) {
-	      XPath xPath = createXPath();
-	      expr = xPath.compile(xpath);
-	      xPathExprMap.put(xpath, expr);
-	}
-	return (NodeList) expr.evaluate(getDocument(), XPathConstants.NODESET);
-      } catch (XPathExpressionException e) {
-	logger.error("XPath Exception: ", e);
-      }
-      return null;
+  public static NodeList getNodeList(Node node, String xpath) throws TransformerException {
+    try {
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, new OaiPmhNamespaceContext());
+      return xpathHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException e) {
+      String message = "getNodeList: XPath Expression Exception: ";
+      logger.error(message + xpath, e);
+      throw new TransformerException(message + xpath, e);
     }
+  }
     
+    public Boolean getBoolean(String xpath) throws TransformerException {
+      return getBoolean(xpath, getDocument());
+    }
+
+    public static Boolean getBoolean(String xpath, Node node) throws TransformerException {
+      try {
+	XPathHelper<Boolean> xpathHelper = new XPathHelper<Boolean>(XPathConstants.BOOLEAN, new OaiPmhNamespaceContext());
+	return xpathHelper.evaluate(node, xpath);
+      } catch (XPathExpressionException e) {
+	String message = "getBoolean: XPath Expression Exception: ";
+	logger.error(message + xpath, e);
+	throw new TransformerException(message + xpath, e);
+      }
+    }
+
+    public String getString(String xpath) throws TransformerException {
+      return getString(xpath, getDocument());
+    }
+
+    public static String getString(String xpath, Node node) throws TransformerException {
+      try {
+	XPathHelper<String> xpathHelper = new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
+	return xpathHelper.evaluate(node, xpath);
+      } catch (XPathExpressionException e) {
+	String message = "getString: XPath Expression Exception: ";
+	logger.error(message + xpath, e);
+	throw new TransformerException(message + xpath, e);
+      }
+    }
+
+    public Number getNumber(String xpath) throws TransformerException {
+      return getNumber(xpath, getDocument());
+    }
+
+    public static Number getNumber(String xpath, Node node) throws TransformerException {
+      try {
+	XPathHelper<Number> xpathHelper = new XPathHelper<Number>(XPathConstants.NUMBER, new OaiPmhNamespaceContext());
+	return xpathHelper.evaluate(node, xpath);
+      } catch (XPathExpressionException e) {
+	String message = "getNumber: XPath Expression Exception: ";
+	logger.error(message + xpath, e);
+	throw new TransformerException(message + xpath, e);
+      }
+    }
+
     public String toString() {
         Source input = new DOMSource(getDocument());
         StringWriter sw = new StringWriter();
