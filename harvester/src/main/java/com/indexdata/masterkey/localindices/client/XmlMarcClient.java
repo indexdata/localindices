@@ -210,7 +210,7 @@ public class XmlMarcClient implements HarvestClient {
 	if (record.getLeader().getTypeOfRecord() == 'd')
 	  harvesterJob.getStorage().delete(record.getId().toString());
 	else
-	  harvesterJob.getStorage().add(new RecordDOMImpl(record.getId().toString(), null, result.getNode()));
+	  harvesterJob.getStorage().add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
 	
 	if (harvesterJob.isKillSent()) {
 	  // Close to end the pipe 
