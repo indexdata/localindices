@@ -34,6 +34,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   //private boolean committed;
   private Date transactionId;
   private boolean delayedPurge = true;
+  private boolean waitSearcher = false;
   private boolean isPurged;
   private String transactionIdField = "solrLastModified";
   SolrStorageStatus storageStatus;
@@ -65,7 +66,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       }
       logger.info("Committing " + storageStatus.getOutstandingAdds() + " added and " + storageStatus.getOutstandingDeletes() + " deleted records to database " + database);
       // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
-      UpdateResponse response = server.commit(true, false);
+      UpdateResponse response = server.commit(true, waitSearcher);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
       else	
@@ -307,6 +308,14 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public DatabaseContenthandler getContentHandler() {
     return new Pz2SolrRecordContentHandler(this, database);
+  }
+
+  public boolean isWaitSearcher() {
+    return waitSearcher;
+  }
+
+  public void setWaitSearcher(boolean waitSearcher) {
+    this.waitSearcher = waitSearcher;
   }
 
 }
