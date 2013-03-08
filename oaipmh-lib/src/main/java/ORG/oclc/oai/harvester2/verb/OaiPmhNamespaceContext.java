@@ -10,13 +10,16 @@ import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 public class OaiPmhNamespaceContext implements NamespaceContext {
 
   public String getNamespaceURI(String prefix) {
-      if (prefix == null) throw new NullPointerException("Null prefix");
+      if (prefix == null) 
+	throw new NullPointerException("Null prefix");
       else if ("oai20".equals(prefix)) 
 	return HarvesterVerb.NAMESPACE_V2_0;
       else if ("oai11_list_records".equals(prefix)) 
 	return HarvesterVerb.NAMESPACE_V1_1_LIST_RECORDS;
       else if ("xml".equals(prefix)) 
 	return XMLConstants.XML_NS_URI;
+      else if ("xsi".equals(prefix)) 
+	return "http://www.w3.org/2001/XMLSchema-instance";
       return XMLConstants.NULL_NS_URI;
   }
 
