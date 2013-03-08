@@ -35,7 +35,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
-  private RecordStorage transformationStorage;
+  //private RecordStorage transformationStorage;
   private Proxy proxy;
   private int splitSize = 0;
   private int splitDepth = 0;
@@ -92,8 +92,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 
   public OutputStream getOutputStream() 
   {
-    transformationStorage = setupTransformation(getStorage());
-    return transformationStorage.getOutputStream();
+    //transformationStorage = setupTransformation(getStorage());
+    return getStorage().getOutputStream();
   }
   
   public String getMessage() {
