@@ -21,6 +21,7 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
@@ -100,16 +101,24 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return createTransformationFromResources(resourceSteps);
   }
 
+  private SolrRecordStorage createStorage(boolean clear, XmlBulkResource resource)
+      throws IOException, StatusNotImplemented {
+    SolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    // To be sure we have the committed records available
+    recordStorage.setWaitSearcher(true);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
+    if (clear) { 
+      purgeStorage(recordStorage);
+    }
+    return recordStorage;
+  }
+
   private void testMarc21SplitByNumber(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 0, number, overwrite);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clear) { 
-      purgeStorage(recordStorage);
-    }
+    SolrRecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
@@ -147,11 +156,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc; charset=MARC8", "application/tmarc", 0, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clean)
-      purgeStorage(recordStorage);
-    
+    SolrRecordStorage recordStorage = createStorage(clean, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
@@ -178,10 +183,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clean) 
-      purgeStorage(recordStorage);
+
+    RecordStorage recordStorage = createStorage(clean, resource);
       
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     
@@ -216,11 +219,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
 	number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
 
-    if (clear) 
-      recordStorage.purge(true);
+    RecordStorage recordStorage = createStorage(clear, resource);
 
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -251,10 +251,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource( url, "application/marc; charset=MARC-8", "application/tmarc", 1, 100, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clear)
-      purgeStorage(recordStorage);
+
+    RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
@@ -293,7 +291,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -308,7 +307,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -323,7 +322,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceLoCMarc8gz, "application/marc; charset=MARC8", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
