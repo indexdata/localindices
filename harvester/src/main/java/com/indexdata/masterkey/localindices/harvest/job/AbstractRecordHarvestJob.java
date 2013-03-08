@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.CharArrayReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -37,6 +38,8 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.xml.factory.XmlFactory;
 import com.indexdata.xml.filter.MessageConsumer;
 
@@ -48,28 +51,37 @@ import com.indexdata.xml.filter.MessageConsumer;
  */
 public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
-  //private HarvestStatus status;
-  private boolean die;
   //protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger;
   protected Templates templates[];
   protected String error;
   boolean debug = false; 
-
-  @Override
-  public synchronized boolean isKillSent() {
-    return die;
-  }
-
+  boolean useParallel =  true;
+  RecordStorage  transformationStorage;
   @Override
   public final void setStorage(RecordStorage storage) {
     this.storage = storage;
   }
 
   @Override
-  public RecordStorage getStorage() {
-    return this.storage;
+  public synchronized RecordStorage getStorage() {
+    if (transformationStorage == null) {
+      try {
+	if (useParallel )
+	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, templates,
+	    logger);
+	else
+	  transformationStorage = new TransformationRecordStorageProxy(storage, templates,
+		    logger);
+	  
+      } catch (TransformerConfigurationException e) {
+	e.printStackTrace();
+      } catch (IOException e) {
+	e.printStackTrace();
+      }
+    }
+    return transformationStorage;
   }
 
   @Override
