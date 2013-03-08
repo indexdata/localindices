@@ -103,6 +103,27 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
     }
   }
 
+  private void storeFinal() {
+    Object object = null;
+    while (! (object instanceof StopMessage)) {
+      try {
+	object = result.take();
+      } catch (InterruptedException e) {
+	e.printStackTrace();
+	continue;
+      }
+      if (object instanceof RecordDOMImpl) {
+	RecordDOMImpl record = (RecordDOMImpl) object;
+	if (record.isDeleted())
+	    super.delete(record.getId());
+	else
+	  super.add(record);
+      }
+      if (object instanceof StopMessage)
+	logger.info("StopMessage");
+    }
+  }
+
   class DummyStopMessage  implements StopMessage {
     
   }
@@ -111,8 +132,9 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
     while (true)
       try {
 	source.put(new DummyStopMessage());
-	lastThread.join(); 
-	store();
+	if (lastThread != null)
+	  lastThread.join(); 
+	storeFinal();
 	break;
       } catch (InterruptedException e) {
 	e.printStackTrace();
