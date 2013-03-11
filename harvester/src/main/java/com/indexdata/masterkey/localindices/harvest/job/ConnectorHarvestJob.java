@@ -92,7 +92,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  public RecordStorage setupTransformation(RecordStorage storage) {
+  protected RecordStorage setupTransformation(RecordStorage storage) {
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
       XMLReader xmlReader;
       try {
