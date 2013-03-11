@@ -49,7 +49,8 @@ public abstract class RecordStorageProxy implements RecordStorage {
 
   @Override
   public OutputStream getOutputStream() {
-    return null;
+    return storage.getOutputStream();
+    //   return null;
   }
 
   @Override
