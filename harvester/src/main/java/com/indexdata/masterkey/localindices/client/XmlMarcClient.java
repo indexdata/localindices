@@ -94,12 +94,14 @@ public class XmlMarcClient implements HarvestClient {
     boolean useTurboMarc = false;
     // Default MARC-8 encoding, use setEncoding to override
     String encoding = null;
+    StreamIterator iterator;
     
-    public MarcReadStore(InputStream input) {
+    public MarcReadStore(InputStream input, StreamIterator iterator) {
       this.input = input;
+      this.iterator = iterator;
     }    
 
-    public MarcReadStore(InputStream input, boolean useTurboMarc) {
+    public MarcReadStore(InputStream input, StreamIterator iterator, boolean useTurboMarc) {
       this.input = input;
       this.useTurboMarc = useTurboMarc;
     }    
@@ -112,7 +114,9 @@ public class XmlMarcClient implements HarvestClient {
     public void readAndStore() throws Exception {
       MarcStreamReader reader  = new MarcStreamReader(input, encoding);
       reader.setBadIndicators(false);
-      store(reader, -1);      
+      while (iterator.hasNext()) {
+	store(reader, -1);      
+      }
     }
   }
 
@@ -121,13 +125,35 @@ public class XmlMarcClient implements HarvestClient {
   {
     InputStream input; 
     long contentLength;
-    public InputStreamReadStore(InputStream input, long contentLength) {
+    StreamIterator iterator;
+    
+    public InputStreamReadStore(InputStream input, long contentLength, StreamIterator iterator) {
       this.input = input;
       this.contentLength = contentLength;
+      this.iterator = iterator;
     }    
     @Override
     public void readAndStore() throws Exception {
-      store(input, contentLength); 
+      
+      while (iterator.hasNext())
+	store(input, contentLength); 
+    }
+  }
+
+  class StreamIterator {
+    int once = 1; 
+    public boolean hasNext() throws IOException {
+      return once-- > 0;
+    }
+  }
+
+  class ZipStreamIterator extends StreamIterator {
+    ZipInputStream zip; 
+    public ZipStreamIterator(ZipInputStream input) {
+      zip = input;
+    }
+    public boolean hasNext() throws IOException {
+      return zip.getNextEntry() != null;
     }
   }
 
@@ -135,6 +161,7 @@ public class XmlMarcClient implements HarvestClient {
     String contentType = conn.getContentType();
     // InputStream after possible Content-Encoding decoded.
     InputStream inputStreamDecoded = handleContentEncoding(conn);
+    StreamIterator streamIterator = new StreamIterator(); 
     long contentLength = getContentLength(conn);
     // Content is being decoded. Not the real length
     if (inputStreamDecoded != conn.getInputStream())
@@ -142,10 +169,8 @@ public class XmlMarcClient implements HarvestClient {
     if ("application/x-gzip".equals(contentType))
       inputStreamDecoded = new GZIPInputStream(inputStreamDecoded);
     else if ("application/zip".equals(contentType)) {
-      logger.warn("Only extracting first entry of ZIP from: " + conn.getURL());
       ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded);
-      if (zipInput.getNextEntry() == null)
-	logger.error("No file found in URL: " + conn.getURL());
+      streamIterator = new ZipStreamIterator(zipInput); 
       inputStreamDecoded = zipInput;
     }
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
@@ -153,7 +178,6 @@ public class XmlMarcClient implements HarvestClient {
     if (resource.getExpectedSchema() != null)
        mimeCharset =  new MimeTypeCharSet(resource.getExpectedSchema());
     if (mimeCharset.isMimeType("application/marc") ||
-	// TODO doesn't really make sense
 	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader ("  
 	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
@@ -161,7 +185,7 @@ public class XmlMarcClient implements HarvestClient {
 	      " Override by resource mime-type: " + resource.getExpectedSchema() 
 	      : "Content-type: " + contentType));
       
-      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded);
+      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded, streamIterator);
       String encoding = mimeCharset.getCharset();
       if (encoding != null) 
 	readStore.setEncoding(encoding);
@@ -170,7 +194,7 @@ public class XmlMarcClient implements HarvestClient {
     
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
-    return new InputStreamReadStore(inputStreamDecoded, contentLength);
+    return new InputStreamReadStore(inputStreamDecoded, contentLength, streamIterator);
   }
 
   private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
