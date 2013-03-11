@@ -43,6 +43,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String resourceOIAster = "http://maki.indexdata.com/marcdata/meta/oaister/harvester-index.html";
   String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
+  String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
+  String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
+  String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
   RecordStorage recordStorage;
 
@@ -92,12 +95,12 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private Transformation createMarc21Transformation() throws IOException {
-    String[] resourceSteps = { "resources/marc21.xsl"};
+    String[] resourceSteps = { "resources/marc21.xsl", "resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps);
   }
 
   private Transformation createTurboMarcTransformation() throws IOException {
-    String[] resourceSteps = { "resources/tmarc.xsl"};
+    String[] resourceSteps = { "resources/tmarc.xsl", "resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps);
   }
 
@@ -261,9 +264,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed " + storageStatus.getDeletes(), 
+    assertTrue("Deleted records failed: " + storageStatus.getDeletes(), 
 		new Long(delete).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 
+    assertTrue("Add records failed: " + storageStatus.getAdds(), 
 		new Long(add).equals(storageStatus.getAdds()));
     long totalFound = storageStatus.getTotalRecords();
     assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
@@ -285,6 +288,45 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
     testUrlGZippedTurboMarc(resourceMarc2, false, false, 3006); 
   }
+  
+  private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(zipMarcUrl, "application/marc", null, 1, 1, overwrite);
+    resource.setId(2l);
+    resource.setTransformation(createMarc21Transformation());
+
+    RecordStorage recordStorage = createStorage(clean, resource);
+      
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    
+    checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(zipMarcUrl, null, null, 1, 1, overwrite);
+    resource.setId(2l);
+    resource.setTransformation(createMarc21Transformation());
+
+    RecordStorage recordStorage = createStorage(clean, resource);
+      
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    
+    checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarc21SplitByNumber(resourceMarcZIP, true, true, 1002); 
+  }
+
+  public void testCleanMarc21ZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarc21SplitByNumber(resourceMarcZIPMulti, true, true, 1000); 
+  }
+
+  public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10020); 
+  }
+
   
   /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
