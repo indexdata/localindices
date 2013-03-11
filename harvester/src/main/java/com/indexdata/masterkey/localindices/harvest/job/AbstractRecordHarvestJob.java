@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -38,10 +39,13 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.xml.factory.XmlFactory;
 import com.indexdata.xml.filter.MessageConsumer;
+import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
  * Specifies the simplest common behaviour of all HarvestJobs that otherwise
@@ -58,7 +62,12 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   protected String error;
   boolean debug = false; 
   boolean useParallel =  true;
+  SplitTransformationChainRecordStorageProxy  streamStorage;
   RecordStorage  transformationStorage;
+  protected int splitSize = 1;
+  protected int splitDepth = 1;
+
+  
   @Override
   public final void setStorage(RecordStorage storage) {
     this.storage = storage;
@@ -260,5 +269,45 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     }    
     return null;
   }
+  
+  protected RecordStorage setupTransformation(RecordStorage storage) {
+    Harvestable resource = getHarvestable(); 
+    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
+      boolean split = (splitSize > 0 && splitDepth > 0);
+      XMLReader xmlReader;
+      try {
+	xmlReader = createTransformChain(split);
+	if (split) {
+	  // TODO check if the existing one exists and is alive. 
+	  if (streamStorage == null || streamStorage.isClosed() == true) {
+	    SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), splitDepth, splitSize);
+	    xmlReader.setContentHandler(splitHandler);
+	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
+	  }
+	  return streamStorage;
+	}
+	return new TransformationChainRecordStorageProxy(storage, xmlReader, storage.getContentHandler(), logger);
 
+      } catch (Exception e) {
+	e.printStackTrace();
+	logger.error(e.getMessage());
+      }
+    }
+    logger.warn("No Transformation Proxy configured.");
+    return storage;
+  }
+
+  public OutputStream getOutputStream() 
+  {
+    // TODO build in logic only to return new Split proxy when output stream has been close.
+    
+    // Currently, the client MUST only called getOutputStream once per XML it wants to parse and split
+    // So multiple XML files can be read by calling getOutputStream again, but also leave it open for a bad client 
+    // to misuse this call. This could be avoided by requiring the client to call close on stream between XML files, 
+    // intercept the close call and null transformationStorage, but reuse otherwise.
+
+    // Though, each thread needs it's own 
+
+    return setupTransformation(getStorage()).getOutputStream();
+  }
 }
