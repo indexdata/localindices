@@ -160,10 +160,18 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   protected SolrInputDocument createDocument(Record record) {
+    
     SolrInputDocument document = createDocument(record.getValues());
-    if (idField != null)
-      document.setField(idField, record.getId());
-
+    if (idField != null) {
+      // TODO prioritize Record.getId() vs "id" after transformation
+      if (record.getId() != null)
+	document.setField(idField, database + "-" + record.getId());
+      else if (record.getValues().get(idField) != null) {
+	document.setField(idField, database + record.getValues().get(idField).toString());
+      }
+      else 
+	logger.error("Failed to get Record Id for record: " + record);
+    }
     if (databaseField != null)
       document.setField(databaseField, database);
     
