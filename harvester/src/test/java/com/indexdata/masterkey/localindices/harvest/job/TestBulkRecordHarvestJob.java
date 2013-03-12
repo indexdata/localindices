@@ -20,6 +20,8 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.DuplicateKeyCheckerRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
@@ -95,7 +97,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private Transformation createMarc21Transformation() throws IOException {
-    String[] resourceSteps = { "resources/marc21.xsl", "resources/pz2-create-id.xsl" };
+    String[] resourceSteps = { "resources/marc21.xsl" , "resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps);
   }
 
@@ -116,12 +118,22 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return recordStorage;
   }
 
+  private RecordStorage createConsoleStorage(boolean clear, XmlBulkResource resource)
+      throws IOException, StatusNotImplemented {
+    RecordStorage recordStorage = new DuplicateKeyCheckerRecordStorage();
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
+    if (clear) { 
+      purgeStorage(recordStorage);
+    }
+    return recordStorage;
+  }
+
   private void testMarc21SplitByNumber(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 0, number, overwrite);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
-    SolrRecordStorage recordStorage = createStorage(clear, resource);
+    RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
@@ -324,7 +336,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10020); 
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10016); 
   }
 
   
