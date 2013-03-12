@@ -20,7 +20,6 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.ConsoleRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.DuplicateKeyCheckerRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
@@ -106,11 +105,13 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return createTransformationFromResources(resourceSteps);
   }
 
-  private SolrRecordStorage createStorage(boolean clear, XmlBulkResource resource)
+  private RecordStorage createStorage(boolean clear, XmlBulkResource resource, RecordStorage storage)
       throws IOException, StatusNotImplemented {
-    SolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    
     // To be sure we have the committed records available
-    recordStorage.setWaitSearcher(true);
+    if (recordStorage instanceof SolrRecordStorage) 
+      ((SolrRecordStorage) recordStorage).setWaitSearcher(true);
+    
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     if (clear) { 
       purgeStorage(recordStorage);
@@ -118,14 +119,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return recordStorage;
   }
 
-  private RecordStorage createConsoleStorage(boolean clear, XmlBulkResource resource)
+  private RecordStorage createStorage(boolean clear, XmlBulkResource resource)
       throws IOException, StatusNotImplemented {
-    RecordStorage recordStorage = new DuplicateKeyCheckerRecordStorage();
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clear) { 
-      purgeStorage(recordStorage);
-    }
-    return recordStorage;
+    return createStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
   }
 
   private void testMarc21SplitByNumber(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
@@ -171,7 +167,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc; charset=MARC8", "application/tmarc", 0, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    SolrRecordStorage recordStorage = createStorage(clean, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
