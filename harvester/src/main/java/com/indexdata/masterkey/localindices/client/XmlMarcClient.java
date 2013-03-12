@@ -232,7 +232,7 @@ public class XmlMarcClient implements HarvestClient {
 	writer.write(record);
 	writer.close();
 	if (record.getLeader().getTypeOfRecord() == 'd')
-	  harvesterJob.getStorage().delete(record.getId().toString());
+	  harvesterJob.getStorage().delete(record.getControlNumber());
 	else
 	  harvesterJob.getStorage().add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
 	
