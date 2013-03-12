@@ -24,7 +24,6 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
   private boolean inHeader = false;
   private boolean inMetadata = false;
   private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
-  private String databaseId;
   private String type;
   private Logger logger = Logger.getLogger(this.getClass());
   @SuppressWarnings("unused")
@@ -34,11 +33,9 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
   
   public Pz2SolrRecordContentHandler(RecordStorage storage, String database) {
     store = storage;
-    databaseId = database;
   }
 
   public void setDatabaseIdentifier(String id) {
-    databaseId = id;
   }
   
     @Override
@@ -82,13 +79,13 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
       inMetadata = true;
       keyValues = new HashMap<String, Collection<Serializable>>();
       record = new RecordImpl(keyValues);
-      record.setDatabase(databaseId);
+      // record.setDatabase(databaseId);
     }
     if (record == null && localName.equals("delete")) {
       inHeader = true;
       record = new RecordImpl();
-      record.setDatabase(databaseId);
-      record.setId(databaseId + "-" + getAttributeValue(atts, "id"));
+      // record.setDatabase(databaseId);
+      record.setId(getAttributeValue(atts, "id"));
     }
     if (inMetadata && (qName.equals("pz:metadata") || localName.equals("metadata"))) {
       type = getAttributeValue(atts, "type");
@@ -107,7 +104,7 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (record != null) {
       if (inHeader && localName.equals("identifier")) {
-	record.setId(databaseId + "-" + currentText.toString());
+	record.setId(/* databaseId + "-" + */ currentText.toString());
       }
       if (localName.equals("header"))
 	inHeader = false;
@@ -126,8 +123,10 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
 	  keyValues.put(type, values);
 	}
 	values.add(currentText);
-	if ("id".equals(type))
-	  record.setId(databaseId + "-" + currentText.toString());
+	if ("id".equals(type)) {
+	  // Change: removed the prepeding of database id. This is done in the storage layer (if required) 
+	  record.setId(currentText.toString());
+	}
       }
     }
     /* This should work both with and without OAI-PMH headers */
@@ -185,11 +184,11 @@ public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
 
   @Override
   public void setDatebaseIdentifier(String id) {
-    databaseId = id;
+    // databaseId = id;
   }
 
   @Override
   public String getDatebaseIdentifier() {
-    return databaseId;
+    return null ; // databaseId;
   }
 }
