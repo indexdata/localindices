@@ -56,6 +56,9 @@ public class RecordImpl implements Record {
   public String toString() {
     StringBuffer record = new StringBuffer("Record[");
     record.append("id=").append(id).append(", ");
+    // HACK: We don't know the "id" field
+    if (valueMap.containsKey("id"))
+      record.append("get('id')= " + valueMap.get("id").toString()).append(", ");
     record.append("database=").append(database);
     for (String key : valueMap.keySet()) {
       record.append(", ");
