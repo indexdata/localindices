@@ -46,6 +46,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
   String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
   String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
+  //String resourceMarcXmlZIPMulti = "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
   RecordStorage recordStorage;
@@ -64,26 +65,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setCurrentStatus("NEW");
     resource.setOverwrite(overwrite);
     return resource;
-  }
-  
-  public void TestMarc21TransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
-    testSAXTransformation("resources/marcxml.xml", "resources/marc21.xsl");
-  }
-
-  public void TestTurboMarcTransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
-    testSAXTransformation("resources/tmarc.xml", "resources/tmarc.xsl");
-  }
-
-  private void testSAXTransformation(String xml, String xsl) throws ParserConfigurationException, SAXException, TransformerException {
-    SAXTransformerFactory transformerfactory = (SAXTransformerFactory) TransformerFactory.newInstance(); 
-    SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-    XMLReader reader = parserFactory.newSAXParser().getXMLReader();
-    XMLFilter filter = transformerfactory.newXMLFilter(new SAXSource(new InputSource(getClass().getResourceAsStream(xsl))));
-    filter.setParent(reader);
-    Transformer transformer = transformerfactory.newTransformer();
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    SAXSource xmlSource = new SAXSource(filter, new InputSource(getClass().getResourceAsStream(xml)));
-    transformer.transform(xmlSource, new StreamResult(System.out));
   }
   
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, XmlBulkResource resource)
@@ -105,7 +86,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return createTransformationFromResources(resourceSteps);
   }
 
-  private RecordStorage createStorage(boolean clear, XmlBulkResource resource, RecordStorage storage)
+  private RecordStorage createStorage(boolean clear, XmlBulkResource resource, RecordStorage recordStorage)
       throws IOException, StatusNotImplemented {
     
     // To be sure we have the committed records available
