@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.dom.DOMResult;
@@ -153,7 +154,9 @@ public class XmlMarcClient implements HarvestClient {
       zip = input;
     }
     public boolean hasNext() throws IOException {
-      return zip.getNextEntry() != null;
+      ZipEntry zipEntry = zip.getNextEntry();
+      int method = zipEntry.getMethod();
+      return zipEntry != null;
     }
   }
 
@@ -297,8 +300,9 @@ public class XmlMarcClient implements HarvestClient {
     long total;
     long copied = 0;
     long num = 0;
-    int logBlockNum = 256; // how many blocks to log progress
+    int logBlockNum = 1024; // how many blocks to log progress
     String message = "Downloaded ";
+    private long lastPercent;
 
     public TotalProgressLogger(long total) {
       this.total = total;
@@ -320,9 +324,13 @@ public class XmlMarcClient implements HarvestClient {
 	showProgress();
     }
     protected void showProgress() {
-      if (total != -1)
-	logger.info(message + copied + "/" + total + " bytes ("
-	    + ((double) copied / (double) total * 100) + "%)");
+      
+      if (total != -1) {
+	long newPercent = Math.round((double) copied / (double) total * 100); 
+	if (lastPercent != newPercent)
+	  logger.info(message + copied + "/" + total + " bytes (" + newPercent + "%)");
+	lastPercent = newPercent;
+      }
       else
 	logger.info(message + copied + " bytes");
     }
