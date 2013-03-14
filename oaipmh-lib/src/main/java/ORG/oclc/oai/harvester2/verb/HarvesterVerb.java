@@ -49,7 +49,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
@@ -471,8 +470,6 @@ public abstract class HarvesterVerb {
      * @throws TransformerException
      */
   
-  static HashMap<String, XPathExpression> xPathExprMap = new HashMap<String, XPathExpression>();
-
   public NodeList getNodeList(String xpath) throws TransformerException {
     return getNodeList(getDocument(), xpath);
   }
