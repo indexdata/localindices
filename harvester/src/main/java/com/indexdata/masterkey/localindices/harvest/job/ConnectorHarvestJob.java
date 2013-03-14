@@ -97,7 +97,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       XMLReader xmlReader;
       try {
 	xmlReader = createTransformChain(true);
-	SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), 1, 1);
+	SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage()), 1, 1);
 	xmlReader.setContentHandler(splitHandler);
 	return new SplitTransformationChainRecordStorageProxy(storage, xmlReader, null);
       } catch (Exception e) {
@@ -111,6 +111,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public OutputStream getOutputStream() {
+    logger.debug("Using deprecated stream interface");
     streamTransformationStorage = setupTransformation(getStorage());
     return streamTransformationStorage.getOutputStream();
   }
