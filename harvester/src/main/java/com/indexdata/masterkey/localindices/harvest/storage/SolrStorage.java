@@ -55,7 +55,7 @@ public class SolrStorage implements HarvestStorage {
   protected Collection<SolrInputDocument> documentList = null;
   private boolean override = false;
   String storageId = "";  
-  SolrStorageStatus storageStatus;
+  protected SolrStorageStatus storageStatus;
   String databaseField = "database:";
   
   public SolrStorage(Harvestable harvestable) {

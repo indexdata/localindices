@@ -37,17 +37,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private boolean waitSearcher = false;
   private boolean isPurged;
   private String transactionIdField = "solrLastModified";
-  SolrStorageStatus storageStatus;
 
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
-    try {
-      storageStatus = new SolrStorageStatus(url, databaseField + ":" + harvestable.getId());
-    } catch (MalformedURLException e) {
-      // This would already have been thrown in super. 
-      e.printStackTrace();
-    }
-
   }
 
   @Override
