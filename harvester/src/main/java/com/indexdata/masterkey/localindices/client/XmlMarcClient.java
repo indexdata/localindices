@@ -233,6 +233,7 @@ public class XmlMarcClient implements HarvestClient {
   	logger.info("Setting up Binary MARC to MarcXml converter");
  	//writer = new MarcXmlWriter(output, true);
     }
+    RecordStorage storage = harvesterJob.getStorage();
     while (reader.hasNext()) {
       try {
 	org.marc4j.marc.Record record = reader.next();
@@ -244,9 +245,9 @@ public class XmlMarcClient implements HarvestClient {
 	writer.write(record);
 	writer.close();
 	if (record.getLeader().getTypeOfRecord() == 'd')
-	  harvesterJob.getStorage().delete(record.getControlNumber());
+	  storage.delete(record.getControlNumber());
 	else
-	  harvesterJob.getStorage().add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
+	  storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
 	
 	if (harvesterJob.isKillSent()) {
 	  // Close to end the pipe 
