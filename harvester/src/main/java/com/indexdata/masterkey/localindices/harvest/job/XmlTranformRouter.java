@@ -13,6 +13,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
@@ -82,7 +83,8 @@ public class XmlTranformRouter implements MessageRouter {
     Source xmlSource = null;  
     if (take instanceof RecordDOM) {
       RecordDOM record = (RecordDOM) take;
-       xmlSource = new DOMSource(record.toNode());
+      Node node = record.toNode();
+      xmlSource = new DOMSource(node);
     } else if (take instanceof RecordText) {
       RecordText record = (RecordText) take;
       xmlSource = new SAXSource(new InputSource(new StringBufferInputStream(record.toText())));
