@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -15,22 +18,35 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import ORG.oclc.oai.harvester2.verb.XPathHelper;
+
 public class RecordDOMImpl extends RecordImpl implements RecordDOM {
-  private String pz2Namespace = "http://www.indexdata.com/pazpar2";
-  private String pzRecord = "pz:record";
-  private String pzMetadata = "pz:metadata";
+  private String pz2Namespace = "http://www.indexdata.com/pazpar2/1.0";
+  private String pzPrefix = "pz";
+  private String recordField = "record";
+  private String pzRecord = pzPrefix + ":" + recordField;
+  private String metadataField = "metadata";
+  private String pzMetadata = pzPrefix + ":" + metadataField;
+  private String typeName = "type";
+  @SuppressWarnings("unused")
+  private String pzType = pzPrefix + ":" + typeName;
   private Node node = null;
+  private NamespaceContext nsContext = new PzNamespaceContext();
+  private String xpathNodes = "/pz:collection/pz:record/pz:metadata";
+  private String xpathDelete = "//pz:record[@delete]";
+  private String xpathId = "//pz:record/pz:metadata[@type='id']";
   
   public RecordDOMImpl(Record record) {
-    super(record.getValues());
     if (record instanceof RecordDOM)
       setNode(((RecordDOMImpl) record).toNode());
+    else 
+      valueMap = record.getValues();
     setId(record.getId());
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
   }
 
-  public RecordDOMImpl(RecordDOMImpl record) {
+  public RecordDOMImpl(RecordDOMImpl record, NamespaceContext context) {
     setNode(record.node);
     setId(record.getId());
     setDatabase(record.getDatabase());
@@ -44,8 +60,47 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   }
 
   public void setNode(Node node) {
-    getValues().clear();
     this.node = node;
+    super.getValues().clear();
+    extractDelete();
+    extractId();
+  }
+
+  protected void extractDelete() {
+    XPathHelper<Boolean> xpathHelperDelete = new XPathHelper<Boolean>(XPathConstants.BOOLEAN, nsContext);
+    Boolean delete;
+    try {
+      delete = xpathHelperDelete.evaluate(node, xpathDelete);
+      if (delete != null)
+  	this.isDeleted = delete;
+    } catch (XPathExpressionException e) {
+      e.printStackTrace();
+    }
+  }
+
+  protected void extractId() 
+  {
+    XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, nsContext);
+    try {
+      String id = xpathHelperDelete.evaluate(node, xpathId);
+      this.id = id;
+    } catch (XPathExpressionException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public Map<String, Collection<Serializable>> getValues() {
+    valueMap.clear();
+    try {
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext); 
+      NodeList nodeList = xpathHelper.evaluate(node, xpathNodes);
+      for (int index = 0; index < nodeList.getLength(); index++) 
+	serializeNode(nodeList.item(index));
+    } catch (XPathExpressionException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } 
+    return valueMap;
   }
 
   /**
@@ -58,19 +113,21 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     if (Node.DOCUMENT_NODE == node.getNodeType()) {
       node = node.getFirstChild();
     }
-    if (node.getLocalName().equals("record")) {
+    if (node.getLocalName().equals(recordField)) {
       NodeList nodes = node.getChildNodes();
       for (int index = 0; index < nodes.getLength(); index++) {
 	serializeNode(nodes.item(index));
       }
     }
+    extractDelete();
+    extractId();
   }
 
   // TODO Only works on PZ nodes
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void serializeNode(Node node) {
-    if (node.getLocalName().equals("metadata")) {
-      Node typeAttribute = node.getAttributes().getNamedItem("type");
+    if (node.getLocalName().equals(metadataField)) {
+      Node typeAttribute = node.getAttributes().getNamedItem(typeName);
       String key = typeAttribute.getNodeValue();
       if (key != null)
       {
