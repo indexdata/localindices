@@ -44,7 +44,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformati
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.xml.factory.XmlFactory;
-import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
@@ -220,29 +219,11 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   private void debugSource(Node xml) {
     debugSource(new DOMSource(xml));
   }
-  protected class TransformerConsumer implements MessageConsumer 
-  {
-    @Override
-    public void accept(Node xmlNode) {
-      accept(new DOMSource(xmlNode));
-    }
 
-    @Override
-    public void accept(Source xmlNode) {
-      try {
-	convert(transformNode(xmlNode));
-      } catch (TransformerException e) {
-	logger.error("Failed to transform or convert xmlNode: " + e.getMessage() + " " + xmlNode.toString());
-	e.printStackTrace();
-      }
-    }
-  }
-
-  protected Source transformNode(Source xmlSource) throws TransformerException {
+  private Source transformNode(Source xmlSource) throws TransformerException {
     Transformer transformer;
     if (templates == null)
       return xmlSource;
-    // TODO parallel with message queues? 
     for (Templates template : templates) {
       transformer = template.newTransformer();
       DOMResult result = new DOMResult();
@@ -259,9 +240,9 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     return xmlSource;
   }  
   
-  protected Record convert(Source source) throws TransformerException {
+  @SuppressWarnings("unused")
+  private Record convert(Source source) throws TransformerException {
     if (source != null) {
-      // TODO Need to handle other RecordStore types.
       ContentHandler pzContentHandler = getStorage().getContentHandler();
       SAXResult outputTarget = new SAXResult(pzContentHandler);
       Transformer transformer = stf.newTransformer();
@@ -280,7 +261,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
 	if (split) {
 	  // TODO check if the existing one exists and is alive. 
 	  if (streamStorage == null || streamStorage.isClosed() == true) {
-	    SplitContentHandler splitHandler = new SplitContentHandler(new TransformerConsumer(), splitDepth, splitSize);
+	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage()), splitDepth, splitSize);
 	    xmlReader.setContentHandler(splitHandler);
 	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
 	  }
