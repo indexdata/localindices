@@ -7,7 +7,7 @@ import java.io.InputStream;
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 
@@ -31,7 +31,7 @@ public abstract class JobTester extends TestCase {
       	}
       	//System.out.println("Step " + resource  + " length: " + total );
       	String template = byteArray.toString("UTF-8");
-      	TransformationStep step = new BasicTransformationStep("Step " + index, "Test", template);
+      	TransformationStep step = new XmlTransformationStep("Step " + index, "Test", template);
       	transformation.addStep(step, index++);
     }
     transformation.setId(1l);
