@@ -275,7 +275,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
-  private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
+  private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, int added, long total_expected) throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(zipMarcUrl, null, null, 1, 1, overwrite);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
@@ -284,7 +284,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
       
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     
-    checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
+    checkStorageStatus(recordStorage.getStatus(), added, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
@@ -297,7 +297,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10016); 
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10020, 10016); 
   }
 
   
