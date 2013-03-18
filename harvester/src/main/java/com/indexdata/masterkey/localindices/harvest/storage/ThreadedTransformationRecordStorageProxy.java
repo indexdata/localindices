@@ -9,6 +9,7 @@ import javax.xml.transform.TransformerConfigurationException;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.messaging.StopMessage;
