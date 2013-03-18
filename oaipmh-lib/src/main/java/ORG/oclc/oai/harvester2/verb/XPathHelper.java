@@ -46,12 +46,10 @@ public class XPathHelper<T> {
     nsContext = context;
   }
 
-  @SuppressWarnings("rawtypes")
   public XPathHelper(Class theClass) {
     qname = constant.get(theClass);
   }
   
-  @SuppressWarnings("rawtypes")
   public XPathHelper(Class theClass, NamespaceContext context) {
     qname = constant.get(theClass);
     nsContext = context;
