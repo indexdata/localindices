@@ -22,7 +22,7 @@ import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -89,7 +89,7 @@ public class TestWebRecordHarvestJob extends TestCase {
       	}
       	System.out.println("Step " + resource  + " length: " + total );
       	String template = byteArray.toString("UTF-8");
-      	TransformationStep step = new BasicTransformationStep("Step " + index, "Test", template);
+      	TransformationStep step = new XmlTransformationStep("Step " + index, "Test", template);
       	transformation.addStep(step, index++);
     }
     transformation.setId(1l);
