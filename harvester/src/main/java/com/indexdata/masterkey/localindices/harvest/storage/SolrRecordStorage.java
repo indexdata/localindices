@@ -3,7 +3,6 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
