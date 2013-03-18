@@ -16,50 +16,56 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
  * @author jakub
  */
 public interface HarvestJob extends Runnable {
-    
-    /** 
-     * Stop the current job and rollback the current harvest, 
-     * deleting files received so far. Does not touch the older harvests.
-     */
-    void kill();
 
-    /**
-     * Get latest harvest status.
-     * 
-     * @return current status
-     */
-    HarvestStatus getStatus();
-    
-    /**
-     * Sets the storage for the the harvested data.
-     * @param storage for the harvest
-     */
-    void setStorage(HarvestStorage storage);
-    
-    /**
-     * Returns storage currently used for harvested data.
-     * @return current storage
-     */
-    HarvestStorage getStorage();
-    
-    /**
-     * Inform the harvestesting job the the files harvest were received.
-     */
-    void finishReceived();
-    
-    /**
-     * Get last harvesting error.
-     * @return
-     */
-    String getMessage();
+  /**
+   * Stop the current job and rollback the current harvest, deleting files
+   * received so far. Does not touch the older harvests.
+   */
+  void kill();
 
-    boolean isUpdated();
+  /**
+   * Get latest harvest status.
+   * 
+   * @return current status
+   */
+  HarvestStatus getStatus();
 
-    void clearUpdated();
+  /**
+   * Sets the storage for the the harvested data.
+   * 
+   * @param storage
+   *          for the harvest
+   */
+  void setStorage(HarvestStorage storage);
 
-    boolean isKillSent();
+  /**
+   * Returns storage currently used for harvested data.
+   * 
+   * @return current storage
+   */
+  HarvestStorage getStorage();
 
-    OutputStream getOutputStream();
-    
-    void setJobThread(Thread thread);
+  /**
+   * Inform the harvestesting job the the files harvest were received.
+   */
+  void finishReceived();
+
+  /**
+   * Get last harvesting error.
+   * 
+   * @return
+   */
+  String getMessage();
+
+  boolean isUpdated();
+
+  void clearUpdated();
+
+  boolean isKillSent();
+
+  OutputStream getOutputStream();
+
+  void setJobThread(Thread thread);
+
+  void setStatus(HarvestStatus error, String message);
 }
