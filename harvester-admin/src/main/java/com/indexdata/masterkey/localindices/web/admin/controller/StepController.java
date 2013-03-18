@@ -26,7 +26,7 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.SplitStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
@@ -140,12 +140,12 @@ public class StepController {
   }
 
   public String prepareXsltStep() {
-    current = new BasicTransformationStep();
+    current = new XmlTransformationStep();
     return "edit_xslt_step";
   }
 
   public String prepareValidationStep() {
-    current = new BasicTransformationStep();
+    current = new XmlTransformationStep();
     return "edit_xsd_step";
   }
 
@@ -168,7 +168,7 @@ public class StepController {
     // stepAssociation = current.getStepAssociations();
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
-    if (current instanceof BasicTransformationStep) {
+    if (current instanceof XmlTransformationStep) {
       return "edit_xslt_step";
     }
     if (current instanceof TransformationStep) {
@@ -281,7 +281,7 @@ public String delete() {
   public String addXslStep() {
     // Step up Xsl Step type and association
     logger.error("Setting up new XSL step.");
-    BasicTransformationStep step = new BasicTransformationStep();
+    XmlTransformationStep step = new XmlTransformationStep();
     step.setDescription("<Description>");
     step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
     stepMode = "showEditStep();";
@@ -310,7 +310,7 @@ public String delete() {
 
   public TransformationStep getTransformationStep() {
     if (current == null) {
-      TransformationStep tmpStep = new BasicTransformationStep("", "", "");
+      TransformationStep tmpStep = new XmlTransformationStep("", "", "");
       return tmpStep;
     }
     return current;
