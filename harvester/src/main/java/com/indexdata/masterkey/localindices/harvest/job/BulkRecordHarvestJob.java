@@ -39,8 +39,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     setLogger((new FileStorageJobLogger(getClass(), resource)));
-    List<TransformationStep> steps = resource.getTransformation().getSteps();
-    setupTemplates(resource, steps);
   }
 
   private int getNumber(String value, int defaultValue) {
@@ -125,5 +123,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   @Override
   protected Harvestable getHarvestable() {
     return resource;
+  }
+
+  @Override
+  public void setStatus(HarvestStatus status, String message) {
+    super.setStatus(status);
+    error = message;
+    
   }
 }
