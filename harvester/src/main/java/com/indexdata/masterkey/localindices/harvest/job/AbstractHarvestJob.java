@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.sun.research.ws.wadl.Resource;
 
 /**
  * Specifies the simplest common behaviour of all HarvestJobs that otherwise
@@ -22,8 +23,13 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   private boolean die;
   private Thread jobThread;
 
-  protected final void setStatus(HarvestStatus status) {
+  public void setStatus(HarvestStatus status) {
     this.status = status;
+  }
+
+  public void setStatus(HarvestStatus status, String error) {
+    this.status = status;
+    getHarvestable().setMessage(error);
   }
 
   protected final void markForUpdate() {
