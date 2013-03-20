@@ -69,7 +69,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     //TODO check storage
-    checkStorageStatus(recordStorage.getStatus(), 0, 0, 0);
+    checkStorageStatus(recordStorage.getStatus(), 484, 0, 484);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
