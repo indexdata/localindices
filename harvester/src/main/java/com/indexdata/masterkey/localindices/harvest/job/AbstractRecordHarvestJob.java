@@ -58,9 +58,9 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       }
       try {
 	if (new Boolean(false).equals(transformation.getParallel()))
-	  transformationStorage = new TransformationRecordStorageProxy(storage, steps, logger);
+	  transformationStorage = new TransformationRecordStorageProxy(storage, steps, this);
 	else
-	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, steps, logger);
+	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, steps, this);
 	  
       } catch (TransformerConfigurationException e) {
 	e.printStackTrace();
@@ -74,50 +74,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   @Override
   public abstract String getMessage();
 
-  /*
-  @SuppressWarnings("unused")
-  private Templates[] getTemplates(String[] stringTemplates)
-      throws TransformerConfigurationException {
-    StreamSource[] streamSources = new StreamSource[stringTemplates.length];
-    int index = 0;
-    for (String template : stringTemplates) {
-      streamSources[index] = new StreamSource(new CharArrayReader(
-	  template.toCharArray()));
-      index++;
-    }
-    return getTemplates(streamSources);
-  }
-
-  private Templates getTemplates(StreamSource source)
-      throws TransformerConfigurationException {
-    return stf.newTemplates(source);
-  }
-
-  protected Templates[] getTemplates(StreamSource[] sourceTemplates)
-      throws TransformerConfigurationException {
-
-    Templates[] templates = new Templates[sourceTemplates.length];
-    int index = 0;
-    for (StreamSource source : sourceTemplates) {
-      templates[index] = stf.newTemplates(source);
-      index++;
-    }
-    return templates;
-  }
-
-  protected Templates[] lookupTransformationTemplates(
-      Transformation transformation) throws TransformerConfigurationException {
-    if (transformation.getSteps() == null)
-      return new Templates[0];
-
-    List<TransformationStep> steps = transformation.getSteps();
-    for (int index = 0; index < steps.size(); index++) {
-      TransformationStep step = steps.get(index);
-      RouterFactory factory = RouterFactory.newInstance();
-      MessageRouter router = factory.create(step);
-    return templates;
-  }
-  */ 
   public StorageJobLogger getLogger() {
     return logger;
   }
@@ -126,84 +82,23 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     this.logger = logger;
   }
 
-  /* 
-  public XMLReader createTransformChain(boolean split) throws ParserConfigurationException,
-      SAXException, TransformerConfigurationException, UnsupportedEncodingException {
-        // Set up to read the input file
-        SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
-        SAXParser parser = spf.newSAXParser();
-        XMLReader reader = parser.getXMLReader();
-        // If split mode, we are just interested in a reader. The transformation is done in transformNode();
-        if (split)
-          return reader;
-        XMLFilter filter;
-        XMLReader parent = reader;
-        int index = 0;
-        while (templates != null && index < templates.length) {
-          filter = stf.newXMLFilter(templates[index]);
-          filter.setParent(parent);
-          parent = filter;
-          index++;
-        }
-        return parent;
-      }
-
-  private void debugSource(Source xmlSource) {
-    if (debug) {
-        logger.debug("Transform xml ");
-        StreamResult debugOut = new StreamResult(System.out);
-        try {
-          stf.newTransformer().transform(xmlSource, debugOut);
-  
-        } catch (Exception e) {
-          logger.debug("Unable to print XML: " + e.getMessage());
-        }
-    }
-  }
-
-  private void debugSource(Node xml) {
-    debugSource(new DOMSource(xml));
-  }
- */
-
-  /*
-  private Source transformNode(Source xmlSource) throws TransformerException {
-    Transformer transformer;
-    if (messageRouters == null)
-      return xmlSource;
-    for (MessageRouter router: messageRouters) {
-      transformer = template.newTransformer();
-      DOMResult result = new DOMResult();
-      debugSource(xmlSource);
-      transformer.transform(xmlSource, result);
-      debugSource(result.getNode());
-      
-      if (result.getNode() == null) {
-        logger.warn("transformNode: No Node found");
-        xmlSource = new DOMSource();
-      } else
-        xmlSource = new DOMSource(result.getNode());
-    }
-    return xmlSource;
-  }  
-  */  
   protected RecordStorage setupTransformation(RecordStorage storage) {
     Harvestable resource = getHarvestable(); 
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
       boolean split = (splitSize > 0 && splitDepth > 0);
-      XMLReader xmlReader = null;
       try {
+	XMLReader xmlReader = null;
 	xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
 	if (split) {
 	  // TODO check if the existing one exists and is alive. 
 	  if (streamStorage == null || streamStorage.isClosed() == true) {
 	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage()), splitDepth, splitSize);
 	    xmlReader.setContentHandler(splitHandler);
-	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
+	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, this);
 	  }
 	  return streamStorage;
 	}
-	return new TransformationChainRecordStorageProxy(storage, xmlReader, storage.getContentHandler(), logger);
+	return new TransformationChainRecordStorageProxy(storage, xmlReader, this);
 
       } catch (Exception e) {
 	e.printStackTrace();
