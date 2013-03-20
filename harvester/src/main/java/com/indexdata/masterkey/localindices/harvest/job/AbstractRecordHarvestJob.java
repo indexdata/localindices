@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerConfigurationException;
 
 import org.xml.sax.XMLReader;
@@ -17,7 +18,6 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
-import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
@@ -34,7 +34,6 @@ import com.indexdata.xml.filter.SplitContentHandler;
 public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
   protected StorageJobLogger logger;
-  protected MessageRouter messageRouters[];
   protected String error;
   boolean debug = false; 
   boolean useParallel =  false;
@@ -196,7 +195,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       boolean split = (splitSize > 0 && splitDepth > 0);
       XMLReader xmlReader = null;
       try {
-	//xmlReader = createTransformChain(split);
+	xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
 	if (split) {
 	  // TODO check if the existing one exists and is alive. 
 	  if (streamStorage == null || streamStorage.isClosed() == true) {
