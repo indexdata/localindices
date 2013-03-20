@@ -194,13 +194,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  int count = list.getLength();
 	  for (int index = 0; index < count; index++) {
 	    Node node = list.item(index);
-	    Record record = convert(node);
+	    Record record = createRecord(node);
 	    if (record.isDeleted())
 	      getStorage().delete(record.getId());
 	    else
 	      getStorage().add(record);
-	      
-	    storeRecord(record);
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (TransformerException e) {
@@ -227,34 +225,14 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().databaseEnd();
   }
 
-  private void storeRecord(Record record) {
-    if (record != null) {
-      if (isDelete(record))
-	getStorage().delete(record.getId());
-      else
-	getStorage().add(record);
-    }
-  }
-
-  // TODO Fix: stupid name.  
-  private RecordDOMImpl convert(Node node) throws TransformerException 
+  private RecordDOMImpl createRecord(Node node) throws TransformerException 
   {
-    /*
-    NodeList list = HarvesterVerb.getNodeList(node, "//oai20:record/oai20:header");
-    //Node identifier = findChildNode(node); 
-    int count = list.getLength();
-    */
-    String id = HarvesterVerb.getSingleString(node, "oai20:record/oai20:header/oai20:identifier/text()");
-    String isDeleted = HarvesterVerb.getSingleString(node, "/record[@status]"); 
+    String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
+    String isDeleted = HarvesterVerb.getSingleString(node, "attribute::status"); 
     RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node);
     if ("deleted".equalsIgnoreCase(isDeleted)) 
       record.setDeleted(true);
     return record;
-  }
-
-  private boolean isDelete(Record node) {
-    // TODO Implement
-    return false;
   }
 
   private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
