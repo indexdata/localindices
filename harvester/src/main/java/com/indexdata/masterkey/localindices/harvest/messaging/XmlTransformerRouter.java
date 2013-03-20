@@ -1,6 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
-import java.io.StringBufferInputStream;
+import java.io.ByteArrayInputStream;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -9,20 +9,21 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.ErrorMessage;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
 import com.indexdata.xml.factory.XmlFactory;
 
-@SuppressWarnings({ "rawtypes", "deprecation" })
+@SuppressWarnings({ "rawtypes" })
 public class XmlTransformerRouter implements MessageRouter {
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
@@ -32,10 +33,15 @@ public class XmlTransformerRouter implements MessageRouter {
   private Transformer transformer;
 
   private boolean running = true;
-  Logger logger = Logger.getLogger(getClass());
+  RecordHarvestJob job;
+  StorageJobLogger logger;
+  
   XmlTransformationStep step; 
+  
 
-  public XmlTransformerRouter(TransformationStep step) {
+  public XmlTransformerRouter(TransformationStep step, RecordHarvestJob job) {
+    this.job = job;
+    this.logger = job.getLogger();
     if (step instanceof XmlTransformationStep) {
       this.step = (XmlTransformationStep) step;
     }
@@ -97,7 +103,7 @@ public class XmlTransformerRouter implements MessageRouter {
       xmlSource = new DOMSource(node);
     } else if (take instanceof RecordText) {
       RecordText record = (RecordText) take;
-      xmlSource = new SAXSource(new InputSource(new StringBufferInputStream(record.toText())));
+      xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(record.toText().getBytes())));
     }
     return xmlSource;
   }
