@@ -16,8 +16,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public abstract class JobTester extends TestCase {
 
-  protected Transformation createTransformationFromResources(String [] steps) throws IOException {
+  protected Transformation createTransformationFromResources(String [] steps, boolean runParallel) throws IOException {
     Transformation transformation = new BasicTransformation();
+    transformation.setParallel(runParallel);
     int index = 0; 
     for (String resource : steps) {
       	TransformationStep step = null;
