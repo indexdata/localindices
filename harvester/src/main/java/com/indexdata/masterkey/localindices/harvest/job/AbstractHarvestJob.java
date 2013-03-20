@@ -8,7 +8,6 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.sun.research.ws.wadl.Resource;
 
 /**
  * Specifies the simplest common behaviour of all HarvestJobs that otherwise
