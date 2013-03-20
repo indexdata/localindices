@@ -69,6 +69,31 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 	}
       }
   }
+
+  @Override
+  public void delete(String id) {
+    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null);
+    while (true)
+      try {
+	Record transformed = transformNode(recordDOM);
+	if (transformed != null)
+	  storage.delete(transformed.getId());
+	else {
+	  logger.warn("Record filtered out. " + recordDOM);
+	}
+	break;
+      } catch (InterruptedException e) {
+	e.printStackTrace();
+	try {
+	  error.put(e);
+	} catch (InterruptedException e1) {
+	  logger.error("Record not added to error. " + recordDOM);
+	  e1.printStackTrace();
+	}
+      }
+  }
+
+  
   @Override
   public void commit() throws IOException {
     super.commit();
