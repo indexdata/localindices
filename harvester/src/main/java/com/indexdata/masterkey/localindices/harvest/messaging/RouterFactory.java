@@ -17,13 +17,14 @@ public class RouterFactory {
   StorageJobLogger logger;
   static RouterFactory instance = null; 
 
-  static synchronized RouterFactory newInstance() {
+  public static synchronized RouterFactory newInstance() {
     if (instance == null)
       instance = new RouterFactory();
     return instance;
   }
   
-  MessageRouter create(TransformationStep step) {
+  @SuppressWarnings("rawtypes")
+  public MessageRouter create(TransformationStep step) {
     try {
       if (step instanceof XmlTransformationStep) {
 	return createXmlTransformerRouter((XmlTransformationStep) step);
@@ -46,6 +47,7 @@ public class RouterFactory {
     return null;
   }
 
+  @SuppressWarnings("rawtypes")
   private MessageRouter createXmlTransformerRouter(XmlTransformationStep step) throws TransformerConfigurationException {
     try {
 	logger.debug("Creating Transformer for step: " + step.getName());
