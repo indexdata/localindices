@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import junit.framework.TestCase;
-
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -15,8 +13,10 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
-public class TestOAIRecordHarvestJob extends TestCase {
+public class TestOAIRecordHarvestJob extends JobTester {
 
   String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
@@ -61,13 +61,15 @@ public class TestOAIRecordHarvestJob extends TestCase {
     return job;
   }
 
-  public void testClean10DaysNoBulkHarvestJob() throws IOException {
+  public void testClean10DaysNoBulkHarvestJob() throws IOException, StatusNotImplemented {
     logger.info("Logging testClean10DaysNoBulkHarvestJob");
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc",
 	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
     resource.setId(1l);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+    //TODO check storage
+    checkStorageStatus(recordStorage.getStatus(), 0, 0, 0);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
 
