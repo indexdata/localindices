@@ -82,8 +82,11 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   {
     XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, nsContext);
     try {
-      String id = xpathHelperDelete.evaluate(node, xpathId);
-      this.id = id;
+      if (id == null) {
+	String newid = xpathHelperDelete.evaluate(node, xpathId);
+	if (!"".equals(newid))
+	  this.id = newid;
+      }
     } catch (XPathExpressionException e) {
       e.printStackTrace();
     }
