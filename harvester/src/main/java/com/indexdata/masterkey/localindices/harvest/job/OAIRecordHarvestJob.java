@@ -239,9 +239,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   // TODO Fix: stupid name.  
   private RecordDOMImpl convert(Node node) throws TransformerException 
   {
+    /*
     NodeList list = HarvesterVerb.getNodeList(node, "//oai20:record/oai20:header");
     //Node identifier = findChildNode(node); 
     int count = list.getLength();
+    */
     String id = HarvesterVerb.getSingleString(node, "oai20:record/oai20:header/oai20:identifier/text()");
     String isDeleted = HarvesterVerb.getSingleString(node, "/record[@status]"); 
     RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node);
