@@ -2,30 +2,29 @@ package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.StringBufferInputStream;
 
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.sax.SAXTransformerFactory;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.ErrorMessage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
+import com.indexdata.xml.factory.XmlFactory;
 
 @SuppressWarnings({ "rawtypes", "deprecation" })
 public class XmlTransformerRouter implements MessageRouter {
+  SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
   private MessageConsumer input;
   private MessageProducer output;
@@ -141,6 +140,16 @@ public class XmlTransformerRouter implements MessageRouter {
 
   public void setXmlTransformer(Transformer transformer) {
     this.transformer = transformer;
+  }
+
+  @Override
+  public void onMessage(Object object) {
+    consume(object);
+  }
+
+  @Override
+  public Object take() throws InterruptedException {
+    throw new RuntimeException("Not implemented");
   }
 
 }
