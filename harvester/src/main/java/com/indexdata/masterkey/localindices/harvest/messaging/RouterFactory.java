@@ -12,18 +12,21 @@ import javax.xml.transform.stream.StreamSource;
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.xml.factory.XmlFactory;
 
 
 public class RouterFactory {
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
+  RecordHarvestJob job;
   StorageJobLogger logger;
   static RouterFactory instance = null; 
 
-  public static synchronized RouterFactory newInstance(StorageJobLogger logger) {
+  public static synchronized RouterFactory newInstance(RecordHarvestJob job) {
     instance = new RouterFactory();
-    instance.logger = logger;
+    instance.job = job;
+    instance.logger = job.getLogger();
     return instance;
   }
   
@@ -53,9 +56,8 @@ public class RouterFactory {
   private MessageRouter createXmlTransformerRouter(XmlTransformationStep step) throws TransformerConfigurationException {
     try {
 	logger.debug("Creating Transformer for step: " + step.getName());
-	XmlTransformerRouter router = new XmlTransformerRouter(step);
-	Templates templates = getTemplates(new StreamSource(new CharArrayReader(
-	    step.getScript().toCharArray())));
+	XmlTransformerRouter router = new XmlTransformerRouter(step, job);
+	Templates templates = getTemplates(new StreamSource(new CharArrayReader(step.getScript().toCharArray())));
 	Transformer transformer = templates.newTransformer();
 	router.setXmlTransformer(transformer);
 	return router;
@@ -73,8 +75,8 @@ public class RouterFactory {
 	String className = step.getCustomClass();
 	if (className != null) {
 	  Class<? extends MessageRouter> messageRouterClass = (Class<? extends MessageRouter>) Class.forName(className);
-	  Constructor<? extends MessageRouter> constructor =  messageRouterClass.getConstructor(new Class[] {step.getClass()});
-	  MessageRouter router = constructor.newInstance(step);
+	  Constructor<? extends MessageRouter> constructor =  messageRouterClass.getConstructor(new Class[] {step.getClass(), job.getClass()});
+	  MessageRouter router = constructor.newInstance(step, logger);
 	  return router;
 	}
     } catch (Exception e) {
