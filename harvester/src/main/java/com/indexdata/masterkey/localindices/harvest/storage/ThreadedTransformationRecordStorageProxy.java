@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.xml.transform.TransformerConfigurationException;
 
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
@@ -21,17 +22,19 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   private MessageQueue<Object> result;
   private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
   private Thread lastThread = null;
+  private RecordHarvestJob job; 
   private List<TransformationStep> steps;
   private String databaseID;
   private MessageRouter<Object>[] messageRouters; 
   
   
   public ThreadedTransformationRecordStorageProxy(RecordStorage storage, 
-      	List<TransformationStep> steps, StorageJobLogger logger) throws IOException,
+      	List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
     this.steps = steps;
-    this.logger = logger;
+    this.job = job;
+    this.logger = job.getLogger();
     setupRouters();
   }
 
@@ -40,7 +43,7 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   {
     MessageQueue<Object> current = source; 
     MessageRouter router = null;
-    RouterFactory factory = RouterFactory.newInstance(logger);
+    RouterFactory factory = RouterFactory.newInstance(job);
     if (steps != null) {
       int index = 0;
       messageRouters = new MessageRouter[steps.size()];
