@@ -6,20 +6,24 @@ import java.lang.reflect.Constructor;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.xml.factory.XmlFactory;
+
 
 public class RouterFactory {
+  SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   StorageJobLogger logger;
   static RouterFactory instance = null; 
 
-  public static synchronized RouterFactory newInstance() {
-    if (instance == null)
-      instance = new RouterFactory();
+  public static synchronized RouterFactory newInstance(StorageJobLogger logger) {
+    instance = new RouterFactory();
+    instance.logger = logger;
     return instance;
   }
   
@@ -42,9 +46,7 @@ public class RouterFactory {
 
   private Templates getTemplates(StreamSource source)
       throws TransformerConfigurationException {
-    
-    // return sft.newTemplates(source);
-    return null;
+    return stf.newTemplates(source);
   }
 
   @SuppressWarnings("rawtypes")
@@ -56,21 +58,20 @@ public class RouterFactory {
 	    step.getScript().toCharArray())));
 	Transformer transformer = templates.newTransformer();
 	router.setXmlTransformer(transformer);
-	
+	return router;
     } catch (TransformerConfigurationException te) {
 	logger.error("Error creating template for step: " + step.getName()
 	    + ". Message: " + te.getMessage());
 	throw te;
     }
-    return null;
   }  
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private MessageRouter createCustomTransformerRouter(CustomTransformationStep step)  {
     try {
 	logger.debug("Creating CustomTransformer for step: " + step.getName() + ". Custom Class: " + step.getCustomClass());
-	if (step.getCustomClass() != null) {
-	  String className = step.getCustomClass();
+	String className = step.getCustomClass();
+	if (className != null) {
 	  Class<? extends MessageRouter> messageRouterClass = (Class<? extends MessageRouter>) Class.forName(className);
 	  Constructor<? extends MessageRouter> constructor =  messageRouterClass.getConstructor(new Class[] {step.getClass()});
 	  MessageRouter router = constructor.newInstance(step);
