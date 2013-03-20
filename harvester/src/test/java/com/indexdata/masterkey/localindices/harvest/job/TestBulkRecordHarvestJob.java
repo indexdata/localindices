@@ -61,7 +61,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private Transformation createMarc21Transformation() throws IOException {
-    String[] resourceSteps = { "resources/marc21.xsl" , "resources/pz2-create-id.xsl" };
+    String[] resourceSteps = { "class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter", "resources/marc21.xsl" , "class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter", "resources/pz2-create-id.xsl", "class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" };
     return createTransformationFromResources(resourceSteps);
   }
 
@@ -235,17 +235,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
-  private void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
-    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed: " + storageStatus.getDeletes(), 
-		new Long(delete).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed: " + storageStatus.getAdds(), 
-		new Long(add).equals(storageStatus.getAdds()));
-    long totalFound = storageStatus.getTotalRecords();
-    assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
-		new Long(total).equals(totalFound));
-  }
-
   public void testCleanJumpPageGZippedTurboMarcSplitBy100(int number, boolean clear, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, true, true, 2004); 
@@ -297,7 +286,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10020, 10016); 
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10020, 10007); 
   }
 
   
