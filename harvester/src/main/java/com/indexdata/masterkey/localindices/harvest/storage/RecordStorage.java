@@ -19,6 +19,9 @@ public interface RecordStorage extends HarvestStorage {
   Record get(String id);
 
   // void remove(Collection<String> ids);
+  /**
+   * Extend API to also support a Record
+   */
   void delete(String id);
 
   void setLogger(StorageJobLogger logger);
