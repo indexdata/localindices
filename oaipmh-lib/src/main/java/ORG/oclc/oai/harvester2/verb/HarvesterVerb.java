@@ -530,6 +530,21 @@ public abstract class HarvesterVerb {
       }
     }
 
+    public Node getNode(String xpath) throws TransformerException {
+      return getNode(xpath, getDocument());
+    }
+
+    public static Node getNode(String xpath, Node node) throws TransformerException {
+      try {
+	XPathHelper<Node> xpathHelper = new XPathHelper<Node>(XPathConstants.NODE, new OaiPmhNamespaceContext());
+	return xpathHelper.evaluate(node, xpath);
+      } catch (XPathExpressionException e) {
+	String message = "getNumber: XPath Expression Exception: ";
+	logger.error(message + xpath, e);
+	throw new TransformerException(message + xpath, e);
+      }
+    }
+
     public String toString() {
         Source input = new DOMSource(getDocument());
         StringWriter sw = new StringWriter();
