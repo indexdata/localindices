@@ -1,23 +1,26 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.ErrorMessage;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
@@ -34,10 +37,13 @@ public class XmlLoggerRouter implements MessageRouter {
   private String charname = "UTF-8";
   
   private boolean running = true;
-  Logger logger = Logger.getLogger(getClass());
+  HarvestJob job;
+  StorageJobLogger logger;
+  
   CustomTransformationStep step; 
 
-  public XmlLoggerRouter(TransformationStep step) {
+  public XmlLoggerRouter(TransformationStep step, RecordHarvestJob job) {
+    logger = job.getLogger();
     if (step instanceof CustomTransformationStep) {
       this.step = (CustomTransformationStep) step;
       try {
@@ -49,8 +55,9 @@ public class XmlLoggerRouter implements MessageRouter {
     else throw new RuntimeException("Configuration Error: Not a XmlTransformationStep");
   }
 
-  public XmlLoggerRouter(CustomTransformationStep step) {
+  public XmlLoggerRouter(CustomTransformationStep step, RecordHarvestJob job) {
     this.step = step;
+    logger = job.getLogger();
     try {
 	transformer = stf.newTransformer();
     } catch (TransformerConfigurationException e) {
@@ -84,10 +91,11 @@ public class XmlLoggerRouter implements MessageRouter {
       Record record = (Record) take;
       Source xmlSource;
       xmlSource = extractSource(record);
-      DOMResult result = new DOMResult();
+      ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+      StreamResult result = new StreamResult(byteOutput);
       try {
 	transformer.transform(xmlSource, result);
-	logger.info(result.getNode().toString());
+	logger.info(byteOutput.toString());
 	produce(record);
       } catch (Exception e) {
 	logger.error("Failed to put Message on Output Queue.", e);
