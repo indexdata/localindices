@@ -28,8 +28,9 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, StorageJobLogger logger) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
-    setupRouters();
+    this.steps = steps;
     this.logger = logger;
+    setupRouters();
   }
 
   protected Record transformNode(Record record) throws InterruptedException {
@@ -95,7 +96,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   protected void setupRouters() {
     if (steps != null) {
       messageRouters = new MessageRouter[steps.size()];
-      RouterFactory factory = RouterFactory.newInstance();
+      RouterFactory factory = RouterFactory.newInstance(logger);
       int index = 0;
       MessageRouter<Object> previous = null;
       for (TransformationStep step : steps) {
@@ -104,10 +105,12 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 	  source = new ConsumerProxy<Object>(router);
 	if (previous != null)
 	  previous.setOutput(new ConsumerProxy<Object>(router));
-	messageRouters[index] = router;
+	messageRouters[index++] = router;
 	previous = router;
       }
+      previous.setOutput(result);
     }
+    
     if (source == null)
       source = result;
   }
