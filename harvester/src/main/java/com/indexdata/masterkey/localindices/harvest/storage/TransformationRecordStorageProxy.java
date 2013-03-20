@@ -6,7 +6,7 @@ import java.util.List;
 import javax.xml.transform.TransformerConfigurationException;
 
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.ConsumerProxy;
@@ -19,17 +19,18 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   private StorageJobLogger logger;
   private List<TransformationStep> steps;
   
-  private HarvestJob job;
+  private RecordHarvestJob job;
   private MessageRouter<Object>[] messageRouters;
   private MessageProducer<Object> source;
   private MessageQueue<Object> result = new BlockingMessageQueue<Object>();
   private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
   
-  public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, StorageJobLogger logger) throws IOException,
+  public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
     this.steps = steps;
-    this.logger = logger;
+    this.job = job;
+    this.logger = job.getLogger();
     setupRouters();
   }
 
@@ -121,7 +122,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   protected void setupRouters() {
     if (steps != null) {
       messageRouters = new MessageRouter[steps.size()];
-      RouterFactory factory = RouterFactory.newInstance(logger);
+      RouterFactory factory = RouterFactory.newInstance(job);
       int index = 0;
       MessageRouter<Object> previous = null;
       for (TransformationStep step : steps) {
