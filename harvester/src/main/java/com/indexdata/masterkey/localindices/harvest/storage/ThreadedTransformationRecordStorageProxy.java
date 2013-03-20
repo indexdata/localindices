@@ -40,7 +40,7 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   {
     MessageQueue<Object> current = source; 
     MessageRouter router = null;
-    RouterFactory factory = RouterFactory.newInstance();
+    RouterFactory factory = RouterFactory.newInstance(logger);
     if (steps != null) {
       int index = 0;
       messageRouters = new MessageRouter[steps.size()];
