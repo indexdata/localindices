@@ -43,19 +43,19 @@ public class TestConnectorPlatform extends JobTester {
     return connector;
   }
   
-  private Transformation createPzTransformation() throws IOException {
+  private Transformation createPzTransformation(boolean inParallel) throws IOException {
     String[] resourceSteps = { "resources/pz2-url2id.xsl"};
-    return createTransformationFromResources(resourceSteps);
+    return createTransformationFromResources(resourceSteps, inParallel);
   }
 
-  private HarvestConnectorResource createResource(String connector) throws IOException {
+  private HarvestConnectorResource createResource(String connector, boolean inParallel) throws IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setId(1l);
     resource.setUrl(cfServer);
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource(connector));
     resource.setCurrentStatus("NEW");
-    resource.setTransformation(createPzTransformation());
+    resource.setTransformation(createPzTransformation(inParallel));
     return resource;
   }
 
@@ -103,7 +103,7 @@ public class TestConnectorPlatform extends JobTester {
   }
 
   public void testConnectorHarvestJob() throws ParseException, IOException {
-    HarvestConnectorResource resource = createResource("resources/id.cf");
+    HarvestConnectorResource resource = createResource("resources/id.cf", false);
     RecordStorage recordStorage = createStorage(resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus status = job.getStatus();
