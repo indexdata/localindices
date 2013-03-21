@@ -32,9 +32,9 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pzType = pzPrefix + ":" + typeName;
   private Node node = null;
   private NamespaceContext nsContext = new PzNamespaceContext();
-  private String xpathNodes = "/pz:collection/pz:record/pz:metadata";
+  private String xpathNodes = "//pz:metadata";
   private String xpathDelete = "//pz:record[@delete]";
-  private String xpathId = "//pz:record/pz:metadata[@type='id']";
+  private String xpathId = "//pz:metadata[@type='id']";
   
   public RecordDOMImpl(Record record) {
     if (record instanceof RecordDOM)
@@ -93,6 +93,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   }
 
   public Map<String, Collection<Serializable>> getValues() {
+    if (node == null) 
+      return valueMap;
     valueMap.clear();
     try {
       XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext); 
@@ -164,7 +166,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     Element recordElement = doc.createElementNS(pz2Namespace, pzRecord);
     doc.appendChild(recordElement);
     
-    Map<String, Collection<Serializable>> keyValues = getValues();
+    Map<String, Collection<Serializable>> keyValues = valueMap;
     for (Object obj : keyValues.keySet()) {
       	if (obj instanceof String) {
       	  String key = (String) obj;
