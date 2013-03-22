@@ -33,7 +33,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private Node node = null;
   private NamespaceContext nsContext = new PzNamespaceContext();
   private String xpathNodes = "//pz:metadata";
-  private String xpathDelete = "//pz:record[@delete]";
+  private String xpathStatus = "//pz:metadata[@type='status']";
   private String xpathId = "//pz:metadata[@type='id']";
   
   public RecordDOMImpl(Record record) {
@@ -61,18 +61,18 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
 
   public void setNode(Node node) {
     this.node = node;
-    super.getValues().clear();
+//    valueMap 
     extractDelete();
     extractId();
   }
 
   protected void extractDelete() {
-    XPathHelper<Boolean> xpathHelperDelete = new XPathHelper<Boolean>(XPathConstants.BOOLEAN, nsContext);
-    Boolean delete;
+    XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(XPathConstants.STRING, nsContext);
+    String delete;
     try {
-      delete = xpathHelperDelete.evaluate(node, xpathDelete);
-      if (delete != null)
-  	this.isDeleted = delete;
+      delete = xpathHelperDelete.evaluate(node, xpathStatus);
+      if (delete != null && "deleted".equalsIgnoreCase(delete))
+  	this.isDeleted = true;
     } catch (XPathExpressionException e) {
       e.printStackTrace();
     }
