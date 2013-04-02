@@ -1,30 +1,8 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-
-import junit.framework.TestCase;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLFilter;
-import org.xml.sax.XMLReader;
-
-import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -32,7 +10,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
-public class TestBulkRecordHarvestJob extends TestCase {
+public class TestBulkRecordHarvestJob extends JobTester {
 
   private static final int NO_RECORDS = 1002;
   //String resourceMarc0 = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
@@ -50,6 +28,10 @@ public class TestBulkRecordHarvestJob extends TestCase {
   String resourceOIAster = "http://maki.indexdata.com/marcdata/meta/oaister/harvester-index.html";
   String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
   String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
+  String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
+  String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
+  //String resourceMarcXmlZIPMulti = "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
+  String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
   RecordStorage recordStorage;
 
@@ -69,52 +51,6 @@ public class TestBulkRecordHarvestJob extends TestCase {
     return resource;
   }
   
-  public void TestMarc21TransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
-    testSAXTransformation("resources/marcxml.xml", "resources/marc21.xsl");
-  }
-
-  public void TestTurboMarcTransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
-    testSAXTransformation("resources/tmarc.xml", "resources/tmarc.xsl");
-  }
-
-  private void testSAXTransformation(String xml, String xsl) throws ParserConfigurationException, SAXException, TransformerException {
-    SAXTransformerFactory transformerfactory = (SAXTransformerFactory) TransformerFactory.newInstance(); 
-    SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-    XMLReader reader = parserFactory.newSAXParser().getXMLReader();
-    XMLFilter filter = transformerfactory.newXMLFilter(new SAXSource(new InputSource(getClass().getResourceAsStream(xsl))));
-    filter.setParent(reader);
-    Transformer transformer = transformerfactory.newTransformer();
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    SAXSource xmlSource = new SAXSource(filter, new InputSource(getClass().getResourceAsStream(xml)));
-    transformer.transform(xmlSource, new StreamResult(System.out));
-  }
-  
-  private Transformation createTransformationFromResources(String [] steps) throws IOException {
-    Transformation transformation = new BasicTransformation();
-    int index = 0; 
-    for (String resource : steps) {
-      	InputStream input = getClass().getResourceAsStream(resource);
-      	
-      	assertTrue(input != null);
-      	byte buf[] = new byte[4096];
-      	ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-      	int length = 0;
-      	@SuppressWarnings("unused")
-	int total = 0;
-      	while ((length = input.read(buf)) != -1) { 
-      	  byteArray.write(buf, 0, length);
-      	  total += length;
-      	}
-      	//System.out.println("Step " + resource  + " length: " + total );
-      	String template = byteArray.toString("UTF-8");
-      	TransformationStep step = new BasicTransformationStep("Step " + index, "Test", template);
-      	transformation.addStep(step, index++);
-    }
-    transformation.setId(1l);
-    transformation.setName("Test");
-    return transformation;
-  }
-
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, XmlBulkResource resource)
       throws IOException {
     AbstractRecordHarvestJob job = new BulkRecordHarvestJob(resource, null);
@@ -125,13 +61,32 @@ public class TestBulkRecordHarvestJob extends TestCase {
   }
 
   private Transformation createMarc21Transformation() throws IOException {
-    String[] resourceSteps = { "resources/marc21.xsl"};
+    String[] resourceSteps = { "resources/marc21.xsl" , "resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps);
   }
 
   private Transformation createTurboMarcTransformation() throws IOException {
-    String[] resourceSteps = { "resources/tmarc.xsl"};
+    String[] resourceSteps = { "resources/tmarc.xsl", "resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps);
+  }
+
+  private RecordStorage createStorage(boolean clear, XmlBulkResource resource, RecordStorage recordStorage)
+      throws IOException, StatusNotImplemented {
+    
+    // To be sure we have the committed records available
+    if (recordStorage instanceof SolrRecordStorage) 
+      ((SolrRecordStorage) recordStorage).setWaitSearcher(true);
+    
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
+    if (clear) { 
+      purgeStorage(recordStorage);
+    }
+    return recordStorage;
+  }
+
+  private RecordStorage createStorage(boolean clear, XmlBulkResource resource)
+      throws IOException, StatusNotImplemented {
+    return createStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
   }
 
   private void testMarc21SplitByNumber(int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
@@ -139,11 +94,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation());
     
-    RecordStorage recordStorage = new SolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clear) { 
-      purgeStorage(recordStorage);
-    }
+    RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
@@ -181,11 +132,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc; charset=MARC8", "application/tmarc", 0, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clean)
-      purgeStorage(recordStorage);
-    
+    RecordStorage recordStorage = createStorage(clean, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
@@ -212,10 +159,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clean) 
-      purgeStorage(recordStorage);
+
+    RecordStorage recordStorage = createStorage(clean, resource);
       
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     
@@ -250,11 +195,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
 	number, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
 
-    if (clear) 
-      recordStorage.purge(true);
+    RecordStorage recordStorage = createStorage(clear, resource);
 
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -285,10 +227,8 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource( url, "application/marc; charset=MARC-8", "application/tmarc", 1, 100, overwrite);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
-    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    if (clear)
-      purgeStorage(recordStorage);
+
+    RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
@@ -297,36 +237,77 @@ public class TestBulkRecordHarvestJob extends TestCase {
 
   private void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed " + storageStatus.getDeletes(), 
+    assertTrue("Deleted records failed: " + storageStatus.getDeletes(), 
 		new Long(delete).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed " + storageStatus.getAdds(), 
+    assertTrue("Add records failed: " + storageStatus.getAdds(), 
 		new Long(add).equals(storageStatus.getAdds()));
-    assertTrue("Total records failed" + storageStatus.getTotalRecords(), 
-		new Long(total).equals(storageStatus.getTotalRecords()));
+    long totalFound = storageStatus.getTotalRecords();
+    assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
+		new Long(total).equals(totalFound));
   }
 
-  public void testCleanJumpPageGZippedTurboMarcSplitBy(int number, boolean clear, boolean overwrite, 
+  public void testCleanJumpPageGZippedTurboMarcSplitBy100(int number, boolean clear, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, true, true, 2004); 
   }
 
-  public void testMultiGZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+  public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
     testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
   }
   
-  public void testMulti2GZippedTurboMarcSplitBy() throws IOException, StatusNotImplemented {
+  public void testMulti2GZippedTurboMarcThreeJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, true, true, 1002); 
     testUrlGZippedTurboMarc(resourceMarc1, false, false, 2004); 
     testUrlGZippedTurboMarc(resourceMarc2, false, false, 3006); 
   }
+  
+  private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(zipMarcUrl, "application/marc", null, 1, 1, overwrite);
+    resource.setId(2l);
+    resource.setTransformation(createMarc21Transformation());
+
+    RecordStorage recordStorage = createStorage(clean, resource);
+      
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    
+    checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
+    XmlBulkResource resource = createResource(zipMarcUrl, null, null, 1, 1, overwrite);
+    resource.setId(2l);
+    resource.setTransformation(createMarc21Transformation());
+
+    RecordStorage recordStorage = createStorage(clean, resource);
+      
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    
+    checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+  }
+
+  public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarc21SplitByNumber(resourceMarcZIP, true, true, 1002); 
+  }
+
+  public void testCleanMarc21ZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarc21SplitByNumber(resourceMarcZIPMulti, true, true, 1000); 
+  }
+
+  public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, true, true, 10016); 
+  }
+
   
   /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -341,7 +322,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 
@@ -356,7 +337,7 @@ public class TestBulkRecordHarvestJob extends TestCase {
     XmlBulkResource resource = createResource(resourceLoCMarc8gz, "application/marc; charset=MARC8", "application/tmarc", 1, 1000);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation());
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 

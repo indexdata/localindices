@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
 /**
@@ -19,6 +20,7 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   private HarvestStorage storage;
   private HarvestStatus status;
   private boolean die;
+  private Thread jobThread;
 
   protected final void setStatus(HarvestStatus status) {
     this.status = status;
@@ -33,9 +35,15 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   }
 
   @Override
-  public final synchronized void kill() {
+  public synchronized void kill() {
+    if (status == HarvestStatus.RUNNING) {
+      status = HarvestStatus.KILLED;
+    }
     die = true;
+    if (jobThread != null)
+      jobThread.interrupt();
   }
+
 
   @Override
   public final HarvestStatus getStatus() {
@@ -74,5 +82,16 @@ public abstract class AbstractHarvestJob implements HarvestJob {
 
   @Override
   public abstract void run();
+
+  protected abstract Harvestable getHarvestable();
+
+  public Thread getJobThread() {
+    return jobThread;
+  }
+
+  public void setJobThread(Thread jobThread) {
+    this.jobThread = jobThread;
+  }
+
 
 }

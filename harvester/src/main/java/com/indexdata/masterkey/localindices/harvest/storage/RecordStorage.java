@@ -24,4 +24,7 @@ public interface RecordStorage extends HarvestStorage {
   void setLogger(StorageJobLogger logger);
   
   StorageStatus getStatus() throws StatusNotImplemented;
+  
+  // SAX ContentHandler
+  DatabaseContenthandler getContentHandler();
 }

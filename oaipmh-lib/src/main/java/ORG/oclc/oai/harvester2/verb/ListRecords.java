@@ -16,15 +16,19 @@
 
 package ORG.oclc.oai.harvester2.verb;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URLEncoder;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 /**
  * This class represents an ListRecords response on either the server or
@@ -88,7 +92,19 @@ public class ListRecords extends HarvesterVerb {
             throw new NoSuchFieldException(schemaLocation);
         }
     }
-    
+
+    public NodeList getRecords()
+    throws TransformerException, NoSuchFieldException {
+        String schemaLocation = getSchemaLocation();
+        if (schemaLocation.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
+            return getNodeList("/oai20:OAI-PMH/oai20:ListRecords/oai20:record");
+        } else if (schemaLocation.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
+            return getNodeList("/oai11_ListRecords:ListRecords");
+        } else {
+            throw new NoSuchFieldException(schemaLocation);
+        }
+    }
+
     /**
      * Construct the query portion of the http request
      *

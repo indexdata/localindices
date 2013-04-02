@@ -22,6 +22,7 @@ import org.w3c.dom.NodeList;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 
@@ -274,5 +275,10 @@ public class OAIHarvestJob extends AbstractHarvestJob {
   public OutputStream getOutputStream() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
   }
 }

@@ -7,6 +7,8 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.CharArrayReader;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -14,11 +16,20 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.w3c.dom.Node;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
@@ -26,8 +37,14 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.xml.factory.XmlFactory;
+import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
  * Specifies the simplest common behaviour of all HarvestJobs that otherwise
@@ -35,75 +52,48 @@ import com.indexdata.xml.factory.XmlFactory;
  * 
  * @author jakub
  */
-public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
-  private boolean updated;
+public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
-  private HarvestStatus status;
-  private boolean die;
   //protected TransformerFactory stf = XmlFactory.newTransformerInstance();
   protected SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   protected StorageJobLogger logger;
   protected Templates templates[];
-  protected String error; 
+  protected String error;
+  boolean debug = false; 
+  boolean useParallel =  true;
+  SplitTransformationChainRecordStorageProxy  streamStorage;
+  RecordStorage  transformationStorage;
+  protected int splitSize = 1;
+  protected int splitDepth = 1;
 
-  protected final void setStatus(HarvestStatus status) {
-    this.status = status;
-  }
-
-  protected final void markForUpdate() {
-    updated = true;
-  }
-
-  @Override
-  public synchronized boolean isKillSent() {
-    return die;
-  }
-
-  @Override
-  public final synchronized void kill() {
-    if (status == HarvestStatus.RUNNING) {
-      status = HarvestStatus.KILLED;
-    }
-    die = true;
-  }
-
-  @Override
-  public final HarvestStatus getStatus() {
-    return status;
-  }
-
+  
   @Override
   public final void setStorage(RecordStorage storage) {
     this.storage = storage;
   }
 
   @Override
-  public final RecordStorage getStorage() {
-    return this.storage;
-  }
-
-  @Override
-  public final synchronized void finishReceived() {
-    if (status != null && status.equals(HarvestStatus.FINISHED)) {
-      status = HarvestStatus.OK;
+  public synchronized RecordStorage getStorage() {
+    if (transformationStorage == null) {
+      try {
+	if (useParallel )
+	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, templates,
+	    logger);
+	else
+	  transformationStorage = new TransformationRecordStorageProxy(storage, templates,
+		    logger);
+	  
+      } catch (TransformerConfigurationException e) {
+	e.printStackTrace();
+      } catch (IOException e) {
+	e.printStackTrace();
+      }
     }
+    return transformationStorage;
   }
 
   @Override
   public abstract String getMessage();
-
-  @Override
-  public final boolean isUpdated() {
-    return updated;
-  }
-
-  @Override
-  public final void clearUpdated() {
-    updated = false;
-  }
-
-  @Override
-  public abstract void run();
 
   @SuppressWarnings("unused")
   private Templates[] getTemplates(String[] stringTemplates)
@@ -211,5 +201,94 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       logger.error(error);
       setStatus(HarvestStatus.ERROR);
     }
+  }
+
+  private void debugSource(Source xmlSource) {
+    if (debug) {
+        logger.debug("Transform xml ");
+        StreamResult debugOut = new StreamResult(System.out);
+        try {
+          stf.newTransformer().transform(xmlSource, debugOut);
+  
+        } catch (Exception e) {
+          logger.debug("Unable to print XML: " + e.getMessage());
+        }
+    }
+  }
+
+  private void debugSource(Node xml) {
+    debugSource(new DOMSource(xml));
+  }
+
+  private Source transformNode(Source xmlSource) throws TransformerException {
+    Transformer transformer;
+    if (templates == null)
+      return xmlSource;
+    for (Templates template : templates) {
+      transformer = template.newTransformer();
+      DOMResult result = new DOMResult();
+      debugSource(xmlSource);
+      transformer.transform(xmlSource, result);
+      debugSource(result.getNode());
+      
+      if (result.getNode() == null) {
+        logger.warn("transformNode: No Node found");
+        xmlSource = new DOMSource();
+      } else
+        xmlSource = new DOMSource(result.getNode());
+    }
+    return xmlSource;
   }  
+  
+  @SuppressWarnings("unused")
+  private Record convert(Source source) throws TransformerException {
+    if (source != null) {
+      ContentHandler pzContentHandler = getStorage().getContentHandler();
+      SAXResult outputTarget = new SAXResult(pzContentHandler);
+      Transformer transformer = stf.newTransformer();
+      transformer.transform(source, outputTarget);
+    }    
+    return null;
+  }
+  
+  protected RecordStorage setupTransformation(RecordStorage storage) {
+    Harvestable resource = getHarvestable(); 
+    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
+      boolean split = (splitSize > 0 && splitDepth > 0);
+      XMLReader xmlReader;
+      try {
+	xmlReader = createTransformChain(split);
+	if (split) {
+	  // TODO check if the existing one exists and is alive. 
+	  if (streamStorage == null || streamStorage.isClosed() == true) {
+	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage()), splitDepth, splitSize);
+	    xmlReader.setContentHandler(splitHandler);
+	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, logger);
+	  }
+	  return streamStorage;
+	}
+	return new TransformationChainRecordStorageProxy(storage, xmlReader, storage.getContentHandler(), logger);
+
+      } catch (Exception e) {
+	e.printStackTrace();
+	logger.error(e.getMessage());
+      }
+    }
+    logger.warn("No Transformation Proxy configured.");
+    return storage;
+  }
+
+  public OutputStream getOutputStream() 
+  {
+    // TODO build in logic only to return new Split proxy when output stream has been close.
+    
+    // Currently, the client MUST only called getOutputStream once per XML it wants to parse and split
+    // So multiple XML files can be read by calling getOutputStream again, but also leave it open for a bad client 
+    // to misuse this call. This could be avoided by requiring the client to call close on stream between XML files, 
+    // intercept the close call and null transformationStorage, but reuse otherwise.
+
+    // Though, each thread needs it's own 
+
+    return setupTransformation(getStorage()).getOutputStream();
+  }
 }

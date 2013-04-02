@@ -20,13 +20,21 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   private Thread thread = null;
   private TransformerException transformException = null;
   private StorageJobLogger logger; 
+  private boolean closed = false;
   
-  public SplitTransformationChainRecordStorageProxy(final RecordStorage storage, final XMLReader xmlFilter, final StorageJobLogger logger) 
+  public SplitTransformationChainRecordStorageProxy(RecordStorage storage, final XMLReader xmlFilter, final StorageJobLogger logger) 
   	throws IOException, TransformerConfigurationException {
-    this.logger = logger; 
+    this.logger = logger;
+    this.
     setTarget(storage);
     input = new PipedInputStream();
-    output = new PipedOutputStream(input);
+    output = new PipedOutputStream(input) {
+
+      	public void close() throws IOException {
+      	  setClosed(true);
+      	  super.close();
+      	}
+    };
     thread = new Thread(new Runnable() {
       public void run() {
 	processDataFromInputStream(input);
@@ -35,8 +43,6 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
       private void processDataFromInputStream(PipedInputStream input) {
 	try {
 	  InputSource source = new InputSource(input);
-	  // TODO Add Split XML Reader (so a stream of multiple XML documents will be parsed by multiple xmlFilter.parse()
-	  // which sadly means I need to buffer the whole thing. 
 	  xmlFilter.parse(source);
 	} catch (IOException ioe) {
 	  transformException = new TransformerException("IO Error while parsing/transforming: "
@@ -91,6 +97,19 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
     return storage.getStatus();
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return storage.getContentHandler();
+  }
+
+  public boolean isClosed() {
+    return closed;
+  }
+
+  public void setClosed(boolean closed) {
+    this.closed = closed;
   }
 
 }

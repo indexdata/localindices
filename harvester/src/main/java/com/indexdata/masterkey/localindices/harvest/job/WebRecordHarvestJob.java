@@ -23,6 +23,7 @@ import com.indexdata.masterkey.localindices.crawl.CrawlThread;
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
@@ -442,6 +443,11 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     if (finalOutputStream  == null) 
       finalOutputStream = setupTransformation(getStorage()).getOutputStream();
     return finalOutputStream;
+  }
+
+  @Override
+  protected Harvestable getHarvestable() {
+    return resource;
   }
 } // class WebHarvestJob
 

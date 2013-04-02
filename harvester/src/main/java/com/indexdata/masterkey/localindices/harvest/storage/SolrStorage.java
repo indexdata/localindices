@@ -43,6 +43,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
  * method so it can be run on the command line.
  * 
  */
+@SuppressWarnings("deprecation")
 public class SolrStorage implements HarvestStorage {
   public String POST_ENCODING = "UTF-8";
   public String VERSION_OF_THIS_TOOL = "1.2";
@@ -54,7 +55,7 @@ public class SolrStorage implements HarvestStorage {
   protected Collection<SolrInputDocument> documentList = null;
   private boolean override = false;
   String storageId = "";  
-  SolrStorageStatus storageStatus;
+  protected SolrStorageStatus storageStatus;
   String databaseField = "database:";
   
   public SolrStorage(Harvestable harvestable) {
@@ -69,7 +70,6 @@ public class SolrStorage implements HarvestStorage {
     init();
   }
 
-  @SuppressWarnings("deprecation")
   public void init() {
     try {
       Storage storage = null;

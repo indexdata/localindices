@@ -113,4 +113,9 @@ public class ConsoleRecordStorage implements RecordStorage {
   public StorageStatus getStatus()  {
     return new SimpleStorageStatus(added, deleted, committed);
   }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, database);
+  }
 }

@@ -34,19 +34,12 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   //private boolean committed;
   private Date transactionId;
   private boolean delayedPurge = true;
+  private boolean waitSearcher = false;
   private boolean isPurged;
   private String transactionIdField = "solrLastModified";
-  SolrStorageStatus storageStatus;
 
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
-    try {
-      storageStatus = new SolrStorageStatus(url, databaseField + ":" + harvestable.getId());
-    } catch (MalformedURLException e) {
-      // This would already have been thrown in super. 
-      e.printStackTrace();
-    }
-
   }
 
   @Override
@@ -63,9 +56,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (delayedPurge && isPurged) {
 	purgeByTransactionId(false);
       }
-      logger.info("Committing added " + storageStatus.getAdds() + " and deleted " + storageStatus.getOutstandingDeletes() + " records to database " + database);
+      logger.info("Committing " + storageStatus.getOutstandingAdds() + " added and " + storageStatus.getOutstandingDeletes() + " deleted records to database " + database);
       // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
-      UpdateResponse response = server.commit(true, false);
+      UpdateResponse response = server.commit(true, waitSearcher);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
       else	
@@ -159,10 +152,18 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
 
   protected SolrInputDocument createDocument(Record record) {
+    
     SolrInputDocument document = createDocument(record.getValues());
-    if (idField != null)
-      document.setField(idField, record.getId());
-
+    if (idField != null) {
+      // TODO prioritize Record.getId() vs "id" after transformation
+      if (record.getId() != null)
+	document.setField(idField, database + "-" + record.getId());
+      else if (record.getValues().get(idField) != null) {
+	document.setField(idField, database + record.getValues().get(idField).toString());
+      }
+      else 
+	logger.error("Failed to get Record Id for record: " + record);
+    }
     if (databaseField != null)
       document.setField(databaseField, database);
     
@@ -302,6 +303,19 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public StorageStatus getStatus()  {
     return storageStatus;
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, database);
+  }
+
+  public boolean isWaitSearcher() {
+    return waitSearcher;
+  }
+
+  public void setWaitSearcher(boolean waitSearcher) {
+    this.waitSearcher = waitSearcher;
   }
 
 }

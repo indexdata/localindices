@@ -26,11 +26,12 @@
 			<h:outputText value=", " />
 			<h:commandLink styleClass="navigation" value="XML/MARC bulk"
 				action="#{resourceController.prepareXmlBulkResourceToAdd}" />
-<!-- 
+             <h:outputText value=", "/>
+            <h:commandLink styleClass="navigation" value="Connector" 
+                action="#{resourceController.prepareConnectorResourceToAdd}" />       
              <h:outputText value=", "/>
             <h:commandLink styleClass="navigation" value="WebCrawl" 
                 action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
- -->
 		</h:form>
 		<h:form>
 			<div id="pager">

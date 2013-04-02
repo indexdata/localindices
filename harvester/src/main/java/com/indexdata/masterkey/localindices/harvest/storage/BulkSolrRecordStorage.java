@@ -24,8 +24,13 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   synchronized public void add(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
-    if (record.getId() != null)
-	docs.add(createDocument(record));
+    if (record.getValues().get("id") != null || record.getId() != null) { 
+      	SolrInputDocument document = createDocument(record);
+      	if (document != null)
+      	  docs.add(document);
+      	else
+      	  logger.warn( "Failed to convert Record to SolrDocument. Not adding: " + record);
+    }
     else
       	logger.warn( "No Id on Record. Not adding: " + record);
     if (limit != null && docs.size() >= limit)
@@ -59,7 +64,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       } catch (SolrException ste) {
 	logger.error("Solr Exception while adding documents. Outstanding adds: " + no_docs
 	    + ". Deletes: " + deleteIds.size() , ste);
-	// TODO add docs to error queue
+	// TODO add documents to error queue
 	if (retry == 0) {
 	  docs = new LinkedList<SolrInputDocument>();
 	  throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage(),

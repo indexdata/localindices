@@ -3,18 +3,18 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.Locator2;
 
-public class Pz2SolrRecordContentHandler implements ContentHandler {
+public class Pz2SolrRecordContentHandler implements DatabaseContenthandler {
 
   RecordStorage store;
   private RecordImpl record = null;
@@ -24,20 +24,20 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   private boolean inHeader = false;
   private boolean inMetadata = false;
   private Stack<StringBuffer> textBuffers = new Stack<StringBuffer>();
-  private String databaseId;
   private String type;
-  @SuppressWarnings("unused")
   private Logger logger = Logger.getLogger(this.getClass());
+  @SuppressWarnings("unused")
+  private String encoding = "UTF-8";
+  private Locator2 locator;
+  private String mergekey = "author;title";
   
   public Pz2SolrRecordContentHandler(RecordStorage storage, String database) {
     store = storage;
-    databaseId = database;
   }
 
-    @SuppressWarnings("unused")
-    private String encoding = "UTF-8";
-    private Locator2 locator;
-    
+  public void setDatabaseIdentifier(String id) {
+  }
+  
     @Override
     public void setDocumentLocator(Locator locator) {
         if (locator instanceof Locator2) {
@@ -79,13 +79,13 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
       inMetadata = true;
       keyValues = new HashMap<String, Collection<Serializable>>();
       record = new RecordImpl(keyValues);
-      record.setDatabase(databaseId);
+      // record.setDatabase(databaseId);
     }
     if (record == null && localName.equals("delete")) {
       inHeader = true;
       record = new RecordImpl();
-      record.setDatabase(databaseId);
-      record.setId(databaseId + "-" + getAttributeValue(atts, "id"));
+      // record.setDatabase(databaseId);
+      record.setId(getAttributeValue(atts, "id"));
     }
     if (inMetadata && (qName.equals("pz:metadata") || localName.equals("metadata"))) {
       type = getAttributeValue(atts, "type");
@@ -104,22 +104,29 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (record != null) {
       if (inHeader && localName.equals("identifier")) {
-	record.setId(databaseId + "-" + currentText.toString());
+	record.setId(/* databaseId + "-" + */ currentText.toString());
       }
       if (localName.equals("header"))
 	inHeader = false;
-      if (localName.equals("record"))
+      if (localName.equals("record")) {
+	if (record.getId() == null) {
+	  // TODO generate a "merge record id"
+	  // record.setId(genenerateId(record));
+	}
 	inMetadata = false;
+      }
       if (inMetadata && type != null) {
 	Collection<Serializable> values = keyValues.get(type);
-
+	
 	if (values == null) {
 	  values = new LinkedList<Serializable>();
 	  keyValues.put(type, values);
 	}
 	values.add(currentText);
-	if ("id".equals(type))
-	  record.setId(databaseId + "-" + currentText.toString());
+	if ("id".equals(type)) {
+	  // Change: removed the prepeding of database id. This is done in the storage layer (if required) 
+	  record.setId(currentText.toString());
+	}
       }
     }
     /* This should work both with and without OAI-PMH headers */
@@ -131,6 +138,26 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
       record = null;
     }
     currentText = textBuffers.pop();
+  }
+
+  // TODO later
+  @SuppressWarnings("unused")
+  private String genenerateId(RecordImpl record) {
+    String [] keys = mergekey.split(";");
+    Map<String, Collection<Serializable>> values = record.getValues();
+    StringBuffer buffer = new StringBuffer(""); 
+    for (String key : keys) {
+      Collection<Serializable> objectList = values.get(key);
+      if (objectList != null) {
+	Iterator<Serializable> iterator = objectList.iterator();
+	while (iterator.hasNext()) {
+	  Serializable obj = iterator.next();
+	  if (obj != null)
+	    buffer.append("author: " + obj.toString());
+	}
+      }
+    }
+    return null;
   }
 
   @Override
@@ -153,5 +180,15 @@ public class Pz2SolrRecordContentHandler implements ContentHandler {
   @Override
   public void skippedEntity(String name) throws SAXException {
     logger.trace("Skipped Entity: " + name);
+  }
+
+  @Override
+  public void setDatebaseIdentifier(String id) {
+    // databaseId = id;
+  }
+
+  @Override
+  public String getDatebaseIdentifier() {
+    return null ; // databaseId;
   }
 }
