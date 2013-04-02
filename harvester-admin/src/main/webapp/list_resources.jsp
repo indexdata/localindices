@@ -7,8 +7,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 
-<html>
-<head>
+<h:html 
+    xmlns="http://www.w3.org/1999/xhtml" 
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:controls="http://java.sun.com/jsf/composite/controls">
+
+ <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
     <title>Resources</title>
@@ -20,8 +25,8 @@
             <h3>
                 <h:outputText value="Resources" />
             </h3>
-			<h:outputText value="Add new resource: " />
-			<h:commandLink styleClass="navigation" value="OAI-PMH"
+            <h:outputText value="Add new resource: " />
+            <h:commandLink styleClass="navigation" value="OAI-PMH"
 				action="#{resourceController.prepareOaiPmhResourceToAdd}" />
 			<h:outputText value=", " />
 			<h:commandLink styleClass="navigation" value="XML/MARC bulk"
@@ -123,4 +128,4 @@
 		</h:form>
 	</f:view>
 </body>
-</html>
+</h:html>
