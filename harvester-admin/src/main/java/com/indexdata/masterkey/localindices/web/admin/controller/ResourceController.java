@@ -11,9 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.Stack;
 
 import javax.faces.context.FacesContext;
@@ -94,24 +97,39 @@ public class ResourceController {
     this.resource = resource;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public List<SelectItem> getMetadataPrefixes() {
     List<SelectItem> list = new ArrayList<SelectItem>();
-
-    SelectItem selectItem = new SelectItem();
-    selectItem.setLabel("OAI_DC");
-    selectItem.setValue("oai_dc");
-    list.add(selectItem);
-
-    selectItem = new SelectItem();
-    selectItem.setLabel("MARC21/USMARC");
-    selectItem.setValue("marc21");
-    list.add(selectItem);
-
-    selectItem = new SelectItem();
-    selectItem.setLabel("PP2");
-    selectItem.setValue("pp2-solr");
-    list.add(selectItem);
-
+    Properties prefixes = new Properties(); 
+    try {
+      prefixes.load(getClass().getResourceAsStream("/prefixes.properties"));
+    } catch (IOException e) {
+      e.printStackTrace();
+      prefixes.put("oai_dc", "OAI_DC");
+      prefixes.put("marc21", "MARC21/USMARC");
+      prefixes.put("pp2-solr", "PP2");
+    }
+    for (Object obj: prefixes.keySet()) {
+	if (obj instanceof String) {
+	  String key = (String) obj;
+	  String value = prefixes.getProperty(key);
+	  SelectItem selectItem = new SelectItem();
+	  selectItem.setLabel(value);
+	  selectItem.setValue(key);
+	  list.add(selectItem);
+	}
+	else {
+	  logger.warn("Expected String key" + obj.getClass() + " " + obj);
+	}
+    }
+    Collections.sort(list, new Comparator() {
+      @Override
+      public int compare(Object o1, Object o2) {
+	SelectItem s1 = (SelectItem) o1;
+	SelectItem s2 = (SelectItem) o2;
+	return ((String) s1.getValue()).compareTo((String) s2.getValue());
+      }
+    });
     return list;
   }
 
