@@ -6,10 +6,14 @@
 	<listener>
 		<listener-class>com.indexdata.utils.persistence.RequestScopedPersister</listener-class>
 	</listener>
-    <context-param>
-        <param-name>persistence-unit-name</param-name>
-        <param-value>localindicesPU</param-value>
-    </context-param>
+	<context-param>     
+	  <param-name>javax.faces.DEFAULT_SUFFIX</param-name> 
+	  <param-value>.jsp</param-value> 
+	</context-param>
+	<context-param>
+          <param-name>persistence-unit-name</param-name>
+          <param-value>localindicesPU</param-value>
+	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.HarvestableDAO</param-name>
 		<param-value>HarvestableDAOWS</param-value>
