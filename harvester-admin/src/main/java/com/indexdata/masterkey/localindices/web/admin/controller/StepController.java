@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.web.admin.controller;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.faces.context.FacesContext;
@@ -20,12 +21,14 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.reflections.Reflections;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
+import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.SplitStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -52,9 +55,8 @@ public class StepController {
   private int batchSize = 20;
   private int itemCount = -1;
 
+  private boolean selectStepMode = false;
 
-  private boolean selectStepMode = false; 
-  
   private DataModel model;
   @SuppressWarnings("rawtypes")
   /* Transformations */
@@ -68,14 +70,14 @@ public class StepController {
 
   public StepController() {
     try {
-      dao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext
-	  .getCurrentInstance().getExternalContext().getContext());
+      dao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance()
+	  .getExternalContext().getContext());
       associationDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext
 	  .getCurrentInstance().getExternalContext().getContext());
-/*
-      stepDao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext
-	  .getCurrentInstance().getExternalContext().getContext());
-*/
+      /*
+       * stepDao = TransformationStepDAOFactory.getDAO((ServletContext)
+       * FacesContext .getCurrentInstance().getExternalContext().getContext());
+       */
     } catch (DAOException ex) {
       logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
     }
@@ -83,7 +85,7 @@ public class StepController {
 
   public void setTransformation(TransformationStep resource) {
     this.current = resource;
-    
+
   }
 
   public int getBatchSize() {
@@ -128,15 +130,50 @@ public class StepController {
     current = null;
     resources = null;
     itemCount = -1;
-    if (isSelectStepMode()) 
+    if (isSelectStepMode())
       return "insert_step";
     return "list_steps";
+  }
+
+  @SuppressWarnings("rawtypes")
+  public String prepareStep(String name) {
+    try {
+      Class stepClass = Class.forName("com.indexdata.masterkey.localindices.entity." +  name);
+      current = (TransformationStep) stepClass.newInstance();
+      String customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("targetClass");
+      if (customClass != null)
+	current.setCustomClass(customClass);
+      //current = new CustomTransformationStep();
+      return "edit_" + name;
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      return "error";
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+      return "error";
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+      return "error";
+    }
+  }
+
+  public String prepareStep() {
+    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("class");
+    return prepareStep(className);
   }
 
   public String prepareSplitStep() {
     // TODO create SplitStep
     current = new SplitStep();
     return "edit_split_step";
+  }
+
+  public String prepareCustomStep() {
+    current = new CustomTransformationStep();
+    String targetClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("targetClass");
+    current.setCustomClass(targetClass);
+    String className = current.getClass().getSimpleName();
+    return "edit_" + className;
   }
 
   public String prepareXsltStep() {
@@ -161,7 +198,7 @@ public class StepController {
     dao.create(current);
     return "test_step";
   }
-  
+
   /* update resource */
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
@@ -173,8 +210,7 @@ public class StepController {
     }
     if (current instanceof TransformationStep) {
       return "edit_split_step";
-    }
-    else {
+    } else {
       logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
       return "failure";
     }
@@ -184,7 +220,7 @@ public class StepController {
     prePersist();
     if (current.getId() != null)
       current = dao.update(current);
-    else 
+    else
       dao.create(current);
     current = null;
     return list();
@@ -221,11 +257,12 @@ public class StepController {
       Collections.sort(resources);
     return new ListDataModel(resources);
   }
-public String delete() {
+
+  public String delete() {
     current = getResourceFromRequestParam();
     if (current != null) {
       dao.delete(current);
-      // TODO return some error message 
+      // TODO return some error message
     }
     current = null;
     return list();
@@ -375,5 +412,18 @@ public String delete() {
   public void setSelectStepMode(boolean selectStepMode) {
     this.selectStepMode = selectStepMode;
   }
+
+  public List<SelectItem> getStepClasses() {
+    List<SelectItem> list = new LinkedList<SelectItem>();
+    Reflections reflections = new Reflections("com.indexdata");
+    Set<Class<? extends TransformationStep>> subTypes = reflections.getSubTypesOf(TransformationStep.class);
+    for (Class<? extends TransformationStep> step : subTypes) {
+      SelectItem item = new SelectItem(); 
+      item.setLabel(step.getSimpleName());
+      item.setValue(step.getName());
+    }
+    return list;
+  }
+  
 
 }
