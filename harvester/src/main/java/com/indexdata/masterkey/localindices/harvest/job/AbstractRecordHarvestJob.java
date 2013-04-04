@@ -53,11 +53,13 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     if (transformationStorage == null) {
       Transformation transformation = getHarvestable().getTransformation();
       List<TransformationStep> steps = null;
+      Boolean parallel = false;
       if (transformation != null) {
 	steps = transformation.getSteps();
+	parallel = transformation.getParallel();
       }
       try {
-	if (new Boolean(false).equals(transformation.getParallel()))
+	if (new Boolean(false).equals(parallel))
 	  transformationStorage = new TransformationRecordStorageProxy(storage, steps, this);
 	else
 	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, steps, this);

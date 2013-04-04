@@ -75,8 +75,8 @@ public class RouterFactory {
 	String className = step.getCustomClass();
 	if (className != null) {
 	  Class<? extends MessageRouter> messageRouterClass = (Class<? extends MessageRouter>) Class.forName(className);
-	  Constructor<? extends MessageRouter> constructor =  messageRouterClass.getConstructor(new Class[] {step.getClass(), job.getClass()});
-	  MessageRouter router = constructor.newInstance(step, logger);
+	  Constructor<? extends MessageRouter> constructor =  messageRouterClass.getConstructor(new Class[] {TransformationStep.class, RecordHarvestJob.class});
+	  MessageRouter router = constructor.newInstance(step, job);
 	  return router;
 	}
     } catch (Exception e) {
