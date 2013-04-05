@@ -57,6 +57,7 @@ public class StepController {
 
   private boolean selectStepMode = false;
 
+  @SuppressWarnings("rawtypes")
   private DataModel model;
   @SuppressWarnings("rawtypes")
   /* Transformations */
@@ -136,11 +137,12 @@ public class StepController {
   }
 
   @SuppressWarnings("rawtypes")
-  public String prepareStep(String name) {
+  public String prepareStep(String name, String customClass) {
     try {
       Class stepClass = Class.forName("com.indexdata.masterkey.localindices.entity." +  name);
       current = (TransformationStep) stepClass.newInstance();
-      String customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("customClass");
+      if (customClass == null) 
+	customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("customClass");
       if (customClass != null) {
 	logger.log(Level.INFO, "prepareStep: customClass: " + customClass);
 	current.setCustomClass(customClass);
@@ -170,7 +172,7 @@ public class StepController {
     }
     else 
       logger.log(Level.INFO, "prepareStep: entity class " + className);
-    return prepareStep(className);
+    return prepareStep(className, null);
   }
 
   public String prepareSplitStep() {
@@ -180,12 +182,18 @@ public class StepController {
   }
 
   public String prepareCustomStep() {
-    return prepareStep("CustomTransformationStep");
+    return prepareStep("CustomTransformationStep", null);
   }
 
   public String prepareXsltStep() {
     current = new XmlTransformationStep();
     return "edit_xslt_step";
+  }
+
+  public String prepareXmlLogStep() {
+    current = new CustomTransformationStep();
+    current.setCustomClass("com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter");
+    return "edit_CustomTransformationStep";
   }
 
   public String prepareValidationStep() {
@@ -209,17 +217,17 @@ public class StepController {
   /* update resource */
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
-    // stepAssociation = current.getStepAssociations();
     postDePersist();
-    logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
+    String className = current.getClass().getSimpleName();
+    logger.log(Level.INFO, "Retrieved persisted resource of type " + className);
     if (current instanceof XmlTransformationStep) {
       return "edit_xslt_step";
     }
-    if (current instanceof TransformationStep) {
-      return "edit_split_step";
+    if (current instanceof CustomTransformationStep) {
+      return "edit_CustomTransformationStep";
     } else {
-      logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
-      return "failure";
+      logger.log(Level.INFO, "Unknown resource type. No matching form defined. Using class name: " + className);
+      return "edit_"  + className;
     }
   }
 
@@ -239,12 +247,14 @@ public class StepController {
   }
 
   /* list resources */
+  @SuppressWarnings("rawtypes")
   public DataModel getSteps() {
     setSelectStepMode(false);
     return getStepsCommon();
   }
 
   /* list resources */
+  @SuppressWarnings("rawtypes")
   public DataModel getStepsInsertMode() {
     setSelectStepMode(true);
     return getStepsCommon();
