@@ -10,18 +10,17 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
+        <link rel="stylesheet" type="text/css" href="../css/styles.css"/>
         <title>Step Editor</title>
     </head>
     <body>
         <f:view>
             <h:form>
                 <h:commandLink styleClass="navigation"  value="Steps" action="#{stepController.list}" />
-                <h3>Custom Transformation Step: </h3>
+                <h3>Custom Step: </h3>
                 <%@ include file="../fragments/step/generic_forminputs.jsp" %>
                 <%@ include file="../fragments/step/custom_forminputs.jsp" %>
                 <%@ include file="../fragments/step/xslt_forminputs.jsp" %>
-                <%@ include file="../fragments/step/test_forminputs.jsp" %>
                 <h:commandButton value="Save" action="#{stepController.save}"/>
                 <h:commandButton value="Cancel" action="#{stepController.cancel}"/>
             </h:form>
