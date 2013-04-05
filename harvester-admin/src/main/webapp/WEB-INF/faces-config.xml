@@ -196,6 +196,14 @@
             <to-view-id>/step_xsd_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
+            <from-outcome>new_CustomTransformationStep</from-outcome>
+            <to-view-id>/steps/custom_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_CustomTransformationStep</from-outcome>
+            <to-view-id>/steps/custom_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
             <from-outcome>delete_step</from-outcome>
             <to-view-id>/list_steps.jsp</to-view-id>
         </navigation-case>
