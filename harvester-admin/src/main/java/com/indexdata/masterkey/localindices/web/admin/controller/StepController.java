@@ -140,10 +140,15 @@ public class StepController {
     try {
       Class stepClass = Class.forName("com.indexdata.masterkey.localindices.entity." +  name);
       current = (TransformationStep) stepClass.newInstance();
-      String customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("targetClass");
-      if (customClass != null)
+      String customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("customClass");
+      if (customClass != null) {
+	logger.log(Level.INFO, "prepareStep: customClass: " + customClass);
 	current.setCustomClass(customClass);
+      }
+      else
+	logger.log(Level.WARN, "prepareStep: Missing customClass");
       //current = new CustomTransformationStep();
+      logger.log(Level.WARN, "JSF event " + "edit_" + name);
       return "edit_" + name;
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
@@ -158,7 +163,13 @@ public class StepController {
   }
 
   public String prepareStep() {
-    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("class");
+    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("entityClass");
+    if (className == null) {
+      logger.log(Level.INFO, "prepareStep: defaulting to entity class CustomTransformationStep");
+      className = "CustomTransformationStep";
+    }
+    else 
+      logger.log(Level.INFO, "prepareStep: entity class " + className);
     return prepareStep(className);
   }
 
@@ -169,11 +180,7 @@ public class StepController {
   }
 
   public String prepareCustomStep() {
-    current = new CustomTransformationStep();
-    String targetClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("targetClass");
-    current.setCustomClass(targetClass);
-    String className = current.getClass().getSimpleName();
-    return "edit_" + className;
+    return prepareStep("CustomTransformationStep");
   }
 
   public String prepareXsltStep() {
