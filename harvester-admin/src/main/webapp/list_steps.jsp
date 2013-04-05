@@ -10,13 +10,13 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="/css/styles.css"/>
+        <link rel="stylesheet" type="text/css" href="css/styles.css"/>
         <title>Steps</title>
     </head>
     <body>
         <f:view>
             <h:form>
-                <%@ include file="/fragments/navigation_panel.jsp" %>
+                <%@ include file="fragments/navigation_panel.jsp" %>
                 <h3> 
                     <h:outputText>Steps</h:outputText>
                 </h3>
@@ -24,19 +24,8 @@
                 <!--
                 <h:commandLink styleClass="navigation"  value="Split" action="#{stepController.prepareSplitStep}" />                
                 -->
-                <h:commandLink styleClass="navigation"  value="Transformation (XSL)" action="#{stepController.prepareXsltStep}" />                 
-                <h:commandLink styleClass="navigation"  value="Custom Step" action="#{stepController.prepareCustomStep}">
-                    <f:param name="entityClass" value="CustomTransformationStep" />
-                </h:commandLink>
-                <h:commandLink styleClass="navigation"  value="Xml Logging Step" action="#{stepController.prepareStep}">
-                    <f:param name="entityClass" value="CustomTransformationStep" />
-                    <f:param name="customClass" value="com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" />
-                </h:commandLink>
-                <h:commandLink styleClass="navigation"  value="Validation (XSD)" action="#{stepController.prepareStep}">
-                    <f:param name="entityClass" value="CustomTransformationStep" />
-                    <f:param name="customClass" value="com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" />
-                </h:commandLink>
-                    
+                <h:commandLink styleClass="navigation"  value="Transformation (XSL)" action="#{stepController.prepareXsltStep}" />                
+                <h:commandLink styleClass="navigation" value="Validation (XSD)" action="#{stepController.prepareValidationStep}" />
             </h:form>
             <h:form>
                 <div id="pager">
