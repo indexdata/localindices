@@ -7,8 +7,9 @@
 <f:subview id="transformation_steps_select">
 	<h5>Transformation Steps:</h5>
     <%@ include file="/fragments/step/pager.jsp" %>
-	<h:dataTable value="#{stepController.stepsInsertMode}"
+	<h:dataTable 
 		var="item"
+        value="#{stepController.stepsInsertMode}"
 		columnClasses="right,left,center,left,center,center,center,center">
         <h:column>
             <f:facet name="header">
