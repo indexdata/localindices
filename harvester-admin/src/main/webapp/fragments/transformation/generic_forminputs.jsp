@@ -15,5 +15,7 @@
         <h:inputTextarea cols="60" rows="3" value="#{transformationController.transformation.description}"/>
         <h:outputText value="Enabled:"/>
         <h:selectBooleanCheckbox value="#{transformationController.transformation.enabled}"/>
+        <h:outputText value="Parallel (run each step in own thread):"/>
+        <h:selectBooleanCheckbox value="#{transformationController.transformation.parallel}"/>
     </h:panelGrid>
 </f:subview>
