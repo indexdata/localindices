@@ -136,6 +136,17 @@ public class StepController {
     return "list_steps";
   }
 
+  public String selectSteps() {
+    setSelectStepMode(true);
+    return list();
+  }
+
+  public String listSteps() {
+    setSelectStepMode(false);
+    return list();
+  }
+
+  
   @SuppressWarnings("rawtypes")
   public String prepareStep(String name, String customClass) {
     try {
