@@ -73,6 +73,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
+      // Do I get here on KILLED?
       setStatus(HarvestStatus.FINISHED);
       // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
       transformationStorage.databaseEnd();
