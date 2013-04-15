@@ -35,7 +35,7 @@ public class XmlTransformerRouter implements MessageRouter {
   private boolean running = true;
   RecordHarvestJob job;
   StorageJobLogger logger;
-  
+  Thread workerThread = null;
   XmlTransformationStep step; 
   
 
@@ -62,7 +62,6 @@ public class XmlTransformerRouter implements MessageRouter {
       }
   }
 
-  @SuppressWarnings({ "unchecked" })
   public void consume(Object take) {
     if (take instanceof StopMessage) {
       running = false;
@@ -78,20 +77,29 @@ public class XmlTransformerRouter implements MessageRouter {
       try {
 	transformer.transform(xmlSource, result);
       } catch (Exception e) {
-	try {
-	  error.put(new ErrorMessage(xmlSource, e));
-	  return;
-	} catch (InterruptedException ie) {
-	  logger.error("Failed to put ErrorMessage to Error Queue." + " Stack trace of Exception",
-	      e);
-	  return;
-	}
+	putError(xmlSource, e);
+	return;
       }
       if (record instanceof RecordDOM) {
 	((RecordDOM) record).setNode(result.getNode());
       } else
 	record = new RecordDOMImpl(record.getId(), record.getDatabase(), result.getNode());
       produce(record);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void putError(Source xmlSource, Exception e) {
+    try {
+      if (error != null) 
+        error.put(new ErrorMessage(xmlSource, e));
+      else {	
+        logger.debug("No Error Message Router defined. Configure a Null Message Router to avoid this logging");
+        logger.error("Error converting XML " + xmlSource, e);
+      }
+    } catch (Exception ie) {
+      logger.error("Failed to put ErrorMessage to Error Queue." + " Stack trace of Exception",
+          e);
     }
   }
 
@@ -116,8 +124,11 @@ public class XmlTransformerRouter implements MessageRouter {
       logger.error(
 	  "Failed to put Result to Output queue: Interrupted. Attempt to save on Error Queue", e);
       try {
-	error.put(new ErrorMessage(result, e));
-      } catch (InterruptedException ie) {
+	if (error != null)
+	  error.put(new ErrorMessage(result, e));
+	else
+	  logger.error("Not Error Queue. Loosing message: " + result.toString());
+      } catch (Exception ie) {
 	logger.error("Failed to put Result on Error Queue. Loosing message: " + result.toString());
       }
       e.printStackTrace();
@@ -142,6 +153,8 @@ public class XmlTransformerRouter implements MessageRouter {
   @Override
   public void shutdown() {
     running = false;
+    if (workerThread != null)
+      workerThread.interrupt();
   }
 
   public void setXmlTransformer(Transformer transformer) {
@@ -156,6 +169,11 @@ public class XmlTransformerRouter implements MessageRouter {
   @Override
   public Object take() throws InterruptedException {
     throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public void setThread(Thread thread) {
+    workerThread = thread;
   }
 
 }
