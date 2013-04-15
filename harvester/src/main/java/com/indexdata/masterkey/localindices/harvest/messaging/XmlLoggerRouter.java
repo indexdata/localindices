@@ -19,6 +19,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.RollingFileAppender;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.Node;
@@ -96,11 +97,15 @@ public class XmlLoggerRouter implements MessageRouter {
 	logger.log(Level.DEBUG, "Appender (" + appenderString + ")");
       }
       if (map.containsKey("file")) {
-	FileAppender fileAppender = new FileAppender();
+	RollingFileAppender fileAppender = new RollingFileAppender();
+	if (map.containsKey("size"))
+	  fileAppender.setMaxFileSize(map.get("").toString());
 	fileAppender.setFile(map.get("file").toString());
 	if (map.get("append") != null) 
 	  fileAppender.setAppend("true".equals(map.get("append")));
 	logger.log(Level.DEBUG, "FileAppender (" + fileAppender.getFile() + ") appending " + fileAppender.getAppend());
+	if (map.containsKey("backups"))
+	  fileAppender.setMaxBackupIndex(Integer.parseInt(map.get("backups").toString()));
 	appender = fileAppender;
       }
       if (map.get("layout") != null) {
