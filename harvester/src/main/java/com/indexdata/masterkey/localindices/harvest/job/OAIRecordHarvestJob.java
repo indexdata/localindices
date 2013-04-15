@@ -127,7 +127,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
       }
     } else {
-      if (getStatus().equals(HarvestStatus.KILLED))
+      logger.warn("Terminated with non-OK status: Job status " + getStatus());
+      // We do not want to override a ERROR mesage, but should reset a killed/running status. 
+      // Perhaps even leave killed, just be sure that we will start the job in this state. 
+      if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING))
 	setStatus(HarvestStatus.FINISHED);
       try {
 	if (resource.getResumptionToken() != null) {
@@ -137,6 +140,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
 	else {
 	  logger.log(Level.INFO, "OAI harvest killed/faced error - Rollback until " + resource.getFromDate());
+	  
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
