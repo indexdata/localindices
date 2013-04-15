@@ -30,8 +30,9 @@
 					classess annotated with XmlElement -->
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>apt-maven-plugin</artifactId>
-				<version>1.0-alpha-2</version>
-				<configuration>
+				<version>1.0-alpha-4</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/generated-sources/apt</outputDirectory>
 					<factory>net.sf.jelly.apt.freemarker.FreemarkerProcessorFactory</factory>
 					<fork>true</fork>
 					<options>
