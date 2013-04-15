@@ -56,6 +56,7 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
         router.setOutput(current);
         Thread thread = new Thread(router);
         thread.setName("Router(" + step.getName() + ")"); 
+        router.setThread(thread);
         thread.start();
         lastThread = thread;
       }
@@ -158,6 +159,21 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
 	e.printStackTrace();
       }
     super.commit();
+ }
+  
+@Override
+  public void rollback() throws IOException {
+    try {
+      for (MessageRouter<Object> router : messageRouters) {
+	router.shutdown();
+      }
+      // Required to be sure no more messages is sent.
+      if (lastThread != null)
+	lastThread.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    super.rollback();
   }
 
   public StorageJobLogger getLogger() {
