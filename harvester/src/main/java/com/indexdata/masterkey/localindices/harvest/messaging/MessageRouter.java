@@ -6,6 +6,5 @@ public interface MessageRouter<T> extends Runnable, AsyncMessageConsumer<T>  {
   void setOutput(MessageProducer<T> output);
   void setError(MessageProducer<T> error);
   void shutdown();
-  
-
+  void setThread(Thread thred);
 }
