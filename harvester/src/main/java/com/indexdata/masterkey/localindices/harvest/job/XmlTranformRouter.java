@@ -7,7 +7,6 @@ import java.util.concurrent.BlockingQueue;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
@@ -60,8 +59,9 @@ public class XmlTranformRouter implements MessageRouter {
       DOMResult result = new DOMResult();
       try {
 	transformer.transform(xmlSource, result);
-      } catch (TransformerException e) {
+      } catch (Exception e) {
 	try {
+	  logger.error("Failed to transform: " + xmlSource.toString(), e);	  
 	  error.put(new ErrorMessage(xmlSource, e));
 	  return;
 	} catch (InterruptedException ie) {
