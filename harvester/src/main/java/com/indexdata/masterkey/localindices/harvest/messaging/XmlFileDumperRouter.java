@@ -2,6 +2,10 @@ package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +41,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
 import com.indexdata.xml.factory.XmlFactory;
 
 @SuppressWarnings({ "rawtypes"})
-public class XmlDumperRouter implements MessageRouter {
+public class XmlFileDumperRouter implements MessageRouter {
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
   private MessageConsumer input;
@@ -49,10 +53,11 @@ public class XmlDumperRouter implements MessageRouter {
   private boolean running = true;
   HarvestJob job;
   StorageJobLogger logger;
-  
   CustomTransformationStep step; 
-
-  public XmlDumperRouter(TransformationStep step, RecordHarvestJob job) {
+  OutputStream out = System.err; 
+  int sampling = 1;
+  int count = 0; 
+  public XmlFileDumperRouter(TransformationStep step, RecordHarvestJob job) {
     logger = job.getLogger();
     if (step instanceof CustomTransformationStep) {
       this.step = (CustomTransformationStep) step;
@@ -61,7 +66,7 @@ public class XmlDumperRouter implements MessageRouter {
     else throw new RuntimeException("Configuration Error: Not a XmlTransformationStep");
   }
 
-  public XmlDumperRouter(CustomTransformationStep step, RecordHarvestJob job) {
+  public XmlFileDumperRouter(CustomTransformationStep step, RecordHarvestJob job) {
     this.step = step;
     logger = job.getLogger();
     setup(step);
@@ -89,51 +94,25 @@ public class XmlDumperRouter implements MessageRouter {
 	transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 	transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", map.get("indent").toString());
       }
-      Appender appender = null;
-      if (map.containsKey("appender")) {
-	String appenderString = map.get("appender").toString(); 
-	Class<? extends Appender> appenderClass = (Class<? extends Appender>) Class.forName(appenderString);
-	appender = appenderClass.newInstance();
-	logger.log(Level.DEBUG, "Appender (" + appenderString + ")");
-      }
       if (map.containsKey("file")) {
-	RollingFileAppender fileAppender = new RollingFileAppender();
-	if (map.containsKey("size"))
-	  fileAppender.setMaxFileSize(map.get("").toString());
-	fileAppender.setFile(map.get("file").toString());
-	if (map.get("append") != null) 
-	  fileAppender.setAppend("true".equals(map.get("append")));
-	logger.log(Level.DEBUG, "FileAppender (" + fileAppender.getFile() + ") appending " + fileAppender.getAppend());
-	if (map.containsKey("backups"))
-	  fileAppender.setMaxBackupIndex(Integer.parseInt(map.get("backups").toString()));
-	appender = fileAppender;
+	File file = new File(map.get("file").toString());
+	boolean append = false;
+	if (map.get("append") != null)
+	  append = "true".equals(map.get("append"));
+	out = new FileOutputStream(file, append);
       }
-      if (map.get("layout") != null) {
-	String pattern = map.get("layout").toString();
-	PatternLayout layout = new PatternLayout(pattern);
-	logger.log(Level.DEBUG, "Configure appender with pattern Layout: " + pattern + "");
-	if (appender != null) 
-	  appender.setLayout(layout);
+
+      if (map.containsKey("sample")) {
+	sampling = Integer.parseInt(map.get("sample").toString());
       }
-      if (appender != null) {
-	appender.setName(step.getName());
-	logger.log(Level.DEBUG, "Add Appender of class " + appender.getClass());
-	logger.addAppender(appender);
-      }
-      
+
     } catch (TransformerConfigurationException e) {
       logger.log(Level.ERROR, "Unable to create XML Transformer", e);
       e.printStackTrace();
     } catch (ParseException e) {
       logger.log(Level.ERROR, "Unable to parse JSON configuration: " + step.getScript(), e);
       e.printStackTrace();
-    } catch (ClassNotFoundException e) {
-	logger.error("Class not found: " + e.getMessage(), e);
-      e.printStackTrace();
-    } catch (InstantiationException e) {
-	logger.error("Unanble to instantioate class: " + e.getMessage(), e);
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
+    } catch (FileNotFoundException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -169,10 +148,12 @@ public class XmlDumperRouter implements MessageRouter {
       StreamResult result = new StreamResult(byteOutput);
       try {
 	transformer.transform(xmlSource, result);
-	logger.info(byteOutput.toString());
+	if (out != null)
+	  out.write(byteOutput.toString().getBytes());
+	
 	produce(record);
       } catch (Exception e) {
-	logger.error("Failed to put Message on Output Queue.", e);
+	logger.error("Failed to put Message ("+ result + ") on Output Queue.", e);
 	try {
 	  error.put(new ErrorMessage(xmlSource, e));
 	  return;
