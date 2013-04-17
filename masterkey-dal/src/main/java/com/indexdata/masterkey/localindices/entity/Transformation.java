@@ -43,6 +43,7 @@ public class Transformation implements Serializable, Cloneable {
   @Column(length = 4096)
   protected String description;
   protected Boolean enabled;
+  protected Boolean parallel;
 
   @OneToMany(mappedBy = "transformation", cascade = CascadeType.REMOVE)
   @OrderBy("position")
@@ -165,6 +166,14 @@ public class Transformation implements Serializable, Cloneable {
 
   public void setStepAssociations(List<TransformationStepAssociation> stepAssociations) {
     this.stepAssociations = stepAssociations;
+  }
+
+  public Boolean getParallel() {
+    return parallel;
+  }
+
+  public void setParallel(Boolean parallel) {
+    this.parallel = parallel;
   }
 
 }

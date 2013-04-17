@@ -6,10 +6,14 @@
 	<listener>
 		<listener-class>com.indexdata.utils.persistence.RequestScopedPersister</listener-class>
 	</listener>
-    <context-param>
-        <param-name>persistence-unit-name</param-name>
-        <param-value>localindicesPU</param-value>
-    </context-param>
+	<context-param>     
+	  <param-name>javax.faces.DEFAULT_SUFFIX</param-name> 
+	  <param-value>.jsp</param-value> 
+	</context-param>
+	<context-param>
+          <param-name>persistence-unit-name</param-name>
+          <param-value>localindicesPU</param-value>
+	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.HarvestableDAO</param-name>
 		<param-value>HarvestableDAOWS</param-value>
@@ -84,7 +88,7 @@
 		<session-timeout>30</session-timeout>
 	</session-config>
 	<welcome-file-list>
-	  <welcome-file>list_resources.xhtml</welcome-file>
+	  <welcome-file>index.xhtml</welcome-file>
 	</welcome-file-list>
 	<!-- security stuff -->
 	<filter>
@@ -92,7 +96,7 @@
 		<filter-class>com.indexdata.masterkey.localindices.web.admin.AuthenticationCheckFilter</filter-class>
 		<init-param>
 			<param-name>LOGIN_PAGE</param-name>
-			<param-value>login.xhtml</param-value>
+			<param-value>resources/login.xhtml</param-value>
 		</init-param>
         <init-param>
             <param-name>USER_TORUS_URI</param-name>

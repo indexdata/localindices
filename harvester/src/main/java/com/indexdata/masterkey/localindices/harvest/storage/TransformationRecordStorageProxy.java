@@ -1,63 +1,100 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
+import java.util.List;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Node;
-
+import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
+import com.indexdata.masterkey.localindices.harvest.messaging.ConsumerProxy;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageProducer;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
+import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
 
 public class TransformationRecordStorageProxy extends RecordStorageProxy {
   private StorageJobLogger logger;
-  private Templates[] templates; 
+  private List<TransformationStep> steps;
   
-  public TransformationRecordStorageProxy(RecordStorage storage, Templates[] templates, StorageJobLogger logger) throws IOException,
+  private RecordHarvestJob job;
+  private MessageRouter<Object>[] messageRouters;
+  private MessageProducer<Object> source;
+  private MessageQueue<Object> result = new BlockingMessageQueue<Object>();
+  private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
+  
+  public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
-    this.templates = templates;
-    this.logger = logger;
+    this.steps = steps;
+    this.job = job;
+    this.logger = job.getLogger();
+    setupRouters();
   }
-  protected Source transformNode(Source xmlSource) throws TransformerException {
-    Transformer transformer;
-    if (templates == null)
-      return xmlSource;
-    // TODO parallel with message queues? 
-    for (Templates template : templates) {
-      transformer = template.newTransformer();
-      DOMResult result = new DOMResult();
-      transformer.transform(xmlSource, result);
-      
-      if (result.getNode() == null) {
-        logger.warn("transformNode: No Node found");
-        xmlSource = new DOMSource();
-      } else
-        xmlSource = new DOMSource(result.getNode());
+
+  protected Record transformNode(Record record) throws InterruptedException {
+    source.put(record);
+    if (!result.isEmpty()) {
+	Object obj = result.take();
+	if (obj instanceof Record)
+	  return (Record) obj;
+	else {
+	  logger.error("Unknown type to add: " + obj.getClass() + " " + obj.toString());
+	}
     }
-    return xmlSource;
-  }  
+    return null;
+  }
+    
 
   @Override 
   public void add(Record record) {
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
-    Node node = recordDOM.toNode();
-    try {
-      Source result = transformNode(new DOMSource(node));
-      if (result instanceof DOMSource) {
-	node = ((DOMSource) result).getNode();
+    while (true)
+      try {
+	Record transformed = transformNode(recordDOM);
+	if (transformed != null)
+	  storage.add(transformed);
+	else {
+	  logger.warn("Record filtered out" + record);
+	}
+	break;
+      } catch (InterruptedException e) {
+	e.printStackTrace();
+	try {
+	  error.put(e);
+	} catch (InterruptedException e1) {
+	  logger.error("Record not added to error" + record);
+	  e1.printStackTrace();
+	}
       }
-      Record recordTransformed = new RecordDOMImpl(record.getId(), record.getDatabase(), node);
-      super.add(recordTransformed);
-    } catch (TransformerException te) {
-      logger.warn("Unable to transform record" + record + ". Xml: " + node.toString());
-    }
   }
+
+  @Override
+  public void delete(String id) {
+    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null);
+    while (true)
+      try {
+	Record transformed = transformNode(recordDOM);
+	if (transformed != null)
+	  storage.delete(transformed.getId());
+	else {
+	  logger.warn("Record filtered out. " + recordDOM);
+	}
+	break;
+      } catch (InterruptedException e) {
+	e.printStackTrace();
+	try {
+	  error.put(e);
+	} catch (InterruptedException e1) {
+	  logger.error("Record not added to error. " + recordDOM);
+	  e1.printStackTrace();
+	}
+      }
+  }
+
+  
   @Override
   public void commit() throws IOException {
     super.commit();
@@ -81,4 +118,26 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
     return getTarget().getContentHandler();
   }
 
+  @SuppressWarnings("unchecked")
+  protected void setupRouters() {
+    if (steps != null) {
+      messageRouters = new MessageRouter[steps.size()];
+      RouterFactory factory = RouterFactory.newInstance(job);
+      int index = 0;
+      MessageRouter<Object> previous = null;
+      for (TransformationStep step : steps) {
+	MessageRouter<Object> router = factory.create(step);
+	if (source == null)
+	  source = new ConsumerProxy<Object>(router);
+	if (previous != null)
+	  previous.setOutput(new ConsumerProxy<Object>(router));
+	messageRouters[index++] = router;
+	previous = router;
+      }
+      previous.setOutput(result);
+    }
+    
+    if (source == null)
+      source = result;
+  }
 }

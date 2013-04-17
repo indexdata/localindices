@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -39,8 +38,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     setLogger((new FileStorageJobLogger(getClass(), resource)));
-    List<TransformationStep> steps = resource.getTransformation().getSteps();
-    setupTemplates(resource, steps);
   }
 
   private int getNumber(String value, int defaultValue) {
@@ -76,6 +73,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
+      // Do I get here on KILLED?
       setStatus(HarvestStatus.FINISHED);
       // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
       transformationStorage.databaseEnd();
@@ -125,5 +123,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   @Override
   protected Harvestable getHarvestable() {
     return resource;
+  }
+
+  @Override
+  public void setStatus(HarvestStatus status, String message) {
+    super.setStatus(status);
+    error = message;
+    
   }
 }

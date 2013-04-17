@@ -29,7 +29,7 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
@@ -460,7 +460,7 @@ public class TransformationController {
 
   public TransformationStep getTransformationStep() {
     if (currentStepAssociation == null) {
-      TransformationStep tmpStep = new BasicTransformationStep("", "", "");
+      TransformationStep tmpStep = new XmlTransformationStep("", "", "");
       return tmpStep;
     }
     return currentStepAssociation.getStep();

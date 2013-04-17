@@ -1,56 +1,67 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 
-import com.indexdata.masterkey.localindices.harvest.job.StopMessage;
+import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.job.XmlTranformRouter;
+import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
+import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
+import com.indexdata.masterkey.localindices.harvest.messaging.StopMessage;
 
 public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy {
   private StorageJobLogger logger;
-  private Templates[] templates; 
-  private BlockingQueue<Object> source = new LinkedBlockingQueue<Object>();
-  private BlockingQueue<Object> result;
-  private BlockingQueue<Object> error = new LinkedBlockingQueue<Object>();
+  //private Templates[] templates; 
+  private MessageQueue<Object> source = new BlockingMessageQueue<Object>();
+  private MessageQueue<Object> result;
+  private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
   private Thread lastThread = null;
-  private String databaseID; 
+  private RecordHarvestJob job; 
+  private List<TransformationStep> steps;
+  private String databaseID;
+  private MessageRouter<Object>[] messageRouters; 
   
   
-  public ThreadedTransformationRecordStorageProxy(RecordStorage storage, Templates[] templates, StorageJobLogger logger) throws IOException,
+  public ThreadedTransformationRecordStorageProxy(RecordStorage storage, 
+      	List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
-    this.templates = templates;
+    this.steps = steps;
+    this.job = job;
+    this.logger = job.getLogger();
     setupRouters();
-    this.logger = logger;
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   protected void setupRouters() throws TransformerConfigurationException
   {
-    BlockingQueue<Object> current = source; 
-    int index = 0;
-    if (templates != null)
-      for (Templates template : templates) {
-        XmlTranformRouter router = new XmlTranformRouter();
-        Transformer transformer = template.newTransformer();
-        router.setXmlTransformer(transformer);
+    MessageQueue<Object> current = source; 
+    MessageRouter router = null;
+    RouterFactory factory = RouterFactory.newInstance(job);
+    if (steps != null) {
+      int index = 0;
+      messageRouters = new MessageRouter[steps.size()];
+      for (TransformationStep step: steps) {
+	router = factory.create(step);
+	messageRouters[index++] = router;
         router.setError(error);
         router.setInput(current);
-        current = new LinkedBlockingQueue();
+        current = new BlockingMessageQueue();
         router.setOutput(current);
         Thread thread = new Thread(router);
-        thread.setName("XmlTransformerRouter " + index++); 
+        thread.setName("Router(" + step.getName() + ")"); 
+        router.setThread(thread);
         thread.start();
         lastThread = thread;
       }
     result = current;
+    }
   }  
 
   @Override
@@ -92,13 +103,21 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
 
   private void store() {
     while (!result.isEmpty()) {
-      Object object = result.remove();
-      if (object instanceof RecordDOMImpl) {
-	RecordDOMImpl record = (RecordDOMImpl) object;
-	if (record.isDeleted())
+      Object object;
+      try {
+	object = result.take();
+	if (object instanceof RecordDOMImpl) {
+	  RecordDOMImpl record = (RecordDOMImpl) object;
+	  if (record.isDeleted())
 	    super.delete(record.getId());
-	else
-	  super.add(record);
+	  else
+	    super.add(record);
+	}
+	else {
+	  logger.error("Unsupported message type: " + object.getClass());
+	}
+      } catch (InterruptedException e) {
+	e.printStackTrace();
       }
     }
   }
@@ -140,6 +159,21 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
 	e.printStackTrace();
       }
     super.commit();
+ }
+  
+@Override
+  public void rollback() throws IOException {
+    try {
+      for (MessageRouter<Object> router : messageRouters) {
+	router.shutdown();
+      }
+      // Required to be sure no more messages is sent.
+      if (lastThread != null)
+	lastThread.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    super.rollback();
   }
 
   public StorageJobLogger getLogger() {

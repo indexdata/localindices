@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,12 +36,12 @@ import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -55,6 +54,7 @@ public class ResourceController {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private HarvestableDAO dao;
   private Harvestable resource;
+  @SuppressWarnings("rawtypes")
   private DataModel model;
   private Boolean longDate;
   private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:controls="http://java.sun.com/jsf/composite/controls">
+<h:head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>JSF demo - with states</title>
+  <h:outputStylesheet library="css" name="styles.css"/>
+  
+</h:head>
+<h:body >
+
+  <h:form id="pz2form" prependId="false">
+    
+    <div id="switchmenu">
+      <a href="" onclick="switchView('recordview','targetview')">Record Browser</a>
+      <span> | </span>
+      <a href="" onclick="switchView('targetview','recordview')">Target Info</a>
+      <script>
+        function switchView(toView,fromView) {        
+          var to = document.getElementById(toView);
+          var from = document.getElementById(fromView);        
+          to.style.display = "block";
+          from.style.display = "none"; }
+      </script>        
+    </div>
+    
+    <div id="heading">
+      <table width="100%" border="0" cellpadding="6" cellspacing="0">
+        <tr>
+          <td width="250" height="100" align="center"><b>Pazpar2</b></td>
+          <td>
+            <h:inputText id="query" value="#{pz2.query}" size="50">                            
+            </h:inputText>
+            <h:outputText value=" "/>                
+            <h:commandButton id="button" value="Search">              
+              <f:ajax execute="query" render="${pz2watch.activeclients} ${pz2watch.history}"/>
+            </h:commandButton>
+          </td>
+          <td>
+            <a href="http://www.indexdata.com">
+             <img border="0" title="IndexData home page" src="#{request.contextPath}/gfx/indexdata_logo.png" height="98" align="right" alt="" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <h:panelGrid id="recordview" width="100%" border="0" columns="1" cellspacing="0" cellpadding="0">
+      <div style="padding: 2px;">
+      <h:panelGrid id="main" width="100%" border="0" columns="2" styleClass="columnsTopLeft" columnClasses="colTermlist,colResults" cellspacing="2" cellpadding="2">
+        <h:panelGrid id="facets" width="100%" cellspacing="0" cellpadding="0">
+          <ui:include src="compositions/facets.xhtml"/>                     
+        </h:panelGrid>
+        <h:panelGroup valign="top" halign="left">          
+          <h:panelGrid border="0" columns="1" width="100%" cellpadding="0" cellspacing="0">                 
+            <h:panelGroup id="ranking">        
+             Sort by
+             <h:selectOneMenu id="sort" value="#{pz2.sort}">
+               <f:selectItem itemValue="relevance" itemLabel="relevance"/>
+               <f:selectItem itemValue="title:1" itemLabel="title"/>
+               <f:selectItem itemValue="date:0" itemLabel="newest"/>
+               <f:selectItem itemValue="date:1" itemLabel="oldest"/>
+               <f:ajax render="pager show counts ${pz2watch.history}"/>
+             </h:selectOneMenu>
+             and show 
+             <h:selectOneMenu  id="perpage" value="#{pz2.pageSize}">
+              <f:selectItem itemValue="10" itemLabel="10"/>
+              <f:selectItem itemValue="20" itemLabel="20"/>
+              <f:selectItem itemValue="30" itemLabel="30"/>
+              <f:selectItem itemValue="50" itemLabel="50"/>
+              <f:ajax render="pager show counts"/>
+             </h:selectOneMenu>
+             per page.        
+            </h:panelGroup>
+            <h:panelGrid id="results" width="100%" cellpadding="0" cellspacing="0">
+              <h:panelGrid id="pager-recordcount" width="100%" cellpadding="0" cellspacing="0" rendered="#{pz2.hasRecords()}">
+                <hr/>
+                <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0">              
+                  <h:panelGroup id="pager">                
+                  </h:panelGroup>
+                  <h:panelGroup id="counts">  
+                    <ui:include src="compositions/recordcount.xhtml"/>                                                        
+                  </h:panelGroup>                        
+                </h:panelGrid>             
+                <hr/>
+              </h:panelGrid>
+              <h:panelGroup id="filter-flag" rendered="#{pz2.hasTargetFilter()}">              
+                <controls:toggle-filter label="Source: "/>
+              </h:panelGroup>
+              <h:panelGroup id="show">
+                <ui:include src="compositions/show.xhtml"/>
+              </h:panelGroup>
+            </h:panelGrid>
+          </h:panelGrid>
+        </h:panelGroup>
+      </h:panelGrid>      
+      <h:panelGrid id="stats" columns="1" width="100%">
+        <div id="footer">
+          <span id="statusinfo">.:STATUS INFO -- Active Clients: #{pz2.stat.activeClients}/#{pz2.stat.clients} -- Retrieved records: #{pz2.stat.records}/#{pz2.stat.hits} :.</span><br/>
+          <span id="copy">Copyright &copy; 2013 by <a href="http://www.indexdata.com">Index Data</a></span>
+        </div>      
+      </h:panelGrid>
+      </div>                            
+    </h:panelGrid>
+    
+    <div id="targetview" style="display: none;">      
+      <h:panelGrid id="targetinfo" columns="1" width="100%" cellspacing="0" cellpadding="0">
+        <ui:include src="compositions/target-info.xhtml"/>
+      </h:panelGrid>      
+    </div>
+    
+  </h:form>
+  
+</h:body>
+</h:html>

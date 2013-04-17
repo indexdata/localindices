@@ -12,6 +12,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class SplitTransformationChainRecordStorageProxy extends RecordStorageProxy {
@@ -22,9 +23,9 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   private StorageJobLogger logger; 
   private boolean closed = false;
   
-  public SplitTransformationChainRecordStorageProxy(RecordStorage storage, final XMLReader xmlFilter, final StorageJobLogger logger) 
+  public SplitTransformationChainRecordStorageProxy(RecordStorage storage, final XMLReader xmlFilter, RecordHarvestJob job) 
   	throws IOException, TransformerConfigurationException {
-    this.logger = logger;
+    this.logger = job.getLogger();
     this.
     setTarget(storage);
     input = new PipedInputStream();

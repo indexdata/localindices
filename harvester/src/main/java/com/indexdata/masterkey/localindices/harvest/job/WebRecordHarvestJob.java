@@ -9,14 +9,12 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
-import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
 import com.indexdata.masterkey.localindices.crawl.CrawlThread;
@@ -24,12 +22,9 @@ import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -113,11 +108,13 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     this.error = null;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     logger = new FileStorageJobLogger(getClass(), resource);
+    /* 
     List<TransformationStep> steps = new LinkedList<TransformationStep>();
     if (resource.getTransformation() != null) {
       steps = resource.getTransformation().getSteps();
     }
     setupTemplates(resource, steps);
+    */
   }
 
   @Override
@@ -417,6 +414,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   } // run()
 
+/*
   public RecordStorage setupTransformation(RecordStorage storage) 
   {
     if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
@@ -436,6 +434,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
     return storage;
   }
+ */
 
   OutputStream finalOutputStream = null; 
   @Override

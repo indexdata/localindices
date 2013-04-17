@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.web.admin.controller;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.faces.context.FacesContext;
@@ -20,13 +21,15 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.reflections.Reflections;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.SplitStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
@@ -52,9 +55,9 @@ public class StepController {
   private int batchSize = 20;
   private int itemCount = -1;
 
+  private boolean selectStepMode = false;
 
-  private boolean selectStepMode = false; 
-  
+  @SuppressWarnings("rawtypes")
   private DataModel model;
   @SuppressWarnings("rawtypes")
   /* Transformations */
@@ -68,14 +71,14 @@ public class StepController {
 
   public StepController() {
     try {
-      dao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext
-	  .getCurrentInstance().getExternalContext().getContext());
+      dao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext.getCurrentInstance()
+	  .getExternalContext().getContext());
       associationDao = TransformationStepAssociationDAOFactory.getDAO((ServletContext) FacesContext
 	  .getCurrentInstance().getExternalContext().getContext());
-/*
-      stepDao = TransformationStepDAOFactory.getDAO((ServletContext) FacesContext
-	  .getCurrentInstance().getExternalContext().getContext());
-*/
+      /*
+       * stepDao = TransformationStepDAOFactory.getDAO((ServletContext)
+       * FacesContext .getCurrentInstance().getExternalContext().getContext());
+       */
     } catch (DAOException ex) {
       logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
     }
@@ -83,7 +86,7 @@ public class StepController {
 
   public void setTransformation(TransformationStep resource) {
     this.current = resource;
-    
+
   }
 
   public int getBatchSize() {
@@ -128,9 +131,59 @@ public class StepController {
     current = null;
     resources = null;
     itemCount = -1;
-    if (isSelectStepMode()) 
+    if (isSelectStepMode())
       return "insert_step";
     return "list_steps";
+  }
+
+  public String selectSteps() {
+    setSelectStepMode(true);
+    return list();
+  }
+
+  public String listSteps() {
+    setSelectStepMode(false);
+    return list();
+  }
+
+  
+  @SuppressWarnings("rawtypes")
+  public String prepareStep(String name, String customClass) {
+    try {
+      Class stepClass = Class.forName("com.indexdata.masterkey.localindices.entity." +  name);
+      current = (TransformationStep) stepClass.newInstance();
+      if (customClass == null) 
+	customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("customClass");
+      if (customClass != null) {
+	logger.log(Level.INFO, "prepareStep: customClass: " + customClass);
+	current.setCustomClass(customClass);
+      }
+      else
+	logger.log(Level.WARN, "prepareStep: Missing customClass");
+      //current = new CustomTransformationStep();
+      logger.log(Level.WARN, "JSF event " + "edit_" + name);
+      return "edit_" + name;
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      return "error";
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+      return "error";
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+      return "error";
+    }
+  }
+
+  public String prepareStep() {
+    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("entityClass");
+    if (className == null) {
+      logger.log(Level.INFO, "prepareStep: defaulting to entity class CustomTransformationStep");
+      className = "CustomTransformationStep";
+    }
+    else 
+      logger.log(Level.INFO, "prepareStep: entity class " + className);
+    return prepareStep(className, null);
   }
 
   public String prepareSplitStep() {
@@ -139,13 +192,23 @@ public class StepController {
     return "edit_split_step";
   }
 
+  public String prepareCustomStep() {
+    return prepareStep("CustomTransformationStep", null);
+  }
+
   public String prepareXsltStep() {
-    current = new BasicTransformationStep();
+    current = new XmlTransformationStep();
     return "edit_xslt_step";
   }
 
+  public String prepareXmlLogStep() {
+    current = new CustomTransformationStep();
+    current.setCustomClass("com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter");
+    return "edit_CustomTransformationStep";
+  }
+
   public String prepareValidationStep() {
-    current = new BasicTransformationStep();
+    current = new XmlTransformationStep();
     return "edit_xsd_step";
   }
 
@@ -161,22 +224,21 @@ public class StepController {
     dao.create(current);
     return "test_step";
   }
-  
+
   /* update resource */
   public String prepareToEdit() {
     current = getResourceFromRequestParam();
-    // stepAssociation = current.getStepAssociations();
     postDePersist();
-    logger.log(Level.INFO, "Retrieved persisted resource of type " + current.getClass().getName());
-    if (current instanceof BasicTransformationStep) {
+    String className = current.getClass().getSimpleName();
+    logger.log(Level.INFO, "Retrieved persisted resource of type " + className);
+    if (current instanceof XmlTransformationStep) {
       return "edit_xslt_step";
     }
-    if (current instanceof TransformationStep) {
-      return "edit_split_step";
-    }
-    else {
-      logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
-      return "failure";
+    if (current instanceof CustomTransformationStep) {
+      return "edit_CustomTransformationStep";
+    } else {
+      logger.log(Level.INFO, "Unknown resource type. No matching form defined. Using class name: " + className);
+      return "edit_"  + className;
     }
   }
 
@@ -184,7 +246,7 @@ public class StepController {
     prePersist();
     if (current.getId() != null)
       current = dao.update(current);
-    else 
+    else
       dao.create(current);
     current = null;
     return list();
@@ -196,12 +258,14 @@ public class StepController {
   }
 
   /* list resources */
+  @SuppressWarnings("rawtypes")
   public DataModel getSteps() {
     setSelectStepMode(false);
     return getStepsCommon();
   }
 
   /* list resources */
+  @SuppressWarnings("rawtypes")
   public DataModel getStepsInsertMode() {
     setSelectStepMode(true);
     return getStepsCommon();
@@ -221,11 +285,12 @@ public class StepController {
       Collections.sort(resources);
     return new ListDataModel(resources);
   }
-public String delete() {
+
+  public String delete() {
     current = getResourceFromRequestParam();
     if (current != null) {
       dao.delete(current);
-      // TODO return some error message 
+      // TODO return some error message
     }
     current = null;
     return list();
@@ -281,7 +346,7 @@ public String delete() {
   public String addXslStep() {
     // Step up Xsl Step type and association
     logger.error("Setting up new XSL step.");
-    BasicTransformationStep step = new BasicTransformationStep();
+    XmlTransformationStep step = new XmlTransformationStep();
     step.setDescription("<Description>");
     step.setScript("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
     stepMode = "showEditStep();";
@@ -310,7 +375,7 @@ public String delete() {
 
   public TransformationStep getTransformationStep() {
     if (current == null) {
-      TransformationStep tmpStep = new BasicTransformationStep("", "", "");
+      TransformationStep tmpStep = new XmlTransformationStep("", "", "");
       return tmpStep;
     }
     return current;
@@ -375,5 +440,18 @@ public String delete() {
   public void setSelectStepMode(boolean selectStepMode) {
     this.selectStepMode = selectStepMode;
   }
+
+  public List<SelectItem> getStepClasses() {
+    List<SelectItem> list = new LinkedList<SelectItem>();
+    Reflections reflections = new Reflections("com.indexdata");
+    Set<Class<? extends TransformationStep>> subTypes = reflections.getSubTypesOf(TransformationStep.class);
+    for (Class<? extends TransformationStep> step : subTypes) {
+      SelectItem item = new SelectItem(); 
+      item.setLabel(step.getSimpleName());
+      item.setValue(step.getName());
+    }
+    return list;
+  }
+  
 
 }

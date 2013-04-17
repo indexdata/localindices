@@ -17,6 +17,8 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
@@ -43,19 +45,19 @@ public class TestConnectorPlatform extends JobTester {
     return connector;
   }
   
-  private Transformation createPzTransformation() throws IOException {
+  private Transformation createPzTransformation(boolean inParallel) throws IOException {
     String[] resourceSteps = { "resources/pz2-url2id.xsl"};
-    return createTransformationFromResources(resourceSteps);
+    return createTransformationFromResources(resourceSteps, inParallel);
   }
 
-  private HarvestConnectorResource createResource(String connector) throws IOException {
+  private HarvestConnectorResource createResource(String connector, boolean inParallel) throws IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setId(1l);
     resource.setUrl(cfServer);
     resource.setInitData("{}");
     resource.setConnector(createConnectorFromResource(connector));
     resource.setCurrentStatus("NEW");
-    resource.setTransformation(createPzTransformation());
+    resource.setTransformation(createPzTransformation(inParallel));
     return resource;
   }
 
@@ -93,24 +95,30 @@ public class TestConnectorPlatform extends JobTester {
     return job;
   }
 
-  private RecordStorage createStorage(HarvestConnectorResource resource) {
-    RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+  private RecordStorage createStorage(HarvestConnectorResource resource, boolean clean) throws IOException {
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     Storage storageEntity = new SolrStorageEntity();
     storageEntity.setId(1l);
     storageEntity.setUrl(solrUrl);
+    recordStorage.setWaitSearcher(true);
+    if (clean) {
+      recordStorage.purge(true);
+    }
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
     return recordStorage;
   }
 
-  public void testConnectorHarvestJob() throws ParseException, IOException {
-    HarvestConnectorResource resource = createResource("resources/id.cf");
-    RecordStorage recordStorage = createStorage(resource);
+  public void testConnectorHarvestJob() throws ParseException, IOException, StatusNotImplemented {
+    HarvestConnectorResource resource = createResource("resources/id.cf", false);
+    RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus status = job.getStatus();
-    if (HarvestStatus.FINISHED == status) {
-
-    } else
-      System.out.println("Failed to harvest. Status: " + status.toString());
+    assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
+    StorageStatus storageStatus = recordStorage.getStatus();
+    long adds = storageStatus.getAdds();
+    //long deletes = storageStatus.getDeletes();
+    long total = storageStatus.getTotalRecords();
+    assertTrue("Adds differes from Total: " + adds + " " + total, adds == total);
   }
 
   @SuppressWarnings("unused")

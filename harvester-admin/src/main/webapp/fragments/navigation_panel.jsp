@@ -7,5 +7,5 @@
     <h:commandLink styleClass="navigation" value="Resources"       action="#{resourceController.listResources}" />
     <h:commandLink styleClass="navigation" value="Storages"        action="#{storageController.listStorages}" />
     <h:commandLink styleClass="navigation" value="Transformations" action="#{transformationController.list}" />
-    <h:commandLink styleClass="navigation"  value="Steps"          action="#{stepController.list}" />
+    <h:commandLink styleClass="navigation"  value="Steps"          action="#{stepController.listSteps}" />
 </f:subview>

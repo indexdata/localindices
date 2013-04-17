@@ -2,10 +2,11 @@
 
 <!-- =========== FULL CONFIGURATION FILE ================================== -->
 
-<faces-config version="1.2" 
-    xmlns="http://java.sun.com/xml/ns/javaee" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_1_2.xsd">
+<faces-config
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_1.xsd"
+    version="2.1">    
     <managed-bean>
         <managed-bean-name>resourceController</managed-bean-name>
         <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.ResourceController</managed-bean-class>
@@ -50,190 +51,198 @@
     <navigation-rule>
         <navigation-case>
             <from-outcome>overview</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
+            <to-view-id>/resources/list.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>home</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
+            <to-view-id>/resources/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
             <from-outcome>list_resources</from-outcome>
-            <to-view-id>/list_resources.jsp</to-view-id>
+            <to-view-id>/resources/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
             <from-outcome>list_storages</from-outcome>
-            <to-view-id>/list_storages.jsp</to-view-id>
+            <to-view-id>/storages/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
             <from-outcome>list_transformations</from-outcome>
-            <to-view-id>/list_transformations.jsp</to-view-id>
+            <to-view-id>/transformations/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
             <from-outcome>list_steps</from-outcome>
-            <to-view-id>/list_steps.jsp</to-view-id>
+            <to-view-id>/steps/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
         <navigation-case>
             <from-outcome>harvester_log</from-outcome>
-            <to-view-id>/harvester_log.jsp</to-view-id>
+            <to-view-id>/resources/log.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/list_resources.jsp</from-view-id>
+        <from-view-id>/resources/list.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_OaiPmhResource</from-outcome>
-            <to-view-id>/add_oaipmh.jsp</to-view-id>
+            <to-view-id>/resources/add_oaipmh.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_XmlBulkResource</from-outcome>
-            <to-view-id>/add_xmlbulk.jsp</to-view-id>
+            <to-view-id>/resources/add_xmlbulk.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_WebCrawlResource</from-outcome>
-            <to-view-id>/add_webcrawl.jsp</to-view-id>
+            <to-view-id>/resources/add_webcrawl.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_HarvestConnectorResource</from-outcome>
-            <to-view-id>/add_connector.jsp</to-view-id>
+            <to-view-id>/resources/add_connector.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_OaiPmhResource</from-outcome>
-            <to-view-id>/edit_oaipmh.jsp</to-view-id>
+            <to-view-id>/resources/edit_oaipmh.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_XmlBulkResource</from-outcome>
-            <to-view-id>/edit_xmlbulk.jsp</to-view-id>
+            <to-view-id>/resources/edit_xmlbulk.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_WebCrawlResource</from-outcome>
-            <to-view-id>/edit_webcrawl.jsp</to-view-id>
+            <to-view-id>/resources/edit_webcrawl.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_HarvestConnectorResource</from-outcome>
-            <to-view-id>/edit_connector.jsp</to-view-id>
+            <to-view-id>/resources/edit_connector.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/list_storages.jsp</from-view-id>
+        <from-view-id>/storages/list.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_solrstorage</from-outcome>
-            <to-view-id>/add_solrstorage.jsp</to-view-id>
+            <to-view-id>/storages/add_solr.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_zebrastorage</from-outcome>
-            <to-view-id>/add_zebra.jsp</to-view-id>
+            <to-view-id>/storages/add_zebra.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xmlstorage</from-outcome>
-            <to-view-id>/edit_xmlstorage.jsp</to-view-id>
+            <to-view-id>/storages/edit_xmlstorage.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_consolestorage</from-outcome>
-            <to-view-id>/add_console.jsp</to-view-id>
+            <to-view-id>/storages/add_console.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_solrstorage</from-outcome>
-            <to-view-id>/edit_solrstorage.jsp</to-view-id>
+            <to-view-id>/storages/edit_solr.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_zebrastorage</from-outcome>
-            <to-view-id>/edit_zebrastorage.jsp</to-view-id>
+            <to-view-id>/storages/edit_zebra.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xmlstorage</from-outcome>
-            <to-view-id>/edit_xmlstorage.jsp</to-view-id>
+            <to-view-id>/storages/edit_xml.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_consolestorage</from-outcome>
-            <to-view-id>/edit_consolestorage.jsp</to-view-id>
+            <to-view-id>/storages/edit_console.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/list_transformations.jsp</from-view-id>
+        <from-view-id>/transformations/list.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_transformation</from-outcome>
-            <to-view-id>/transformation_add.jsp</to-view-id>
+            <to-view-id>/transformations/add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_transformation</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/list_steps.jsp</from-view-id>
+        <from-view-id>/steps/list.jsp</from-view-id>
         <navigation-case>
             <from-outcome>new_split_step</from-outcome>
-            <to-view-id>/step_split_add.jsp</to-view-id>
+            <to-view-id>/steps/split_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_split_step</from-outcome>
-            <to-view-id>/step_split_add.jsp</to-view-id>
+            <to-view-id>/steps/split_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_xslt_step</from-outcome>
-            <to-view-id>/step_xsl_add.jsp</to-view-id>
+            <to-view-id>/steps/xsl_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xslt_step</from-outcome>
-            <to-view-id>/step_xsl_add.jsp</to-view-id>
+            <to-view-id>/steps/xsl_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>new_xsd_step</from-outcome>
-            <to-view-id>/step_xsd_add.jsp</to-view-id>
+            <to-view-id>/steps/xsd_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xsd_step</from-outcome>
-            <to-view-id>/step_xsd_add.jsp</to-view-id>
+            <to-view-id>/steps/xsd_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>new_CustomTransformationStep</from-outcome>
+            <to-view-id>/steps/custom_add.jsp</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_CustomTransformationStep</from-outcome>
+            <to-view-id>/steps/custom_add.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>delete_step</from-outcome>
-            <to-view-id>/list_steps.jsp</to-view-id>
+            <to-view-id>/steps/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/transformation_add.jsp</from-view-id>
+        <from-view-id>/transformations/add.jsp</from-view-id>
         <navigation-case>
             <from-outcome>edit_current</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/transformation_edit.jsp</from-view-id>
+        <from-view-id>/transformations/edit.jsp</from-view-id>
         <navigation-case>
             <from-outcome>insert_step</from-outcome>
-            <to-view-id>/transformation_insert_step.jsp</to-view-id>
+            <to-view-id>/transformations/insert_step.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>up_step</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>down_step</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>delete_step</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/transformation_insert_step.jsp</from-view-id>
+        <from-view-id>/transformations/insert_step.jsp</from-view-id>
         <navigation-case>
             <from-outcome>edit_current</from-outcome>
-            <to-view-id>/transformation_edit.jsp</to-view-id>
+            <to-view-id>/transformations/edit.jsp</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>cancel</from-outcome>
-            <to-view-id>/list_transformations.jsp</to-view-id>
+            <to-view-id>/transformations/list.jsp</to-view-id>
         </navigation-case>
     </navigation-rule>
 </faces-config>

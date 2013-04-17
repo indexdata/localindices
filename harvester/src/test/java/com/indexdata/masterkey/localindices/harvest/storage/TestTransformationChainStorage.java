@@ -187,7 +187,7 @@ public class TestTransformationChainStorage extends TestCase {
     XMLReader xmlReader = createTransformChain(stylesheets);
     // TODO setLogger on xmlBulkStorage?
     TransformationChainRecordStorageProxy transformStorage = new TransformationChainRecordStorageProxy(
-	xmlBulkStorage, xmlReader, new Pz2SolrRecordContentHandler(xmlBulkStorage, "test"), null);
+	xmlBulkStorage, xmlReader, null);
     transformStorage.begin();
     OutputStream output = transformStorage.getOutputStream();
     Writer writer = new OutputStreamWriter(output);
@@ -271,7 +271,7 @@ public class TestTransformationChainStorage extends TestCase {
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     XMLReader xmlFilter = createTransformChain(stylesheets);
     TransformationChainRecordStorageProxy storageProxy = new TransformationChainRecordStorageProxy(
-	recordStorage, xmlFilter, new Pz2SolrRecordContentHandler(recordStorage, "test"), null);
+	recordStorage, xmlFilter, null);
     // Clean database completely before run
     storageProxy.purge(true);
     // TODO Check empty database

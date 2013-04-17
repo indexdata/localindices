@@ -6,6 +6,8 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
@@ -22,8 +24,13 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   private boolean die;
   private Thread jobThread;
 
-  protected final void setStatus(HarvestStatus status) {
+  public void setStatus(HarvestStatus status) {
     this.status = status;
+  }
+
+  public void setStatus(HarvestStatus status, String error) {
+    this.status = status;
+    getHarvestable().setMessage(error);
   }
 
   protected final void markForUpdate() {
@@ -42,6 +49,8 @@ public abstract class AbstractHarvestJob implements HarvestJob {
     die = true;
     if (jobThread != null)
       jobThread.interrupt();
+    else
+      	Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown"); 
   }
 
 

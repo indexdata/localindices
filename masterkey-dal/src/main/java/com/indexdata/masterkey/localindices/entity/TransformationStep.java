@@ -55,7 +55,9 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   protected String testOutput = "";
   @Transient
   protected List<Transformation> transformations; 
-  
+
+  protected String customClass;
+
   public TransformationStep() {
   }
 
@@ -176,4 +178,13 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   public void setType(String type) {
     this.type = type;
   }
+
+  public void setCustomClass(String customClass) {
+    this.customClass = customClass;
+  }
+
+  public String getCustomClass() {
+    return customClass;
+  }
+
 }
