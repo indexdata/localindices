@@ -9,8 +9,8 @@
     <h:panelGrid columns="2">
         <h:outputText value="Connector Engine URL:" styleClass="required" />
         <h:inputText  value="#{resourceController.resource.url}" size="50" styleClass="requiredInput"  />
-        <h:outputText value="Connector:"  styleClass="required"/> 
-        <h:inputTextarea cols="60" rows="10" value="#{resourceController.resource.connector}" styleClass="requiredInput"/>
+        <h:outputText value="Connector (e.g repo) URL:"  styleClass="required"/> 
+        <h:inputText value="#{resourceController.resource.connectorUrl}" size="50" styleClass="requiredInput"/>
         <h:outputText value="User Name:" styleClass="optionalInput"/>
         <h:inputText  value="#{resourceController.resource.username}" size="20" styleClass="optionalInput" />
         <h:outputText value="Password:" styleClass="optionalInput" />

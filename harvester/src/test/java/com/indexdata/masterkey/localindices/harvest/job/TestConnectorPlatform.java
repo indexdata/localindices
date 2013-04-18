@@ -55,7 +55,7 @@ public class TestConnectorPlatform extends JobTester {
     resource.setId(1l);
     resource.setUrl(cfServer);
     resource.setInitData("{}");
-    resource.setConnector(createConnectorFromResource(connector));
+    resource.setConnectorUrl(createConnectorFromResource(connector));
     resource.setCurrentStatus("NEW");
     resource.setTransformation(createPzTransformation(inParallel));
     return resource;

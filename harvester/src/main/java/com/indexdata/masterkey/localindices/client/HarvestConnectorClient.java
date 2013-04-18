@@ -96,7 +96,7 @@ public class HarvestConnectorClient implements HarvestClient {
     // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
 
-    uploadConnector(resource.getConnector());
+    uploadConnector(resource.getConnectorUrl());
     init();
     add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
     while (!job.isKillSent() && !jobs.isEmpty()) { 
