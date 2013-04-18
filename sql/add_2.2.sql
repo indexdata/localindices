@@ -7,3 +7,4 @@ alter table HARVESTABLE add column INITDATA varchar(4096);
 alter table HARVESTABLE add column SLEEP    integer;
 alter table TRANSFORMATION add column `PARALLEL` tinyint(1) DEFAULT NULL;
 alter table STEP       add column `CUSTOMCLASS` varchar(255) DEFAULT NULL;
+update STEP set dtype = 'XmlTransformationStep' where dtype = 'BasicTransformationStep';
