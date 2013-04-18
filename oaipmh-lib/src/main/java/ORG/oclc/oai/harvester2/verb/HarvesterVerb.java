@@ -274,6 +274,8 @@ public abstract class HarvesterVerb {
                 con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
             con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
+            // TODO Make configurable. 
+            con.setConnectTimeout(60000);
             try {
                 responseCode = con.getResponseCode();
                 if (responseCode != 200)
