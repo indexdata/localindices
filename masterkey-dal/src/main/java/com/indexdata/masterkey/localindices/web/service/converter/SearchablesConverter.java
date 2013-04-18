@@ -74,7 +74,7 @@ public class SearchablesConverter extends Records {
             	layer.setCclMapIssn("1=issn");
             	layer.setCclMapIsbn("1=isbn");
             	layer.setSRU("solr");
-            	layer.setSRUVersion("");
+            	layer.setSruVersion("");
             	// Missing a dynamic method as: 
             	//layer.addElement(key, value);
             	// TODO Default Solr FACET MAP and LIMIT MAP
