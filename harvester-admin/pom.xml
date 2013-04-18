@@ -10,6 +10,11 @@
   <packaging>war</packaging>
   <name>harvester-admin</name>
   <url>http://maven.apache.org</url>
+  <properties>
+    <deployType>production</deployType>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <netbeans.hint.deploy.server>Tomcat60</netbeans.hint.deploy.server>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -99,7 +104,44 @@
     </dependency>
   </dependencies>
   <build>
+    <filters>
+      <filter>src/main/filters/filters-${deployType}.properties</filter>
+    </filters>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>log4j.properties</include>
+        </includes>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/webapp/WEB-INF</directory>
+        <includes>
+          <include>web.xml</include>
+        </includes>
+        <filtering>true</filtering>
+        <targetPath>${basedir}/target</targetPath>
+      </resource>
+    </resources>
     <plugins>
+      <plugin>
+        <!--
+        since web.xml is preprocessed we need to load the output version
+        -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>          <webXml>${project.build.directory}/web.xml</webXml>
+          <!-- include version and build number in the manifest file-->
+          <archive>
+            <addMavenDescriptor>true</addMavenDescriptor>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -112,8 +154,15 @@
     </plugins>
     <finalName>harvester-admin</finalName>
   </build>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <netbeans.hint.deploy.server>Tomcat60</netbeans.hint.deploy.server>
-  </properties>
+  <profiles>
+    <profile>
+      <id>development</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <deployType>development</deployType>
+      </properties>
+    </profile>
+  </profiles>
 </project>
