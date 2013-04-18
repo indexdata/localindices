@@ -119,8 +119,10 @@ public class HarvestConnectorClient implements HarvestClient {
       logger.info("Fetching harvesting connector from "+connUrl);
       HttpClient hc = new HttpClient();
       URI connUri = new URI(connUrl);
-      hc.getState().setCredentials(AuthScope.ANY,
-        new UsernamePasswordCredentials(connUri.getUserInfo()));
+      if (connUri.getUserInfo() != null) {
+        hc.getState().setCredentials(AuthScope.ANY,
+          new UsernamePasswordCredentials(connUri.getUserInfo()));
+      }
       hm = new GetMethod(connUrl);
       int res = hc.executeMethod(hm);
       if (res != 200) {
