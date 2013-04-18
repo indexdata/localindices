@@ -10,6 +10,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringBufferInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -472,6 +475,7 @@ public class ResourceController {
     }
   }
 
+  @SuppressWarnings("deprecation")
   public String viewJobLog() {
     String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
 	.get("resourceId");
@@ -481,7 +485,13 @@ public class ResourceController {
     // of the InputStream in the view
     StringBuilder sb = new StringBuilder(10240);
     InputStream is = dao.getLog(id);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    Reader tempReader;
+    if (is == null) {
+      tempReader = new StringReader("--- WARNING: No Job Log found ---"); 
+    }
+    else 
+      tempReader = new InputStreamReader(is);
+    BufferedReader reader = new BufferedReader(tempReader);
     String line = null;
     try {
       while ((line = reader.readLine()) != null) {
