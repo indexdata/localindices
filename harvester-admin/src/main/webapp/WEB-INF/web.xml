@@ -49,7 +49,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO</param-name>
-		<param-value>TransformationStepAssociationDAOWS</param-value>
+		<param-value>TransformationStepAssociationDAOJPA</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO.WS_BASE_URL</param-name>
