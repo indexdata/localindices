@@ -13,7 +13,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.xml.transform.Result;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.log4j.Level;
 import org.w3c.dom.Node;
@@ -22,6 +29,7 @@ import org.w3c.dom.NodeList;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
+import ORG.oclc.oai.harvester2.verb.OaiPmhException;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
@@ -208,9 +216,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	} catch (TransformerException e) {
 	  e.printStackTrace();
 	  throw new IOException("Transformation Exception: " + e.getMessage(), e);
-	} catch (NoSuchFieldException e) {
+	} catch (OaiPmhException e) {
+	  logOaiPmhException(e, "resumption token");
 	  e.printStackTrace();
-	  throw new IOException("NoSuchFieldException: " + e.getMessage(), e);
+	  throw new IOException("OaiPmhException: " + e.getMessage(), e);
 	}
       }
       if (resumptionToken == null || resumptionToken.length() == 0) {
@@ -227,6 +236,24 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     if (dataStart)
       getStorage().databaseEnd();
+  }
+
+  private void logOaiPmhException(OaiPmhException e, String string) {
+    try {
+      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+      Result xml = new StreamResult();
+      transformer.transform(new DOMSource(e.getDocument()), xml);
+      logger.error("Failed to get " + string + " from OAI-PMH XML response: " + xml.toString());
+    } catch (TransformerConfigurationException e1) {
+      logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
+      e1.printStackTrace();
+    } catch (TransformerFactoryConfigurationError e1) {
+      logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
+      e1.printStackTrace();
+    } catch (TransformerException e1) {
+      logger.error("Failed to serialize XML Document on error: " + e.getMessage());
+      e1.printStackTrace();
+    }
   }
 
   private RecordDOMImpl createRecord(Node node) throws TransformerException 
