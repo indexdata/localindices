@@ -6,8 +6,12 @@ my $url = @ARGV[0];
 
 die "No url given" if (!$url);
 
+$prefix = @ARGV[1];
+die "No metadataPrefix given" if (!$prefix);
+
 $set = '';
-$set = @ARGV[0] if ($ARGV[0]);
+$set = @ARGV[2] if ($ARGV[2]);
+
 
 ## create a harvester for the Library of Congress
 my $harvester = Net::OAI::Harvester->new( 
@@ -19,7 +23,7 @@ print "name: ",$identity->repositoryName(),"\n";
 
 ## list all the records in a repository
 
-my $records = $harvester->listRecords( metadataPrefix => 'oai_dc', from => "2008-09-01", 'until' => "2008-09-01");
+my $records = $harvester->listRecords( metadataPrefix => $prefix, from => "2008-09-01", 'until' => "2008-09-01");
 my $finished = 0;
 
 while ( ! $finished ) {
