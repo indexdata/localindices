@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -19,11 +20,7 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.RollingFileAppender;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.Node;
@@ -57,6 +54,7 @@ public class XmlFileDumperRouter implements MessageRouter {
   OutputStream out = System.err; 
   int sampling = 1;
   int count = 0; 
+  String filename;
   public XmlFileDumperRouter(TransformationStep step, RecordHarvestJob job) {
     logger = job.getLogger();
     if (step instanceof CustomTransformationStep) {
@@ -95,13 +93,17 @@ public class XmlFileDumperRouter implements MessageRouter {
 	transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", map.get("indent").toString());
       }
       if (map.containsKey("file")) {
-	File file = new File(map.get("file").toString());
+	filename = map.get("file").toString();
+	File file = new File(filename);
 	boolean append = false;
 	if (map.get("append") != null)
 	  append = "true".equals(map.get("append"));
 	out = new FileOutputStream(file, append);
+      } 
+      else {
+	logger.debug("No file configured. Using standard out");
+	out = System.out;
       }
-
       if (map.containsKey("sample")) {
 	sampling = Integer.parseInt(map.get("sample").toString());
       }
@@ -136,6 +138,12 @@ public class XmlFileDumperRouter implements MessageRouter {
   public void consume(Object take) {
     if (take instanceof StopMessage) {
       running = false;
+      try {
+	out.close();
+      } catch (IOException e) {
+	logger.error("Failed to close file: " );
+	e.printStackTrace();
+      }
       logger.info("Got StopMessage. Parsing on, shutting down.");
       produce(take);
       return;
@@ -148,9 +156,10 @@ public class XmlFileDumperRouter implements MessageRouter {
       StreamResult result = new StreamResult(byteOutput);
       try {
 	transformer.transform(xmlSource, result);
-	if (out != null)
+	if (out != null && (count++) % sampling == 0) {
 	  out.write(byteOutput.toString().getBytes());
-	
+	  out.flush();
+	}
 	produce(record);
       } catch (Exception e) {
 	logger.error("Failed to put Message ("+ result + ") on Output Queue.", e);
