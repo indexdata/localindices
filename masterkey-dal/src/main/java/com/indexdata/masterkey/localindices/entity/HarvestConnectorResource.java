@@ -20,9 +20,9 @@ public class HarvestConnectorResource extends Harvestable {
   private String password;  	
   private String proxy;  	
   @Column(length = 4096)
-  private String initData;  	
-  @Column(name="script", length = 1024000)
-  private String connector;
+  private String initData;
+  @Column(length = 4096)
+  private String connectorUrl;
   
   @Temporal(TemporalType.TIMESTAMP)
   private Date fromDate;
@@ -34,12 +34,12 @@ public class HarvestConnectorResource extends Harvestable {
   private String url;
   private Long   sleep;
   
-  public String getConnector() {
-    return connector;
+  public String getConnectorUrl() {
+    return connectorUrl;
   }
 
-  public void setConnector(String connector) {
-    this.connector = connector;
+  public void setConnectorUrl(String connector) {
+    this.connectorUrl = connector;
   }
 
   public Date getFromDate() {

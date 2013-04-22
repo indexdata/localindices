@@ -30,6 +30,14 @@ import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.utils.XmlUtils;
+import java.net.*;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.w3c.dom.Document;
 
 public class HarvestConnectorClient implements HarvestClient {
   private StorageJobLogger logger; 
@@ -88,7 +96,7 @@ public class HarvestConnectorClient implements HarvestClient {
     // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
 
-    uploadConnector(resource.getConnector());
+    uploadConnector(resource.getConnectorUrl());
     init();
     add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
     while (!job.isKillSent() && !jobs.isEmpty()) { 
@@ -104,16 +112,34 @@ public class HarvestConnectorClient implements HarvestClient {
     return 0;
 }
   
-  private void uploadConnector(String connector) throws Exception {
-    HttpURLConnection conn = createConnectionJSON("load_cf");
-    conn.setDoOutput(true);
-    DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-    out.writeBytes(connector);
-    out.flush();
-    out.close();
-    int rc = conn.getResponseCode();
-    if (rc != 200) {
-      throw new Exception("Unable to upload connector. Response Code: " + rc);
+  private void uploadConnector(String connUrl) throws Exception {
+    //fetch from the repo
+    HttpMethod hm = null;
+    try { 
+      logger.info("Fetching harvesting connector from "+connUrl);
+      HttpClient hc = new HttpClient();
+      URI connUri = new URI(connUrl);
+      if (connUri.getUserInfo() != null) {
+        hc.getState().setCredentials(AuthScope.ANY,
+          new UsernamePasswordCredentials(connUri.getUserInfo()));
+      }
+      hm = new GetMethod(connUrl);
+      int res = hc.executeMethod(hm);
+      if (res != 200) {
+        throw new Exception("Fetching connector from the repo failed - status "+res);
+      }
+      Document connector = XmlUtils.parse(hm.getResponseBodyAsStream());
+      HttpURLConnection cfwsConn = createConnectionJSON("load_cf");
+      cfwsConn.setDoOutput(true);
+      XmlUtils.serialize(connector, cfwsConn.getOutputStream());
+      int rc = cfwsConn.getResponseCode();
+      if (rc != 200) {
+        throw new Exception("Unable to post connector to CFWS - status " + rc);
+      }
+    } catch (URISyntaxException ue) {
+      throw new Exception("Fetching connector from the repo failed", ue);
+    } finally {
+      if (hm != null) hm.releaseConnection();
     }
   }
   
@@ -215,7 +241,6 @@ public class HarvestConnectorClient implements HarvestClient {
       data.writeBytes(postdata);
       data.flush();
       data.close();
-      
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
       // String contentType = conn.getContentType();

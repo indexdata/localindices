@@ -21,7 +21,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.HarvestableDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8080/harvester/records/harvestables/</param-value>
+		<param-value>http://${harvester.host}:${harvester.port}/harvester/records/harvestables/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.StorageDAO</param-name>
@@ -29,7 +29,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.StorageDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8080/harvester/records/storages/</param-value>
+		<param-value>http://${harvester.host}:${harvester.port}/harvester/records/storages/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationDAO</param-name>
@@ -37,7 +37,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8080/harvester/records/transformations/</param-value>
+		<param-value>http://${harvester.host}:${harvester.port}/harvester/records/transformations/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepDAO</param-name>
@@ -45,7 +45,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8080/harvester/records/steps/</param-value>
+		<param-value>http://${harvester.host}:${harvester.port}/harvester/records/steps/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO</param-name>
@@ -53,7 +53,7 @@
 	</context-param>
 	<context-param>
 		<param-name>com.indexdata.masterkey.localindices.TransformationStepAssociationDAO.WS_BASE_URL</param-name>
-		<param-value>http://localhost:8080/harvester/records/tsas/</param-value>
+		<param-value>http://${harvester.host}:${harvester.port}/harvester/records/tsas/</param-value>
 	</context-param>
 	<context-param>
 		<param-name>com.sun.faces.verifyObjects</param-name>
