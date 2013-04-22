@@ -77,7 +77,7 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class HarvesterVerb {
-    private static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
+    protected static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
     private final static int HTTP_MAX_RETRIES = 10;
     private final static int HTTP_RETRY_TIMEOUT = 600; //secs
