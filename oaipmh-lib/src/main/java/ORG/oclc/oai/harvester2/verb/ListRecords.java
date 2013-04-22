@@ -79,29 +79,51 @@ public class ListRecords extends HarvesterVerb {
      * 
      * @return the oai:resumptionToken value
      * @throws TransformerException
-     * @throws NoSuchFieldException
+     * @throws OaiPmhException
      */
     public String getResumptionToken()
-    throws TransformerException, NoSuchFieldException {
+    throws TransformerException {
         String schemaLocation = getSchemaLocation();
         if (schemaLocation.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
             return getSingleString("/oai20:OAI-PMH/oai20:ListRecords/oai20:resumptionToken");
         } else if (schemaLocation.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
             return getSingleString("/oai11_ListRecords:ListRecords/oai11_ListRecords:resumptionToken");
         } else {
-            throw new NoSuchFieldException(schemaLocation);
+          logger.error("Unknown schema location: " + schemaLocation + ". Looking for resumptiontoken without namespace. ");
+          String resumptionToken = getSingleString("//resumptionToken");
+          if (resumptionToken != null && !"".equals(resumptionToken))
+            return resumptionToken;
+          logger.error("Unknown schema location: " + schemaLocation + ". Looking for resumptiontoken without namespace (V1.1) ");
+          resumptionToken = getSingleString("/ListRecords/resumptionToken");
+          if (resumptionToken != null && !"".equals(resumptionToken))
+            return resumptionToken;          
+          throw new OaiPmhException("Error parsing Resumption Token from Document with Schema Location: " + schemaLocation, getDocument());
         }
     }
 
-    public NodeList getRecords()
-    throws TransformerException, NoSuchFieldException {
+    /**
+     * Get the oai:records from the response
+     * 
+     * @return the oai:records NodeList
+     * @throws TransformerException
+     * @throws OaiPmhException
+     */
+    public NodeList getRecords() throws TransformerException {
         String schemaLocation = getSchemaLocation();
         if (schemaLocation.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
             return getNodeList("/oai20:OAI-PMH/oai20:ListRecords/oai20:record");
         } else if (schemaLocation.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
             return getNodeList("/oai11_ListRecords:ListRecords");
         } else {
-            throw new NoSuchFieldException(schemaLocation);
+          logger.error("Unknown schema location: " + schemaLocation);
+          // TODO Can these be combined into one? 
+          NodeList nodeList = getNodeList("/OAI-PMH/ListRecords/record");
+          if (nodeList != null && nodeList.getLength() > 0)
+            return nodeList;
+          nodeList = getNodeList("/ListRecords/record");
+          if (nodeList != null && nodeList.getLength() > 0)
+            return nodeList;
+          throw new OaiPmhException("Error parsing Records from Document using Schema Location: " + schemaLocation, getDocument());
         }
     }
 
