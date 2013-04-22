@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
+import org.apache.log4j.RollingFileAppender;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
@@ -22,7 +23,11 @@ public class FileStorageJobLogger extends StorageJobLogger {
   protected void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type) {
     try {
       if (getLogger().getAppender(logFilename) == null) {
-	logAppender = new FileAppender(layout, logFilename, true);
+	RollingFileAppender rolling = new RollingFileAppender(layout, logFilename, true);
+	// TODO configurable 
+	rolling.setMaxBackupIndex(10);
+	rolling.setMaxFileSize("100KB");
+	logAppender = rolling;	
 	logAppender.setName(logFilename);
 	logger.addAppender(logAppender);
       }
