@@ -116,6 +116,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
+    } catch (OaiPmhException e) {
+      setStatus(HarvestStatus.ERROR);
+      logOaiPmhException(e, e.getMessage());
     } catch (IOException e) {
       setStatus(HarvestStatus.ERROR);
       resource.setMessage(e.getMessage());
@@ -188,10 +191,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	    + errors.length + " First ErrorCode: " + errors[0].getCode() + " initialRun: " + initialRun);
 	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")) {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
-	  setStatus(HarvestStatus.KILLED);
+	  setStatus(HarvestStatus.FINISHED, "No Records matched");
 	  return;
-	} else
-	  throw new IOException("OAI error " + errors[0].code + ": " + errors[0].message);
+	} 
+	else
+	  throw new OaiPmhException("OAI error " + errors[0].code + ": " + errors[0].message, listRecords.getDocument());
       } else {
 	if (!dataStart) {
 	  getStorage().begin();
@@ -216,10 +220,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	} catch (TransformerException e) {
 	  e.printStackTrace();
 	  throw new IOException("Transformation Exception: " + e.getMessage(), e);
-	} catch (OaiPmhException e) {
-	  logOaiPmhException(e, "resumption token");
-	  e.printStackTrace();
-	  throw new IOException("OaiPmhException: " + e.getMessage(), e);
 	}
       }
       if (resumptionToken == null || resumptionToken.length() == 0) {
