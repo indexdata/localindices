@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      >
+  <h:body>
+
+    <ui:composition template="/templates/master.xhtml">
+      <ui:define name="content">
+        <ui:param name="title" value="Login to use the service" />
+        <h3>Welcome to Local Unified Index Administration</h3>
+        <h:form>
+          <h5><h:outputText value="Please login to use the service: " /></h5>
+          <div id="pager">
+            <h:form>
+              <h:panelGrid columns="2">
+                <h:outputText value="Username:"/>
+                <h:inputText value="#{loginManager.username}" required="true"/>
+                <h:outputText value="Password:"/>
+                <h:inputSecret value="#{loginManager.password}" required="true"/>
+                <h:commandButton value="Login" action="#{loginManager.doLogin}"/>
+              </h:panelGrid>
+            </h:form>
+          </div>
+        </h:form>
+      </ui:define>
+    </ui:composition>
+
+  </h:body>
+
+</html>

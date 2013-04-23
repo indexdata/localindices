@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"       
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+  <body>
+    <ui:composition>
+      <h5>Transformation Steps:</h5>
+      <h:dataTable value="#{transformationController.transformationSteps}"
+                   var="item"
+                   columnClasses="right,left,center,left,center,center,center,center">
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="ID" />
+          </f:facet>
+          <h:outputText value="#{item.id}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Name" />
+          </f:facet>
+          <h:outputText value="#{item.name}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="In" />
+          </f:facet>
+          <h:outputText value="#{item.inputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Out" />
+          </f:facet>
+          <h:outputText value="#{item.outputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Actions" />
+          </f:facet>
+          <h:commandLink 
+            styleClass="action"  
+            action="#{transformationController.upStep}">
+            <f:param name="stepID" value="#{item.id}" />
+            <h:graphicImage title="Up" alt="Up" height="16" url="/images/up.png" />
+          </h:commandLink>
+          <h:commandLink styleClass="action" 
+                         action="#{transformationController.downStep}">
+            <f:param name="stepID" value="#{item.id}" />
+            <h:graphicImage title="Down" alt="Down" height="16" url="/images/down.png" />
+          </h:commandLink>
+          <h:commandLink styleClass="action"  
+                         action="#{transformationController.deleteStep}"
+                         onclick="return confirm('Are you sure?');">
+            <f:param name="stepID" value="#{item.id}" />
+            <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
+          </h:commandLink>
+        </h:column>
+      </h:dataTable>
+      <div id="addStep" style="display:inline">  
+        <h:commandButton value="Add steps" action="#{transformationController.selectStepToInsert}" />
+      </div>
+      <br/>
+    </ui:composition>
+  </body>
+</html>

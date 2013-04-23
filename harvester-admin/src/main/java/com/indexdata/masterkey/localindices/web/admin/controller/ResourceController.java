@@ -348,6 +348,7 @@ public class ResourceController {
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
   /* add new resource */
   public String prepareOaiPmhResourceToAdd() {
+    logger.info("about to prepare oai=pmh resource to add");
     resource = new OaiPmhResource();
     resource.getClass().getSimpleName();
     return "new_OaiPmhResource";
@@ -377,6 +378,7 @@ public class ResourceController {
 
   /* update resource */
   public String prepareResourceToEdit() {
+    logger.info("prepare resource to debug called..................");
     resource = getResourceFromRequestParam();
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getSimpleName());
