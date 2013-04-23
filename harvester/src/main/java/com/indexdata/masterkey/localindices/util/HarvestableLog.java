@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -36,16 +37,21 @@ public class HarvestableLog {
     }
   }
 
-  public static String getHarvestableLog(long jobId) throws FileNotFoundException, IOException {
-    
-    BufferedReader r = new BufferedReader(new FileReader(getHarvesteableJobFilename(jobId)));
-    StringBuilder sb = new StringBuilder(10240);
-    String line;
-    while ((line = r.readLine()) != null) {
-      sb.append(line + "\n");
+  public static String getHarvestableLog(long jobId) throws FileNotFoundException, IOException 
+  {
+    String logName = getHarvesteableJobFilename(jobId); 
+    File logFile =  new File(logName);
+    if (logFile.exists() && logFile.isFile()) {
+      BufferedReader r = new BufferedReader(new FileReader(logFile));
+      StringBuilder sb = new StringBuilder(10240);
+      String line;
+      while ((line = r.readLine()) != null) {
+	sb.append(line + "\n");
+      }
+      r.close();
+      return sb.toString();
     }
-    r.close();
-    return sb.toString();
+    return "--- Warning: Log File " + logFile + " not found ---";
   }
 
   public static String getHarvesteableJobFilename(long jobId) {
