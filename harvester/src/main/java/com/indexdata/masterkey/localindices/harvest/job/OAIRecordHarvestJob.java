@@ -117,12 +117,25 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
     } catch (OaiPmhException e) {
-      setStatus(HarvestStatus.ERROR);
-      logOaiPmhException(e, e.getMessage());
+      if (!isKillSent()) {
+	setStatus(HarvestStatus.ERROR, e.getMessage());
+	logOaiPmhException(e, e.getMessage());
+      }
     } catch (IOException e) {
-      setStatus(HarvestStatus.ERROR);
-      resource.setMessage(e.getMessage());
-      logger.log(Level.DEBUG, e.getMessage(), e);
+      if (!isKillSent()) {
+	setStatus(HarvestStatus.ERROR, e.getMessage());
+	resource.setMessage(e.getMessage());
+	logger.log(Level.ERROR, e.getMessage());
+	e.printStackTrace();
+      }
+    } catch (Exception e) {
+      if (isKillSent()) {
+	logger.log(Level.INFO, "Shutting down.");
+      }
+      else {
+	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
+	e.printStackTrace();
+      }
     }
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK) {
@@ -151,7 +164,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
 	else {
 	  logger.log(Level.INFO, "OAI harvest killed/faced error - Rollback until " + resource.getFromDate());
-	  
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
@@ -162,7 +174,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void harvest(String baseURL, String from, String until, String metadataPrefix,
-      String setSpec, String resumptionToken, RecordStorage storage) throws IOException 
+      String setSpec, String resumptionToken, RecordStorage storage) throws TransformerException, IOException 
       {
 
     ListRecords listRecords = null;
@@ -219,7 +231,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (TransformerException e) {
 	  e.printStackTrace();
-	  throw new IOException("Transformation Exception: " + e.getMessage(), e);
+	  throw e;
 	}
       }
       if (resumptionToken == null || resumptionToken.length() == 0) {
