@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringBufferInputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -401,10 +400,24 @@ public class ResourceController {
   /* update resource */
   public String prepareResourceToRun() {
     resource = getResourceFromRequestParam();
-    if (resource != null && !resource.getCurrentStatus().equals("RUNNING")) {
-      resource.setHarvestImmediately(true);
-      resource.setLastUpdated(new Date());
-      resource = dao.update(resource);
+    String action = getParameterFromRequestParam("action");
+    if (resource != null) { 
+      if (!resource.getCurrentStatus().equals("RUNNING")) {
+	resource.setHarvestImmediately(true);
+	resource.setLastUpdated(new Date());
+	resource = dao.update(resource);
+	if (!"run".equals(action))
+	  logger.warn("Got " + action + " on already running harvester job (" + resource.getId() + "). Expected run.");
+      }
+      else {
+	// Just edit the records should stop it 
+	resource.setLastUpdated(new Date());
+	resource = dao.update(resource);
+	if (!"stop".equals(action))
+	  logger.warn("Got " + action + " on already running harvester job (" + resource.getId() + "). Expected stop.");
+      }
+    } else {
+      logger.error("No resource found to start/stop");
     }
     return listResources();
   }
@@ -475,16 +488,20 @@ public class ResourceController {
     }
   }
 
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings("unused")
   public String viewJobLog() {
     String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
 	.get("resourceId");
+    String start = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+	.get("start");
+    String end = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+	.get("end");
     Long id = new Long(param);
     setCurrentId(id);
-    // slurp that damn log to string, before I figure how to cleanly get handle
-    // of the InputStream in the view
+
     StringBuilder sb = new StringBuilder(10240);
     InputStream is = dao.getLog(id);
+    /* This check should no longer be in use: Implemented in the web service */ 
     Reader tempReader;
     if (is == null) {
       tempReader = new StringReader("--- WARNING: No Job Log found ---"); 
@@ -501,7 +518,8 @@ public class ResourceController {
       logger.log(Level.ERROR, e);
     } finally {
       try {
-	is.close();
+	if (is != null)
+	  is.close();
       } catch (IOException e) {
 	logger.log(Level.ERROR, e);
       }
@@ -517,6 +535,13 @@ public class ResourceController {
 
   // </editor-fold>
 
+  /* parameter value from request */
+  public String getParameterFromRequestParam(String name) {
+      String value = FacesContext.getCurrentInstance().getExternalContext()
+	  .getRequestParameterMap().get(name);
+      return value;
+    }
+
   /* objects from request */
   public Harvestable getResourceFromRequestParam() {
     Harvestable o = null;
@@ -524,21 +549,22 @@ public class ResourceController {
       o = (Harvestable) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = FacesContext.getCurrentInstance().getExternalContext()
-	  .getRequestParameterMap().get("resourceId");
+      String param = getParameterFromRequestParam("resourceId");
       Long id = new Long(param);
       o = dao.retrieveById(id);
     }
     return o;
   }
 
+  
   /* objects from request */
+/*
   public String getActionFromRequestParam() {
       String param = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("action");
     return param;
   }
-
+*/
   
   public String getTransformation() {
     if (resource != null && resource.getTransformation() != null)
