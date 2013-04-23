@@ -139,6 +139,10 @@ public class HarvestableBrief implements Comparable<Object> {
         this.currentStatus = currentStatus;
     }
 
+    public boolean isRunning() {
+      return "RUNNING".equals(this.currentStatus);
+    }
+
     @XmlElement
     public Date getLastHarvestFinished() {
         return lastHarvestFinished;
