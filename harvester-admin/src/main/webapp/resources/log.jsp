@@ -13,15 +13,22 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" type="text/css" href="../css/styles.css"/>
         <title>Harvester log</title>
+		<script type="text/javascript">
+		    function goToBottom() {
+		  location.href = "#bottom";
+		}
+		</script>        
     </head>
-    <body>
+    <body  onload="goToBottom();">
         <f:view>
             <!-- top menu, move out?-->
             <h:form>
                 <h:commandLink styleClass="navigation" value="Back to Resources" action="#{resourceController.listResources}" />
-                <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
+                <h:commandLink styleClass="navigation" value="Refresh" action="#{resourceController.viewJobLog}">
+                        <f:param name="resourceId" value="#{resourceController.currentId}" />
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
                 </h:commandLink>
+               <a style="navigation" href="#bottom">Bottom</a>
             </h:form>
             <!-- Log file -->
             <h:form>
@@ -32,8 +39,10 @@
                 <h:commandLink styleClass="navigation" value="Back to Resources" action="#{resourceController.listResources}" />
                 <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
+                        <f:param name="location" value="bottom" />
                 </h:commandLink>
             </h:form>
+            <a name="bottom"></a>
         </f:view>
     </body>
 </html>
