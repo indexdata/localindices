@@ -96,22 +96,29 @@
 						<f:param name="resourceId" value="#{item.id}" />
 						<h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
 					</h:commandLink>
-					<h:commandLink styleClass="action"
-						action="#{resourceController.prepareResourceToRun}">
-						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
-					</h:commandLink>
-					<h:commandLink styleClass="action"
-						action="#{resourceController.deleteResource}"
-						onclick="return confirm('Are you sure?');">
-						<f:param name="resourceId" value="#{item.id}" />
-						<h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
-					</h:commandLink>
+                    <h:commandLink styleClass="action" rendered="#{!item.running}"
+                        action="#{resourceController.prepareResourceToRun}">
+                        <f:param name="resourceId" value="#{item.id}" />
+                        <f:param name="action" value="run" />
+                        <h:graphicImage title="Run!" alt="Run!" height="16" url="/images/run.png" />
+                    </h:commandLink>
+                    <h:commandLink styleClass="action" rendered="#{item.running}"
+                        action="#{resourceController.prepareResourceToRun}">
+                        <f:param name="resourceId" value="#{item.id}" />
+                        <f:param name="action" value="stop" />
+                        <h:graphicImage title="Stop" alt="Stop" height="16" url="/images/stop.png" />
+                    </h:commandLink>
 					<h:commandLink styleClass="action"
 						action="#{resourceController.viewJobLog}">
 						<f:param name="resourceId" value="#{item.id}" />
 						<h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
 					</h:commandLink>
+                    <h:commandLink styleClass="action"
+                        action="#{resourceController.deleteResource}"
+                        onclick="return confirm('Are you sure?');">
+                        <f:param name="resourceId" value="#{item.id}" />
+                        <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
+                    </h:commandLink>
 				</h:column>
 				<h:column>
 					<f:facet name="header">
