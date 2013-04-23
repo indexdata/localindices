@@ -74,19 +74,16 @@ public class JobScheduler {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
 	try {
 	  HarvestStorage storage = selectHarvestStorage(harv);
-	  ji = new JobInstance(harv, storage, (Proxy) config.get("harvester.http.proxy"),
-	      hbrief.isEnabled());
+	  ji = new JobInstance(harv, storage, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
 	  jobs.put(id, ji);
-	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
-	  if (!hbrief.isEnabled())
-	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " will be disabled.");
-	  else {
-	    if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
-	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + " was logged as running, but no JobInstances was found.");
-	      ji.start();
-	      logger.log(Level.ERROR, "JOB#" + ji.getHarvestable().getId() + "  started");
-	    }
+	  logger.log(Level.INFO, "Scheduler for JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
+	  if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
+	    ji.start();	
+	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " started due to persistent state of RUNNING");
 	  }
+	  else if (!hbrief.isEnabled()) {
+	    logger.log(Level.INFO, "Scheduling of JOB#" + ji.getHarvestable().getId() + " is disabled.");
+	  }	
 	} catch (IllegalArgumentException e) {
 	  logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
 	  logger.log(Level.DEBUG, e);
