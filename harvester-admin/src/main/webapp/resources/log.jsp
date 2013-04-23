@@ -28,7 +28,7 @@
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
                         <f:param name="resourceId" value="#{resourceController.currentId}" />
                 </h:commandLink>
-               <a style="navigation" href="#bottom">Bottom</a>
+               <a class="navigation" href="#bottom">Bottom</a>
             </h:form>
             <!-- Log file -->
             <h:form>
