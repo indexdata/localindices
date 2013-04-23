@@ -81,6 +81,7 @@ public abstract class HarvesterVerb {
 
     private final static int HTTP_MAX_RETRIES = 10;
     private final static int HTTP_RETRY_TIMEOUT = 600; //secs
+    private final static int HTTP_TIMEOUT = 60000; //msecs
 
     /* Primary OAI namespaces */
     public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
@@ -275,7 +276,8 @@ public abstract class HarvesterVerb {
             con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
             con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
             // TODO Make configurable. 
-            con.setConnectTimeout(60000);
+            con.setConnectTimeout(HTTP_TIMEOUT);
+            con.setReadTimeout(HTTP_TIMEOUT);
             try {
                 responseCode = con.getResponseCode();
                 if (responseCode != 200)
@@ -283,8 +285,8 @@ public abstract class HarvesterVerb {
                 else if (logger.isDebugEnabled()) {
                   logger.log(Level.DEBUG, "Url: " + url + " ResponseCode: " + responseCode);
                 }
-            } catch (FileNotFoundException e) {
-                // response is majorly broken, retry nevertheless
+            } catch (Exception e) {
+                // response is majorly broken or a sokcet timeout occured, retry nevertheless
                 logger.log(Level.WARN, requestURL, e);
                 responseCode = -1;
             }
