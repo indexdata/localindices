@@ -352,7 +352,7 @@ public abstract class HarvesterVerb {
         
         int contentLength = con.getContentLength();
         InputSource data = new InputSource();
-        InputStream bin = null;
+        BufferedInputStream bin = null;
         
         if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
@@ -379,9 +379,8 @@ public abstract class HarvesterVerb {
           throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
                   saxe, bin, requestURL);
 	}
-	if (logger.isDebugEnabled() && debug) {
-	  Transformer transformer = createTransformer();
-	  transformer.transform(new DOMSource(doc), new StreamResult(System.out));
+	if (logger.isTraceEnabled()) {
+	  logResponse(doc, bin);
 	}
         StringTokenizer tokenizer = new StringTokenizer(
                 getSingleString("/*/@xsi:schemaLocation"), " ");
@@ -392,7 +391,29 @@ public abstract class HarvesterVerb {
             sb.append(tokenizer.nextToken());
         }
         this.schemaLocation = sb.toString();
+        if ("".equals(schemaLocation)) {
+          logger.error("No Schema Location found. Dumping response: "); 
+          logResponse(doc, bin);
+        }
     }
+
+  private void logResponse(Document doc, BufferedInputStream bin) {
+    try {
+      Transformer transformer = createTransformer();
+      transformer.transform(new DOMSource(doc), new StreamResult(System.out));
+    } catch (Exception e) {
+      logger.error("Failed to trace Response XML document. Dumping buffered response");
+      try {
+	bin.reset();
+	byte buffer[] = new byte[1024];
+	while (bin.read(buffer) != -1) {
+	  System.out.print("" + buffer.toString());
+	}
+      } catch (IOException e1) {
+	logger.error("Failed to dump Response");
+      }
+    }
+  }
 
     private boolean isRetry(int responseCode) {
       return responseCode == -1
