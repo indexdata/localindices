@@ -356,14 +356,14 @@ public abstract class HarvesterVerb {
         
         if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-          bin.mark(contentLength);
+          bin.mark(0);
           data.setByteStream(bin);
         }
         else {
           logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
           bin = new BufferedInputStream(in);
           Reader reader = new InputStreamReader(bin, encodingOverride);
-          bin.mark(contentLength);
+          bin.mark(0);
           data.setCharacterStream(reader);
         }
 	try {
