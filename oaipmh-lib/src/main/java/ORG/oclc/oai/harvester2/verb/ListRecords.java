@@ -115,7 +115,7 @@ public class ListRecords extends HarvesterVerb {
         } else if (schemaLocation.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
             return getNodeList("/oai11_ListRecords:ListRecords");
         } else {
-          logger.error("Unknown schema location: " + schemaLocation);
+          logger.error("Unknown schema location: " + schemaLocation + ". Attempting alternatives without namespaces.");
           // TODO Can these be combined into one? 
           NodeList nodeList = getNodeList("/OAI-PMH/ListRecords/record");
           if (nodeList != null && nodeList.getLength() > 0)
