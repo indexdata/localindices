@@ -63,6 +63,8 @@ caption {
 
 td, th {
     padding: .3em .6em;
+    max-width: 15%;
+    word-wrap: break-word;
 }
 
 tbody td.left {
