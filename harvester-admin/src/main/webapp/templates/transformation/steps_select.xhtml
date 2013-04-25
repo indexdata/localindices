@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"       
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+  <body>
+    <ui:composition>
+      <h5>Transformation Steps:</h5>
+      <ui:include src="/templates/step/pager.xhtml" />
+      <h:dataTable 
+        var="item"
+        value="#{stepController.stepsInsertMode}"
+        columnClasses="right,left,center,left,center,center,center,center">
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="ID" />
+          </f:facet>
+          <h:outputText value="#{item.id}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Name" />
+          </f:facet>
+          <h:outputText value="#{item.name}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="In" />
+          </f:facet>
+          <h:outputText value="#{item.inputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Out" />
+          </f:facet>
+          <h:outputText value="#{item.outputFormat}"></h:outputText>
+        </h:column>
+        <h:column>
+          <f:facet name="header">
+            <h:outputText value="Actions" />
+          </f:facet>
+          <h:commandLink 
+            styleClass="action"  
+            action="#{transformationController.addStep}">
+            <f:param name="transformationID" value="#{transformationController.transformation.id}" />
+            <f:param name="stepID" value="#{item.id}" />
+            <h:graphicImage title="Add" alt="Add" height="16" url="/images/add.png" />
+          </h:commandLink>
+        </h:column>
+      </h:dataTable>
+      <div id="transformation_steps_select_close" style="display:inline">  
+        <h:commandButton value="Close" action="#{transformationController.editCurrent}" />
+      </div>
+    </ui:composition>
+  </body>
+</html>
