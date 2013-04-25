@@ -10,6 +10,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
+
 import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -81,7 +83,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       //getStorage().commit();
     } catch (Exception e) {
       // Test
-      e.printStackTrace();      
+      e.printStackTrace();
+      logger.log(Level.ERROR, "Failed to complete job. Caught Exception" + e.getMessage() + ". Rolling back.");
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {
