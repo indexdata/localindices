@@ -18,9 +18,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 
@@ -87,7 +92,17 @@ public class HarvestableResource {
    */
   @DELETE
   public void delete() {
-    dao.delete(dao.retrieveById(id));
+    Harvestable harvestable = dao.retrieveById(id);
+    if (harvestable.getStorage() != null) {
+      try { 
+	HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
+	storage.purge(true);
+      } catch (Exception e) {
+	Logger.getLogger(this.getClass()).log(Level.ERROR, "Failed to delete records in storage " 
+	    + harvestable.getStorage().getId(), e);
+      }
+    }
+    dao.delete(harvestable);
   }
 
   /**
