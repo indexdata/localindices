@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+
+      xmlns:h="http://java.sun.com/jsf/html">
+  <body>
+    <ui:composition>
+      <h:panelGrid columns="2">
+        <h:outputText value="Step Name:" />
+        <h:inputText value="#{stepController.current.name}" />
+        <h:outputText value="Description:" />
+        <h:inputText value="#{stepController.current.description}" />
+        <h:outputText value="Type:" />
+        <h:inputText value="#{stepController.current.type}" />
+        <h:outputText value="Input format:" />
+        <h:inputText value="#{stepController.current.inputFormat}" />
+        <h:outputText value="Output format:" />
+        <h:inputText value="#{stepController.current.outputFormat}" />
+      </h:panelGrid>
+    </ui:composition>
+  </body>
+</html>

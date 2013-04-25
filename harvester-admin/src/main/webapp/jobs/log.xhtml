@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"     
+      xmlns:f="http://java.sun.com/jsf/core">
+  <h:body>
+
+    <ui:composition template="/templates/master.xhtml">
+      <ui:param name="title" value="Job Logfile" />
+      <ui:param name="onload" value="goToBottom();" />
+      <ui:define name="content">
+        <script type="text/javascript">
+          function goToBottom() {
+            location.href = "#bottom";
+          }
+        </script>  
+        <h:form>
+          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
+            <f:param name="resourceId" value="#{resourceController.currentId}" />
+          </h:commandLink>
+        </h:form>
+        <!-- Log file -->
+        <a class="navigation" href="#bottom">Bottom</a>
+        <h:form>
+          <h3><h:outputText value="Harvester's logfile:" /></h3>
+          <div class="logview">
+            <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
+          </div>
+        </h:form>
+        <h:form>
+          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
+            <f:param name="resourceId" value="#{resourceController.currentId}" />
+          </h:commandLink>
+        </h:form>
+        <a name="bottom"></a>
+      </ui:define>
+    </ui:composition>
+
+  </h:body>
+
+</html>

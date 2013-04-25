@@ -128,6 +128,7 @@ public class StepController {
   }
 
   public String list() {
+    logger.debug("stepController#list called");
     current = null;
     resources = null;
     itemCount = -1;

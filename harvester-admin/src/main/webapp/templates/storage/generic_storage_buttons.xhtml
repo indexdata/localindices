@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"       
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+  <body>
+    <ui:composition>
+
+      <h5>Actions: </h5>
+      <h:commandButton value="Save" action="#{storageController.saveStorage}"/>
+      <h:commandButton value="Cancel" action="#{storageController.listStorages}"/>
+      <h:commandButton onclick="return confirm('Are you sure?');" 
+                       value="Delete All Records" 
+                       action="#{storageController.saveAndPurge}"/>
+      <br/>
+
+    </ui:composition>
+  </body>
+</html>

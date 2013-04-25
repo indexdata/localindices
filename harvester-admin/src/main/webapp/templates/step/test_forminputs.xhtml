@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+  <body>
+    <ui:composition>
+      <div id="XSLeditStep" style="display:inline">
+        <h:panelGrid columns="1">
+          <h:outputText value="Test data:" />
+          <h:inputTextarea value="" rows="30" cols="100" />
+          <h:outputText value="Expected Output:" />
+          <h:inputTextarea value="" rows="30" cols="100" />
+          <h:commandLink value="Test" action="#{stepController.test}">
+            <f:param name="id" value="#{item.id}" />
+          </h:commandLink>
+        </h:panelGrid>
+      </div>  
+    </ui:composition>
+  </body>
+</html>

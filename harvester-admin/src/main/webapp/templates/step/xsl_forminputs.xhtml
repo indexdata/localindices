@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+  <body>
+    <ui:composition>
+      <div id="addStep" style="display:inline">  
+        <h:outputText value=" Add: " />
+        <h:commandLink value=" Step"
+                       action="#{transformationController.addStep}"
+                       onclick="return showEditStep();">
+          <f:param name="stepID" value="#{item.id}" />
+        </h:commandLink>
+      </div>  
+      <div id="allsteps" style="display:inline">
+        <h:dataTable value="#{stepController.list}"
+                     var="step"
+                     columnClasses="right,left,center,left,center,center,center,center">
+          <h:column>
+            <f:facet name="header">
+              <h:outputText value="ID" />
+            </f:facet>
+            <h:outputText value="#{step.id}"></h:outputText>
+          </h:column>
+          <h:column>
+            <f:facet name="header">
+              <h:outputText value="Name" />
+            </f:facet>
+            <h:outputText value="#{step.name}"></h:outputText>
+          </h:column>
+          <h:column>
+            <f:facet name="header">
+              <h:outputText value="Action" />
+            </f:facet>
+            <h:commandLink 
+              styleClass="action"  
+              action="#{transformationController.addStep}">
+              <f:param name="ID" value="#{item.id}" />
+              <f:param name="stepID" value="#{step.id}" />
+              <h:graphicImage title="Add" alt="Add" height="16" url="/images/add.png" />
+            </h:commandLink>
+          </h:column>
+        </h:dataTable>
+
+      </div>
+    </ui:composition>
+  </body>
+</html>
