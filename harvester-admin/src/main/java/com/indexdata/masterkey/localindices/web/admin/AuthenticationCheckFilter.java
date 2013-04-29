@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.web.admin.controller.LoginManager;
+import java.util.regex.Pattern;
 
 /**
  * 
@@ -32,6 +33,8 @@ public class AuthenticationCheckFilter implements Filter {
   private static String LOGIN_PAGE;
   private static String SU_COOKIE_NAME;
   private static String USER_TORUS_URI;
+  private static Pattern passThruPattern;
+  private final static Logger logger = Logger.getLogger(AuthenticationCheckFilter.class);
 
   public void init(FilterConfig cfg) throws ServletException {
     LOGIN_PAGE = cfg.getInitParameter("LOGIN_PAGE");
@@ -39,6 +42,8 @@ public class AuthenticationCheckFilter implements Filter {
       throw new UnavailableException("Missing init parameter: LOGIN_PAGE");
     SU_COOKIE_NAME = cfg.getInitParameter("SU_COOKIE_NAME");
     USER_TORUS_URI = cfg.getInitParameter("USER_TORUS_URI");
+    passThruPattern = cfg.getInitParameter("PASSTHRU_PATTERN") != null
+      ? Pattern.compile(cfg.getInitParameter("PASSTHRU_PATTERN")) : null;
   }
 
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -47,6 +52,12 @@ public class AuthenticationCheckFilter implements Filter {
     HttpServletResponse res = (HttpServletResponse) response;
     HttpSession session = req.getSession();
     String pageRequested = req.getRequestURI();
+    //don't do any checks for passthru resources
+    if (passThruPattern != null && passThruPattern.matcher(pageRequested).matches()) {
+      logger.debug("Passthru "+passThruPattern+" matches "+pageRequested);
+      chain.doFilter(request, response);
+      return;
+    }
     // if the loginManager instance is created by faces, the parameters are stored in the request
     if (pageRequested == null || !pageRequested.endsWith(LOGIN_PAGE)) {
       LoginManager logMgr = (LoginManager) session.getAttribute("loginManager");
