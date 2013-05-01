@@ -106,6 +106,10 @@
       <param-name>SU_COOKIE_NAME</param-name>
       <param-value>admin-superuser</param-value>
     </init-param>
+    <init-param>
+      <param-name>PASSTHRU_PATTERN</param-name>
+      <param-value>.*javax.faces.resource.*</param-value>
+    </init-param>
   </filter>
   <filter-mapping>
     <filter-name>AuthenticationCheckFilter</filter-name>
