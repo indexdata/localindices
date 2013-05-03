@@ -20,6 +20,8 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
+
+  String resourceOaiPubMed = "http://www.pubmedcentral.nih.gov/oai/oai.cgi";
   
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
   String solrUrl = "http://localhost:8585/solr/";
@@ -118,6 +120,17 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
  */
+  public void testCleanFullBulkHarvestJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc", null, null, null, null);
+    resource.setId(2l);
+    RecordStorage recordStorage = createStorage(resource, true);
+    RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    // checkStorageStatus(recordStorage.getStatus(), 675, 0, 675);
+  }
+
+
   public void testClean10DaysHarvestJob_OaiMarc21() throws IOException, StatusNotImplemented {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21",
 	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
