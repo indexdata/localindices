@@ -17,6 +17,11 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.notification.Notification;
+import com.indexdata.masterkey.localindices.notification.NotificationException;
+import com.indexdata.masterkey.localindices.notification.Sender;
+import com.indexdata.masterkey.localindices.notification.SenderFactory;
+import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
@@ -31,6 +36,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   private XmlBulkResource resource;
   //private RecordStorage transformationStorage;
   private Proxy proxy;
+  private String errors;
 
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -75,8 +81,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
-      // Do I get here on KILLED?
-      setStatus(HarvestStatus.FINISHED);
+      if (getStatus() != HarvestStatus.WARN)
+	setStatus(HarvestStatus.FINISHED);
       // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
       transformationStorage.databaseEnd();
       transformationStorage.commit();
@@ -94,6 +100,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       error = e.getMessage();
       resource.setMessage(e.getMessage());
       logger.error("Download failed.", e);
+      Sender sender = SenderFactory.getSender();
+      String status = getStatus().toString();
+      Notification msg = new SimpleNotification(status, "Download failed", e.getMessage());
+      try {
+	sender.send(msg);
+      } catch (NotificationException e1) {
+	logger.error("Failed to send notification" + e.getMessage(), e);
+      }
     } finally {
       logger.close();
     }
@@ -101,16 +115,30 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 
   private void downloadList(String[] urls) throws Exception 
   {
-    XmlMarcClient client = new XmlMarcClient();
+    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors());
     client.setHarvestJob(this);
     client.setProxy(proxy);
     client.setLogger(logger);
     client.setHarvestable(resource);
     for (String url : urls) {
-      client.download(new URL(url));
+      try {
+	int noErrors = client.download(new URL(url));
+	if (noErrors > 0) {
+	  setStatus(HarvestStatus.WARN, client.getErrors());
+	}
+      } catch (Exception e) {
+	if (resource.getAllowErrors()) {
+	  if (errors == null)
+	    errors = "Failed to harvest: ";
+	  errors += url + ": " + e.getMessage();
+	  setStatus(HarvestStatus.WARN, errors);
+	}
+	else {
+	  throw e; 
+	}
+      }
     }
   }
-
   @Override
   public void setStorage(HarvestStorage storage) {
     if (storage instanceof RecordStorage) {
@@ -126,12 +154,5 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   @Override
   protected Harvestable getHarvestable() {
     return resource;
-  }
-
-  @Override
-  public void setStatus(HarvestStatus status, String message) {
-    super.setStatus(status);
-    error = message;
-    
   }
 }
