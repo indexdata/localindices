@@ -166,12 +166,13 @@ td.status {
 
 td.actions {
     text-align: center;
+    min-width: 75;    
 }
 
 td.statusmessage {
     text-align: left;
     width: 200;
-    max-width: 200;   
+    max-width: 200;
 }
 
 td.lastharvest {
