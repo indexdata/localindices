@@ -16,7 +16,7 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -116,7 +116,7 @@ public abstract class HarvesterVerb {
     private boolean useTagSoup = false;
     private static HashMap<Thread, TransformerFactory> transformerFactoryMap = new HashMap<Thread, TransformerFactory>();
     private static HashMap<Thread, XPathFactory> xpathFactoryMap = new HashMap<Thread, XPathFactory>();
-    private static boolean debug = false;
+    //private static boolean debug = false;
     
     static XPath createXPath() {
       /* create transformer */
@@ -356,17 +356,17 @@ public abstract class HarvesterVerb {
         
         if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-          bin.mark(0);
           data.setByteStream(bin);
         }
         else {
           logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
           bin = new BufferedInputStream(in);
           Reader reader = new InputStreamReader(bin, encodingOverride);
-          bin.mark(0);
           data.setCharacterStream(reader);
         }
 	try {
+	  if (bin.markSupported())
+	    bin.mark(contentLength);
 	  if (isUseTagSoup()) 
 	    doc = createTagSoupDocument(data);
 	  else 
@@ -380,6 +380,7 @@ public abstract class HarvesterVerb {
                   saxe, bin, requestURL);
 	}
 	if (logger.isTraceEnabled()) {
+          bin.reset();
 	  logResponse(doc, bin);
 	}
         StringTokenizer tokenizer = new StringTokenizer(
@@ -393,6 +394,7 @@ public abstract class HarvesterVerb {
         this.schemaLocation = sb.toString();
         if ("".equals(schemaLocation)) {
           logger.error("No Schema Location found. Dumping response: "); 
+          bin.reset();
           logResponse(doc, bin);
         }
     }
@@ -405,9 +407,10 @@ public abstract class HarvesterVerb {
       logger.error("Failed to trace Response XML document. Dumping buffered response");
       try {
 	bin.reset();
-	byte buffer[] = new byte[1024];
-	while (bin.read(buffer) != -1) {
-	  System.out.print("" + buffer.toString());
+	BufferedReader reader = new BufferedReader(new InputStreamReader(bin));
+	String line; 
+	while ((line = reader.readLine()) != null) {
+	  System.out.print("" + line);
 	}
       } catch (IOException e1) {
 	logger.error("Failed to dump Response");
