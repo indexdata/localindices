@@ -121,6 +121,8 @@ public class XmlTransformerRouter implements MessageRouter {
     try {
       output.put(result);
     } catch (InterruptedException e) {
+      if (job.isKillSent())
+      	  return ;
       logger.error(
 	  "Failed to put Result to Output queue: Interrupted. Attempt to save on Error Queue", e);
       try {

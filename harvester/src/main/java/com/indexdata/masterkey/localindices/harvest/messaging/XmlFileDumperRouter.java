@@ -196,12 +196,15 @@ public class XmlFileDumperRouter implements MessageRouter {
     try {
       output.put(result);
     } catch (InterruptedException e) {
-      logger.error(
-	  "Failed to put Result to Output queue: Interrupted. Attempt to save on Error Queue", e);
-      try {
-	error.put(new ErrorMessage(result, e));
-      } catch (InterruptedException ie) {
-	logger.error("Failed to put Result on Error Queue. Loosing message: " + result.toString());
+      if (job.isKillSent())
+	logger.info("Job was stopped");
+      else {	
+	logger.error("Failed to put result to output queue: Interrupted. Attempt to save on error queue", e);
+	try {
+	  error.put(new ErrorMessage(result, e));
+	} catch (Exception ie) {
+	  logger.error("Failed to put Result on Error Queue. Loosing message: " + result.toString());
+	}
       }
       e.printStackTrace();
     }
