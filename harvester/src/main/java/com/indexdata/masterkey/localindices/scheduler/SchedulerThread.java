@@ -8,6 +8,8 @@ package com.indexdata.masterkey.localindices.scheduler;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -23,8 +25,8 @@ public class SchedulerThread implements Runnable {
   private boolean keepRunning;
   private JobScheduler scheduler;
 
-  public SchedulerThread(Map<String, Object> config) {
-    scheduler = new JobScheduler(config);
+  public SchedulerThread(Map<String, Object> config, Properties props) {
+    scheduler = new JobScheduler(config, props);
   }
 
   public void run() {
