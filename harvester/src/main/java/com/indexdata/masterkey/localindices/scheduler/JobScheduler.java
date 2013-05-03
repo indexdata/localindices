@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -34,10 +36,12 @@ public class JobScheduler {
   private HarvestableDAO dao;
   private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
   private Map<String, Object> config;
+  private Properties props;
 
-  public JobScheduler(Map<String, Object> config) {
+  public JobScheduler(Map<String, Object> config, Properties props) {
     dao = new HarvestablesDAOJPA();
     this.config = config;
+    this.props = props;
   }
 
   /**
@@ -128,6 +132,7 @@ public class JobScheduler {
 	// persist from and until
 	break;
       case ERROR:
+      case WARN:
       case NEW: // ask if time to run
       case OK:
 	// should check harvested until?
