@@ -17,20 +17,18 @@
           }
         </script>  
         <h:form>
+          <h3><h:outputText value="Harvester's logfile:" /></h3>
           <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
             <f:param name="resourceId" value="#{resourceController.currentId}" />
           </h:commandLink>
-        </h:form>
-        <!-- Log file -->
-        <a class="navigation" href="#bottom">Bottom</a>
-        <h:form>
-          <h3><h:outputText value="Harvester's logfile:" /></h3>
+          <a class="navigation" href="#bottom">Bottom</a>
           <div class="logview">
             <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
           </div>
         </h:form>
         <h:form>
-          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
+            <h:commandLink styleClass="navigation" value="Back to Resources"  action="#{resourceController.listResources}" />
+            <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
             <f:param name="resourceId" value="#{resourceController.currentId}" />
           </h:commandLink>
         </h:form>
