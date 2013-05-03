@@ -53,6 +53,8 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
         <h:outputText value="Overwrite:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.overwrite}"/>
+        <h:outputText value="Allow errors:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Transformation Pipeline:"/>
         <h:selectOneMenu value="#{resourceController.transformation}">
