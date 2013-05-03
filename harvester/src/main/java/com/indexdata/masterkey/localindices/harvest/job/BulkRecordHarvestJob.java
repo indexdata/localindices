@@ -69,10 +69,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 
   public void run() {
     try {
+
       // Don't start if we already are in error
-      if (getStatus() == HarvestStatus.ERROR) {
-	throw new Exception(error);
+      if (!resource.getAllowErrors() && getStatus() == HarvestStatus.ERROR) {
+	  logger.error("Already in ERROR. Set Allowed Errors to run job");
+	  return ; 
       }
+
       getStorage().setLogger(logger);
       // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
@@ -81,8 +84,18 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 	getStorage().purge(false);
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
-      if (getStatus() != HarvestStatus.WARN)
+      if (getStatus() != HarvestStatus.WARN && getStatus() != HarvestStatus.ERROR)
 	setStatus(HarvestStatus.FINISHED);
+      else {
+	Sender sender = SenderFactory.getSender();
+	String status = getStatus().toString();
+	Notification msg = new SimpleNotification(status, "Notification", resource.getMessage());
+	try {
+	  sender.send(msg);
+	} catch (NotificationException e1) {
+	  logger.error("Failed to send notification " + resource.getMessage()) ;
+	}
+      }
       // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
       transformationStorage.databaseEnd();
       transformationStorage.commit();
