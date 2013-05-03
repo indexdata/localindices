@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import java.awt.JobAttributes;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import org.marc4j.TurboMarcXmlWriter;
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
@@ -39,8 +41,13 @@ public class XmlMarcClient implements HarvestClient {
   private XmlBulkResource resource;
   private Proxy proxy; 
   private RecordHarvestJob harvesterJob;
-  
-  public XmlMarcClient() {
+  private boolean allowErrors = false;
+  private String errors = "Failed to download: ";
+  private HarvestJob job; 
+ 
+  public XmlMarcClient(HarvestJob job, boolean allowErrors) {
+    this.job = job;
+    this.allowErrors = allowErrors;
   }
  
   
@@ -59,20 +66,26 @@ public class XmlMarcClient implements HarvestClient {
       if (responseCode == 200) {
 	String contentType = conn.getContentType();
 	if (contentType.equals("text/html")) {
-	  handleJumpPage(conn);
+	  return handleJumpPage(conn);
 	}
 	else {
 	  ReadStore readStore = lookupCompresssionType(conn);
 	  readStore.readAndStore();
 	}
       } else {
-	throw new Exception("Http connection failed. (" + responseCode + ")");
+	if (allowErrors) {
+	  setErrors(getErrors() + (url.toString() + " "));
+	  return 1;
+	}
+	else
+	  throw new Exception("Http connection failed. (" + responseCode + ")");
       }
       logger.info("Finished - " + url.toString());
       // TODO HACK HACK HACK
       Thread.sleep(2000);
     } catch (IOException ioe) {
-      throw new Exception("Http connection failed.", ioe);
+      if (!job.isKillSent())
+	throw new Exception("Http connection failed.", ioe);
     }
     return 0;
   }
@@ -301,12 +314,14 @@ public class XmlMarcClient implements HarvestClient {
     os.flush();
   }
 
-  private void handleJumpPage(HttpURLConnection conn) throws Exception 
+  private int handleJumpPage(HttpURLConnection conn) throws Exception 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
+    int results = 0;
     for (URL link : jp.getLinks()) {
-      download(link);
+      results += download(link);
     }    
+    return results; 
   }
 
   class TotalProgressLogger {
@@ -371,5 +386,15 @@ public class XmlMarcClient implements HarvestClient {
       else
     	Logger.getLogger("").fatal(errorMsg);
     }
+  }
+
+
+  public String getErrors() {
+    return errors;
+  }
+
+
+  public void setErrors(String errors) {
+    this.errors = errors;
   }
 }
