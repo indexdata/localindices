@@ -85,6 +85,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private Boolean overwrite;
   @Column(nullable=true)
   private String encoding;
+  @Column(nullable=false)
+  private Boolean allowErrors = false;
 
   public String getDescription() {
     return description;
@@ -305,5 +307,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
     if ("".equals(encoding))
       	encoding = null;
     this.encoding = encoding;
+  }
+
+  public Boolean getAllowErrors() {
+    return allowErrors;
+  }
+
+  public void setAllowErrors(Boolean allowErrors) {
+    this.allowErrors = allowErrors;
   }
 }
