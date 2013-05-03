@@ -127,6 +127,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       MessageRouter<Object> previous = null;
       for (TransformationStep step : steps) {
 	MessageRouter<Object> router = factory.create(step);
+	router.setError(error);
 	if (source == null)
 	  source = new ConsumerProxy<Object>(router);
 	if (previous != null)
