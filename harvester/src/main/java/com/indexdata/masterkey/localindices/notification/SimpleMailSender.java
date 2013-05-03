@@ -74,7 +74,6 @@ private String smtpServer;
      msg.setSentDate(new Date());
      // -- Send the message --
      Transport.send(msg);
-     System.out.println("Message sent OK.");
    }
    catch (Exception e)
    {
