@@ -42,7 +42,8 @@ public class XmlMarcClient implements HarvestClient {
   private Proxy proxy; 
   private RecordHarvestJob harvesterJob;
   private boolean allowErrors = false;
-  private String errors = "Failed to download: ";
+  private String errorText = "Failed to download/parse/store : ";
+  private String errors = errorText;  
   private HarvestJob job; 
  
   public XmlMarcClient(HarvestJob job, boolean allowErrors) {
@@ -83,9 +84,15 @@ public class XmlMarcClient implements HarvestClient {
       logger.info("Finished - " + url.toString());
       // TODO HACK HACK HACK
       Thread.sleep(2000);
-    } catch (IOException ioe) {
-      if (!job.isKillSent())
-	throw new Exception("Http connection failed.", ioe);
+    } catch (Exception ex) {
+      if (job.isKillSent())
+	  return 0; 
+	if (allowErrors) {
+	  logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
+	  setErrors(getErrors() + (url.toString() + " "));
+	  return 1;
+	}
+	throw new Exception("Http connection failed.", ex);
     }
     return 0;
   }
