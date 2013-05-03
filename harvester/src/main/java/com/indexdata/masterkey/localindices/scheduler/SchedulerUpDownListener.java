@@ -58,9 +58,10 @@ public class SchedulerUpDownListener implements ServletContextListener {
       return;
     }
     // override with user settings, if any otherwise try to unpack the defaults
-    String configPath = ctx.getInitParameter("USER_CONFIG_PATH");
+    String userConfigPathName = "USER_CONFIG_PATH";
+    String configPath = ctx.getInitParameter(userConfigPathName);
     if (configPath == null) {
-      logger.log(Level.WARN, "CONFIG_PATH not specified, will use only defaults");
+      logger.log(Level.WARN, userConfigPathName + " not specified, will use only defaults");
     } else {
       try {
 	FileInputStream userPropsFis = new FileInputStream(configPath);
@@ -119,7 +120,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
     // put the config and scheduler in the context
     ctx.setAttribute("harvester.config", config);
-    st = new SchedulerThread(config);
+    ctx.setAttribute("harvester.properties", props);
+    st = new SchedulerThread(config, props);
     th = new Thread(st);
     th.start();
     ctx.setAttribute("schedulerThread", st);
