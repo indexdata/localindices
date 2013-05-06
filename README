@@ -1,5 +1,5 @@
 - Localindices Suite
-
+  
 -- COMPILING AND BUILDING
 
 To compile and build the source you will Maven2 (http://maven.apache.org), on
@@ -14,7 +14,6 @@ mvn install
 You can either do it in the top-level ('localindices') dir to build all the 
 submodules or in each submodule dir (e.g 'harvester') - in this case maven will
 fetch module dependecies from ID's maven repo at http://maven.indexdata.com.
-
 
 -- RUNNING HARVESTER AND HARVESTER-ADMIN
 
@@ -52,6 +51,19 @@ in the webapps:
 
 - /etc/masterkey/harvester/harvester-context.xml
 - /etc/masterkey/harvester-admin/harvester-admin-context.xml
+
+-- Upgrading the Harvester and the MySQL database
+
+V 2.2 adds some new columns to the database, which is required to be added before the harvester will run. 
+Shut down tomcat and upgrade the packages. In the /usr/share/masterkey/harvester/sql/V2.2 there is a 
+sql script that will alter the database. Before upgrading it is recommended to backup 
+your existing database. Using the command line mysql client this can applied to the database like:
+
+$ cd /usr/share/masterkey/harvester/sql/V2.2 
+$ mysqldump -u <localidxadm> -p<localidxadmpass> localindices > ~/localindices_backup.sql 
+$ mysql -f -u <localidxadm> -p<localidxadmpass> localindices < alter_v2.2.sql 
+
+After this, the tomcat can be started again. 
 
 ---- DataSource
 
