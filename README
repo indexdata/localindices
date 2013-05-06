@@ -53,6 +53,19 @@ in the webapps:
 - /etc/masterkey/harvester/harvester-context.xml
 - /etc/masterkey/harvester-admin/harvester-admin-context.xml
 
+---- Configure Notifications 
+
+The harvester can be configured to sent out notifications over e-mail. It requires that it has valid SMTP server 
+and reciever address configured in a harvester properties file:
+
+/usr/share/masterkey/harvester/WEB-INF/harvester.properties
+
+harvester.smtp.server=localhost
+harvester.smtp.from=harvester@localhost
+harvester.smtp.to=operator@localhost
+
+The SMTP server should accept mail to the domain used in to address. 
+
 ---- DataSource
 
 (You can ignore this if you plan to run the harvester from within Netbeans)
