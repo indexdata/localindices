@@ -298,7 +298,6 @@ public class TestXPath extends TestCase {
       "      <dc:title>Robot Motion Trajectory-Measurement with Linear Inertial Sensors</dc:title>\n" + 
       "      <dc:creator>Bernard Favre Bulle</dc:creator>\n" + 
       "      <dc:subject>Cutting Edge Robotics</dc:subject>\n" + 
-      "      <dc:description>The previous investigations have shown that it is possible to measure dynamic trajectory properties of industrial robots with gyro-less inertial navigation systems. As typical for INS, there are certain sources of errors which distort the overall analysis results to a certain extent. The proposed measurement principle is especially very sensitive to misalignment of the transducers in the sensor head and to bias errors of the accelerometers. With redundant configurations (e. g. a higher number of transducers than spatial degrees of freedom) there are certain possibilities to improve the overall accuracy by means of complementary filters and Kalman filters. Further research should investigate the use of low-cost gyroscopes as a source of additional motion information. One interesting “candidate” would be a piezoelectric vibration type gyro, like the Murata Gyrostrar®. Utilizing hybrid, highly-redundant sensor heads made from low-cost components could be a feasible solution for highaccurate trajectory analysis heads for affordable prices.</dc:description>\n" + 
       "      <dc:publisher>INTECH Open Access Publisher</dc:publisher>\n" + 
       "      <dc:date>2005-07-01</dc:date>\n" + 
       "      <dc:type>8</dc:type>\n" + 
