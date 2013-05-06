@@ -89,7 +89,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       else {
 	Sender sender = SenderFactory.getSender();
 	String status = getStatus().toString();
-	Notification msg = new SimpleNotification(status, "Notification", resource.getMessage());
+	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
 	try {
 	  sender.send(msg);
 	} catch (NotificationException e1) {
