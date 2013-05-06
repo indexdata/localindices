@@ -2,3 +2,4 @@ NAME=masterkey-harvester
 VERSION=2.1.1
 DEBIAN_DIST="squeeze"
 UBUNTU_DIST=""
+OMIT_FROM_DIST="harvester/src/main/webapp/WEB-INF/harvester-dev.properties"
