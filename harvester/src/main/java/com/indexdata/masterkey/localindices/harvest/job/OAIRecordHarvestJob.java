@@ -37,6 +37,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.notification.Notification;
+import com.indexdata.masterkey.localindices.notification.NotificationException;
+import com.indexdata.masterkey.localindices.notification.Sender;
+import com.indexdata.masterkey.localindices.notification.SenderFactory;
+import com.indexdata.masterkey.localindices.notification.SimpleMailSender;
+import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 
 /**
@@ -56,6 +62,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
   private String currentDateFormat;
   private boolean initialRun = true;
+  private boolean moveUntilIntoFrom = false;
 
   @Override
   public String getMessage() {
@@ -138,13 +145,14 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
     }
     // if there was no error we move the time marker
-    if (getStatus() == HarvestStatus.OK) {
+    if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
       // TODO persist until and from, trash resumption token
       resource.setFromDate(nextFrom);
       resource.setUntilDate(null);
       resource.setResumptionToken(null);
-      setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "OAI harvest finished OK. Next from: " + resource.getFromDate());
+      if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
+	setStatus(HarvestStatus.FINISHED);
+      logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
       try {
 	getStorage().commit();
       } catch (IOException e) {
@@ -169,6 +177,16 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       } catch (IOException ioe) {
 	logger.log(Level.ERROR, "Storage commit/rollback failed.");
       }
+    }
+    if (getStatus() != HarvestStatus.OK) {
+	Sender sender = SenderFactory.getSender();
+	String status = getStatus().toString();
+	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
+	try {
+	  sender.send(msg);
+	} catch (NotificationException e1) {
+	  logger.error("Failed to send notification " + resource.getMessage()) ;
+	}
     }
     logger.close();
   }
@@ -203,7 +221,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	    + errors.length + " First ErrorCode: " + errors[0].getCode() + " initialRun: " + initialRun);
 	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")) {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
-	  setStatus(HarvestStatus.FINISHED, "No Records matched");
+	  setStatus(HarvestStatus.WARN, "No Records matched");
 	  return;
 	} 
 	else
