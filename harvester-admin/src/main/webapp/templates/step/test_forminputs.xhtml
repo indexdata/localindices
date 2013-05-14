@@ -11,9 +11,9 @@
       <div id="XSLeditStep" style="display:inline">
         <h:panelGrid columns="1">
           <h:outputText value="Test data:" />
-          <h:inputTextarea value="" rows="30" cols="100" />
+          <h:inputTextarea rows="30" cols="100" value="#{stepController.current.testData}" />
           <h:outputText value="Expected Output:" />
-          <h:inputTextarea value="" rows="30" cols="100" />
+          <h:inputTextarea  rows="30" cols="100" value="#{stepController.current.testOutput}" />
           <h:commandLink value="Test" action="#{stepController.test}">
             <f:param name="id" value="#{item.id}" />
           </h:commandLink>
