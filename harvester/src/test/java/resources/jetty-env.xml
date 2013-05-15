@@ -1,0 +1,14 @@
+<Configure id="wac" class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="mydb" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg></Arg>
+    <Arg>localindicesDS</Arg>
+    <Arg>
+      <New class="org.apache.commons.dbcp.BasicDataSource">
+        <Set name="driverClassName">org.hsqldb.jdbc.JDBCDriver</Set>
+        <Set name="url">jdbc:hsqldb:mem;shutdown=true</Set>
+        <Set name="username">SA</Set>
+        <Set name="password">PASSWORD</Set>
+      </New>
+    </Arg>
+  </New>
+</Configure>
