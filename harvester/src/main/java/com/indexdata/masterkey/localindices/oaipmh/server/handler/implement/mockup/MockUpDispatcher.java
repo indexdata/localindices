@@ -13,7 +13,7 @@ public class MockUpDispatcher implements Dispatcher {
   Map<String, OaiPmhHandler> dispatchMap = new HashMap<String, OaiPmhHandler>(); 
 
   // TODO problem with this approach is that every request gets same Handler
-  MockUpDispatcher() {
+  public MockUpDispatcher() {
     dispatchMap.put("ListRecords", new ListRecords());
   }
 
