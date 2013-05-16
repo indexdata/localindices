@@ -14,12 +14,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
-import com.indexdata.masterkey.localindices.scheduler.JobInfo;
-import com.indexdata.masterkey.localindices.scheduler.SchedulerThread;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.SimpleOaiPmhRequest;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup.MockUpDispatcher;
 
 /**
  * A simple harvest scheduler status Web Service.
@@ -31,7 +30,7 @@ public class OaiPmhMockupServlet extends HttpServlet {
   /**
 	 * 
 	 */
-  private Dispatcher dispatcher; //  = new MockupDispather(); 
+  private Dispatcher dispatcher = new MockUpDispatcher(); 
   private static final long serialVersionUID = -4732437758098313248L;
 
   /**
@@ -48,9 +47,8 @@ public class OaiPmhMockupServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     OaiPmhHandler handler = dispatcher.onRequest(request);
-    
-    OaiPmhResponse oaiPmhResponse = handler.handle(request);
-    
+    OaiPmhRequest oaiPmhRequest = new SimpleOaiPmhRequest(request);  
+    OaiPmhResponse oaiPmhResponse = handler.handle(oaiPmhRequest);
     //TODO Need to be able to handle encoding as well
     response.setContentType("text/xml;charset=UTF-8");
     PrintWriter out = response.getWriter();
