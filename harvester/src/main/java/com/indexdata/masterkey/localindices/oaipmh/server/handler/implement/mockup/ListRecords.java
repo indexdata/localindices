@@ -1,15 +1,24 @@
 package com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.ListRecordsHandler;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
-
 public class ListRecords implements ListRecordsHandler {
+
+  Map<String, String> properties = new HashMap<String, String>();
 
   SimpleDateFormat simpleDateFormater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
   
@@ -26,22 +35,6 @@ public class ListRecords implements ListRecordsHandler {
   String listRecordsEnd = 
       "	</ListRecords>\n";
       
-  String recordStart = 
-      "		<record>\n"; 
-  String recordEnd =
-      "		</record>\n"; 
-  
-  String recordHeader = 
-      	"			<header>\n" + 
-	  "				<identifier>oai:ojs.ijict.org:article/156</identifier>\n" + 
-	  "				<datestamp>2010-10-11T05:39:24Z</datestamp>\n" + 
-	  "				<setSpec>ijoat:EA</setSpec>\n" + 
-	  "			</header>\n";
-
-  String metaData = 
-      "			<metadata>\n";
-  String metaDataEnd = 
-      "			</metadata>\n";
    
   String oai_dc = 
       "				<oai_dc:dc xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"\n" + 
@@ -105,6 +98,8 @@ public class ListRecords implements ListRecordsHandler {
 
     String[] requiredParameters = {"verb", "metadataPrefix"};
     verifyParameters(request, requiredParameters); 
+
+    loadSetData(request);
     
     StringBuffer xml = new StringBuffer()
     	.append(oaiPmhHeader)
@@ -118,6 +113,37 @@ public class ListRecords implements ListRecordsHandler {
     xml.append(listRecordsEnd).append(oaiPmhEnd);
     
     return new MockupOaiPmhResponse(xml.toString()); 
+  }
+
+  private void loadSetData(OaiPmhRequest request) 
+  {
+    String setValue = request.getParameter("set");
+    if (setValue == null)
+      return; 
+    
+    InputStream inputStream = getClass().getResourceAsStream(setValue);
+    if (inputStream == null) {
+      File setFile = new File(setValue);
+      try {
+	inputStream = new FileInputStream(setFile);
+      } catch (FileNotFoundException e) {
+	e.printStackTrace();
+	throw new RuntimeException("Set '" + setValue + "' definition not found!"); 
+      }
+    }
+    Reader reader = new InputStreamReader(inputStream);
+    BufferedReader lineReader = new BufferedReader(reader);
+    try {
+      while (lineReader.ready()) {
+	String line = lineReader.readLine();
+	if (line == null) 
+	  break;
+	
+      }
+    }
+    catch(IOException ioe) {
+      
+    }
   }
 
   private void verifyParameters(OaiPmhRequest request, String[] parameters) {
@@ -144,4 +170,4 @@ public class ListRecords implements ListRecordsHandler {
 		  + "</request>\n"; 
     return requestResponse;
   }
-  }
+}
