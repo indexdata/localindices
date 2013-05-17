@@ -1,23 +1,34 @@
 package com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 
 public class OaiMetaDataGenerator {
-  
+
+  int index = 1;
+  SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); //'T'HH:mm:ss.SSSZ
+  SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+  Date start =  new Date();
+  Date end   =  new Date();
+  Date next   = new Date(start.getTime());
   OaiPmhRequest request;
+  // One day
+  long  step = 24 * 3600 * 1000; 
+  int bulkSize = 10;
+  int count = 0;
+  String set = "";
+  Map<String, Object> otherProperties;
+  boolean more;
 
   String recordStart = 
       "		<record>\n"; 
   String recordEnd =
       "		</record>\n"; 
   
-  String recordHeader = 
-      	"			<header>\n" + 
-	  "				<identifier>oai:ojs.ijict.org:article/156</identifier>\n" + 
-	  "				<datestamp>2010-10-11T05:39:24Z</datestamp>\n" + 
-	  "				<setSpec>ijoat:EA</setSpec>\n" + 
-	  "			</header>\n";
-
   String metaData = 
       "			<metadata>\n";
   String metaDataEnd = 
@@ -47,31 +58,104 @@ public class OaiMetaDataGenerator {
       "					<dc:coverage xml:lang=\"en-US\"></dc:coverage>\n" + 
       "					<dc:coverage xml:lang=\"en-US\"></dc:coverage>\n" + 
       "					<dc:rights>Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</dc:rights>\n" + 
-      "				</oai_dc:dc>\n"; 
+      "				</oai_dc:dc>\n";
+  private String prefix; 
 
   public OaiMetaDataGenerator(OaiPmhRequest request) {
     this.request = request;
+    start = parseDate(request.getParameter("from"), 0);
+    end   = parseDate(request.getParameter("until"), new Date().getTime());
   }
-  
-  public void generateRecords(StringBuffer xml) {
-    String prefix = request.getParameter("metadataPrefix");
+
+  public OaiMetaDataGenerator(Date from, Date until, int seconds, Map<String, Object> properties) {
+    start  = from;
+    end  = until;
+    this.step = seconds;
+    otherProperties = properties;
+    more = start.before(end);
+  }
+
+
+
+  public String generateRecords(StringBuffer xml) {
+    count = 0;
+    prefix = request.getParameter("metadataPrefix");
+    parseResumptionToken();
     if (!"oai_dc".equals(prefix))
-      	throw new RuntimeException("Unsupported metadataPrefix: " + prefix);
-    String set = request.getParameter("metadataPrefix");
-    if (set != null) {
-      // Parse setting from set.
+    	throw new RuntimeException("Unsupported metadataPrefix: " + prefix);
+    next = new Date(start.getTime() + (count * step));
+    while (generateRecord(xml) && count < bulkSize) {
+      count++;
+      next = new Date(start.getTime() + (count * step));
     }
-    int total = 2;
-    for (int index = 0; index < total; index++) {
-      generateRecord(xml);
+    
+    return generateResumptionToken(); 
+  }
+
+  private void parseResumptionToken() {
+    String resumptionToken = request.getParameter("resumptionToken");
+    if (resumptionToken != null) {
+      String[] parameters = resumptionToken.split("|");
+      if (parameters.length != 4) {
+	prefix = parameters[0];
+	start = parseDate(parameters[1], 0l);
+        end = parseDate(parameters[2], new Date().getTime());
+        set = (parameters[2].equals("") ? null : parameters[2]); 
+      	count = Integer.parseInt(parameters[3]);
+      }
+      else throw new RuntimeException("Invalid resumption token '" + resumptionToken + "'");
     }
   }
 
-  public void generateRecord(StringBuffer xml) {
-    xml.append(recordStart)
-	.append(recordHeader)
-	.append(metaData).append(oai_dc).append(metaDataEnd)
-	.append(recordEnd);
+  private Date parseDate(String stringRep, long time) 
+  {
+    Date date = new Date(time);
+    if (stringRep == null || "".equals(stringRep))
+      return date;
+    try {
+      return dateFormat.parse(stringRep);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    try {
+      return longDateFormat.parse(stringRep);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    long newTime = Long.parseLong(stringRep);
+    date = new Date(newTime);
+    return date;
   }
 
+  private String generateResumptionToken() {
+    if (more) {
+      StringBuffer token = new StringBuffer("");
+      token.append(prefix).append("|");
+      token.append(start).append("|");
+      token.append(count).append("|");
+      token.append((set != null ? set: "")).append("|");
+    }
+    return null;
+  }
+
+  public boolean generateRecord(StringBuffer xml) {
+    more = next.before(end);
+    if (more) { 
+      xml.append(recordStart);
+      getRecordHeader(xml);
+      xml.append(metaData).append(oai_dc).append(metaDataEnd).append(recordEnd);
+      start = new Date(start.getTime() + step);
+    }
+    return more;
+  }
+
+  void getRecordHeader(StringBuffer xml) {
+    xml.append(
+	"			<header>\n" + 
+	"				<identifier>" + count + "</identifier>\n" + 
+	"				<datestamp>" + dateFormat.format(next)  + "</datestamp>\n" +
+	(set != null ? 
+	"				<setSpec>" +  set + "</setSpec>\n" : "")    + 
+	"			</header>\n");
+  }
 }
