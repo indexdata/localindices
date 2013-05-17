@@ -7,6 +7,6 @@ import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
 public interface Dispatcher {
   
   
-  OaiPmhHandler onRequest(HttpServletRequest req);
+  OaiPmhHandler onRequest(HttpServletRequest req) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 }
