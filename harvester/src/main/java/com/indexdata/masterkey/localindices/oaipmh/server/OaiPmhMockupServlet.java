@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.oaipmh.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,15 +47,30 @@ public class OaiPmhMockupServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    OaiPmhHandler handler = dispatcher.onRequest(request);
-    OaiPmhRequest oaiPmhRequest = new SimpleOaiPmhRequest(request);  
-    OaiPmhResponse oaiPmhResponse = handler.handle(oaiPmhRequest);
-    //TODO Need to be able to handle encoding as well
-    response.setContentType("text/xml;charset=UTF-8");
-    PrintWriter out = response.getWriter();
-    //TODO Need to be able to handle gzip data 
-    out.write(oaiPmhResponse.toString());
     
+    try {
+      OaiPmhHandler handler = dispatcher.onRequest(request);
+      OaiPmhRequest oaiPmhRequest = new SimpleOaiPmhRequest(request);  
+      OaiPmhResponse oaiPmhResponse = handler.handle(oaiPmhRequest);
+      //TODO Need to be able to handle encoding as well
+      response.setContentType("text/xml;charset=UTF-8");
+      PrintWriter out = response.getWriter();
+      //TODO Need to be able to handle gzip data 
+      out.write(oaiPmhResponse.toString());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      response.sendError(500, e.getMessage());
+      return;  
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+      response.sendError(500, e.getMessage());
+      return;  
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+      response.sendError(500, e.getMessage());
+      return;  
+    }
+      
   }
 
   public Dispatcher getDispatcher() {
