@@ -11,15 +11,18 @@ public class OaiMetaDataGenerator {
 
   int index = 1;
   SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); //'T'HH:mm:ss.SSSZ
-  SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-  Date start =  new Date();
-  Date end   =  new Date();
-  Date next   = new Date(start.getTime());
-  OaiPmhRequest request;
-  // One day
+  SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+  // TODO For now there will be one document for each day. 
   long  step = 24 * 3600 * 1000; 
   int bulkSize = 10;
   int count = 0;
+  Date start =  new Date();
+  Date end   =  new Date();
+  Date next   = new Date(start.getTime());
+  // TODO This hack only works for steps of size day and only for short date format 
+  Date realEnd  = new Date(end.getTime() + step);
+  OaiPmhRequest request;
+  // One day
   String set = "";
   Map<String, Object> otherProperties;
   boolean more;
@@ -84,7 +87,9 @@ public class OaiMetaDataGenerator {
     if (!"oai_dc".equals(prefix))
     	throw new RuntimeException("Unsupported metadataPrefix: " + prefix);
     next = new Date(start.getTime() + (count * step));
-    while (generateRecord(xml) && count < bulkSize) {
+    realEnd  = new Date(end.getTime() + step);
+    //TODO side effect in generateRecord of printing out a record. Must be called after count < bulkSize 
+    while (count < bulkSize && generateRecord(xml)) {
       count++;
       next = new Date(start.getTime() + (count * step));
     }
@@ -132,19 +137,20 @@ public class OaiMetaDataGenerator {
       StringBuffer token = new StringBuffer("");
       token.append(prefix).append("|");
       token.append(start).append("|");
+      token.append(end).append("|");
       token.append(count).append("|");
       token.append((set != null ? set: "")).append("|");
+      return token.toString();
     }
     return null;
   }
 
   public boolean generateRecord(StringBuffer xml) {
-    more = next.before(end);
+    more = next.before(realEnd);
     if (more) { 
       xml.append(recordStart);
       getRecordHeader(xml);
       xml.append(metaData).append(oai_dc).append(metaDataEnd).append(recordEnd);
-      start = new Date(start.getTime() + step);
     }
     return more;
   }
