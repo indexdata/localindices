@@ -69,6 +69,7 @@
           <testSourceDirectory>src/test/java</testSourceDirectory>
           <excludes>
             <exclude>**/Test*</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <file.encoding>UTF-8</file.encoding>
@@ -195,7 +196,6 @@
                   <contextPath>/harvester</contextPath>
                   <daemon>true</daemon>
                   <webXml>${project.build.directory}/web.xml</webXml>
-                  <jettyEnvXml>${basedir}/src/test/resources/jetty-env.xml</jettyEnvXml>
                 </configuration>
               </execution>
               <execution>
