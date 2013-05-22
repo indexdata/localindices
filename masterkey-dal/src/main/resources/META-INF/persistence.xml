@@ -25,7 +25,7 @@
     </persistence-unit>
     <!-- development/testing persistence unit -->
     <persistence-unit name="localindicesPU_TEST" transaction-type="RESOURCE_LOCAL">
-      <provider>oracle.toplink.essentials.PersistenceProvider</provider>
+      <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
       <!-- 
         we could have that use a direct connection but instead we use a data-source
         which is more like the production version
@@ -33,9 +33,10 @@
         <non-jta-data-source>java:/comp/env/localindicesDS_TEST</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
-            <property name="toplink.ddl-generation" value="create-tables"/>
-            <property name="toplink.cache.type.default" value="NONE"/>
-            <property name="toplink.target-database" value="HSQL"/>
+            <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
+            <property name="eclipselink.cache.type.default" value="NONE"/>
+            <property name="eclipselink.target-database" value="Auto"/>
             <!--
               direct non-DataSource connection is possible but is generally
               not safe
