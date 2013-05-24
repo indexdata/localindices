@@ -239,7 +239,7 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-server</artifactId>
-      <version>${jersey-version}</version>
+      <version>1.13</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -250,8 +250,7 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>${jersey-version}</version>
-      <scope>test</scope>
+      <version>1.13</version>
     </dependency>
     <dependency>
       <groupId>com.indexdata.xml</groupId>
@@ -324,22 +323,6 @@
         <type>jar</type>
         <scope>compile</scope>
       </dependency>
-      <!--
-      <dependency>
-        <groupId>toplink.essentials</groupId>
-        <artifactId>toplink-essentials</artifactId>
-        <version>2.1-60f</version>
-        <type>jar</type>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
-        <groupId>toplink.essentials</groupId>
-        <artifactId>toplink-essentials-agent</artifactId>
-        <version>2.1-60f</version>
-        <type>jar</type>
-        <scope>compile</scope>
-      </dependency>
-      -->
       <dependency>
         <groupId>org.marc4j</groupId>
         <artifactId>marc4j</artifactId>
@@ -385,8 +368,73 @@
         <groupId>javax.mail</groupId>
         <artifactId>mail</artifactId>
         <version>1.4.7</version>
-      </dependency>	
-    </dependencies>
+      </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>jsr311-api</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-atom</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-atom-abdera</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-apache-client</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-spring</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-multipart</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-guice</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-simple-server</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
+      <artifactId>oauth-client</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
+      <artifactId>oauth-server</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
+      <artifactId>oauth-signature</artifactId>
+      <version>1.13</version>
+    </dependency>
+  </dependencies>
     <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
@@ -394,12 +442,6 @@
       <jersey-version>1.1.1-ea</jersey-version>
       <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
-    <repositories>
-      <repository>
-        <id>Java.Net</id>
-        <url>http://download.java.net/maven/2/</url>
-      </repository>
-    </repositories>
     <pluginRepositories>
     </pluginRepositories>
   </project>
