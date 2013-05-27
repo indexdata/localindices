@@ -172,7 +172,7 @@ public class OaiMetaDataGenerator {
   void getRecordHeader(StringBuffer xml) {
     xml.append(
 	"			<header>\n" + 
-	"				<identifier>" + next.getTime() + "</identifier>\n" + 
+	"				<identifier>" + next.getTime() / 1000 + "</identifier>\n" + 
 	"				<datestamp>" + dateFormat.format(next)  + "</datestamp>\n" +
 	(set != null ? 
 	"				<setSpec>" +  set + "</setSpec>\n" : "")    + 
