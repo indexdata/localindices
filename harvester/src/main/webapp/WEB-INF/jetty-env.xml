@@ -1,0 +1,13 @@
+<Configure id="wac" class="org.mortbay.jetty.webapp.WebAppContext">
+  <New id="mydb" class="org.mortbay.jetty.plus.naming.Resource">
+    <Arg></Arg>
+    <Arg>localindicesDS</Arg>
+    <Arg>
+      <New class="org.hsqldb.jdbc.JDBCDataSource">
+        <Set name="database">jdbc:hsqldb:mem;shutdown=true</Set>
+        <Set name="user">sa</Set>
+        <Set name="password">password</Set>
+      </New>
+    </Arg>
+  </New>
+</Configure>

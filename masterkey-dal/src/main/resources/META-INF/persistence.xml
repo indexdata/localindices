@@ -1,15 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
-    <persistence-unit name="localindicesPU" transaction-type="RESOURCE_LOCAL">
-      <provider>oracle.toplink.essentials.PersistenceProvider</provider>
+   <!-- production persistence unit that points to the production data-source --> 
+   <persistence-unit name="localindicesPU" transaction-type="RESOURCE_LOCAL">
+      <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
       <!-- for JEE container (e.g Glassfish) drop 'java:/comp/env/' prefix-->
         <non-jta-data-source>java:/comp/env/localindicesDS</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
-<!--
-            <property name="toplink.ddl-generation" value="create-tables"/>
--->
-            <property name="toplink.cache.type.default" value="NONE"/>
+            <property name="eclipselink.cache.type.default" value="NONE"/>
+            <!--
+              direct non-DataSource connection is possible but is generally
+              not safe
+            -->
+            <!--
+              <property name="toplink.jdbc.driver" 
+                value="com.mysql.jdbc.Driver"/>
+              <property name="toplink.jdbc.url" 
+                value="jdbc:mysql://localhost:3306/DBNAME?autoReconnect=true"/>
+              <property name="toplink.jdbc.user" value=""/>
+              <property name="toplink.jdbc.password" value=""/>
+              <property name="toplink.logging.level" value="FINE"/>
+              -->
+        </properties>
+    </persistence-unit>
+    <!-- development/testing persistence unit -->
+    <persistence-unit name="localindicesPU_TEST" transaction-type="RESOURCE_LOCAL">
+      <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+      <!-- 
+        we could have that use a direct connection but instead we use a data-source
+        which is more like the production version
+      -->
+        <non-jta-data-source>java:/comp/env/localindicesDS</non-jta-data-source>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+        <properties>
+            <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
+            <property name="eclipselink.cache.type.default" value="NONE"/>
+            <property name="eclipselink.target-database" value="Auto"/>
             <!--
               direct non-DataSource connection is possible but is generally
               not safe
