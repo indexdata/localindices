@@ -38,8 +38,8 @@
 				</oai_dc:dc>
 			</metadata>
 		</record>
-		<record status="deleted">
-			<header>
+		<record>
+			<header status="deleted">
 				<identifier>oai:ojs.ijict.org:article/156</identifier>
 				<datestamp>2010-10-11T05:39:24Z</datestamp>
 				<setSpec>ijoat:EA</setSpec>
