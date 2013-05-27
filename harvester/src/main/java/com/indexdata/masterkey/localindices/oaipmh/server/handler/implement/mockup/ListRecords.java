@@ -92,11 +92,15 @@ public class ListRecords implements ListRecordsHandler {
       "					<dc:coverage xml:lang=\"en-US\"></dc:coverage>\n" + 
       "					<dc:coverage xml:lang=\"en-US\"></dc:coverage>\n" + 
       "					<dc:rights>Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</dc:rights>\n" + 
-      "				</oai_dc:dc>\n"; 
+      "				</oai_dc:dc>\n";
+
+  private String resumptionTokenStart = "<resumptionToken>";
+  private String resumptionTokenEnd = "</resumptionToken>"; 
+
   @Override
   public OaiPmhResponse handle(OaiPmhRequest request) {
 
-    String[] requiredParameters = {"verb", "metadataPrefix"};
+    String[][] requiredParameters = {{"verb", "resumptionToken"}, {"verb", "metadataPrefix"}};
     verifyParameters(request, requiredParameters); 
 
     loadSetData(request);
@@ -108,8 +112,11 @@ public class ListRecords implements ListRecordsHandler {
 		.append(listRecords);
     
     OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);  
-    generator.generateRecords(xml);
-   
+    String resumptionToken = generator.generateRecords(xml);
+    if (resumptionToken != null) {
+      xml.append(resumptionTokenStart + resumptionToken  + resumptionTokenEnd);
+      
+    }
     xml.append(listRecordsEnd).append(oaiPmhEnd);
     
     return new MockupOaiPmhResponse(xml.toString()); 
@@ -146,10 +153,25 @@ public class ListRecords implements ListRecordsHandler {
     }
   }
 
-  private void verifyParameters(OaiPmhRequest request, String[] parameters) {
-    for (String parameter : parameters) 
-      if (request.getParameter(parameter) == null)
-	throw new RuntimeException("Required parameter '" + parameter + "' missing");
+  private void verifyParameters(OaiPmhRequest request, String[][] parameters) {
+    /*
+    if (request.getParameter("resumptionToken") != null && request.getParameter("verb") != null) {
+      return ;
+    }
+    */
+    RuntimeException missingParameter = null; 
+    for (String[] oneOption: parameters) {
+      missingParameter = null; 
+      for (String parameter : oneOption) 
+	if (request.getParameter(parameter) == null)
+	  missingParameter = new RuntimeException("Required parameter '" + parameter + "' missing");
+      // Had all parameters in this one. 
+      if (missingParameter == null)
+	return ; 
+    }
+    // Order of parameter is important. Last one will determine the error message. 
+    if (missingParameter != null)
+      throw missingParameter;
   }
 
   public String getResponseDate() {     
