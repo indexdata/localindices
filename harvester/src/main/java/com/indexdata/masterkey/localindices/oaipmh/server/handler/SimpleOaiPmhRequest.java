@@ -20,7 +20,7 @@ public class SimpleOaiPmhRequest implements OaiPmhRequest {
   }
 
   @Override
-  public String getUrl() {
+  public String getBaseUrl() {
     StringBuffer url = httpRequest.getRequestURL();
     //String query = httpRequest.getQueryString();
     return url.toString();
