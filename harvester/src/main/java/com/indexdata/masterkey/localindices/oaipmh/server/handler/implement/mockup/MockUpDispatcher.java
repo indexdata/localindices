@@ -13,8 +13,8 @@ import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
 
 public class MockUpDispatcher implements Dispatcher {
 
-  Map<String, String> dispatchMap = new HashMap<String, String>(); 
-  String packageName = "com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup"; 
+  Map<String, String> dispatchMap = new HashMap<String, String>();
+  String packageName = "com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup";
 
   public MockUpDispatcher() {
     dispatchMap.put("ListRecords", "ListRecords");
@@ -25,24 +25,37 @@ public class MockUpDispatcher implements Dispatcher {
   @Override
   public OaiPmhHandler onRequest(HttpServletRequest req) throws OaiPmhBadVerbException {
     
-    try {
-      String verb = req.getParameter("verb");
-    if (verb == null) 
-      	throw new OaiPmhBadVerbException("BadVerb: verb parameter missing");
-    String handlerClassName = dispatchMap.get(verb);
+      String[] verbs = req.getParameterValues("verb");
+      if (verbs == null || verbs.length !=  1 || !validVerb(verbs)) {
+	throw new OaiPmhBadVerbException("Value of the verb argument is not a legal OAI-PMH verb, the verb argument is missing, or the verb argument is repeated.");
+      }
+      String verb = verbs[0];
+      String handlerClassName = dispatchMap.get(verb);
+    
     if (handlerClassName == null) {
       Logger.getLogger(this.getClass()).warn("Attempting using '" + verb + "' as class name");
       handlerClassName = verb;
     }
-    Class<? extends OaiPmhHandler> handlerClass = (Class<? extends OaiPmhHandler>) Class.forName(packageName + "." + handlerClassName);
-    OaiPmhHandler handler = handlerClass.newInstance();
-    if (handler == null)
-      throw new OaiPmhBadVerbException("No Handler implemented for verb '" + verb + "'");
-    return handler;
+    OaiPmhHandler handler = null;
+    try {
+      Class<? extends OaiPmhHandler> handlerClass = (Class<? extends OaiPmhHandler>) Class.forName(packageName + "." + handlerClassName);
+      handler = handlerClass.newInstance();
+      return handler;
     } catch (Exception ex) {
-      throw new OaiPmhBadVerbException("", ex);
+      throw new OaiPmhBadVerbException("No Handler implemented for verb '" + verb + "'");
     }
-    
+  }
+
+  private boolean validVerb(String[] verbs) {
+    String[] validVerbs = { "Identify", "ListMetaDataFormats", "ListSets", "ListIdentifiers",
+	"ListRecords", "GetRecord" };
+
+    if (verbs == null || verbs.length != 1)
+      return false;
+    for (String verb : validVerbs)
+      if (verb.equals(verbs[0]))
+	return true;
+    return false;
   }
 
 }
