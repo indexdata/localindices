@@ -1,17 +1,19 @@
 package com.indexdata.masterkey.localindices.oaipmh.server.handler;
 
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup.MockupOaiPmhResponse;
+
 public class OaiPmhProcotolException extends Exception {
 
   /**
    * 
    */
   String errorCode; 
-  String rootCause;
+  String message;
   
   OaiPmhProcotolException(String errorCode, String message, String rootCause) {
-    super(message); 
+    super(rootCause); 
     this.errorCode = errorCode;
-    this.rootCause = rootCause;
+    this.message = message;
   }
   
   private static final long serialVersionUID = -1667855968966193408L;
@@ -20,8 +22,15 @@ public class OaiPmhProcotolException extends Exception {
     return errorCode;
   }
 
-  String getRootCause() {
-    return rootCause;
+  public String toString() {
+    StringBuffer response = new StringBuffer();
+    response
+    	.append("  <request>http://arXiv.org/oai2/TODO</request>\n") 
+    	.append("  <error code=\"" + errorCode + "\">")
+    	.append(message)
+    	.append((getMessage() != null ? "(" + getMessage() + ")" : ""))
+    	.append("  </error>\n");
+    MockupOaiPmhResponse dummy = new MockupOaiPmhResponse(response.toString());
+    return dummy.toString();
   }
-  
 }
