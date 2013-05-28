@@ -8,14 +8,13 @@ package com.indexdata.masterkey.localindices.oaipmh.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhProcotolException;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.SimpleOaiPmhRequest;
@@ -57,20 +56,12 @@ public class OaiPmhMockupServlet extends HttpServlet {
       PrintWriter out = response.getWriter();
       //TODO Need to be able to handle gzip data 
       out.write(oaiPmhResponse.toString());
-    } catch (ClassNotFoundException e) {
+    } catch (OaiPmhProcotolException e) {
       e.printStackTrace();
-      response.sendError(500, e.getMessage());
-      return;  
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-      response.sendError(500, e.getMessage());
-      return;  
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-      response.sendError(500, e.getMessage());
-      return;  
+      response.setContentType("text/xml;charset=UTF-8");
+      PrintWriter out = response.getWriter();
+      out.write(e.toString());
     }
-      
   }
 
   public Dispatcher getDispatcher() {
