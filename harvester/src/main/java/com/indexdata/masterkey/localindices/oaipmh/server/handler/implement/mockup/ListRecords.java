@@ -94,8 +94,6 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
     loadSetData(request);
     
     StringBuffer xml = new StringBuffer()
-    	.append(oaiPmhHeader)
-    		.append(getResponseDate())
     		.append(getRequest(request))
 		.append(listRecords);
     
@@ -105,8 +103,7 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
       xml.append(resumptionTokenStart + resumptionToken  + resumptionTokenEnd);
       
     }
-    xml.append(listRecordsEnd).append(oaiPmhEnd);
-    
+    xml.append(listRecordsEnd);
     return new MockupOaiPmhResponse(xml.toString()); 
   }
 
