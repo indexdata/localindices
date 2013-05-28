@@ -6,7 +6,6 @@ import java.util.TimeZone;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
-import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
 
 public abstract class CommonOaiPmhHandler implements OaiPmhHandler {
 
