@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.Dispatcher;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhBadVerbException;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
 
 public class MockUpDispatcher implements Dispatcher {
@@ -22,11 +23,12 @@ public class MockUpDispatcher implements Dispatcher {
 
   @SuppressWarnings("unchecked")
   @Override
-  public OaiPmhHandler onRequest(HttpServletRequest req) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public OaiPmhHandler onRequest(HttpServletRequest req) throws OaiPmhBadVerbException {
     
-    String verb = req.getParameter("verb");
+    try {
+      String verb = req.getParameter("verb");
     if (verb == null) 
-      	throw new RuntimeException("BadVerb");
+      	throw new OaiPmhBadVerbException("BadVerb: verb parameter missing");
     String handlerClassName = dispatchMap.get(verb);
     if (handlerClassName == null) {
       Logger.getLogger(this.getClass()).warn("Attempting using '" + verb + "' as class name");
@@ -35,8 +37,12 @@ public class MockUpDispatcher implements Dispatcher {
     Class<? extends OaiPmhHandler> handlerClass = (Class<? extends OaiPmhHandler>) Class.forName(packageName + "." + handlerClassName);
     OaiPmhHandler handler = handlerClass.newInstance();
     if (handler == null)
-      throw new RuntimeException("No Handler implemented for verb '" + verb + "'");
+      throw new OaiPmhBadVerbException("No Handler implemented for verb '" + verb + "'");
     return handler;
+    } catch (Exception ex) {
+      throw new OaiPmhBadVerbException("", ex);
+    }
+    
   }
 
 }
