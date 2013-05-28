@@ -4,4 +4,6 @@ import java.io.Serializable;
 
 public interface OaiPmhResponse extends Serializable {
   
+  String getResponseDate();
+  
 }
