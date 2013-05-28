@@ -17,6 +17,7 @@ public class MockUpDispatcher implements Dispatcher {
 
   public MockUpDispatcher() {
     dispatchMap.put("ListRecords", "ListRecords");
+    dispatchMap.put("Identify", "Identify");
   }
 
   @SuppressWarnings("unchecked")
@@ -25,7 +26,7 @@ public class MockUpDispatcher implements Dispatcher {
     
     String verb = req.getParameter("verb");
     if (verb == null) 
-      	throw new RuntimeException("Missing parameter verb");
+      	throw new RuntimeException("BadVerb");
     String handlerClassName = dispatchMap.get(verb);
     if (handlerClassName == null) {
       Logger.getLogger(this.getClass()).warn("Attempting using '" + verb + "' as class name");
