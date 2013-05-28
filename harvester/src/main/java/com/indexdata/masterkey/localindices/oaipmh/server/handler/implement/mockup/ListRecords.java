@@ -8,28 +8,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.ListRecordsHandler;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
-public class ListRecords implements ListRecordsHandler {
+public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandler {
 
   Map<String, String> properties = new HashMap<String, String>();
-
-  SimpleDateFormat simpleDateFormater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
   
-  String oaiPmhHeader = 
-      "<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\" xmlns:oai=\"http://www.openarchives.org/OAI/2.0/\"\n" + 
-      "	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:marc=\"http://www.loc.gov/MARC21/slim\"\n" + 
-      "	xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/\n" + 
-      "          http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">\n";
-
-  String oaiPmhEnd = "</OAI-PMH>\n"; 
-
   String listRecords = 
       "	<ListRecords>\n";
   String listRecordsEnd = 
@@ -153,7 +141,7 @@ public class ListRecords implements ListRecordsHandler {
     }
   }
 
-  private void verifyParameters(OaiPmhRequest request, String[][] parameters) {
+  public void verifyParameters(OaiPmhRequest request, String[][] parameters) {
     /*
     if (request.getParameter("resumptionToken") != null && request.getParameter("verb") != null) {
       return ;
@@ -174,12 +162,6 @@ public class ListRecords implements ListRecordsHandler {
       throw missingParameter;
   }
 
-  public String getResponseDate() {     
-    String responseDate = 
-	      "	<responseDate>" + simpleDateFormater.format(new Date()) + "</responseDate>\n";
-    return responseDate;
-  }
-
   public String getRequest(OaiPmhRequest request) {
     String requestResponse = 
 	      "	<request " 
@@ -188,7 +170,7 @@ public class ListRecords implements ListRecordsHandler {
 		  + request.getParameterValue("until") + " " 
 		  + request.getParameterValue("set") + " " 
 		  + request.getParameterValue("metadataPrefix") + " >" 
-		  + request.getUrl() 
+		  + request.getBaseUrl() 
 		  + "</request>\n"; 
     return requestResponse;
   }
