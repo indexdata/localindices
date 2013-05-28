@@ -10,7 +10,7 @@ import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 public class OaiMetaDataGenerator {
 
   int index = 1;
-  SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); //'T'HH:mm:ss.SSSZ
+  SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
   SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
   // TODO For now there will be one document for each day. 
   long  step = 24 * 3600 * 1000; 
