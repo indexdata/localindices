@@ -69,14 +69,9 @@ public class Identify extends CommonOaiPmhHandler {
     String[][] requiredParameters = {{"verb"}};
     verifyParameters(request, requiredParameters); 
 
-    StringBuffer xml = new StringBuffer()
-    	.append(oaiPmhHeader)
-    		.append(getResponseDate())
-    		.append(getRequest(request))
-		.append(identify);
-    
-    xml.append(identifyExample);
-    xml.append(identifyEnd).append(oaiPmhEnd);
+    StringBuffer xml = new StringBuffer();
+    xml.append(getRequest(request)).append(identify);
+    xml.append(identifyExample).append(identifyEnd);
     
     return new MockupOaiPmhResponse(xml.toString()); 
   }
