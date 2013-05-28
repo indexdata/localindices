@@ -4,6 +4,6 @@ public interface OaiPmhRequest {
   
   String getParameter(String parameter);
   String getParameterValue(String parameter);
-  String getUrl();
+  String getBaseUrl();
 
 }
