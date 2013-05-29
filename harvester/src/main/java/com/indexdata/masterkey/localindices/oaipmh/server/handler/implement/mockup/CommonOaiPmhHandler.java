@@ -30,4 +30,16 @@ public abstract class CommonOaiPmhHandler implements OaiPmhHandler {
       throw missingParameter;
   }
 
+  protected String getElement(OaiPmhRequest request) {
+    String verb = request.getParameter("verb");
+    String element = "<" + verb + ">"; 
+    return element; 
+  }
+
+  protected String getElementEnd(OaiPmhRequest request) {
+    String verb = request.getParameter("verb");
+    String element = "</" + verb + ">"; 
+    return element; 
+  }
+
 }
