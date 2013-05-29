@@ -17,8 +17,13 @@ public class MockUpDispatcher implements Dispatcher {
   String packageName = "com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup";
 
   public MockUpDispatcher() {
+    dispatchMap.put("ListIdentifiers", "ListRecords");
+    // The following not really needed, since there is a one-to-one between verb and class
     dispatchMap.put("ListRecords", "ListRecords");
     dispatchMap.put("Identify", "Identify");
+    dispatchMap.put("ListMetadataPrefix", "ListMetadataPrefix");
+    dispatchMap.put("ListRecord", "ListRecord");
+    dispatchMap.put("ListSets", "ListSets");
   }
 
   @SuppressWarnings("unchecked")
@@ -47,7 +52,7 @@ public class MockUpDispatcher implements Dispatcher {
   }
 
   private boolean validVerb(String[] verbs) {
-    String[] validVerbs = { "Identify", "ListMetaDataFormats", "ListSets", "ListIdentifiers",
+    String[] validVerbs = { "Identify", "ListMetadataFormats", "ListSets", "ListIdentifiers",
 	"ListRecords", "GetRecord" };
 
     if (verbs == null || verbs.length != 1)
