@@ -135,9 +135,12 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 	messageRouters[index++] = router;
 	previous = router;
       }
-      previous.setOutput(result);
+      if (previous != null) {
+        previous.setOutput(result);
+      } else {
+        logger.warn("Empty transformation, no normalization performed");
+      }
     }
-    
     if (source == null)
       source = result;
   }

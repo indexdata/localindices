@@ -128,7 +128,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 
   private void downloadList(String[] urls) throws Exception 
   {
-    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors());
+    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors(), resource.getAllowCondReq(), resource.getLastHarvestFinished());
     client.setHarvestJob(this);
     client.setProxy(proxy);
     client.setLogger(logger);

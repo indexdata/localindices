@@ -73,8 +73,7 @@ public class HarvestStorageFactory {
     }
     return harvestStorage;
   }
-
-  static SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
+   static SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
 
   /**
    * Creates a XMLFilter from an array of strings

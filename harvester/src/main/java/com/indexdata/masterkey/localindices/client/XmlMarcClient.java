@@ -36,22 +36,30 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.xml.filter.SplitContentHandler;
 
+import com.indexdata.utils.DateUtil;
+
+import java.util.Date;
+
 public class XmlMarcClient implements HarvestClient {
   protected StorageJobLogger logger; 
   private XmlBulkResource resource;
   private Proxy proxy; 
   private RecordHarvestJob harvesterJob;
   private boolean allowErrors = false;
+  private boolean useCondReq = false;
   private String errorText = "Failed to download/parse/store : ";
-  private String errors = errorText;  
-  private HarvestJob job; 
+  private String errors = errorText;
+  private HarvestJob job;
+  private Date lastRequested;
  
-  public XmlMarcClient(HarvestJob job, boolean allowErrors) {
+  public XmlMarcClient(HarvestJob job, boolean allowErrors, boolean useCondReq, 
+    Date lastRequested) {
     this.job = job;
     this.allowErrors = allowErrors;
+    this.useCondReq = useCondReq;
+    this.lastRequested = lastRequested;
   }
  
-  
   @Override
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
@@ -62,6 +70,12 @@ public class XmlMarcClient implements HarvestClient {
       else
 	conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
+      if (useCondReq && (lastRequested != null)) {
+        String lastModified = 
+          DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
+        logger.info("Conditional request If-Modified-Since: "+lastModified);
+        conn.setRequestProperty("If-Modified-Since", lastModified);
+      }
       conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
@@ -73,6 +87,10 @@ public class XmlMarcClient implements HarvestClient {
 	  ReadStore readStore = lookupCompresssionType(conn);
 	  readStore.readAndStore();
 	}
+      } else if (responseCode == 304) {//not-modifed
+        logger.info("Content was not modified since '"+DateUtil.serialize(
+          lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
+        return 0;
       } else {
 	if (allowErrors) {
 	  setErrors(getErrors() + (url.toString() + " "));
