@@ -18,12 +18,6 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
 
   Map<String, String> properties = new HashMap<String, String>();
   
-  String listRecords = 
-      "	<ListRecords>\n";
-  String listRecordsEnd = 
-      "	</ListRecords>\n";
-      
-   
   String oai_dc = 
       "				<oai_dc:dc xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"\n" + 
       "					xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + 
@@ -83,10 +77,14 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
       "				</oai_dc:dc>\n";
 
   private String resumptionTokenStart = "<resumptionToken>";
-  private String resumptionTokenEnd = "</resumptionToken>"; 
+  private String resumptionTokenEnd = "</resumptionToken>";
+
+  private boolean recordMode = true; 
 
   @Override
   public OaiPmhResponse handle(OaiPmhRequest request) {
+    if (request.getParameter("verb").equals("ListIdentifiers")) 
+      recordMode = false;
 
     String[][] requiredParameters = {{"verb", "resumptionToken"}, {"verb", "metadataPrefix"}};
     verifyParameters(request, requiredParameters); 
@@ -95,15 +93,16 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
     
     StringBuffer xml = new StringBuffer()
     		.append(getRequest(request))
-		.append(listRecords);
+		.append(getElement(request));
     
     OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);  
+    generator.setRecordMode(recordMode);
     String resumptionToken = generator.generateRecords(xml);
     if (resumptionToken != null) {
       xml.append(resumptionTokenStart + resumptionToken  + resumptionTokenEnd);
       
     }
-    xml.append(listRecordsEnd);
+    xml.append(getElementEnd(request));
     return new MockupOaiPmhResponse(xml.toString()); 
   }
 
