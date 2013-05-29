@@ -10,7 +10,7 @@ public class OaiPmhProcotolException extends Exception {
   String errorCode; 
   String message;
   
-  OaiPmhProcotolException(String errorCode, String message, String rootCause) {
+  public OaiPmhProcotolException(String errorCode, String message, String rootCause) {
     super(rootCause); 
     this.errorCode = errorCode;
     this.message = message;
