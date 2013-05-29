@@ -60,7 +60,8 @@ public class OaiMetaDataGenerator {
       "					<dc:coverage xml:lang=\"en-US\"></dc:coverage>\n" + 
       "					<dc:rights>Authors who publish with this journal agree to the following terms:&lt;br /&gt; &lt;ol type=&quot;a&quot;&gt;&lt;br /&gt;&lt;li&gt;Authors retain copyright and grant the journal right of first publication with the work simultaneously licensed under a &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; target=&quot;_new&quot;&gt;Creative Commons Attribution License&lt;/a&gt; that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.&lt;/li&gt;&lt;br /&gt;&lt;li&gt;Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See &lt;a href=&quot;http://opcit.eprints.org/oacitation-biblio.html&quot; target=&quot;_new&quot;&gt;The Effect of Open Access&lt;/a&gt;).&lt;/li&gt;&lt;/ol&gt;</dc:rights>\n" + 
       "				</oai_dc:dc>\n";
-  private String prefix; 
+  private String prefix;
+  private boolean recordMode = true; 
 
   public OaiMetaDataGenerator(OaiPmhRequest request) {
     this.request = request;
@@ -160,7 +161,9 @@ public class OaiMetaDataGenerator {
     if (more) { 
       xml.append(recordStart);
       getRecordHeader(xml);
-      xml.append(metaData).append(oai_dcStart).append(generateDate()).append(oai_dcEnd).append(metaDataEnd).append(recordEnd);
+      if (recordMode)
+	xml.append(metaData).append(oai_dcStart).append(generateDate()).append(oai_dcEnd).append(metaDataEnd);
+      xml.append(recordEnd);
     }
     return more;
   }
@@ -177,5 +180,13 @@ public class OaiMetaDataGenerator {
 	(set != null ? 
 	"				<setSpec>" +  set + "</setSpec>\n" : "")    + 
 	"			</header>\n");
+  }
+
+  public boolean isRecordMode() {
+    return recordMode;
+  }
+
+  public void setRecordMode(boolean recordMode) {
+    this.recordMode = recordMode;
   }
 }
