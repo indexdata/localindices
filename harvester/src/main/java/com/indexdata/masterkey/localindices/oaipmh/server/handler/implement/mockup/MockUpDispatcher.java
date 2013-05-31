@@ -40,7 +40,7 @@ public class MockUpDispatcher implements Dispatcher {
       throw new OaiPmhBadVerbException("No Handler implemented for verb '" + verb + "'");
     return handler;
     } catch (Exception ex) {
-      throw new OaiPmhBadVerbException("", ex);
+      throw new OaiPmhBadVerbException(ex.getMessage());
     }
     
   }

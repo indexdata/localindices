@@ -16,4 +16,9 @@ public class MockupOaiPmhResponse implements OaiPmhResponse {
   public String toString() {
     return response;
   }
+
+  @Override
+  public String getResponseDate() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
 }
