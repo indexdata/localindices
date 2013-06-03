@@ -146,19 +146,22 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
-      // TODO persist until and from, trash resumption token
-      resource.setFromDate(nextFrom);
-      resource.setUntilDate(null);
-      resource.setResumptionToken(null);
-      if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
-	setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
       try {
 	getStorage().commit();
+	// TODO persist until and from, trash resumption token
+	resource.setFromDate(nextFrom);
+	resource.setUntilDate(null);
+	resource.setResumptionToken(null);
+	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
+	  setStatus(HarvestStatus.FINISHED);
+	logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
       } catch (IOException e) {
 	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
+	setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
       }
-    } else {
+    } 
+
+    if (getStatus() != HarvestStatus.OK) {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
       // We do not want to override a ERROR mesage, but should reset a killed/running status. 
       // Perhaps even leave killed, just be sure that we will start the job in this state. 
@@ -175,18 +178,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
-	logger.log(Level.ERROR, "Storage commit/rollback failed.");
+	logger.log(Level.ERROR, "Storage commit/rollback failed.",ioe);
       }
-    }
-    if (getStatus() != HarvestStatus.OK) {
-	Sender sender = SenderFactory.getSender();
-	String status = getStatus().toString();
-	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
-	try {
+      Sender sender = SenderFactory.getSender();
+      String status = getStatus().toString();
+      Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
+      try {
+	if (sender != null)
 	  sender.send(msg);
-	} catch (NotificationException e1) {
-	  logger.error("Failed to send notification " + resource.getMessage()) ;
-	}
+	else
+	  logger.error("No sender specified. Unable to send message: " + resource.getMessage()) ;
+      } catch (NotificationException e1) {
+	logger.error("Failed to send notification " + resource.getMessage()) ;
+}
     }
     logger.close();
   }
