@@ -44,6 +44,8 @@ import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleMailSender;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import com.indexdata.masterkey.localindices.util.TextUtils;
+import java.text.DateFormat;
+import java.util.TimeZone;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -59,8 +61,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private OaiPmhResource resource;
   private Proxy proxy;
-  private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-  private String currentDateFormat;
+  private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+  private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
+  private final DateFormat df;
   private boolean initialRun = true;
   private boolean moveUntilIntoFrom = false;
 
@@ -94,10 +97,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setOaiSetName(null);
     }
     if (resource.getDateFormat() != null) {
-      currentDateFormat = resource.getDateFormat();
+      df = new SimpleDateFormat(resource.getDateFormat());
     } else {
-      currentDateFormat = DEFAULT_DATE_FORMAT;
+      df = new SimpleDateFormat(SHORT_DATE_FORMAT);
     }
+    df.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.resource = resource;
     this.proxy = proxy;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
@@ -114,10 +118,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 
-    // figure out harvesting period, even though we may end up using resumptionTokens from the DB
-    if (resource.getUntilDate() == null)
-      resource.setUntilDate(yesterday());
-    Date nextFrom = plusOneDay(resource.getUntilDate());
+    // in OAI date ranges are inclusive
+    Date now = new Date();
+    if (resource.getUntilDate() == null) {
+        resource.setUntilDate(now);
+    }
+    // we don't need to compare from/until dates, let the server fail it
     try {
       getStorage().begin();
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
@@ -149,7 +155,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	getStorage().commit();
 	// TODO persist until and from, trash resumption token
-	resource.setFromDate(nextFrom);
+	resource.setFromDate(now);
 	resource.setUntilDate(null);
 	resource.setResumptionToken(null);
 	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
@@ -202,7 +208,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     ListRecords listRecords = null;
     if (resumptionToken == null || "".equals(resumptionToken)) {
       logger.log(Level.INFO, "OAI harvest started. Harvesting from: "  
-	  + resource.getFromDate() + " until: " + resource.getUntilDate());
+	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
       listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
     } else {
       logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
@@ -357,23 +363,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     return null;
   }
 
-  private Date yesterday() {
-    Calendar c = Calendar.getInstance();
-    c.add(Calendar.DAY_OF_MONTH, -1); // back one
-    return c.getTime();
-  }
-
-  private Date plusOneDay(Date date) {
-    Calendar c = Calendar.getInstance();
-    c.setTime(date);
-    c.add(Calendar.DAY_OF_MONTH, 1);
-    return c.getTime();
-  }
-
   private String formatDate(Date date) {
     if (date == null)
       return null;
-    return new SimpleDateFormat(currentDateFormat).format(date);
+    return df.format(date);
   }
 
   @Override
