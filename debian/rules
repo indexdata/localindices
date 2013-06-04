@@ -50,7 +50,7 @@ $(WEBAPP):
 #	env LD_PRELOAD= ./mvn_solr.sh package -Pproduction
 #	env PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/share/bina:/usr/lib/jvm/java-6-openjdk-amd64/bin mvn package
 	pwd 
-	env LD_PRELOAD= PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/share/bina:/usr/lib/jvm/java-6-openjdk-amd64/bin mvn package
+	env LD_PRELOAD= PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/lib/jvm/java-6-openjdk-amd64/bin:/usr/lib/jvm/java-6-openjdk-i386/jre/bin/ mvn package
 	touch $@
 
 install: install-stamp
