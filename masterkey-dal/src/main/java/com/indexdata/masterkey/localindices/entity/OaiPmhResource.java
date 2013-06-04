@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -33,6 +34,10 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   @Temporal(TemporalType.TIMESTAMP)
   private Date untilDate;
   private String dateFormat;
+  @Column(nullable = false)
+  protected Boolean clearRtOnError = false;
+  @Column(nullable = false)
+  protected Boolean keepPartial = true;
 
   public OaiPmhResource() {
   };
@@ -99,6 +104,22 @@ public class OaiPmhResource extends Harvestable implements Serializable {
 
   public void setResumptionToken(String resumptionToken) {
     this.resumptionToken = resumptionToken;
+  }
+
+  public Boolean getClearRtOnError() {
+    return clearRtOnError;
+  }
+
+  public void setClearRtOnError(Boolean clearRtOnError) {
+    this.clearRtOnError = clearRtOnError;
+  }
+
+  public Boolean getKeepPartial() {
+    return keepPartial;
+  }
+
+  public void setKeepPartial(Boolean keepPartial) {
+    this.keepPartial = keepPartial;
   }
 
   @Override
