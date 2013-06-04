@@ -132,12 +132,18 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
+        //there's no way resumption token is valid if we get here
+        resource.setResumptionToken(null);
 	logOaiPmhException(e, e.getMessage());
       }
     } catch (IOException e) {
+      //when we get here the retry loop has already been exhausted
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
 	resource.setMessage(e.getMessage());
+        //the resumption token
+        if (resource.getClearRtOnError())
+          resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
 	e.printStackTrace();
       }
@@ -172,13 +178,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING))
 	setStatus(HarvestStatus.FINISHED);
       try {
-	if (resource.getResumptionToken() != null) {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error "
-	      + "- Commiting up to Resumption Token " + resource.getResumptionToken());
+	if (resource.getKeepPartial()) {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error, "
+	      + "commiting up partial harvest as configured");
 	  getStorage().commit();
-	}
-	else {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error - Rollback until " + resource.getFromDate());
+        } else {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error - rollingback until " 
+            + formatDate(resource.getFromDate()));
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
