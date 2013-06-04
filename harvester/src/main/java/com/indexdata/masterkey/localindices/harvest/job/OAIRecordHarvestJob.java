@@ -165,9 +165,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
 	setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
       }
-    } 
-
-    if (getStatus() != HarvestStatus.OK) {
+    } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
       // We do not want to override a ERROR mesage, but should reset a killed/running status. 
       // Perhaps even leave killed, just be sure that we will start the job in this state. 
@@ -185,7 +183,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
       } catch (IOException ioe) {
 	logger.log(Level.ERROR, "Storage commit/rollback failed.",ioe);
+        setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
       }
+    }
+    
+    if (getStatus() == HarvestStatus.ERROR) {
       Sender sender = SenderFactory.getSender();
       String status = getStatus().toString();
       Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
