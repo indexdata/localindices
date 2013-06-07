@@ -7,7 +7,9 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
+import javax.persistence.CascadeType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,8 +21,13 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * @author Dennis
@@ -53,8 +60,10 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   protected String testData = "";
   @Lob
   protected String testOutput = "";
-  @Transient
-  protected List<Transformation> transformations; 
+  
+  @OneToMany(mappedBy = "step")
+  @OrderBy("position")
+  protected List<TransformationStepAssociation> stepAssociations;
 
   protected String customClass;
 
@@ -84,7 +93,20 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
   }
-
+  
+  @XmlID
+  @XmlElement(name = "id")
+  public String getStringId() {
+    if (id != null)
+      return id.toString();
+    return null;
+  }
+  
+  void setStringId(String id) {
+    this.id = Long.parseLong(id);
+  }
+  
+  @XmlTransient
   public Long getId() {
     return id;
   }
@@ -163,12 +185,13 @@ public abstract class TransformationStep implements Serializable, Cloneable {
     this.testOutput = testOutput;
   }
 
+  @XmlTransient
   public List<Transformation> getTransformations() {
+    List<Transformation> transformations = new LinkedList<Transformation>();
+    for (TransformationStepAssociation association : stepAssociations) {
+      transformations.add(association.getTransformation());
+    }
     return transformations;
-  }
-
-  public void setTransformations(List<Transformation> transformations) {
-    this.transformations = transformations;
   }
 
   public String getType() {

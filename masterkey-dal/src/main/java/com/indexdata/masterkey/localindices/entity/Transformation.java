@@ -24,6 +24,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * @author Dennis Schafroth
@@ -73,16 +74,19 @@ public class Transformation implements Serializable, Cloneable {
     this.enabled = enabled;
   }
 
+  @XmlID
+  @XmlElement(name = "id")
+  public String getStringId() {
+    return id.toString();
+  }
+  
+  void setStringId(String id) {
+    this.id = Long.parseLong(id);
+  }
+  
+  @XmlTransient
   public Long getId() {
     return id;
-  }
-
-  @XmlID
-  @XmlElement(name = "transformationId")
-  public String getIdAsString() {
-    if (id != null)
-      return id.toString();
-    return null;
   }
 
   public void setId(Long id) {
@@ -154,12 +158,6 @@ public class Transformation implements Serializable, Cloneable {
     stepAssociations.remove(associationId);
   }
 
-  /*
-   * public void setHarvestables(Set<Harvestable> harvestables) {
-   * this.harvestables = harvestables; }
-   * 
-   * public Set<Harvestable> getHarvestables() { return harvestables; }
-   */
   public List<TransformationStepAssociation> getStepAssociations() {
     return stepAssociations;
   }
