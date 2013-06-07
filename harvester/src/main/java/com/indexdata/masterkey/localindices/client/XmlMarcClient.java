@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.awt.JobAttributes;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,7 +109,7 @@ public class XmlMarcClient implements HarvestClient {
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
 	}
-	throw new Exception("Http connection failed.", ex);
+	throw ex;
     }
     return 0;
   }
