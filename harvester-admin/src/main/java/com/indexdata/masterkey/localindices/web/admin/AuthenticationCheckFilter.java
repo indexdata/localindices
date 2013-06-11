@@ -42,12 +42,18 @@ public class AuthenticationCheckFilter implements Filter {
       throw new UnavailableException("Missing init parameter: LOGIN_PAGE");
     SU_COOKIE_NAME = cfg.getInitParameter("SU_COOKIE_NAME");
     USER_TORUS_URI = cfg.getInitParameter("USER_TORUS_URI");
+    if (USER_TORUS_URI == null || USER_TORUS_URI.isEmpty())
+      USER_TORUS_URI = "/dev/null";
     passThruPattern = cfg.getInitParameter("PASSTHRU_PATTERN") != null
       ? Pattern.compile(cfg.getInitParameter("PASSTHRU_PATTERN")) : null;
   }
 
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
+    if (USER_TORUS_URI.equals("/dev/null")) {
+      chain.doFilter(request, response);
+      return;
+    }
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse res = (HttpServletResponse) response;
     HttpSession session = req.getSession();
