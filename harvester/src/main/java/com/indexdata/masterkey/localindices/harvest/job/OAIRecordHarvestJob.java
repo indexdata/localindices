@@ -125,7 +125,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     // we don't need to compare from/until dates, let the server fail it
     try {
-      getStorage().begin();
+      getStorage().setOverwriteMode(resource.getOverwrite());
+      
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
