@@ -28,6 +28,7 @@ public abstract class JobTester extends TestCase {
       	  step = new CustomTransformationStep();
       	  step.setName("Step " + index + "(" + className + ")");
       	  step.setCustomClass(className);
+      	  step.setScript("{}");
       	}
       	else {
       	  String template = readResource(resource);
@@ -62,10 +63,12 @@ public abstract class JobTester extends TestCase {
 
   protected void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
-    assertTrue("Deleted records failed: " + storageStatus.getDeletes(), 
-        	new Long(delete).equals(storageStatus.getDeletes()));
-    assertTrue("Add records failed: " + storageStatus.getAdds(), 
-        	new Long(add).equals(storageStatus.getAdds()));
+    long deletes = storageStatus.getDeletes();
+    assertTrue("Deleted records failed: " + deletes, 
+        	new Long(delete).equals(deletes));
+    long adds = storageStatus.getAdds();
+    assertTrue("Add records failed: " + adds, 
+        	new Long(add).equals(adds));
     long totalFound = storageStatus.getTotalRecords();
     assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
         	new Long(total).equals(totalFound));
