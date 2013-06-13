@@ -36,6 +36,7 @@ public class JobScheduler {
   private HarvestableDAO dao;
   private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
   private Map<String, Object> config;
+  @SuppressWarnings("unused")
   private Properties props;
 
   public JobScheduler(Map<String, Object> config, Properties props) {
