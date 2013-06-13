@@ -8,7 +8,6 @@ package com.indexdata.masterkey.localindices.oaipmh.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
