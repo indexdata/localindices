@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.awt.JobAttributes;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +7,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -34,11 +34,8 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
-import com.indexdata.xml.filter.SplitContentHandler;
-
 import com.indexdata.utils.DateUtil;
-
-import java.util.Date;
+import com.indexdata.xml.filter.SplitContentHandler;
 
 public class XmlMarcClient implements HarvestClient {
   protected StorageJobLogger logger; 
