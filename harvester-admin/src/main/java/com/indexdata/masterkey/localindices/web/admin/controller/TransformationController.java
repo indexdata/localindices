@@ -351,8 +351,8 @@ public class TransformationController {
       currentStepAssociation.setPosition(transformation.getSteps().size() + 1);
       associationDao.create(currentStepAssociation); 
       logger.debug("Association id " + currentStepAssociation.getId() 
-	  + " Transformation ID: " + currentStepAssociation.getTransformationId() 
-	  + " Step ID: " + currentStepAssociation.getStepId());  
+	  + " Transformation ID: " + currentStepAssociation.getTransformation().getId()
+	  + " Step ID: " + currentStepAssociation.getStep().getId());  
       transformation.addStepAssociation(currentStepAssociation);
       // Should not happpen, but...
       if (transformation.getId() == null) 
@@ -420,7 +420,7 @@ public class TransformationController {
   public String deleteStep() {
     // TransformationStepAssociation currentStep = null;
     int index = setupStep();
-    if (currentStepAssociation != null && currentStepAssociation.getTransformationId() != null) {
+    if (currentStepAssociation != null && currentStepAssociation.getTransformation() != null) {
       currentStepAssociation = current.getStepAssociations().remove(index);
       associationDao.delete(currentStepAssociation);
       logger.debug("" + currentStepAssociation + " was removed.");

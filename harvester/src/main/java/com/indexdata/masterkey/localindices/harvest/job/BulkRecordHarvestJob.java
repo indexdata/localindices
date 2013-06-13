@@ -91,7 +91,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
 	String status = getStatus().toString();
 	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
 	try {
-	  sender.send(msg);
+	  if (sender != null) 
+	    sender.send(msg);
+	  else
+	    logger.error("No sender configured to receive notification " + resource.getMessage()) ;
 	} catch (NotificationException e1) {
 	  logger.error("Failed to send notification " + resource.getMessage()) ;
 	}
@@ -103,7 +106,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     } catch (Exception e) {
       // Test
       e.printStackTrace();
-      logger.log(Level.ERROR, "Failed to complete job. Caught Exception" + e.getMessage() + ". Rolling back.");
+      logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back.");
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {

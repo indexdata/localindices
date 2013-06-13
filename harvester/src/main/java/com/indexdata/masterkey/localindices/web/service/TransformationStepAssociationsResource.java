@@ -91,6 +91,8 @@ public class TransformationStepAssociationsResource {
   @POST
   @Consumes("application/xml")
   public Response post(TransformationStepAssociationConverter data) {
+    //TODO the entity we get here from the admin is not valid -- it's
+    //missing the transformation member (since this member is annottated with XMlIDREF)
     TransformationStepAssociation entity = data.getEntity();
     dao.create(entity);
     return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();

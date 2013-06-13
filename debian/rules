@@ -62,24 +62,30 @@ install-stamp: build
 	# Harvester core
 	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
 	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
+	
 	mkdir -p $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 	cp README $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
+
+	mkdir -p $(ENGINEROOT)/etc/masterkey/harvester
+	cp -p etc/harvester-context.xml $(ENGINEROOT)/etc/masterkey/harvester
+	cp -p debian/tomcat.policy $(ENGINEROOT)/etc/masterkey/harvester
+	mkdir -p $(ENGINEROOT)/var/log/masterkey/harvester
+	ln -s /usr/share/masterkey/harvester/WEB-INF/web.xml $(ENGINEROOT)/etc/masterkey/harvester/web.xml
 
 	# Harvester Admin core
 	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester-admin
 	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester-admin/
 
-	# Harvester plumbing for Tomcat 6. 
-	mkdir -p $(TOMCAT6ROOT)/etc/masterkey/harvester
-	cp -p etc/harvester-context.xml $(TOMCAT6ROOT)/etc/masterkey/harvester
-	cp -p debian/tomcat.policy $(TOMCAT6ROOT)/etc/masterkey/harvester
-	mkdir -p $(TOMCAT6ROOT)/var/log/masterkey/harvester
+	mkdir -p $(ADMINROOT)/etc/masterkey/harvester-admin
+	cp -p etc/harvester-admin-context.xml $(ADMINROOT)/etc/masterkey/harvester-admin
+	cp -p debian/tomcat.policy $(ADMINROOT)/etc/masterkey/harvester-admin
+	mkdir -p $(ADMINROOT)/var/log/masterkey/harvester
+	ln -s /usr/share/masterkey/harvester-admin/WEB-INF/web.xml $(ADMINROOT)/etc/masterkey/harvester-admin/web.xml
 
-	# Harvester Admin plumbing for Tomcat 6
-	mkdir -p $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
-	cp -p etc/harvester-admin-context.xml $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
-	cp -p debian/tomcat.policy $(ADMINTOMCAT6ROOT)/etc/masterkey/harvester-admin
-	mkdir -p $(ADMINTOMCAT6ROOT)/var/log/masterkey/harvester
+	# Harvester plumbing for Tomcat 6 no longer includes files, just postinst
+	
+	# Harvester Admin plumbing for Tomcat 6 no longer includes files, 
+	# just postinst
 
 	# Harvester Utilities. Stylesheet used in includes needs to be in CATALINA_HOME
 	mkdir -p $(UTIL_ROOT)$(CATALINA_HOME)

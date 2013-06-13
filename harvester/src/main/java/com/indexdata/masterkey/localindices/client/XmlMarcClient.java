@@ -107,7 +107,7 @@ public class XmlMarcClient implements HarvestClient {
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
 	}
-	throw new Exception("Http connection failed.", ex);
+	throw ex;
     }
     return 0;
   }
