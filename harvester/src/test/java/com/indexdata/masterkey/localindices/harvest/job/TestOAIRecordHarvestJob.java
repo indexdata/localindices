@@ -82,7 +82,8 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   public void testClean1MonthBulkHarvestJob() throws IOException, StatusNotImplemented {
     logger.info("Logging testClean1MonthBulkHarvestJob");
-    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", new GregorianCalendar(2012, 1, 1).getTime(),
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", 
+	new GregorianCalendar(2012, 1, 1).getTime(),
 	new GregorianCalendar(2012, 2, 1).getTime(), null, null);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
@@ -120,8 +121,10 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
  */
-  public void testCleanFullBulkHarvestJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc", null, null, null, null);
+  public void testClean1MonthBulkHarvestJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc", 
+	new GregorianCalendar(2012, 1, 1).getTime(), 
+	new GregorianCalendar(2012, 1, 1).getTime(), null, null);
     resource.setId(2l);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
