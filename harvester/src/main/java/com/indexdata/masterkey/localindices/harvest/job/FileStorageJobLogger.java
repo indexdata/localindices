@@ -2,7 +2,6 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 
-import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
 
