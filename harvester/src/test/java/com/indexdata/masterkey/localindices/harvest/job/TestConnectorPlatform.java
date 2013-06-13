@@ -1,8 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Stack;
 
 import org.json.simple.JSONObject;
@@ -25,25 +23,9 @@ public class TestConnectorPlatform extends JobTester {
   // String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
   HarvestConnectorResource resource;
-
+  String indexdataBlogConnector = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/idblog.3.cf";
   String solrUrl = "http://localhost:8585/solr/";
 
-  private String createConnectorFromResource(String resource) throws IOException {
-    InputStream input = getClass().getResourceAsStream(resource);
-
-    assertTrue(input != null);
-    byte buf[] = new byte[4096];
-    ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-    int length = 0;
-    @SuppressWarnings("unused")
-    int total = 0;
-    while ((length = input.read(buf)) != -1) {
-      byteArray.write(buf, 0, length);
-      total += length;
-    }
-    String connector = byteArray.toString("UTF-8");
-    return connector;
-  }
   
   private Transformation createPzTransformation(boolean inParallel) throws IOException {
     String[] resourceSteps = { "resources/pz2-url2id.xsl"};
@@ -55,7 +37,7 @@ public class TestConnectorPlatform extends JobTester {
     resource.setId(1l);
     resource.setUrl(cfServer);
     resource.setInitData("{}");
-    resource.setConnectorUrl(createConnectorFromResource(connector));
+    resource.setConnectorUrl(indexdataBlogConnector);
     resource.setCurrentStatus("NEW");
     resource.setTransformation(createPzTransformation(inParallel));
     return resource;
