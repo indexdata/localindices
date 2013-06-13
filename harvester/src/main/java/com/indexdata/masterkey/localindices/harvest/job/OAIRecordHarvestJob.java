@@ -9,9 +9,10 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Proxy;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -41,11 +42,8 @@ import com.indexdata.masterkey.localindices.notification.Notification;
 import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
-import com.indexdata.masterkey.localindices.notification.SimpleMailSender;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import com.indexdata.masterkey.localindices.util.TextUtils;
-import java.text.DateFormat;
-import java.util.TimeZone;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -62,9 +60,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private OaiPmhResource resource;
   private Proxy proxy;
   private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+  @SuppressWarnings("unused")
   private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
   private final DateFormat df;
   private boolean initialRun = true;
+  @SuppressWarnings("unused")
   private boolean moveUntilIntoFrom = false;
 
   @Override
