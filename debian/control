@@ -14,7 +14,7 @@ Description: The Harvester, part of the MasterKey suite
 
 Package: masterkey-harvester-engine-tomcat6
 Architecture: all
-Depends: tomcat6, masterkey-harvester-engine
+Depends: tomcat6, masterkey-harvester-engine (= ${binary:Version}) 
 Description: Configuration of the Harvester for running under Tomcat 6
 
 Package: masterkey-harvester-admin
@@ -24,7 +24,7 @@ Description: The Harvester Administration, part of the MasterKey suite
 
 Package: masterkey-harvester-admin-tomcat6
 Architecture: all
-Depends: tomcat6,masterkey-harvester-admin
+Depends: tomcat6, masterkey-harvester-admin (= ${binary:Version})
 Description: Configuration of the Harvester Administration running under Tomcat 6
 
 Package: masterkey-harvester-utils
