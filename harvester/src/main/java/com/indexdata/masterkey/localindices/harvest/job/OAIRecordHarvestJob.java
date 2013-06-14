@@ -162,7 +162,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	getStorage().commit();
 	// TODO persist until and from, trash resumption token
-	resource.setFromDate(now);
+	resource.setFromDate(resource.getUntilDate());
 	resource.setUntilDate(null);
 	resource.setResumptionToken(null);
 	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
