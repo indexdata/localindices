@@ -64,10 +64,10 @@ public abstract class JobTester extends TestCase {
   protected void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
     assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     long deletes = storageStatus.getDeletes();
-    assertTrue("Deleted records failed: " + deletes, 
+    assertTrue("Deleted records failed. Expected " + delete + " got " + deletes, 
         	new Long(delete).equals(deletes));
     long adds = storageStatus.getAdds();
-    assertTrue("Add records failed: " + adds, 
+    assertTrue("Add records failed. Expected " + add + " got " + adds, 
         	new Long(add).equals(adds));
     long totalFound = storageStatus.getTotalRecords();
     assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
