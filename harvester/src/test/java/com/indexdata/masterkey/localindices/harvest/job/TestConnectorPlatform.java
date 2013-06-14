@@ -23,7 +23,7 @@ public class TestConnectorPlatform extends JobTester {
   // String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
   HarvestConnectorResource resource;
-  String indexdataBlogConnector = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/idblog.3.cf";
+  String indexdataBlogConnector = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/idblog.6.cf";
   String solrUrl = "http://localhost:8585/solr/";
 
   
