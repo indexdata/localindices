@@ -214,7 +214,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     job.run();
     assertTrue(resource.getResumptionToken() == null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 766, 0, 766);
+    checkStorageStatus(recordStorage.getStatus(), 566, 0, 766);
     
   
   }
