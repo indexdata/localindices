@@ -62,9 +62,13 @@
         </h:selectOneMenu>
         <!-- List box of Storages -->
         <h:outputText value="Storage:"/>
-        <h:selectOneMenu value="#{resourceController.storage}">
-          <f:selectItems value="#{storageController.storageItems}" />
-        </h:selectOneMenu>
+        <h:panelGroup>
+          <h:selectOneMenu id="storageList" value="#{resourceController.storage}" required="true"
+                           requiredMessage="Please specify a storage for this job!">
+            <f:selectItems value="#{storageController.storageItems}" />
+          </h:selectOneMenu>
+          <h:message for="storageList" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):"/>
         <h:inputText  value="#{resourceController.resource.encoding}" size="20" />
       </h:panelGrid>
