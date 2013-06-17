@@ -132,7 +132,7 @@ tfoot td, tfoot th {
 
 tbody tr:hover td {
     color: #333;
-    background: #FF0000;
+    background: rgb(187, 223, 212);
 }
 
 tbody tr:hover td a {
