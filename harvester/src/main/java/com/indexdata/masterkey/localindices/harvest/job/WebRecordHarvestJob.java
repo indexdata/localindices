@@ -129,6 +129,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   }
 
+  @Override
   public WebRobotCache getRobotCache() {
     return robotCache;
 
@@ -145,6 +146,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   }
 
+  @Override
   public synchronized void setError(String e) {
     this.error = e;
     setStatus(HarvestStatus.ERROR);
@@ -155,6 +157,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
   }
 
+  @Override
   public synchronized String getMessage() {
     return error;
   }
@@ -195,7 +198,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	+ "bytes " + trunc(body, 50));
     while (m.find()) {
       String lnk = m.group(1);
-      URL linkUrl = null;
+      URL linkUrl;
       if (lnk != null) {
 	try {
 	  linkUrl = new URL(pgUrl, lnk);
@@ -375,6 +378,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
 	+ " seconds ");
   }
 
+  @Override
   public void run() {
     setStatus(HarvestStatus.RUNNING);
     setStatusMsg("");
