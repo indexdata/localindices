@@ -33,7 +33,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
   //String resourceMarcXmlZIPMulti = "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
-  RecordStorage recordStorage;
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema, int splitAt, 
       	int size, boolean overwrite)
@@ -101,7 +100,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private void purgeStorage(RecordStorage recordStorage) throws IOException, StatusNotImplemented {
+    recordStorage.begin();
     recordStorage.purge(true);
+    recordStorage.commit();
     StorageStatus storageStatus = recordStorage.getStatus();
     long total = storageStatus.getTotalRecords();
     assertTrue("Total records != 0: " + total, total == 0);
