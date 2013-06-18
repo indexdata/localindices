@@ -76,10 +76,12 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   @Override
   public abstract String getMessage();
 
+  @Override
   public StorageJobLogger getLogger() {
     return logger;
   }
 
+  @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
   }
@@ -89,8 +91,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
       boolean split = (splitSize > 0 && splitDepth > 0);
       try {
-	XMLReader xmlReader = null;
-	xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+	XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
 	if (split) {
 	  // TODO check if the existing one exists and is alive. 
 	  if (streamStorage == null || streamStorage.isClosed() == true) {
@@ -103,8 +104,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
 	return new TransformationChainRecordStorageProxy(storage, xmlReader, this);
 
       } catch (Exception e) {
-	e.printStackTrace();
-	logger.error(e.getMessage());
+	logger.error(e.getMessage(),e);
       }
     }
     logger.warn("No Transformation Proxy configured.");
