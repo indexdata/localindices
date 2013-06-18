@@ -40,17 +40,22 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     return retrieveBriefs(start, max, null, true);
   }
     public enum AllowedSortKey { 
-      NAME("name"), 
-      STATUS("currentStatus"), 
-      DATE_STARTED("lastHarvestStarted"),
-      DATE_FINISHED("lastHarvestFinished"),
-      DATE_NEXT("nextHarvestSchedule");
-      private String spec;
-      AllowedSortKey(String fieldName) {
-        this.spec = fieldName;
+      NAME("name", "o.name"), 
+      STATUS("currentStatus", "o.currentStatus"), 
+      DATE_STARTED("lastHarvestStarted", "o.lastHarvestStarted"),
+      DATE_FINISHED("lastHarvestFinished", "o.lastHarvestFinished"),
+      DATE_STARTED_OR_FINISHED("lastHarvestStartedOrFinished", "coalesce(o.lastHarvestFinished, o.lastHarvestStarted)");
+      private String sortKey;
+      private String orderExpression;
+      AllowedSortKey(String sortKey, String orderExpression) {
+        this.sortKey = sortKey;
+        this.orderExpression = orderExpression;
       }
-      public String getFieldName() {
-        return spec;
+      public String getOrderExpression() {
+        return orderExpression;
+      }
+      public String getSortKey() {
+        return sortKey;
       }
       public static List<AllowedSortKey> fromString(String spec) {
         if (spec != null) {
@@ -58,7 +63,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
           List<AllowedSortKey> allowed = new ArrayList<AllowedSortKey>(fieldNames.length);
           for (String fieldName : fieldNames) {
             for (AllowedSortKey em : values()) {
-              if (fieldName.equalsIgnoreCase(em.spec))
+              if (fieldName.equalsIgnoreCase(em.sortKey))
                 allowed.add(em);
             }
           }
@@ -159,7 +164,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
               orderBy = "";
               String sep = "";
               for (AllowedSortKey sk : sks) {
-                orderBy += sep + "o."+sk.getFieldName();
+                orderBy += sep + sk.getOrderExpression();
                 sep = ", ";
               }
             }

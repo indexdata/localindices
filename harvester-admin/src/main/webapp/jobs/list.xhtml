@@ -70,9 +70,9 @@
               <f:facet name="header">
                 <h:commandLink action="#{resourceController.sortByLastHarvest}">
                   <h:outputText value="&#187;" 
-                                rendered="#{resourceController.sortKey == 'lastHarvestFinished,lastHarvestStarted'}" />
+                                rendered="#{resourceController.sortKey == 'lastHarvestStartedOrFinished'}" />
                   <h:outputText value="Last harvested"/>
-                  <h:outputText value="&#8595;" rendered="#{resourceController.sortKey == 'lastHarvestFinished,lastHarvestStarted' and resourceController.descending}" />
+                  <h:outputText value="&#8595;" rendered="#{resourceController.sortKey == 'lastHarvestStartedOrFinished' and resourceController.descending}" />
                 </h:commandLink>
               </f:facet>
               <h:outputText rendered="#{item.lastHarvestFinished != null}"

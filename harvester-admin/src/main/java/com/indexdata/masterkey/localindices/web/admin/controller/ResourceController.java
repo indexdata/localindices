@@ -369,7 +369,7 @@ public class ResourceController {
   }
   
   public String sortByLastHarvest() {
-    sortKey = "lastHarvestFinished,lastHarvestStarted";
+    sortKey = "lastHarvestStartedOrFinished";
     isAsc = !isAsc;
     return listResources();
   }
