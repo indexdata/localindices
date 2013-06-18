@@ -118,7 +118,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       setStatus(HarvestStatus.ERROR);
       error = e.getMessage();
       resource.setMessage(e.getMessage());
-      logger.error("Harevesting failed: " + e.getMessage());
+      logger.error("Harevest failed: " + e.getMessage());
       Sender sender = SenderFactory.getSender();
       String status = getStatus().toString();
       Notification msg = new SimpleNotification(status, "Download failed", e.getMessage());
