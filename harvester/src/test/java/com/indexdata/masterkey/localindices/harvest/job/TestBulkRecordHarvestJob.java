@@ -9,6 +9,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import static junit.framework.Assert.assertTrue;
 
 public class TestBulkRecordHarvestJob extends JobTester {
 
@@ -18,7 +19,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
   String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
   String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
-  //String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
   //String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
 
 //  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
@@ -33,6 +34,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   //String resourceMarcXmlZIPMulti = "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
+  String solrBadUrl = "http://localhost:8585/solrbad/";
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema, int splitAt, 
       	int size, boolean overwrite)
@@ -69,7 +71,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     return createTransformationFromResources(resourceSteps, inParallel);
   }
 
-  private RecordStorage createStorage(boolean clear, XmlBulkResource resource, RecordStorage recordStorage)
+  private RecordStorage initializeStorage(boolean clear, XmlBulkResource resource, RecordStorage recordStorage)
       throws IOException, StatusNotImplemented {
     
     // To be sure we have the committed records available
@@ -85,9 +87,50 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private RecordStorage createStorage(boolean clear, XmlBulkResource resource)
       throws IOException, StatusNotImplemented {
-    return createStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
+  }
+  
+  private class StorageCreator {
+    protected RecordStorage storage;      
+    StorageCreator() throws IOException, StatusNotImplemented {
+    }
+
+    StorageCreator(RecordStorage storage) throws IOException, StatusNotImplemented {
+      this.storage = storage;
+    }
+    
+    RecordStorage createStorage(XmlBulkResource resource) {
+      storage = new BulkSolrRecordStorage(solrUrl, resource);
+      return storage;
+    }
+    
+    RecordStorage createStorage(boolean clear, XmlBulkResource resource) throws IOException, StatusNotImplemented {
+      if (storage != null)
+        return storage;
+      createStorage(resource);
+      return initializeStorage(clear, resource, storage);
+    }
   }
 
+    private class CustomUrlStorageCreator extends StorageCreator {
+      String url;
+      CustomUrlStorageCreator(String storageUrl) throws IOException, StatusNotImplemented {
+        url = storageUrl;
+      }
+      
+      @Override
+      RecordStorage createStorage(XmlBulkResource resource) {
+        return new BulkSolrRecordStorage(url, resource);
+      }
+    }
+
+    private class CustomStorageCreator extends StorageCreator {
+      CustomStorageCreator(RecordStorage custom) throws IOException, StatusNotImplemented {
+        super(custom);
+      }
+    }
+
+  
   private void testMarc21SplitByNumber(boolean inParallel, int number, boolean clear, boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 0, number, overwrite);
     resource.setId(1l);
@@ -245,7 +288,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
-  public void testCleanJumpPageGZippedTurboMarcSplitBy100(int number, boolean clear, boolean overwrite, 
+  public void testCleanJumpPageGZippedTurboMarc(int number, boolean clear, boolean overwrite, 
       long expected_total) throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, 2004); 
   }
@@ -286,7 +329,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     checkStorageStatus(recordStorage.getStatus(), added, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
-
+    
   public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
     testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, 1002); 
   }
@@ -298,8 +341,53 @@ public class TestBulkRecordHarvestJob extends JobTester {
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
     testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, false, true, true, 10020, 10007); 
   }
-
   
+  private class JobStorageHelper {
+    private final StorageStatus expectedStorageStatus;
+    private final boolean overwrite;
+    private final boolean clean;
+    private final boolean inParallel;
+    private final String url;
+    private final StorageCreator storageCreator;
+
+    public JobStorageHelper(String resourceUrl, boolean isParallel, boolean isClean, boolean doOverwrite, StorageCreator storageCreator, StorageStatus expectedStorage) throws IOException, StatusNotImplemented {
+       url = resourceUrl;
+       inParallel = isParallel;
+       clean = isClean;
+       overwrite = doOverwrite;
+       expectedStorageStatus = expectedStorage;
+       this.storageCreator = storageCreator;
+    }
+
+    public void test() throws IOException, StatusNotImplemented {
+      XmlBulkResource resource = createResource(url, null, null, 1, 1, overwrite);
+      resource.setId(2l);
+      resource.setTransformation(createMarc21Transformation(inParallel));
+      RecordStorage recordStorage = storageCreator.createStorage(clean, resource);
+
+      RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+
+      assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+      expectedStorageStatus.equals(recordStorage.getStatus());
+    }
+  }
+
+public void testBadSolrStorage() throws IOException, StatusNotImplemented {
+  
+      XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 1, 1, false);
+      resource.setId(2l);
+      resource.setTransformation(createMarc21Transformation(false));
+      RecordStorage recordStorage = initializeStorage(false, resource, new BulkSolrRecordStorage(solrBadUrl, resource));
+
+      RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+      HarvestStatus jobStatus = job.getStatus();
+      assertTrue("Wrong Storage status: " + jobStatus,  jobStatus == HarvestStatus.ERROR);
+      String errorMessage = resource.getCurrentStatus();
+      assertTrue("Wrong Error message: " + errorMessage,  "Some error message".equals(errorMessage));
+      
+
+}
+
   /*
   public void testCleanOAIsterSplit1000TurboMarc() throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc", 1, 1000);
