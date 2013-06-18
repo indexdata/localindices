@@ -22,6 +22,7 @@ import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
+import org.apache.solr.common.SolrException;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
@@ -63,10 +64,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     return defaultValue;
   }
   
+  @Override
   public String getMessage() {
     return error;
   }
 
+  @Override
   public void run() {
     try {
 
@@ -105,24 +108,27 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
       //getStorage().commit();
     } catch (Exception e) {
       // Test
-      e.printStackTrace();
-      logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back.");
+      logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!");
+      // Should detect SolrExceptions and avoid roll back if we cannnot communicate with it
       try {
 	getStorage().rollback();
       } catch (Exception ioe) {
-	logger.warn("Roll-back failed.", ioe);
+	logger.warn("Roll-back failed: " + ioe.getMessage());
       }
       setStatus(HarvestStatus.ERROR);
       error = e.getMessage();
       resource.setMessage(e.getMessage());
-      logger.error("Download failed.", e);
+      logger.error("Harevesting failed: " + e.getMessage());
       Sender sender = SenderFactory.getSender();
       String status = getStatus().toString();
       Notification msg = new SimpleNotification(status, "Download failed", e.getMessage());
       try {
-	sender.send(msg);
+        if (sender != null)
+          sender.send(msg);
+        else
+          throw new NotificationException("No Sender configured", null);
       } catch (NotificationException e1) {
-	logger.error("Failed to send notification" + e.getMessage(), e);
+	logger.error("Failed to send notification " + e.getMessage());
       }
     } finally {
       logger.close();
