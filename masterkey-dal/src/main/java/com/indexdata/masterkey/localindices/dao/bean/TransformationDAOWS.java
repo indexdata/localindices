@@ -185,4 +185,16 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
         }
         
     }
+
+  @Override
+  public List<Transformation> retrieve(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieve(start, max, sortKey, asc);
+  }
+
+  @Override
+  public List<TransformationBrief> retrieveBriefs(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieveBriefs(start, max, sortKey, asc);
+  }
 }

@@ -135,4 +135,16 @@ public class HarvestableDAOFake implements HarvestableDAO {
     public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+  @Override
+  public List<Harvestable> retrieve(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<HarvestableBrief> retrieveBriefs(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieveBriefs(start, max);
+  }
 }

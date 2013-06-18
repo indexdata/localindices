@@ -45,19 +45,35 @@
                        columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage">
             <h:column>
               <f:facet name="header">
-                <h:outputText value="Name" />
+                <h:commandLink action="#{resourceController.sortByName}">
+                  <h:outputText value="&#187;" 
+                                rendered="#{resourceController.sortKey == 'name'}" />
+                  <h:outputText value="Name"/>
+                  <h:outputText value="&#8595;" rendered="#{resourceController.sortKey == 'name' and resourceController.descending}" />
+                </h:commandLink>
               </f:facet>
               <h:outputText value="#{item.name}"></h:outputText>
             </h:column>
             <h:column>
               <f:facet name="header">
-                <h:outputText value="Status" />
+                <h:commandLink action="#{resourceController.sortByStatus}">
+                  <h:outputText value="&#187;" 
+                                rendered="#{resourceController.sortKey == 'currentStatus'}" />
+                  <h:outputText value="Status"/>
+                  <h:outputText value="&#8595;" 
+                                rendered="#{resourceController.sortKey == 'currentStatus' and resourceController.descending}" />
+                </h:commandLink>
               </f:facet>
               <h:outputText value="#{item.currentStatus}"></h:outputText>
             </h:column>
             <h:column>
               <f:facet name="header">
-                <h:outputText value="Last Harvested" />
+                <h:commandLink action="#{resourceController.sortByLastHarvest}">
+                  <h:outputText value="&#187;" 
+                                rendered="#{resourceController.sortKey == 'lastHarvestFinished,lastHarvestStarted'}" />
+                  <h:outputText value="Last harvested"/>
+                  <h:outputText value="&#8595;" rendered="#{resourceController.sortKey == 'lastHarvestFinished,lastHarvestStarted' and resourceController.descending}" />
+                </h:commandLink>
               </f:facet>
               <h:outputText rendered="#{item.lastHarvestFinished != null}"
                             value="#{item.lastHarvestFinished}">
@@ -71,7 +87,7 @@
             </h:column>
             <h:column>
               <f:facet name="header">
-                <h:outputText value="Next Scheduled Harvest" />
+                  <h:outputText value="Next harvest"/>
               </f:facet>
               <h:outputText rendered="#{item.enabled}"
                             value="#{item.nextHarvestSchedule}">
