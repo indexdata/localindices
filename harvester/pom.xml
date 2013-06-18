@@ -163,7 +163,8 @@
                 <configuration>
                   <skip>false</skip>
                   <excludes>
-                    <exclude>none</exclude>
+                    <exclude>**/integrationtests/*.java</exclude>
+                    <exclude>**/TestWebRecordHarvestJob.java</exclude>
                   </excludes>
                   <includes>
                     <include>**/Test*.java</include>
