@@ -8,7 +8,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 
-public class SolrStorageStatus implements StorageStatus {
+public class SolrStorageStatus extends AbstractStorageStatus {
 
   SolrServer server;
   String databaseSelect;
