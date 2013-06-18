@@ -15,6 +15,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorag
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import java.util.TimeZone;
 
 public class TestOAIRecordHarvestJob extends JobTester {
 
@@ -84,9 +85,14 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   public void testClean1MonthBulkHarvestJob_Overwrite() throws IOException, StatusNotImplemented {
     logger.info("Logging testClean1MonthBulkHarvestJob");
-    Date startDate = new GregorianCalendar(2012, 0, 1).getTime();
-    Date midDate   = new GregorianCalendar(2012, 1, 1).getTime();
-    Date lastDate  = new GregorianCalendar(2012, 2, 1).getTime();
+    TimeZone utc = TimeZone.getTimeZone("UTC");
+    GregorianCalendar cal = new GregorianCalendar(utc);
+    cal.set(2012,0, 1);
+    Date startDate = cal.getTime();
+    cal.set(2012, 1, 1);
+    Date midDate   = cal.getTime();
+    cal.set(2012, 2, 1);
+    Date lastDate  = cal.getTime();
     
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", startDate, midDate, null, null);
     RecordStorage recordStorage = createStorage(resource, "testClean1MonthBulkHarvestJob_Overwrite", true);
