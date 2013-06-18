@@ -137,4 +137,16 @@ public class TransformationDAOFake implements TransformationDAO {
     public int getCount() {
     	return transformations.size();
     }
+
+  @Override
+  public List<Transformation> retrieve(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<TransformationBrief> retrieveBriefs(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieveBriefs(start, max, sortKey, asc);
+  }
 }

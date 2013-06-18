@@ -168,4 +168,15 @@ public class StoragesDAOJPA implements StorageDAO {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+  @Override
+  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<StorageBrief> retrieveBriefs(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieveBriefs(start, max);
+  }
+
 }

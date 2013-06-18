@@ -188,4 +188,16 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
 	  // TODO Auto-generated method stub
 	  return null;
 	}
+
+  @Override
+  public List<TransformationStep> retrieve(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<TransformationStepBrief> retrieveBriefs(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieveBriefs(start, max);
+  }
 }

@@ -72,6 +72,8 @@ public class ResourceController {
   private int firstItem = 0;
   private int batchSize = 20;
   private int itemCount = -1;
+  private String sortKey = "name";
+  private boolean isAsc = true;
   private Long currentId;
 
 
@@ -345,6 +347,38 @@ public class ResourceController {
     itemCount = -1;
     return "list_resources";
   }
+  
+  public boolean isDescending() {
+    return !isAsc;
+  }
+  
+  public String getSortKey() {
+    return sortKey;
+  }
+  
+  public String sortByName() {
+    sortKey = "name";
+    isAsc = !isAsc;
+    return listResources();
+  }
+  
+  public String sortByStatus() {
+    sortKey = "currentStatus";
+    isAsc = !isAsc;
+    return listResources();
+  }
+  
+  public String sortByLastHarvest() {
+    sortKey = "lastHarvestFinished,lastHarvestStarted";
+    isAsc = !isAsc;
+    return listResources();
+  }
+
+  public String sortByNextHarvest() {
+    sortKey = "nextHarvestSchedule";
+    isAsc = !isAsc;
+    return listResources();
+  }
 
   // </editor-fold>
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
@@ -444,10 +478,8 @@ public class ResourceController {
 	.getExternalContext().getRequest();
     if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
-      resources = (List) dao.retrieveBriefs(firstItem, batchSize);
+      resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
     }
-    if (resources != null)
-      Collections.sort(resources);
     return new ListDataModel(resources);
   }
 
