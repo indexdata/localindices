@@ -16,35 +16,33 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import java.util.TimeZone;
+import static junit.framework.Assert.assertTrue;
 
 public class TestOAIRecordHarvestJob extends JobTester {
 
   String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
-
   String resourceOaiPubMed = "http://www.pubmedcentral.nih.gov/oai/oai.cgi";
-  
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
   String solrUrl = "http://localhost:8585/solr/";
   //String solrUrl = "http://lui-dev.indexdata.com/solr/";
-
   Logger logger = Logger.getLogger(this.getClass());
   long resourceId = 1l;
-  
+
   @Before
   public void init() {
     BasicConfigurator.configure();
   }
-  
+
   private OaiPmhResource createResource(String url, String prefix, Date from, Date until, String setName, String encoding)
-      throws IOException {
+          throws IOException {
     OaiPmhResource resource = new OaiPmhResource();
     resource.setUrl(url);
     resource.setName(url);
     resource.setId(resourceId++);
     resource.setCurrentStatus("NEW");
     resource.setEnabled(true);
-    
+
     // OAI-PMH specific
     if (from != null) {
       resource.setFromDate(from);
@@ -57,9 +55,9 @@ public class TestOAIRecordHarvestJob extends JobTester {
     resource.setEncoding(encoding);
     return resource;
   }
-  
+
   private RecordHarvestJob doXDaysHarvestJob(RecordStorage recordStorage, OaiPmhResource resource)
-      throws IOException {
+          throws IOException {
     OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
     job.setStorage(recordStorage);
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
@@ -67,11 +65,11 @@ public class TestOAIRecordHarvestJob extends JobTester {
     return job;
   }
 
-  public void testClean10DaysNoBulkHarvestJob() throws IOException, StatusNotImplemented {
-    logger.info("Logging testClean10DaysNoBulkHarvestJob");
+  public void testClean10DaysNoOaiPmhJob() throws IOException, StatusNotImplemented {
+    logger.info("Logging testClean10DaysNoOaiPmhJob");
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc",
-	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
-    RecordStorage recordStorage = createStorage(resource, "testClean10DaysNoBulkHarvestJob", true);
+            new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
+    RecordStorage recordStorage = createStorage(resource, "testClean10DaysNoOaiPmhJob", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     // checkStorageStatus(recordStorage.getStatus(), 242, 0, 242);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -83,84 +81,85 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue("Added differs from total " + adds + "!=" + total, adds == total);
   }
 
-  public void testClean1MonthBulkHarvestJob_Overwrite() throws IOException, StatusNotImplemented {
-    logger.info("Logging testClean1MonthBulkHarvestJob");
+  public Date createUTCDate(int year, int month, int day) {
     TimeZone utc = TimeZone.getTimeZone("UTC");
     GregorianCalendar cal = new GregorianCalendar(utc);
-    cal.set(2012,0, 1);
-    Date startDate = cal.getTime();
-    cal.set(2012, 1, 1);
-    Date midDate   = cal.getTime();
-    cal.set(2012, 2, 1);
-    Date lastDate  = cal.getTime();
-    
+    cal.set(year, month - 1, day);
+    return cal.getTime();
+  }
+
+  public void testClean1MonthOaiPmhJob_Overwrite() throws IOException, StatusNotImplemented {
+    logger.info("Logging testClean1MonthOaiPmhJob_overwrite");
+    Date startDate = createUTCDate(2012, 1, 1);
+    Date midDate   = createUTCDate(2012, 2, 1);
+    Date lastDate  = createUTCDate(2012, 3, 1);
+
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", startDate, midDate, null, null);
-    RecordStorage recordStorage = createStorage(resource, "testClean1MonthBulkHarvestJob_Overwrite", true);
+    RecordStorage recordStorage = createStorage(resource, "testClean1MonthOaiPmhJob_Overwrite", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 182, 0, 182);
+    checkStorageStatus(recordStorage.getStatus(), 185, 0, 185);
     Date fromDate = resource.getFromDate();
     assertTrue("FromDate not correct " + fromDate, fromDate.equals(midDate));
     resource.setUntilDate(lastDate);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 440, 0, 622);
+    checkStorageStatus(recordStorage.getStatus(), 440, 0, 625);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
     resource.setOverwrite(true);
     job = doXDaysHarvestJob(recordStorage, resource);
-    checkStorageStatus(recordStorage.getStatus(), 182, 0, 182);
+    checkStorageStatus(recordStorage.getStatus(), 185, 0, 185);
     fromDate = resource.getFromDate();
     assertTrue("FromDate not correct " + fromDate, fromDate.equals(midDate));
-    
+
   }
 
-  public void testCleanRangeBulkHarvestJob_OaiDC_UTF8() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", new GregorianCalendar(2008, 8, 1).getTime(), new GregorianCalendar(2008, 8, 2).getTime(), null, "UTF-8");
-    RecordStorage recordStorage = createStorage(resource, "testCleanRangeBulkHarvestJob_OaiDC_UTF8", true);
+  public void testCleanRangeOaiPmhJob_OaiDC_UTF8() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", createUTCDate(2008, 8, 1), createUTCDate(2008, 8, 2), null, "UTF-8");
+    RecordStorage recordStorage = createStorage(resource, "testCleanRangeOaiPmhJob_OaiDC_UTF8", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 109, 0, 109);
+    checkStorageStatus(recordStorage.getStatus(), 73, 0, 73);
   }
 
-  public void testCleanRangeBulkHarvestJob_OaiDC_iso8859_1() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", new GregorianCalendar(2008, 8, 1).getTime(), new GregorianCalendar(2008, 8, 2).getTime(), null, "iso-8859-1");
-    RecordStorage recordStorage = createStorage(resource, "testCleanRangeBulkHarvestJob_OaiDC_iso8859_1", true);
+  public void testCleanRangeOaiPmhJob_OaiDC_iso8859_1() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", createUTCDate(2008, 8, 1), createUTCDate(2008, 8, 2), null, "iso-8859-1");
+    RecordStorage recordStorage = createStorage(resource, "testCleanRangeOaiPmhJob_OaiDC_iso8859_1", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 109, 0, 109);
+    checkStorageStatus(recordStorage.getStatus(), 73, 0, 73);
 
   }
 
   /*
-  public void testCleanFullBulkHarvestJob_OaiDC_iso8859_1() throws IOException {
-    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", null, null, null, "iso-8859-1");
-    RecordStorage recordStorage = createStorage(resource, true);
+   public void testCleanFullOaiPmhJob_OaiDC_iso8859_1() throws IOException {
+   OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", null, null, null, "iso-8859-1");
+   RecordStorage recordStorage = createStorage(resource, true);
+   RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+
+   assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+   }
+   */
+  public void testClean1MonthOaiPmhJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc",
+            createUTCDate(2012, 1, 2),
+            createUTCDate(2012, 1, 3), null, null);
+    RecordStorage recordStorage = createStorage(resource, "testClean1MonthOaiPmhJob_OaiDcPubmed", true);
+
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-  }
- */
-  public void testClean1MonthBulkHarvestJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc", 
-	new GregorianCalendar(2012, 1, 1).getTime(), 
-	new GregorianCalendar(2012, 1, 1).getTime(), null, null);
-    RecordStorage recordStorage = createStorage(resource, "testClean1MonthBulkHarvestJob_OaiDcPubmed", true);
-    
-    RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
-
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    // checkStorageStatus(recordStorage.getStatus(), 675, 0, 675);
+    checkStorageStatus(recordStorage.getStatus(), 858, 0, 858); // Previous test 2011-11-31 until 2012-01-31 gave 675
   }
 
-
-  public void testClean10DaysHarvestJob_OaiMarc21() throws IOException, StatusNotImplemented {
+  public void testClean10DaysOaiPmhJob_OaiMarc21() throws IOException, StatusNotImplemented {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21",
-	new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
-    RecordStorage recordStorage = createStorage(resource, "testClean10DaysHarvestJob_OaiMarc21", true);
+            new Date(new Date().getTime() - 10l * 24 * 60 * 60 * 1000), null, null, null);
+    RecordStorage recordStorage = createStorage(resource, "testClean10DaysOaiPmhJob_OaiMarc21", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     //checkStorageStatus(recordStorage.getStatus(), 1020, 0, 1020);
@@ -172,37 +171,50 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue("Added differs from total " + adds + "!=" + total, adds == total);
   }
 
-  public void testCleanFullBulkHarvestJob_OaiDc() throws IOException, StatusNotImplemented {
+  public void testCleanFullOaiPmhJob_OaiDc_Book() throws IOException, StatusNotImplemented {
+    StackTraceElement stackElement = Thread.currentThread().getStackTrace()[0];
+    String methodName = stackElement.getMethodName();
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "oai_dc", null, null, "book", null);
-    RecordStorage recordStorage = createStorage(resource, "testCleanFullBulkHarvestJob_OaiDc", true);
+    RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 766, 0, 766);
+    checkStorageStatus(recordStorage.getStatus(), 772, 0, 772);
   }
 
-  public void testCleanFullBulkHarvestJob_OaiMarc21() throws IOException, StatusNotImplemented {
+  public void testCleanFullOaiPmhJob_OaiMarc21_Book() throws IOException, StatusNotImplemented {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book", null);
-    RecordStorage recordStorage = createStorage(resource, "testCleanFullBulkHarvestJob_OaiMarc21", true);
+    RecordStorage recordStorage = createStorage(resource, "testCleanFullOaiPmhJob_OaiMarc21_Book", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 766, 0, 766);
+    checkStorageStatus(recordStorage.getStatus(), 772, 0, 772);
   }
 
-  public void testCleanResumptionBulkHarvestJob_OaiMarc21() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book",null);
+  public void testCleanFullOaiPmhJob_OaiMarc21_BadStorage() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book", null);
+    RecordStorage recordStorage = createStorage(resource, "testCleanFullOaiPmhJob_OaiMarc21", true);
+    RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    checkStorageStatus(recordStorage.getStatus(), 772, 0, 772);
+  }
+
+  public void testCleanResumptionOaiPmhJob_OaiMarc21() throws IOException, StatusNotImplemented {
+    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book", null);
     boolean purge = true;
-    RecordStorage recordStorage = createStorage(resource, "testCleanResumptionBulkHarvestJob_OaiMarc21", purge);
+    RecordStorage recordStorage = createStorage(resource, "testCleanResumptionOaiPmhJob_OaiMarc21", purge);
     OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
       int index = 0;
+
       @Override
       public synchronized boolean isKillSent() {
-	index++; 
-	if (index % 3 == 0) 
-	  kill();
+        index++;
+        if (index % 3 == 0) {
+          kill();
+        }
         return super.isKillSent();
-      } 
+      }
     };
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
@@ -217,12 +229,12 @@ public class TestOAIRecordHarvestJob extends JobTester {
     job.run();
     assertTrue(resource.getResumptionToken() == null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 566, 0, 766);
-    
-  
-  }
+    checkStorageStatus(recordStorage.getStatus(), 572, 0, 772);
 
+
+  }
   long storageId = 1;
+
   private RecordStorage createStorage(Harvestable resource, String storageName, boolean purge) throws IOException {
     RecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
     SolrStorageEntity storageEntity = new SolrStorageEntity();
@@ -235,5 +247,4 @@ public class TestOAIRecordHarvestJob extends JobTester {
     }
     return recordStorage;
   }
-
 }
