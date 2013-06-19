@@ -13,8 +13,8 @@ Feel free to use
 */
 
 body {
-    color: #666;
-    font: normal "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+    color: rgb(16, 42, 133);
+    font: normal 100%/100% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
 .footer {
@@ -24,29 +24,48 @@ body {
 }
 
 .item {
-    color: #666;
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
 a {
-    border-bottom: 1px  #666;
-    color: #666;
+    border-bottom: 1px #666;
     text-decoration: none;
+    color: #0d3a82;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 a:after {
     content:"  ";
 }
 
+.heading {
+  background-color: #dcf3eb;
+  background-image: url("#{resource['images/logo.png']}");
+  background-repeat: no-repeat;
+  background-position: right;
+  border-right: 5px solid transparent;
+  text-shadow: 2px 2px rgb(194, 194, 194);
+  height: 60px;
+  line-height: 60px;
+  font-size: 2em;
+  vertical-align: middle;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+}
+
 #pager {
-    font: bold 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
-    /*text-align: right;*/
+    font: bold 100%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+    text-align: center;
+    margin: 5px;
 }
 
 table {
     background: #fff;
     border: 0;
-    color: #666;
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 

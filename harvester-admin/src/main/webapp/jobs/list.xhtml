@@ -8,13 +8,10 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Job List" />
+      <ui:param name="title" value="Harvest Jobs" />
       <ui:define name="content">
         <h:form>
-          <h3>
-            <h:outputText value="Resources" />
-          </h3>
-          <h:outputText value="Add new resource: " />
+          <h:outputText value="Add new harvest job: " />
           <h:commandLink styleClass="navigation" value="OAI-PMH"
                          action="#{resourceController.prepareOaiPmhResourceToAdd}" />
           <h:outputText value=", " />

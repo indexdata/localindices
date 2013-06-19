@@ -7,6 +7,7 @@
       >
 
   <h:head>
+    <link rel="icon" type="image/ico" href="../images/favicon.ico"/>
     <h:outputStylesheet name="styles.css" library="css" />
     <title>${title}</title>
   </h:head>
@@ -19,6 +20,10 @@
             <ui:include src="/templates/common/header.xhtml" />
           </ui:insert>
         </div>
+      
+        <h3 class="heading">
+          <h:outputText value="${title}" />
+        </h3>
 
         <div id="content">
           <ui:insert name="content" >
