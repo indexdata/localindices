@@ -144,7 +144,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
    }
    */
-  public void testClean1MonthOaiPmhJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
+  public void testClean2DaysMonthOaiPmhJob_OaiDcPubmed() throws IOException, StatusNotImplemented {
     OaiPmhResource resource = createResource(resourceOaiPubMed, "oai_dc",
             createUTCDate(2012, 1, 2),
             createUTCDate(2012, 1, 3), null, null);
