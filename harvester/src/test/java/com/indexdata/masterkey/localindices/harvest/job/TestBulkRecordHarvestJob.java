@@ -204,10 +204,12 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testCleanTurboMarcSplitByNumber(false, 100, true, true, NO_RECORDS);
   }
 
+  /*
   public void testCleanTurboMarcSplit1000() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(false, 1000, true, true, NO_RECORDS);
   }
-
+*/
+  
   private void testGZippedMarc21SplitByNumber(boolean inParallel, int number, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
     XmlBulkResource resource = createResource(resourceMarcGZ, "application/marc", null, 1, number, overwrite);
     resource.setId(2l);
