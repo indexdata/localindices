@@ -8,11 +8,10 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Transformation Editor" />
+      <ui:param name="title" value="Edit Transformation Pipeline" />
       <ui:param name="onload" value="hideEditStep();" />
       <ui:define name="content">
         <h:form>
-          <h3>Edit Transformation: </h3>
           <ui:include src="/templates/transformation/generic_head.xhtml" />
           <ui:include src="/templates/transformation/generic_forminputs.xhtml" />
           <ui:include src="/templates/transformation/step_forminputs.xhtml" />

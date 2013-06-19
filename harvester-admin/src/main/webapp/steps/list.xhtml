@@ -16,7 +16,7 @@
           <!--
           <h:commandLink styleClass="navigation"  value="Split" action="#{stepController.prepareSplitStep}" />                
           -->
-          <h:commandLink styleClass="navigation"  value="Transformation (XSL)" action="#{stepController.prepareXsltStep}" />                 
+          <h:commandLink styleClass="navigation"  value="XSL Step" action="#{stepController.prepareXsltStep}" />                 
 
           <h:commandLink styleClass="navigation"  value="Custom Step" action="#{stepController.prepareStep}">
             <f:param name="class" value="CustomTransformationStep" />
@@ -25,10 +25,11 @@
             <f:param name="entityClass" value="CustomTransformationStep" />
             <f:param name="customClass" value="com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" />
           </h:commandLink>
+          <!--
           <h:commandLink styleClass="navigation"  value="Validation (XSD)" action="#{stepController.prepareStep}">
             <f:param name="entityClass" value="XSDTransformationStep" />
           </h:commandLink>
-
+          -->
         </h:form>
         <h:form>
           <div id="pager">
