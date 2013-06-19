@@ -382,8 +382,8 @@ public void testBadSolrStorage() throws IOException, StatusNotImplemented {
       RecordHarvestJob job = doHarvestJob(recordStorage, resource);
       HarvestStatus jobStatus = job.getStatus();
       assertTrue("Wrong Storage status: " + jobStatus,  jobStatus == HarvestStatus.ERROR);
-      String errorMessage = resource.getCurrentStatus();
-      assertTrue("Wrong Error message: " + errorMessage,  "Some error message".equals(errorMessage));
+      String errorMessage = resource.getMessage();
+      assertTrue("Wrong Error message: " + errorMessage,  "Solr Server Exception while adding records: java.net.ConnectException: Connection refused".equals(errorMessage));
       
 
 }
