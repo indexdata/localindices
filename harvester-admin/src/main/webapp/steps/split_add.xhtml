@@ -8,14 +8,13 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Split Step Editor" />
+      <ui:param name="title" value="Add Split Step" rendered="#{stepController.mode == 'add'}" />
+      <ui:param name="title" value="Edit Split Step" rendered="#{stepController.mode == 'edit'}"/>
       <ui:define name="content">
         <h:form>
-          <h3>Split Step: </h3>
           <ui:include src="/templates/step/generic_forminputs.xhtml" />
           <ui:include src="/templates/step/split_forminputs.xhtml" />
-          <h:commandButton value="Save" action="#{stepController.save}"/>
-          <h:commandButton value="Cancel" action="#{stepController.cancel}"/>
+          <ui:include src="/templates/step/generic_form_buttons.xhtml" />
         </h:form>
       </ui:define>
     </ui:composition>

@@ -357,26 +357,26 @@ public class ResourceController {
   }
   
   public String sortByName() {
+    isAsc = "name".equals(sortKey) ? !isAsc : true;
     sortKey = "name";
-    isAsc = !isAsc;
     return listResources();
   }
   
   public String sortByStatus() {
+    isAsc = "currentStatus".equals(sortKey) ? !isAsc : true;
     sortKey = "currentStatus";
-    isAsc = !isAsc;
     return listResources();
   }
   
   public String sortByLastHarvest() {
+    isAsc = "lastHarvestStartedOrFinished".equals(sortKey) ? !isAsc : true;
     sortKey = "lastHarvestStartedOrFinished";
-    isAsc = !isAsc;
     return listResources();
   }
 
   public String sortByNextHarvest() {
+    isAsc = "nextHarvestSchedule".equals(sortKey) ? !isAsc : true;
     sortKey = "nextHarvestSchedule";
-    isAsc = !isAsc;
     return listResources();
   }
 

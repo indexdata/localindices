@@ -68,6 +68,12 @@ public class StepController {
 					       // called on load
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
+  
+  private String mode;
+
+  public String getMode() {
+    return mode;
+  }
 
   public StepController() {
     try {
@@ -190,6 +196,7 @@ public class StepController {
   public String prepareSplitStep() {
     // TODO create SplitStep
     current = new SplitStep();
+    mode = "add";
     return "edit_split_step";
   }
 
@@ -199,17 +206,20 @@ public class StepController {
 
   public String prepareXsltStep() {
     current = new XmlTransformationStep();
+    mode = "add";
     return "edit_xslt_step";
   }
 
   public String prepareXmlLogStep() {
     current = new CustomTransformationStep();
     current.setCustomClass("com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter");
+    mode = "add";
     return "edit_CustomTransformationStep";
   }
 
   public String prepareValidationStep() {
     current = new XmlTransformationStep();
+    mode = "add";
     return "edit_xsd_step";
   }
 
@@ -228,6 +238,7 @@ public class StepController {
 
   /* update resource */
   public String prepareToEdit() {
+    mode = "edit";
     current = getResourceFromRequestParam();
     postDePersist();
     String className = current.getClass().getSimpleName();
@@ -365,9 +376,9 @@ public class StepController {
       if (associationDao.getTransformationCountByStepId(current.getId()) > 0)
 	return "step_in_use";
       dao.delete(current);
-      return "delete_step";
+      return list();
     }
-    return "no_step";
+    return "failure";
   }
 
   public String cancel() {

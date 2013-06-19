@@ -8,11 +8,8 @@
   <body>
     <ui:composition>
       <h5>Actions: </h5>
-      <h:commandButton value="Save"   action="#{transformationController.saveExit}"/>
-      <h:commandButton value="Cancel" action="#{transformationController.cancel}"/>
-      <h:commandButton onclick="return confirm('Are you sure?');" 
-                       value="Delete Transformation..." 
-                       action="#{transformationController.saveAndPurge}"/>
+      <h:commandButton value="Add" action="#{transformationController.saveExit}"/>
+      <h:commandButton value="Cancel" immediate="true" action="#{transformationController.cancel}"/>
       <br/>
     </ui:composition>
   </body>
