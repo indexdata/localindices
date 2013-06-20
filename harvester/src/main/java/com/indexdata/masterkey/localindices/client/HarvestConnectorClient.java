@@ -45,6 +45,8 @@ public class HarvestConnectorClient implements HarvestClient {
   private String sessionId;
   private Proxy proxy = null; 
   private RecordHarvestJob job; 
+  private int recordCount = 0;
+
   RecordStorage storage; 
 
   public class HarvestToken  {
@@ -85,8 +87,6 @@ public class HarvestConnectorClient implements HarvestClient {
     }
                         
   };
-  @SuppressWarnings("unused")
-  private int recordCount = 0;
   
   @Override
   public int download(URL url) throws Exception 
