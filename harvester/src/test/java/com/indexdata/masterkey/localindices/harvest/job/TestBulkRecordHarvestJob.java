@@ -34,7 +34,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   //String resourceMarcXmlZIPMulti = "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
-  String solrBadUrl = "http://localhost:8585/solrbad/";
+  String solrBadUrl = "http://localhost:8686/solrbad/";
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema, int splitAt, 
       	int size, boolean overwrite)
