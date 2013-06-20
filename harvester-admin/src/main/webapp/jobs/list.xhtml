@@ -25,7 +25,11 @@
           <h:commandLink styleClass="navigation" value="WebCrawl" 
                          action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
         </h:form>
-        <h:form id="jobForm">
+        <h:panelGroup id="autoCheckbox">
+          <h:selectBooleanCheckbox value="true" 
+            onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
+        </h:panelGroup>
+        <h:form id="jobForm"> 
           <h:panelGroup id="jobTable">
             <div id="pager">
               <h:panelGroup id="pagerPanel">
@@ -36,14 +40,14 @@
                              action="#{resourceController.prev}"
                              value="Previous"
                              rendered="#{resourceController.firstItem &gt;= resourceController.batchSize}" >
-                <f:ajax render="jobForm:pagerPanel" />
+                <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
               &nbsp;
               <h:commandLink
                              action="#{resourceController.next}"
                              value="Next"
                              rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" >
-                <f:ajax render="jobForm:pagerPanel" />
+                <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
               </h:panelGroup>
             </div>
