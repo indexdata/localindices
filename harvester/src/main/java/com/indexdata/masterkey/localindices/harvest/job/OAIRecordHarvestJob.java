@@ -154,6 +154,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       else {
 	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
+	//e.printStackTrace();
       }
     }
     // if there was no error we move the time marker
@@ -267,6 +268,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (TransformerException e) {
+	  //e.printStackTrace();
 	  throw e;
 	}
       }
