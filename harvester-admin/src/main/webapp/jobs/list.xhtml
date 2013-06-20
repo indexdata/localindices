@@ -28,18 +28,24 @@
         <h:form id="jobForm">
           <h:panelGroup id="jobTable">
             <div id="pager">
-              <h:outputText id="pagerStatus"
+              <h:panelGroup id="pagerPanel">
+              <h:outputText
                 value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
               &nbsp;
-              <h:commandLink id="pagerPrev"
+              <h:commandLink
                              action="#{resourceController.prev}"
                              value="Previous"
-                             rendered="#{resourceController.firstItem &gt;= resourceController.batchSize}" />
+                             rendered="#{resourceController.firstItem &gt;= resourceController.batchSize}" >
+                <f:ajax render="jobForm:pagerPanel" />
+              </h:commandLink>
               &nbsp;
-              <h:commandLink id="pagerNext"
+              <h:commandLink
                              action="#{resourceController.next}"
                              value="Next"
-                             rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" />
+                             rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" >
+                <f:ajax render="jobForm:pagerPanel" />
+              </h:commandLink>
+              </h:panelGroup>
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
                          var="item"
@@ -130,7 +136,7 @@
                 <h:commandLink styleClass="action"
                                action="#{resourceController.deleteResource}"
                                onclick="return confirm('Are you sure?');">
-                  <f:ajax render=":jobForm:jobList :jobForm:pagerStatus :jobForm:pagerPrev :jobForm:pagerNext"/> 
+                  <f:ajax render=":jobForm:jobList :jobForm:pagerPanel"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
                 </h:commandLink>
