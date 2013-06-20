@@ -12,7 +12,9 @@ public abstract class AbstractStorageStatus implements StorageStatus {
 
   @Override
   public boolean equals(StorageStatus status) {
-    return status.getAdds() == getAdds() && status.getDeletes() == getAdds() && status.getTotalRecords() == getTotalRecords();
+    return status.getAdds().equals(getAdds()) && 
+	   status.getDeletes().equals(getDeletes()) && 
+	   status.getTotalRecords().equals(getTotalRecords());
   }
   
 }
