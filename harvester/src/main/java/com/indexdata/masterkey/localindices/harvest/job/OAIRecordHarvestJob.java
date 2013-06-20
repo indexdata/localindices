@@ -146,7 +146,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         if (resource.getClearRtOnError())
           resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
-	e.printStackTrace();
+	//e.printStackTrace();
       }
     } catch (Exception e) {
       if (isKillSent()) {
@@ -154,7 +154,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       else {
 	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
-	e.printStackTrace();
       }
     }
     // if there was no error we move the time marker
@@ -168,9 +167,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
 	  setStatus(HarvestStatus.FINISHED);
 	logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
-      } catch (IOException e) {
-	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
-	setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
+      } catch (Exception e) {
+        String errorMessage = "Storage commit failed due to Exception: " + e.getMessage();
+	logger.log(Level.ERROR, errorMessage);
+	setStatus(HarvestStatus.ERROR, errorMessage);
       }
     } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
@@ -267,7 +267,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (TransformerException e) {
-	  e.printStackTrace();
 	  throw e;
 	}
       }
@@ -295,13 +294,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.error("Failed to get " + string + " from OAI-PMH XML response: " + xml.toString());
     } catch (TransformerConfigurationException e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     } catch (TransformerFactoryConfigurationError e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     } catch (TransformerException e1) {
       logger.error("Failed to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     }
   }
 
