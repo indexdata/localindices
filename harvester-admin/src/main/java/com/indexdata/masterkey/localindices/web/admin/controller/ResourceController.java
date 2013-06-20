@@ -314,13 +314,14 @@ public class ResourceController {
 
   public int getLastItem() {
     int count = getItemCount();
-    return (count < firstItem + batchSize) ? count : firstItem + batchSize;
+    int lastItem = (count < firstItem + batchSize) ? count : firstItem + batchSize;
+    return lastItem;
   }
 
   public int getItemCount() {
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
+    if (itemCount == -1 || req.getAttribute("countRequestSeenFlag") == null) {
       req.setAttribute("countRequestSeenFlag", "yes");
       itemCount = dao.getCount();
     }
@@ -463,11 +464,6 @@ public class ResourceController {
     resource = dao.update(resource);
     resource = null;
     return listResources();
-  }
-
-  private boolean isPb() {
-    FacesContext ctx = FacesContext.getCurrentInstance();
-    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
   }
 
   /* list resources */
