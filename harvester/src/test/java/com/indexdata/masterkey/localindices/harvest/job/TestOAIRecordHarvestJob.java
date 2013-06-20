@@ -179,11 +179,11 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     StorageStatus firstRun = recordStorage.getStatus();
-    // Rerun with out 
-    OaiPmhResource resource2 = createResource(resourceOAI2MarcUrl, prefix, null, null, "book", null);
-    RecordStorage recordStorage2 = createStorage(resource, methodName, true);
-    RecordHarvestJob job2 = doXDaysHarvestJob(recordStorage2, resource2);
-    assertTrue(job2.getStatus() == HarvestStatus.FINISHED);
+    // Rerun without reusing
+    resource = createResource(resourceOAI2MarcUrl, prefix, null, null, "book", null);
+    recordStorage = createStorage(resource, methodName, true);
+    job = doXDaysHarvestJob(recordStorage, resource);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     StorageStatus secondRun = recordStorage.getStatus();
     assertTrue("First run differs from second run: ", firstRun.equals(secondRun));
   }
@@ -236,7 +236,6 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
 
   }
-  long storageId = 1;
 
   private RecordStorage createCustomStorage(Harvestable resource, String storageName, String url, boolean clear) throws IOException {
     RecordStorage recordStorage = new BulkSolrRecordStorage(url, resource);
