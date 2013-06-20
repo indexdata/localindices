@@ -25,7 +25,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
   String resourceOaiPubMed = "http://www.pubmedcentral.nih.gov/oai/oai.cgi";
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
   String solrUrl = "http://localhost:8585/solr/";
-  //String solrUrl = "http://lui-dev.indexdata.com/solr/";
+  String solrBadUrl = "http://localhost:8686/solrbad/";
   Logger logger = Logger.getLogger(this.getClass());
   long resourceId = 0l;
 
@@ -195,7 +195,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   public void testCleanFullOaiPmhJob_OaiMarc21_BadStorage() throws IOException, StatusNotImplemented {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book", null);
-    RecordStorage recordStorage = createStorage(resource, "testCleanFullOaiPmhJob_OaiMarc21", true);
+    RecordStorage recordStorage = createCustomStorage(resource, "testCleanFullOaiPmhJob_OaiMarc21", solrBadUrl, false);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.ERROR);
@@ -203,7 +203,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
   }
 
   public void testCleanResumptionOaiPmhJob_OaiMarc21() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, null, "book", null);
+    OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, createUTCDate(2013, 6, 8), "book", null);
     boolean purge = true;
     RecordStorage recordStorage = createStorage(resource, "testCleanResumptionOaiPmhJob_OaiMarc21", purge);
     OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
@@ -232,7 +232,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue(resource.getResumptionToken() == null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     // TODO Make test return fix count. 
-    checkStorageStatus(recordStorage.getStatus(), 578, 0, 778);
+    checkStorageStatus(recordStorage.getStatus(), 554, 0, 754);
 
 
   }
