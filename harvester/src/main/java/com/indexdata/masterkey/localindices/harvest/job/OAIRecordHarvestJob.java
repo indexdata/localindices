@@ -216,7 +216,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
     ListRecords listRecords = null;
     if (resumptionToken == null || "".equals(resumptionToken)) {
-      logger.log(Level.INFO, "OAI harvest started. Harvesting from: "  
+      logger.log(Level.INFO, "OAI-PMH harvesting in " + metadataPrefix + " format from: "  
 	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
       listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
     } else {
