@@ -9,7 +9,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
-import static junit.framework.Assert.assertTrue;
 
 public class TestBulkRecordHarvestJob extends JobTester {
 
@@ -112,7 +111,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     }
   }
 
-    private class CustomUrlStorageCreator extends StorageCreator {
+    @SuppressWarnings("unused")
+	private class CustomUrlStorageCreator extends StorageCreator {
       String url;
       CustomUrlStorageCreator(String storageUrl) throws IOException, StatusNotImplemented {
         url = storageUrl;
@@ -124,7 +124,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
       }
     }
 
-    private class CustomStorageCreator extends StorageCreator {
+    @SuppressWarnings("unused")
+	private class CustomStorageCreator extends StorageCreator {
       CustomStorageCreator(RecordStorage custom) throws IOException, StatusNotImplemented {
         super(custom);
       }
@@ -344,7 +345,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, false, true, true, 10020, 10007); 
   }
   
-  private class JobStorageHelper {
+  @SuppressWarnings("unused")
+private class JobStorageHelper {
     private final StorageStatus expectedStorageStatus;
     private final boolean overwrite;
     private final boolean clean;
