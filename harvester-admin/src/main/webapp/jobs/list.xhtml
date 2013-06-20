@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ez="http://java.sun.com/jsf/composite/poll">
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
@@ -24,7 +25,8 @@
           <h:commandLink styleClass="navigation" value="WebCrawl" 
                          action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
         </h:form>
-        <h:form>
+        <h:form id="jobForm">
+          <h:panelGroup id="jobTable">
           <div id="pager">
             <h:outputText
               value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
@@ -37,7 +39,7 @@
                            value="Next"
                            rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" />
           </div>
-          <h:dataTable width="100%" value="#{resourceController.resources}"
+          <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
                        var="item"
                        columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage">
             <h:column>
@@ -135,6 +137,8 @@
               <h:outputText value="#{item.message}"></h:outputText>
             </h:column>
           </h:dataTable>
+          <ez:poll id="poll" interval="1000" timeout="10000" render="jobForm:jobList"/>
+          </h:panelGroup>
         </h:form>
       </ui:define>
     </ui:composition>
