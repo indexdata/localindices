@@ -476,7 +476,7 @@ public class ResourceController {
     // check if new request
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
+    if (resources == null || req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
       resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
     }
