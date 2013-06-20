@@ -28,14 +28,16 @@
         <h:form id="jobForm">
           <h:panelGroup id="jobTable">
             <div id="pager">
-              <h:outputText
+              <h:outputText id="pagerStatus"
                 value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
               &nbsp;
-              <h:commandLink action="#{resourceController.prev}"
+              <h:commandLink id="pagerPrev"
+                             action="#{resourceController.prev}"
                              value="Previous"
                              rendered="#{resourceController.firstItem &gt;= resourceController.batchSize}" />
               &nbsp;
-              <h:commandLink action="#{resourceController.next}"
+              <h:commandLink id="pagerNext"
+                             action="#{resourceController.next}"
                              value="Next"
                              rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" />
             </div>
@@ -108,15 +110,17 @@
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{!item.running}">
+                  <f:ajax render=":jobForm:jobList"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
                 </h:commandLink>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{item.running}">
+                  <f:ajax render=":jobForm:jobList"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <f:param name="action" value="stop" />
-                  <h:graphicImage title="Run" alt="Run" height="16" url="/images/stop.png" />
+                  <h:graphicImage title="Stop" alt="Stop" height="16" url="/images/stop.png" />
                 </h:commandLink>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.viewJobLog}">
@@ -126,6 +130,7 @@
                 <h:commandLink styleClass="action"
                                action="#{resourceController.deleteResource}"
                                onclick="return confirm('Are you sure?');">
+                  <f:ajax render=":jobForm:jobList :jobForm:pagerStatus :jobForm:pagerPrev :jobForm:pagerNext"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
                 </h:commandLink>
