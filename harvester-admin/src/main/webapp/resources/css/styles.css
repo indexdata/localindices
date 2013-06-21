@@ -225,3 +225,7 @@ td.stepformat {
 #autoCheckbox {
   float: right;
 }
+
+img {
+  border-width: 0px;
+}
