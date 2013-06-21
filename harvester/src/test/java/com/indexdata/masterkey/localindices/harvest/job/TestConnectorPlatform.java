@@ -124,8 +124,6 @@ public class TestConnectorPlatform extends JobTester {
     HarvestStatus status = job.getStatus();
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
     StorageStatus firstStatus = recordStorage.getStatus();
-    assertTrue("Record count is not 7:" + firstStatus.getAdds(), firstStatus.getAdds().equals(new Long(7)));
-    assertTrue("Total count is not 7:"  + firstStatus.getTotalRecords(), firstStatus.getTotalRecords().equals(new Long(7)));
     resource.setConnectorUrl(acceConnectorWithOutAuth);
     resource.setOverwrite(true);
     job = doHarvestJob(recordStorage, resource);
