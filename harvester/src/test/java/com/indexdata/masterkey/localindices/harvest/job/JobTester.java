@@ -50,7 +50,6 @@ public abstract class JobTester extends TestCase {
     byte buf[] = new byte[4096];
     ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
     int length = 0;
-    @SuppressWarnings("unused")
     int total = 0;
     while ((length = input.read(buf)) != -1) { 
       byteArray.write(buf, 0, length);

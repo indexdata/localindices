@@ -22,7 +22,6 @@ import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
-import org.apache.solr.common.SolrException;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation

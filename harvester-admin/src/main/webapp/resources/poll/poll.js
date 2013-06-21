@@ -63,6 +63,7 @@ if (!jsfdemo.poll.init) {
         }
 
         var poll = function poll() {
+            if (window.autoUpdate === false) return;
             jsf.ajax.request(componentID, null, {execute: execute, render: render});
             if (timeout != -1) {
                 // Not an accurate timeout - but simple to compute

@@ -3,6 +3,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -15,8 +16,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorag
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
-import java.util.TimeZone;
-import static junit.framework.Assert.assertTrue;
 
 public class TestOAIRecordHarvestJob extends JobTester {
 
