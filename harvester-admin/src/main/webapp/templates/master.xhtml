@@ -4,13 +4,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:ez="http://java.sun.com/jsf/composite/ajaxloader"
       >
 
   <h:head>
     <link rel="icon" type="image/ico" href="../images/favicon.ico"/>
     <h:outputStylesheet name="styles.css" library="css" />
-    <h:outputScript name="jsf.js" library="javax.faces" target="head"/>
-    <h:outputScript library="ajaxloader" name="ajaxloader.js" target="head"/>
+    <ez:ajaxloader ignore="poll"/>
     <title>${title}</title>
   </h:head>
 

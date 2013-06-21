@@ -2,16 +2,17 @@
  * JSF Ajax loader indicator
  * @type type
  */
-if (!window["busystatus"]) {
-  var busystatus = {};
+if (!window.ajaxloader) {
+  var ajaxloader = {};
+  ajaxloader.ignore = "";
 }
 
-if (!window.busystatus.getProgressBox) {
-  busystatus.getProgressBox = function () {
-    var div = document.getElementById('progress-meter');
+if (!window.ajaxloader.getProgressBox) {
+  ajaxloader.getProgressBox = function () {
+    var div = document.getElementById('ajaxloader');
     if (div === null) {
       div = document.createElement('div');
-      div.setAttribute('id', 'progress-meter');
+      div.setAttribute('id', 'ajaxloader');
       div.style.display = 'none';
       document.getElementsByTagName('body')[0].appendChild(div);
     }
@@ -19,17 +20,22 @@ if (!window.busystatus.getProgressBox) {
   };
 }
 
-if (!window.busystatus.onStatusChange) {
-  busystatus.onStatusChange = function onStatusChange(data) {
-    //ignore poll evenens
-    if (data.source.id.indexOf("poll", this.length - "poll".length) !== -1) return;
+if (!window.ajaxloader.onStatusChange) {
+  ajaxloader.onStatusChange = function onStatusChange(data) {
+    //ignore selected sources where id suffix matches
+    var id = data.source.id;
+    var ignore = ajaxloader.ignore.split(/\s+/);
+    for (var i=0; i<ignore.length; i++) {
+      if (ignore[i].length == 0) continue;
+      if (id.indexOf(ignore[i], id.length-ignore[i].length) !== -1) return;
+    }
     var status = data.status;
     if (status === "begin") { // turn on busy indicator
-      busystatus.getProgressBox().style.display = 'block';
+      ajaxloader.getProgressBox().style.display = 'block';
     } else { // turn off busy indicator, on either "complete" or "success"
-      busystatus.getProgressBox().style.display = 'none';
+      ajaxloader.getProgressBox().style.display = 'none';
     }
   };
 }
 
-jsf.ajax.addOnEvent(busystatus.onStatusChange);
+jsf.ajax.addOnEvent(ajaxloader.onStatusChange);
