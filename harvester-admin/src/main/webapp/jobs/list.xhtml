@@ -124,14 +124,14 @@
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{!item.running}">
-                  <f:ajax render=":jobForm:jobList"/> 
+                  <f:ajax render=":jobForm:jobTable"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
                 </h:commandLink>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{item.running}">
-                  <f:ajax render=":jobForm:jobList"/> 
+                  <f:ajax render=":jobForm:jobTable"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <f:param name="action" value="stop" />
                   <h:graphicImage title="Stop" alt="Stop" height="16" url="/images/stop.png" />
@@ -144,7 +144,7 @@
                 <h:commandLink styleClass="action"
                                action="#{resourceController.deleteResource}"
                                onclick="return confirm('Are you sure?');">
-                  <f:ajax render=":jobForm:jobList :jobForm:pagerPanel"/> 
+                  <f:ajax render=":jobForm:jobTable"/> 
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
                 </h:commandLink>
