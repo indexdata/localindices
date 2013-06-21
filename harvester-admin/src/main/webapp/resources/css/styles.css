@@ -69,6 +69,11 @@ table {
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
+table.harvestjobs {
+    table-layout: fixed;
+    width: 100%;
+}
+
 caption {
     background: #4779B6;
     -moz-border-radius: 8px;
@@ -82,8 +87,6 @@ caption {
 
 td, th {
     padding: .3em .6em;
-    max-width: 15%;
-    word-wrap: break-word;
 }
 
 tbody td.left {
@@ -100,14 +103,12 @@ tbody td.center {
 
 th {
     background: #4AB694;
-    /*
-    border-left: 2px solid #4779B6;
-    */
     -moz-border-radius: 4px;
     color: #fff;
     font-weight: bold;
     text-align: left;
 }
+
 tbody td a {
     border-bottom: 1px  #666;
     color: #666;
@@ -115,7 +116,7 @@ tbody td a {
 }
 
 tbody td a:after {
-    content:"";
+    content: "";
 }
 
 tbody th a {
@@ -173,33 +174,38 @@ tbody tr:hover th {
     content:"\00A0\00BB";
 }
 
-td.resourcename {
-	text-align: left;
-	
+th, td {
+  overflow: hidden;
 }
 
-td.status {
-    text-align: center;
-    
+th.resourcename, td.resourcename {
+  text-align: left;
+  width: 20%;
 }
 
-td.actions {
-    text-align: center;
-    min-width: 75;    
+th.status, td.status {
+  text-align: center;
+  width: 7em;
 }
 
-td.statusmessage {
-    text-align: left;
-    width: 200;
-    max-width: 200;
+th.actions, td.actions {
+  text-align: center;
+  width: 80px;
 }
 
-td.lastharvest {
-    text-align: left;
+th.statusmessage, td.statusmessage {
+  text-align: left;
+  width: 40%;
 }
 
-td.nextharvest {
-    text-align: left;
+th.lastharvest, td.lastharvest {
+  text-align: left;
+  width: 10%;
+}
+
+th.nextharvest, td.nextharvest {
+  text-align: left;
+  width: 10%;
 }
 
 td.enabled {
@@ -224,4 +230,21 @@ td.steptype {
 
 td.stepformat {
     text-align: center;
+}
+
+#progress-meter {
+  background-color: black;
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  opacity: 0.2; /* also -moz-opacity, etc. */
+  z-index: 9999;
+  display: none; /* intial value*/
+  background-image: url("#{resource['ajaxloader/ajaxloader.gif']}");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
+#autoCheckbox {
+  float: right;
 }

@@ -25,7 +25,11 @@
           <h:commandLink styleClass="navigation" value="WebCrawl" 
                          action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
         </h:form>
-        <h:form id="jobForm">
+        <h:panelGroup id="autoCheckbox">
+          <h:selectBooleanCheckbox value="true" 
+            onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
+        </h:panelGroup>
+        <h:form id="jobForm"> 
           <h:panelGroup id="jobTable">
             <div id="pager">
               <h:panelGroup id="pagerPanel">
@@ -36,21 +40,22 @@
                              action="#{resourceController.prev}"
                              value="Previous"
                              rendered="#{resourceController.firstItem &gt;= resourceController.batchSize}" >
-                <f:ajax render="jobForm:pagerPanel" />
+                <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
               &nbsp;
               <h:commandLink
                              action="#{resourceController.next}"
                              value="Next"
                              rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" >
-                <f:ajax render="jobForm:pagerPanel" />
+                <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
               </h:panelGroup>
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
                          var="item"
-                         columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage">
-              <h:column>
+                         columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage"
+                         styleClass="harvestjobs">
+              <h:column headerClass="resourcename">
                 <f:facet name="header">
                   <h:commandLink action="#{resourceController.sortByName}">
                     <h:outputText value="&#187;" 
@@ -61,7 +66,7 @@
                 </f:facet>
                 <h:outputText value="#{item.name}"></h:outputText>
               </h:column>
-              <h:column>
+              <h:column headerClass="status">
                 <f:facet name="header">
                   <h:commandLink action="#{resourceController.sortByStatus}">
                     <h:outputText value="&#187;" 
@@ -73,7 +78,7 @@
                 </f:facet>
                 <h:outputText value="#{item.currentStatus}"></h:outputText>
               </h:column>
-              <h:column>
+              <h:column headerClass="lastharvest">
                 <f:facet name="header">
                   <h:commandLink action="#{resourceController.sortByLastHarvest}">
                     <h:outputText value="&#187;" 
@@ -92,7 +97,7 @@
                   <f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
                 </h:outputText>
               </h:column>
-              <h:column>
+              <h:column headerClass="nextharvest">
                 <f:facet name="header">
                     <h:outputText value="Next harvest"/>
                 </f:facet>
@@ -104,7 +109,7 @@
                               value="Disabled">
                 </h:outputText>
               </h:column>
-              <h:column>
+              <h:column headerClass="actions">
                 <f:facet name="header">
                   <h:outputText value="Actions" />
                 </f:facet>
@@ -141,7 +146,7 @@
                   <h:graphicImage title="Delete" alt="Delete" height="16" url="/images/delete.png" />
                 </h:commandLink>
               </h:column>
-              <h:column>
+              <h:column headerClass="statusmessage">
                 <f:facet name="header">
                   <h:outputText value="Status Message" />
                 </f:facet>
