@@ -15,15 +15,18 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import static junit.framework.Assert.assertTrue;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
   // String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
-  HarvestConnectorResource resource;
   String indexdataBlogConnector = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/idblog.6.cf";
+  String acceConnectorWithAuth    = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.7.cf";
+  String acceConnectorWithOutAuth = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.8.cf";
   String solrUrl = "http://localhost:8585/solr/";
 
   
@@ -32,14 +35,15 @@ public class TestConnectorPlatform extends JobTester {
     return createTransformationFromResources(resourceSteps, inParallel);
   }
 
-  private HarvestConnectorResource createResource(String connector, boolean inParallel) throws IOException {
+  private HarvestConnectorResource createResource(String connector, boolean inParallel, boolean overwrite) throws IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setId(1l);
     resource.setUrl(cfServer);
     resource.setInitData("{}");
-    resource.setConnectorUrl(indexdataBlogConnector);
+    resource.setConnectorUrl(connector);
     resource.setCurrentStatus("NEW");
     resource.setTransformation(createPzTransformation(inParallel));
+    resource.setOverwrite(overwrite);
     return resource;
   }
 
@@ -71,6 +75,7 @@ public class TestConnectorPlatform extends JobTester {
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage,
       HarvestConnectorResource resource) throws IOException {
     AbstractRecordHarvestJob job = new ConnectorHarvestJob(resource, null);
+    resource.setName(resource.getConnectorUrl());
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();
@@ -84,27 +89,54 @@ public class TestConnectorPlatform extends JobTester {
     storageEntity.setUrl(solrUrl);
     recordStorage.setWaitSearcher(true);
     if (clean) {
+      recordStorage.begin();
       recordStorage.purge(true);
+      recordStorage.commit();
     }
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
     return recordStorage;
   }
 
-  public void testConnectorHarvestJob() throws ParseException, IOException, StatusNotImplemented {
-    HarvestConnectorResource resource = createResource("resources/id.cf", false);
+  private void testConnectorHarvestJob(String url, boolean overwrite, StorageStatus expected) throws ParseException, IOException, StatusNotImplemented {
+    HarvestConnectorResource resource = createResource(url, false, overwrite);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus status = job.getStatus();
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
     StorageStatus storageStatus = recordStorage.getStatus();
-    long adds = storageStatus.getAdds();
-    //long deletes = storageStatus.getDeletes();
-    long total = storageStatus.getTotalRecords();
-    assertTrue("Adds differes from Total: " + adds + " " + total, adds == total);
+    if (storageStatus != null)
+      assertTrue("Result differs from Expected", expected.equals(storageStatus));
+    
+  }
+  
+  
+  public void testConnectorHarvestJob_id() throws ParseException, IOException, StatusNotImplemented {
+    StorageStatus expected  = new SimpleStorageStatus(32, 0, true);
+    testConnectorHarvestJob(indexdataBlogConnector, true, expected);
+  }
+  
+
+  public void testConnectorHarvestJobACCE_overwrite() throws ParseException, IOException, StatusNotImplemented {
+    StorageStatus expected  = new SimpleStorageStatus(7, 0, true);
+    HarvestConnectorResource resource = createResource(acceConnectorWithAuth, false, false);
+    RecordStorage recordStorage = createStorage(resource, true);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    HarvestStatus status = job.getStatus();
+    assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
+    StorageStatus firstStatus = recordStorage.getStatus();
+    assertTrue("Record count is not 7:" + firstStatus.getAdds(), firstStatus.getAdds().equals(new Long(7)));
+    assertTrue("Total count is not 7:"  + firstStatus.getTotalRecords(), firstStatus.getTotalRecords().equals(new Long(7)));
+    resource.setConnectorUrl(acceConnectorWithOutAuth);
+    resource.setOverwrite(true);
+    job = doHarvestJob(recordStorage, resource);
+    assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue("Result differs from first run", firstStatus.equals(storageStatus));
   }
 
+
   @SuppressWarnings("unused")
-  private JSONObject testCreateHarvestRequest(String resumptiontoken, String startDate, String endDate) {
+  private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, String startDate, String endDate) {
     HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
