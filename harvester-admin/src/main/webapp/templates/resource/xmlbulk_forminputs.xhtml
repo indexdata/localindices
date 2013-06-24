@@ -20,10 +20,11 @@
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>
         <h:outputText value="Output format (application/tmarc for TurboMARC)"/>
         <h:inputText value="#{resourceController.resource.outputSchema}"/>
+        <h:outputText value="Allow errors:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
         <h:outputText value="Use conditional HTTP request"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
       </h:panelGrid>
-
     </ui:composition>
   </body>
 </html>
