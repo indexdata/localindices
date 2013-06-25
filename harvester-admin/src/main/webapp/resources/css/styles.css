@@ -28,7 +28,6 @@ body {
 }
 
 a {
-    border-bottom: 1px #666;
     text-decoration: none;
     color: #0d3a82;
 }
@@ -76,7 +75,6 @@ table.harvestjobs {
 
 caption {
     background: #4779B6;
-    -moz-border-radius: 8px;
     color: #fff;
     font-size: 1.5em;
     font-weight: bold;
@@ -103,14 +101,12 @@ tbody td.center {
 
 th {
     background: #4AB694;
-    -moz-border-radius: 4px;
     color: #fff;
     font-weight: bold;
     text-align: left;
 }
 
 tbody td a {
-    border-bottom: 1px  #666;
     color: #666;
     text-decoration: none;
 }
@@ -120,14 +116,12 @@ tbody td a:after {
 }
 
 tbody th a {
-    border-bottom: 1px  #fff;
     color: #fff;
     font-weight:bold;
     text-decoration: none;
 }
 
 tbody th a:hover {
-    border-bottom: 1px #333;
     color: #333;
 }
 
@@ -136,7 +130,6 @@ tbody th a:visited:after {
 }
 
 tbody th a:visited {
-    border-bottom: 0 none;
 }
 
 tbody th, tbody td {
@@ -146,7 +139,6 @@ tbody th, tbody td {
 
 tfoot td, tfoot th {
     background: #4779B6;
-    -moz-border-radius: 8px;
     color: #fff;
 }
 
@@ -156,12 +148,10 @@ tbody tr:hover td {
 }
 
 tbody tr:hover td a {
-    border-bottom: 1px  #333;
     color: #333;
 }
 
 tbody tr:hover td a:hover {
-    border-bottom: 1px  #000;
     color: #000;
 }
 
@@ -234,4 +224,8 @@ td.stepformat {
 
 #autoCheckbox {
   float: right;
+}
+
+img {
+  border-width: 0px;
 }
