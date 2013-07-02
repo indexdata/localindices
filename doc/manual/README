@@ -1,0 +1,4 @@
+This manual is written using markdown. In order to publish into
+a distributable format (e.g PDF) use pandoc:
+
+
