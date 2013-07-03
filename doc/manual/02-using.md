@@ -64,6 +64,11 @@ Depending on which resource type you choose, the following settings will apply.
 
 * _Resumption token_: The OAI-PMH protocol supports splitting bigger datasets into smaller chunks. On delivery of a chunk the OAI-PMH returns a token which the next request should use in order to get the next chunk. If an OAI-PMH job halts before completion the resumption token will be set in this field. Sometimes it is possible to run it again from this resumption point at a later stage, but this is not always supported.
 
+* _Clear resumption token on errors_: clear the resumption token for harvests that complete in an error state. This is useful when server errors out and the last resumption token is no longer valid.
+
+* _Keep partial harvests_: when checked, partial records harvested during a failed harvest run will be persisted in the storage rather than ignored.
+
+
 ##### XML/MARC Bulk Specific Information: #####
 
 The XML/MARC specific settings look like this:
@@ -91,6 +96,10 @@ The XML/MARC specific settings look like this:
 The Harvester  supports gzipped data (and partly supports zipped data: only the first entry will be extracted), but the Harvester then needs to be configured of the format the compressed data contains (XML or MARC).
 
 * _Output format_: This express the output format of binary MARC reading which will be the input for the transformation pipeline. If the Transformation Pipeline expects MARC21 XML, this should be set to Application/marc. If the pipeline expects Turbo MARC XML, it should be set to Application/tmarc.
+
+* _Allow errors_: continue harvesting and storing records even if retrieving some of the resources from the list fails
+
+* _Use conditional HTTP request_: ask the server if the files where updates before attempting a harvest, relies on proper timestamp handling on the server side.
 
 ##### Connector Specific Information #####
 
