@@ -1,4 +1,8 @@
-This manual is written using markdown. In order to publish into
-a distributable format (e.g PDF) use pandoc:
+This manual is written using markdown. The Makefile uses pandoc to publish it 
+into a distributable format (PDF).
+
+You need to have pandoc and pdflatex backend installed. On OS X, You can get those with macports:
+
+port install pandoc texlive-latex-extra texlive-fonts-extra
 
 
