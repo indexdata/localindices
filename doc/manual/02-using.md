@@ -23,7 +23,7 @@ The Harvester currently supports harvesting OAI-PMH resources and XML/MARC binar
 
 Click the OAI-PMH or XML/Marc Bulk to add a new Resource to harvest.
 
-#### General Job Settings ####
+#### General Job Settings \
 
 Setting up a new Harvesting job consists of entering some general harvesting information plus specific settings for the type of job (OAI-PMH or XML/Marc Bulk). 
 
@@ -51,11 +51,11 @@ Drop-downs for:
 
 * _Storage_: Select which storage the harvested data should use. The Harvester supports multiple backend storages. This could be for staging like Development, Testing and Production, or it could be for different customers.
 
-#### Resource-specific Settings ####
+#### Resource-specific Settings \
 
 Depending on which resource type you choose, the following settings will apply.
 
-##### OAI-PMH Specific Information: #####
+##### OAI-PMH Specific Information: \
 
 ![OAI/PMH job settings.](./img/03-oaispecific.png)
 
@@ -73,8 +73,7 @@ Depending on which resource type you choose, the following settings will apply.
 
 * _Keep partial harvests_: when checked, partial records harvested during a failed harvest run will be persisted in the storage rather than ignored.
 
-
-##### XML/MARC Bulk Specific Information: #####
+##### XML/MARC Bulk Specific Information: \
 
 The XML/MARC specific settings look like this:
 
@@ -106,7 +105,9 @@ The Harvester  supports gzipped data (and partly supports zipped data: only the 
 
 * _Use conditional HTTP request_: ask the server if the files where updates before attempting a harvest, relies on proper timestamp handling on the server side.
 
-##### Connector Specific Information #####
+##### Connector Specific Information: \
+
+TODO
 
 ## Storage Engines ##
 
@@ -115,8 +116,6 @@ Selecting the _Storage Engines_ menu item shows the list of currently configured
 ![Storage engines page.](./img/06-storages.png)
 
 The Harvester currently supports the open source SOLR index only.
-
-
 
 ### Adding new Storage Engine ###
 
