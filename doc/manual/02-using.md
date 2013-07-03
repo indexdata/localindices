@@ -6,11 +6,16 @@ When you access Harvester Admin web site (URL and login credentials, or
 lack of thereof, is deployment specific) you will be welcomed by the Harvest
 Job page.
 
-On the Harvest Job page, you can see a list of currently harvested resources and their status, and you can perform actions like Edit, Run, Delete and View the latest job log.
+On the very top of the page you can see a naivigation menu that allows
+you to switch between main pages of the Harvester Admin.
+
+On the Harvest Job page, you can see a list of currently harvested resources and their status, and you can perform actions like Edit the job settings, Delete the job and View the latest job log.
 
 ![Harvest Jobs page.](./img/01-harvestjobs.png)
 
-From here you can manage existing resources or add new ones.
+You can also Run/Stop jobs directly from the list by clicking the Play/Stop icons. By default, the job list view is refreshed automatically so you can monitor the status of the jobs without needing to refresh the page. You can turn off this behavior by unchecking the _Auto-Update_ check-box in the top-right corner.
+
+Just below the navigation menu, you can see links for adding new harvest jobs.
 
 ### Editing or adding new Harvest Job ###
 
