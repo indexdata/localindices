@@ -3,6 +3,6 @@ into a distributable format (PDF).
 
 You need to have pandoc and pdflatex backend installed. On OS X, You can get those with macports:
 
-port install pandoc texlive-latex-extra texlive-fonts-extra
+port install pandoc texlive-latex-extra texlive-fonts-extra texlive-fonts-recomendeda
 
 
