@@ -1,3 +1,5 @@
+\newpage
+
 # Using Harvester Admin #
 
 ## Harvest Jobs ##
@@ -107,7 +109,32 @@ The Harvester  supports gzipped data (and partly supports zipped data: only the 
 
 ##### Connector Specific Information: \
 
-TODO
+The Connector Harvest Job uses a MasterKey Connect technology to harvest and extract information from any web site and data source that does not support standard harvesting protocols like OAI-PMH. In order to use it, you must have access
+to the _harvesting connector_ prepared for the MKC platform. Please see MKC pages on IndexData website for more information. Specific settings look like this:
+
+![Connector job settings.](./img/05-cfspecific.png)
+
+* _Connector Engine URL_: URL that points to the connector engine instance that
+will be used to execute the Connector harvesting job. The engine is either hosted by Index Data or installed on the customer site.
+
+* _Connector (repo) URL_: URL to the harvesting connector specific to the harvested resource. If the URL points to a connector in the _Connector Repository_, make sure to provide repository authentication credentials in the URL like so: `http(s)://<repouser>:<repopass>@url.to.the.repo/connector.name.cf`.
+
+* _User Name_: User name to access the harvested resource (e.g website).
+
+* _Password_: Password to access the harvested resource (e.g website).
+
+* _Init Data_: Advanced setting to provide additional init parameters to the harvesting connector. Any username/password specified in the inputs above will take precedence over settings in the specified in this field. The settings must be provided in JSON format.
+
+
+* _Harvest from_: Start date for selective harvesting, this functionality depends on the connector capability.
+
+* _Harvest until_: End date for selective harvesting, this functionality depends on the connector capability.
+
+* _Resumption token_: connector specific and depends on the connector capability.
+
+* _Delay between requests_: delay between requests made from the harvester to the connector engine. Use when the resource is sensible to high loads.
+
+
 
 ## Storage Engines ##
 
