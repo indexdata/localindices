@@ -81,6 +81,7 @@ public class SolrStorage implements HarvestStorage {
       // TODO make configurable 
       server.setSoTimeout(0); // socket read timeout
       server.setConnectionTimeout(10000);
+      server.setSoTimeout(10000);
       //server.setDefaultMaxConnectionsPerHost(100);
       //server.setMaxTotalConnections(100);
       //server.setFollowRedirects(false); // defaults to false
