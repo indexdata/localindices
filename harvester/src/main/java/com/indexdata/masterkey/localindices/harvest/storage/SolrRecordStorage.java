@@ -20,11 +20,12 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus.TransactionState;
+import org.apache.solr.client.solrj.SolrServer;
 
 public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   Collection<String> deleteIds = new LinkedList<String>();
   private String idField = "id";
-  private String databaseField = "database";
+  protected String databaseField = "database";
   private String database;
   @SuppressWarnings("unused")
   private Map<String, String> databaseProperties;
@@ -36,9 +37,14 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private boolean waitSearcher = false;
   private boolean isPurged;
   private String transactionIdField = "solrLastModified";
+  private SolrServerFactory factory;
 
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);
+  }
+
+  public SolrRecordStorage(SolrServer server, Harvestable harvestable) {
+    super(server, harvestable);
   }
 
   @Override

@@ -11,14 +11,20 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import org.apache.solr.client.solrj.SolrServer;
 
 public class BulkSolrRecordStorage extends SolrRecordStorage {
 
   Collection<SolrInputDocument> docs = new LinkedList<SolrInputDocument>();
   List<String> deleteIds = new LinkedList<String>();
   Integer limit = 1000; 
+
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
+  }
+
+  public BulkSolrRecordStorage(SolrServer server, Harvestable harvestable) {
+    super(server, harvestable);
   }
 
   synchronized public void add(Record record) {

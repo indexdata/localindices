@@ -24,6 +24,11 @@ public class SolrStorageStatus extends AbstractStorageStatus {
     databaseSelect = selectDatabase;
   }
 
+  public SolrStorageStatus(SolrServer server, String selectDatabase) {
+    this.server = server;
+    databaseSelect = selectDatabase;
+  }
+
   @Override
   public Long getTotalRecords() {
     SolrQuery query = new SolrQuery();

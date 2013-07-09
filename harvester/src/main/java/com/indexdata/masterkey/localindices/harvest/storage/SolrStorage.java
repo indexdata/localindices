@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -47,7 +48,7 @@ public class SolrStorage implements HarvestStorage {
   public String POST_ENCODING = "UTF-8";
   public String VERSION_OF_THIS_TOOL = "1.2";
   protected String url = "http://localhost:8983/solr/";
-  protected ConcurrentUpdateSolrServer server;
+  protected SolrServer server;
   protected Harvestable harvestable;
   protected StorageJobLogger logger;
   ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -69,6 +70,17 @@ public class SolrStorage implements HarvestStorage {
     init();
   }
 
+  public SolrStorage(SolrServer server, Harvestable harvestable) {
+    this.harvestable = harvestable;
+    this.server = server; 
+    Storage storage = null;
+    if (harvestable != null) {
+      storage = harvestable.getStorage();
+    }
+    logger = new FileStorageJobLogger(SolrStorage.class, storage);
+    storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+  }
+
   public void init() {
     try {
       Storage storage = null;
@@ -77,23 +89,15 @@ public class SolrStorage implements HarvestStorage {
       }
       logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
-      server = new ConcurrentUpdateSolrServer(url, 100, 10);
-      // TODO make configurable 
-      server.setSoTimeout(0); // socket read timeout
+      ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
+      server.setSoTimeout(100000); // socket read timeout
       server.setConnectionTimeout(10000);
-      server.setSoTimeout(10000);
-      //server.setDefaultMaxConnectionsPerHost(100);
-      //server.setMaxTotalConnections(100);
-      //server.setFollowRedirects(false); // defaults to false
-      // allowCompression defaults to false.
-      // Server side must support gzip or deflate for this to have any effect.
-      //server.setAllowCompression(true);
-      //server.setMaxRetries(1); // defaults to 0. > 1 not recommended.
       server.setParser(new XMLResponseParser());
+      this.server = server;
       
-      storageStatus = new SolrStorageStatus(url, databaseField + harvestable.getId());
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("'url' is not a valid URL: " + System.getProperty("url", url), e);
+      storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+    } catch (Exception e) {
+      throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
     }
   }
 
@@ -121,7 +125,7 @@ public class SolrStorage implements HarvestStorage {
 	UpdateResponse response = server.add(context.getDocuments());
 	logger.info("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
 	response = server.commit();
-	logger.info("CommitResponse: " + response.getStatus() + " " + response.getResponse());
+        logger.info("CommitResponse: " + response.getStatus() + " " + response.getResponse());
 	storageStatus.setTransactionState(StorageStatus.TransactionState.Committed);
 
     } catch (SolrServerException e) {
