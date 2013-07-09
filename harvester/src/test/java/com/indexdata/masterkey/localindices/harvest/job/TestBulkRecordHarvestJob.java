@@ -5,8 +5,10 @@ import java.io.IOException;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.EmbeddedSolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
@@ -86,7 +88,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private RecordStorage createStorage(boolean clear, XmlBulkResource resource)
       throws IOException, StatusNotImplemented {
-    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
+    SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(factory.create(), resource));
   }
   
   private class StorageCreator {
