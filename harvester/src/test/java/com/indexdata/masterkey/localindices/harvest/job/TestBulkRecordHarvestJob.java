@@ -301,10 +301,13 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2004); 
   }
   
-  public void testMulti2GZippedTurboMarcThreeJobs() throws IOException, StatusNotImplemented {
+  public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, false, true, true, 1002); 
     testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2004); 
-    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, 3006); 
+    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, 3006);
+    /* Now restart and check that overwrite mode worked */
+    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, 1002); 
+    
   }
   
   private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean, boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
