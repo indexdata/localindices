@@ -14,9 +14,9 @@
           <h:inputTextarea rows="30" cols="100" value="#{stepController.current.testData}" />
           <h:outputText value="Expected Output:" />
           <h:inputTextarea  rows="30" cols="100" value="#{stepController.current.testOutput}" />
-          <h:commandLink value="Test" action="#{stepController.test}">
+          <h:commandButton value="Test" action="#{stepController.test}">
             <f:param name="id" value="#{item.id}" />
-          </h:commandLink>
+          </h:commandButton>
         </h:panelGrid>
       </div>  
     </ui:composition>

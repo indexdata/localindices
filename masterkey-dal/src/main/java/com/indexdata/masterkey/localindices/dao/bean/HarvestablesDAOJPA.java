@@ -29,7 +29,49 @@ import com.indexdata.utils.persistence.EntityUtil;
  */
 public class HarvestablesDAOJPA implements HarvestableDAO {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
-    
+
+  @Override
+  public List<Harvestable> retrieve(int start, int max) {
+    return retrieve(start, max, null, true);
+  }
+
+  @Override
+  public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    return retrieveBriefs(start, max, null, true);
+  }
+    public enum AllowedSortKey { 
+      NAME("name", "o.name"), 
+      STATUS("currentStatus", "o.currentStatus"), 
+      DATE_STARTED("lastHarvestStarted", "o.lastHarvestStarted"),
+      DATE_FINISHED("lastHarvestFinished", "o.lastHarvestFinished"),
+      DATE_STARTED_OR_FINISHED("lastHarvestStartedOrFinished", "coalesce(o.lastHarvestFinished, o.lastHarvestStarted)");
+      private String sortKey;
+      private String orderExpression;
+      AllowedSortKey(String sortKey, String orderExpression) {
+        this.sortKey = sortKey;
+        this.orderExpression = orderExpression;
+      }
+      public String getOrderExpression() {
+        return orderExpression;
+      }
+      public String getSortKey() {
+        return sortKey;
+      }
+      public static List<AllowedSortKey> fromString(String spec) {
+        if (spec != null) {
+          String[] fieldNames = spec.split(",");
+          List<AllowedSortKey> allowed = new ArrayList<AllowedSortKey>(fieldNames.length);
+          for (String fieldName : fieldNames) {
+            for (AllowedSortKey em : values()) {
+              if (fieldName.equalsIgnoreCase(em.sortKey))
+                allowed.add(em);
+            }
+          }
+          return allowed;
+        }
+        return null;
+      }
+    }
     private EntityManager getEntityManager() {
         return EntityUtil.getManager();
     }
@@ -107,8 +149,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @SuppressWarnings("unchecked")
-	@Override
-    public List<Harvestable> retrieve(int start, int max) {
+    @Override
+    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         // Communication errors with the persistence Layer will now just look like 0 records exists.
@@ -116,7 +158,21 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         List<Harvestable> hables = null;
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Harvestable as o order by o.name");
+            String orderBy = "o.name";
+            List<AllowedSortKey> sks =  AllowedSortKey.fromString(sortKey);
+            if (sks != null && !sks.isEmpty()) {
+              orderBy = "";
+              String sep = "";
+              for (AllowedSortKey sk : sks) {
+                orderBy += sep + sk.getOrderExpression();
+                sep = ", ";
+              }
+            }
+            orderBy += (asc ? " ASC" : " DESC");
+            String qs = "select object(o) from Harvestable as o order by "
+              + orderBy;
+            //logger.debug("About to execute query "+qs);
+            Query q = em.createQuery(qs);
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -150,9 +206,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
-        List<Harvestable> list = retrieve(start, max);
+        List<Harvestable> list = retrieve(start, max, sortKey, asc);
         if (list == null)
           return null;
         for (Harvestable hable : list) {
@@ -171,4 +227,5 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public InputStream getLog(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
 }

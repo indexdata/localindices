@@ -8,13 +8,12 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Add new Connector resource" />
+      <ui:param name="title" value="Add new Connector Harvest Job" />
       <ui:define name="content">
         <h:form>
-          <h3>New Connector resource:</h3>
           <ui:include src="/templates/resource/generic_resource_forminputs.xhtml" />
           <ui:include src="/templates/resource/connector_forminputs.xhtml" />
-          <h:commandButton value="Add" action="#{resourceController.addResource}"/>
+          <ui:include src="/templates/resource/generic_buttons_new.xhtml" />
         </h:form>
       </ui:define>
     </ui:composition>

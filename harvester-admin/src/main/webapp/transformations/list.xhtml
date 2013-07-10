@@ -9,12 +9,9 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Transformations" />
+      <ui:param name="title" value="Transformation Pipelines" />
       <ui:define name="content">
         <h:form>
-          <h3>
-            <h:outputText>Transformations</h:outputText>
-          </h3>
           <h:outputText value="Add new transformation: "/>
           <h:commandLink styleClass="navigation"  value="Standard" action="#{transformationController.prepareTransformationToAdd}" />                
           <h:outputText value=" "/>

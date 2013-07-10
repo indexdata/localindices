@@ -14,4 +14,5 @@ public interface StorageStatus {
   Long getOutstandingDeletes();
   Long getAdds();
   Long getDeletes();
+  boolean equals(StorageStatus status);
 }

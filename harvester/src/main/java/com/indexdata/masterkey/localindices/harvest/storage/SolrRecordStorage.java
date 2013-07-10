@@ -120,7 +120,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       UpdateResponse response = server.deleteByQuery(query);
       logger.info("UpdateResponse on delete (" + query + "): " + response.getStatus() + " " + response.getResponse());
     } catch (SolrServerException e) {
-      e.printStackTrace();
+      logger.error("Failed to purge by id. Exception: " + e.getMessage());
       throw new IOException("Error purging database (" + database + ")", e);
     }
   }

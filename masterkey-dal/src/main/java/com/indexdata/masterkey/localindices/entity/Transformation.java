@@ -77,6 +77,7 @@ public class Transformation implements Serializable, Cloneable {
   @XmlID
   @XmlElement(name = "id")
   public String getStringId() {
+    if (id == null) return null;
     return id.toString();
   }
   

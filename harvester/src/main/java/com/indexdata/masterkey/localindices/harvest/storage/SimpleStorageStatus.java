@@ -1,6 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-public class SimpleStorageStatus implements StorageStatus {
+public class SimpleStorageStatus extends AbstractStorageStatus {
 
   Long adds;
   Long deletes;
@@ -60,5 +60,4 @@ public class SimpleStorageStatus implements StorageStatus {
   public TransactionState getTransactionState() {
     return state;
   }
-
 }

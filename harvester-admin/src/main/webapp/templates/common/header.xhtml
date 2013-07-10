@@ -8,10 +8,11 @@
   <body>
     <ui:composition>
       <h:form>
-        <h:commandLink styleClass="navigation" value="Resources"       action="#{resourceController.listResources}" />
-        <h:commandLink styleClass="navigation" value="Storages"        action="#{storageController.listStorages}" />
-        <h:commandLink styleClass="navigation" value="Transformations" action="#{transformationController.list}" />
-        <h:commandLink styleClass="navigation"  value="Steps"          action="#{stepController.listSteps}" />
+        <h:outputText value="Go to: "/>
+        <h:commandLink styleClass="navigation" value="Harvest Jobs"       action="#{resourceController.listResources}" />
+        <h:commandLink styleClass="navigation" value="Storage Engines"        action="#{storageController.listStorages}" />
+        <h:commandLink styleClass="navigation" value="Transformation Pipelines" action="#{transformationController.list}" />
+        <h:commandLink styleClass="navigation"  value="Transformation Steps"          action="#{stepController.listSteps}" />
       </h:form>
     </ui:composition>
   </body>

@@ -20,13 +20,13 @@
         <h:inputText  value="#{resourceController.resource.password}" size="20" styleClass="optionalInput"/>
         <h:outputText value="Init Data" styleClass="optionalInput"/> 
         <h:inputTextarea cols="60" rows="4" value="#{resourceController.resource.initData}" styleClass="optionalInput"/>
-        <h:outputText value="Harvest from (dd/mm/yyyy):" styleClass="optionalInput"/>
+        <h:outputText value="Harvest from (yyyy-MM-dd):" styleClass="optionalInput"/>
         <h:inputText value="#{resourceController.resource.fromDate}" size="8" styleClass="optionalInput">
-          <f:convertDateTime pattern="dd/MM/yyyy" />
+          <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
-        <h:outputText value="Harvest until (dd/mm/yyyy):" styleClass="optionalInput"/>
+        <h:outputText value="Harvest until (yyyy-MM-dd):" styleClass="optionalInput"/>
         <h:inputText value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
-          <f:convertDateTime pattern="dd/MM/yyyy" />
+          <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
         <h:outputText value="Resumption token:" styleClass="optionalInput"/>
         <h:inputText value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>

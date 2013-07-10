@@ -7,6 +7,7 @@
       xmlns:f="http://java.sun.com/jsf/core">
   <body>
     <ui:composition>
+      <h5>Actions: </h5>
       <h:commandButton value="Save"   action="#{transformationController.saveExit}"/>
       <h:commandButton value="Cancel" action="#{transformationController.cancel}"/>
       <h:commandButton onclick="return confirm('Are you sure?');" 

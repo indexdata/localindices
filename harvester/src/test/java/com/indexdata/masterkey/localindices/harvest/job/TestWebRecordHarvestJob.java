@@ -128,6 +128,7 @@ public class TestWebRecordHarvestJob extends TestCase {
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     recordStorage.begin();
     recordStorage.purge(true);
+    recordStorage.commit();
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue("Total records != 0", storageStatus.getTotalRecords() == 0); 
     recordStorage.setOverwriteMode(true);

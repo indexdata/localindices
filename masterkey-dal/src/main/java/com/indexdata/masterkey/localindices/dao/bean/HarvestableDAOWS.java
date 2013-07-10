@@ -22,6 +22,9 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.rest.client.ResourceConnector;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
 
 /**
  *
@@ -82,8 +85,15 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
      * @return
      */
     @Override
-    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc) {
         String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+        if (sortKey != null && !sortKey.isEmpty()) {
+          try {
+            url += "&sort="+ URLEncoder.encode((asc ? "" : "~") + sortKey, "UTF-8");
+          } catch (UnsupportedEncodingException enc) {
+            logger.error("Error encoding sort spec", enc);
+          }
+        }
         try {
             ResourceConnector<HarvestablesConverter> harvestablesConnector =
                     new ResourceConnector<HarvestablesConverter>(
@@ -157,11 +167,11 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public List<Harvestable> retrieve(int start, int max) {
+    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
        List<Harvestable> hables = new ArrayList<Harvestable>();
-       List<HarvestableBrief> hrefs = retrieveBriefs(start, max);
+       List<HarvestableBrief> hrefs = retrieveBriefs(start, max, sortKey, asc);
        if (hrefs != null) {
             for (HarvestableBrief href : hrefs) {
                 Harvestable hable = retrieveFromBrief(href);
@@ -202,4 +212,14 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
             return null;
         }
     }
+
+  @Override
+  public List<Harvestable> retrieve(int start, int max) {
+    return retrieve(start, max, null, true);
+  }
+
+  @Override
+  public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    return retrieveBriefs(start, max, null, true);
+  }
 }

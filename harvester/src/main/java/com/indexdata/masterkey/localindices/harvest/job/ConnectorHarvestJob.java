@@ -65,6 +65,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       storage.setOverwriteMode(resource.getOverwrite());
       storage.begin();
       storage.databaseStart(resource.getId().toString(), null);
+      if (resource.getOverwrite())
+          storage.purge(false);
       HarvestConnectorClient client = new HarvestConnectorClient(resource, proxy);
       client.setHarvestJob(this);
       // The client will build it's urls 

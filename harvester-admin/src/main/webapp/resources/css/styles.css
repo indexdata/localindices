@@ -13,8 +13,8 @@ Feel free to use
 */
 
 body {
-    color: #666;
-    font: normal "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+    color: rgb(16, 42, 133);
+    font: normal 100%/100% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
 .footer {
@@ -24,35 +24,57 @@ body {
 }
 
 .item {
-    color: #666;
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
 a {
-    border-bottom: 1px  #666;
-    color: #666;
     text-decoration: none;
+    color: #0d3a82;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 a:after {
     content:"  ";
 }
 
+.heading {
+  background-color: #dcf3eb;
+  background-image: url("#{resource['images/logo.png']}");
+  background-repeat: no-repeat;
+  background-position: right;
+  border-right: 5px solid transparent;
+  text-shadow: 2px 2px rgb(194, 194, 194);
+  height: 60px;
+  line-height: 60px;
+  font-size: 2em;
+  vertical-align: middle;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+}
+
 #pager {
-    font: bold 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
-    /*text-align: right;*/
+    font: bold 100%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+    text-align: center;
+    margin: 5px;
 }
 
 table {
     background: #fff;
     border: 0;
-    color: #666;
     font: normal 80%/150% "Trebuchet MS", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+
+table.harvestjobs {
+    table-layout: fixed;
+    width: 100%;
 }
 
 caption {
     background: #4779B6;
-    -moz-border-radius: 8px;
     color: #fff;
     font-size: 1.5em;
     font-weight: bold;
@@ -63,8 +85,6 @@ caption {
 
 td, th {
     padding: .3em .6em;
-    max-width: 15%;
-    word-wrap: break-word;
 }
 
 tbody td.left {
@@ -81,33 +101,27 @@ tbody td.center {
 
 th {
     background: #4AB694;
-    /*
-    border-left: 2px solid #4779B6;
-    */
-    -moz-border-radius: 4px;
     color: #fff;
     font-weight: bold;
     text-align: left;
 }
+
 tbody td a {
-    border-bottom: 1px  #666;
     color: #666;
     text-decoration: none;
 }
 
 tbody td a:after {
-    content:"";
+    content: "";
 }
 
 tbody th a {
-    border-bottom: 1px  #fff;
     color: #fff;
     font-weight:bold;
     text-decoration: none;
 }
 
 tbody th a:hover {
-    border-bottom: 1px #333;
     color: #333;
 }
 
@@ -116,7 +130,6 @@ tbody th a:visited:after {
 }
 
 tbody th a:visited {
-    border-bottom: 0 none;
 }
 
 tbody th, tbody td {
@@ -126,22 +139,19 @@ tbody th, tbody td {
 
 tfoot td, tfoot th {
     background: #4779B6;
-    -moz-border-radius: 8px;
     color: #fff;
 }
 
 tbody tr:hover td {
     color: #333;
-    background: #FF0000;
+    background: rgb(187, 223, 212);
 }
 
 tbody tr:hover td a {
-    border-bottom: 1px  #333;
     color: #333;
 }
 
 tbody tr:hover td a:hover {
-    border-bottom: 1px  #000;
     color: #000;
 }
 
@@ -154,33 +164,38 @@ tbody tr:hover th {
     content:"\00A0\00BB";
 }
 
-td.resourcename {
-	text-align: left;
-	
+th, td {
+  overflow: hidden;
 }
 
-td.status {
-    text-align: center;
-    
+th.resourcename, td.resourcename {
+  text-align: left;
+  width: 20%;
 }
 
-td.actions {
-    text-align: center;
-    min-width: 75;    
+th.status, td.status {
+  text-align: center;
+  width: 7em;
 }
 
-td.statusmessage {
-    text-align: left;
-    width: 200;
-    max-width: 200;
+th.actions, td.actions {
+  text-align: center;
+  width: 80px;
 }
 
-td.lastharvest {
-    text-align: left;
+th.statusmessage, td.statusmessage {
+  text-align: left;
+  width: 40%;
 }
 
-td.nextharvest {
-    text-align: left;
+th.lastharvest, td.lastharvest {
+  text-align: left;
+  width: 10%;
+}
+
+th.nextharvest, td.nextharvest {
+  text-align: left;
+  width: 10%;
 }
 
 td.enabled {
@@ -205,4 +220,12 @@ td.steptype {
 
 td.stepformat {
     text-align: center;
+}
+
+#autoCheckbox {
+  float: right;
+}
+
+img {
+  border-width: 0px;
 }

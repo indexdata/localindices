@@ -60,12 +60,12 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 	 docs = new LinkedList<SolrInputDocument>();
       }
     } catch (SolrException ste) {
-      logger.error("Solr Exception while adding documents. Outstanding adds: " + no_docs
+      logger.error("Solr Exception (" + ste.getMessage() + ") while adding documents. Outstanding adds: " + no_docs
 	 + ". Deletes: " + deleteIds.size() , ste);
       docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Exception while adding records: " + ste.getMessage(), ste);
+      throw new RuntimeException("Solr Exception: while adding records: " + ste.getMessage(), ste);
     } catch (SolrServerException ste) {
-      logger.error("Solr Server Exception while adding documents. Outstanding adds: " + no_docs + ". Deletes: " + deleteIds.size(), ste);
+      logger.error("Solr Server Exception (" + ste.getMessage() + ") while adding documents. Outstanding adds: " + no_docs + ". Deletes: " + deleteIds.size());
       // TODO add docs to error queue
       docs = new LinkedList<SolrInputDocument>();
       throw new RuntimeException("Solr Server Exception while adding records: " + ste.getMessage(), ste);

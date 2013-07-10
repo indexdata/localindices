@@ -8,12 +8,9 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Storages" />
+      <ui:param name="title" value="Storage Engines" />
       <ui:define name="content">
         <h:form>
-          <h3>
-            <h:outputText>Storages</h:outputText>
-          </h3>
           <h:outputText value="Add new storage: "/>
           <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
           <!-- 

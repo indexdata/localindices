@@ -50,7 +50,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
         URL url = connector.postAny(converter);
         transformation.setId(extractId(url));
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.error("Error creating transformation", male);
         }
     }
 
@@ -70,7 +70,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             entity = storageConnector.get().getEntity();
         } catch (Exception male) {
-            logger.log(Level.DEBUG,  male);
+            logger.error("Error retrieving transformation", male);
         }
         return entity;    
     }
@@ -91,7 +91,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
             TransformationsConverter hc = storagesConnector.get();
             return hc.getReferences();
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.error("Error listing transformations", male);
         }
         return null;
     }
@@ -112,7 +112,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             return connector.get().getEntity();
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.error("Error retrieving transformation", male);
         }
         return null;
     } // retrieveFromBrief
@@ -133,7 +133,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
             converter.setEntity(transformation);
             connector.put(converter);
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.error("Error updating transformation", male);
         }
         return transformation	;
     } // updateJob
@@ -149,7 +149,7 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             connector.delete();
         } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+            logger.error("Error deleting transformation", male);
         }
     }
 
@@ -180,9 +180,21 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
             TransformationsConverter converter = connector.get();
             return converter.getCount();
         } catch (Exception male) {
-            logger.log(Level.ERROR, male);
+            logger.error("Error retrieving transformation count", male);
             return 0;
         }
         
     }
+
+  @Override
+  public List<Transformation> retrieve(int start, int max, String sortKey,
+    boolean asc) {
+    return retrieve(start, max, sortKey, asc);
+  }
+
+  @Override
+  public List<TransformationBrief> retrieveBriefs(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieveBriefs(start, max, sortKey, asc);
+  }
 }
