@@ -25,7 +25,7 @@ public class FileStorageJobLogger extends StorageJobLogger {
 	RollingFileAppender rolling = new RollingFileAppender(layout, logFilename, true);
 	// TODO configurable 
 	rolling.setMaxBackupIndex(10);
-	rolling.setMaxFileSize("100KB");
+	rolling.setMaxFileSize("1MB");
 	logAppender = rolling;	
 	logAppender.setName(logFilename);
 	logger.addAppender(logAppender);
