@@ -446,6 +446,13 @@
         <scope>compile</scope>
       </dependency>
       <dependency>
+        <artifactId>solr-core</artifactId>
+        <groupId>org.apache.solr</groupId>
+        <version>4.3.1</version>
+        <type>jar</type>
+        <scope>compile</scope>
+      </dependency>      
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-jdk14</artifactId>
         <version>1.6.1</version>
