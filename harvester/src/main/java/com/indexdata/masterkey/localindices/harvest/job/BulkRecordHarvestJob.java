@@ -88,25 +88,16 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
-      if (getStatus() != HarvestStatus.WARN && getStatus() != HarvestStatus.ERROR) {
-        setStatus(HarvestStatus.FINISHED);
-      } else {
-        Sender sender = SenderFactory.getSender();
-        String status = getStatus().toString();
-        Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
-        try {
-          if (sender != null) {
-            sender.send(msg);
-          } else {
-            logger.error("No sender configured to receive notification " + resource.getMessage());
-          }
-        } catch (NotificationException e1) {
-          logger.error("Failed to send notification " + resource.getMessage());
-        }
+      if (getStatus() == HarvestStatus.WARN || getStatus() != HarvestStatus.ERROR) {
+        logError("Harvet status: " + getStatus().toString() , getHarvestable().getMessage());
       }
       // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
-      transformationStorage.databaseEnd();
-      transformationStorage.commit();
+      // TODO: We commit even if status is in ERROR
+      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
+        transformationStorage.databaseEnd();
+        transformationStorage.commit();
+        setStatus(HarvestStatus.FINISHED);
+      }
       //getStorage().commit();
     } catch (Exception e) {
       // Test
@@ -117,22 +108,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       } catch (Exception ioe) {
         logger.warn("Roll-back failed: " + ioe.getMessage());
       }
-      setStatus(HarvestStatus.ERROR);
-      error = e.getMessage();
-      resource.setMessage(e.getMessage());
-      logger.error("Harevest failed: " + e.getMessage());
-      Sender sender = SenderFactory.getSender();
-      String status = getStatus().toString();
-      Notification msg = new SimpleNotification(status, "Download failed", e.getMessage());
-      try {
-        if (sender != null) {
-          sender.send(msg);
-        } else {
-          throw new NotificationException("No Sender configured", null);
-        }
-      } catch (NotificationException e1) {
-        logger.error("Failed to send notification " + e.getMessage());
-      }
+      logError("Harevest failed", e.getMessage());
     } finally {
       logger.close();
     }
@@ -178,5 +154,23 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @Override
   protected Harvestable getHarvestable() {
     return resource;
+  }
+
+  protected void logError(String logSubject, String message) {
+    setStatus(HarvestStatus.ERROR, message);
+    resource.setMessage(message);
+    logger.error(logSubject + ": " +  message);
+    Sender sender = SenderFactory.getSender();
+    String status = getStatus().toString();
+    Notification msg = new SimpleNotification(status, logSubject, message);
+    try {
+      if (sender != null) {
+        sender.send(msg);
+      } else {
+        throw new NotificationException("No Sender configured", null);
+      }
+    } catch (NotificationException e1) {
+      logger.error("Failed to send notification " + e1.getMessage());
+    }
   }
 }

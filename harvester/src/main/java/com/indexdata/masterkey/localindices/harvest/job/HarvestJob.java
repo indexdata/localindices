@@ -24,13 +24,6 @@ public interface HarvestJob extends Runnable {
   void kill();
 
   /**
-   * Get latest harvest status.
-   * 
-   * @return current status
-   */
-  HarvestStatus getStatus();
-
-  /**
    * Sets the storage for the the harvested data.
    * 
    * @param storage
@@ -66,6 +59,24 @@ public interface HarvestJob extends Runnable {
   OutputStream getOutputStream();
 
   void setJobThread(Thread thread);
-
+  
+  /**
+   * Get latest harvest status.
+   * 
+   * @return current status
+   */
+  HarvestStatus getStatus();
+  /**
+   * Set harvest Status
+   * 
+   * @param error
+   */
+  void setStatus(HarvestStatus error);
+  /**
+   * Set harvest status and error message
+   * 
+   * @param error
+   * @param message
+   */
   void setStatus(HarvestStatus error, String message);
 }
