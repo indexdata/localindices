@@ -2,6 +2,8 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 
+import org.apache.solr.client.solrj.SolrServer;
+
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
@@ -36,6 +38,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
   String solrBadUrl = "http://localhost:8686/solrbad/";
+  SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
+  SolrServer solrServer = factory.create();
+
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema, int splitAt, 
       	int size, boolean overwrite)
@@ -88,8 +93,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private RecordStorage createStorage(boolean clear, XmlBulkResource resource)
       throws IOException, StatusNotImplemented {
-    SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
-    return initializeStorage(clear, resource, new BulkSolrRecordStorage(factory.create(), resource));
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrServer, resource));
   }
   
   private class StorageCreator {
