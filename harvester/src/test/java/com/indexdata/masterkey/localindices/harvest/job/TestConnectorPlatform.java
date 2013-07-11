@@ -111,7 +111,7 @@ public class TestConnectorPlatform extends JobTester {
   
   
   public void testConnectorHarvestJob_id() throws ParseException, IOException, StatusNotImplemented {
-    StorageStatus expected  = new SimpleStorageStatus(32, 0, true);
+    StorageStatus expected  = new SimpleStorageStatus(33, 0, true);
     testConnectorHarvestJob(indexdataBlogConnector, true, expected);
   }
   
