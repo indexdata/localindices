@@ -88,21 +88,27 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
-      if (getStatus() == HarvestStatus.WARN || getStatus() != HarvestStatus.ERROR) {
-        logError("Harvet status: " + getStatus().toString() , getHarvestable().getMessage());
+      if (getStatus() == HarvestStatus.RUNNING)
+	setStatus(HarvestStatus.OK);
+      if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
+        logError("Harvest status: " + getStatus().toString() , getHarvestable().getMessage());
       }
-      // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
-      // TODO: We commit even if status is in ERROR
-      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
+
+      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN || 
+	  (getStatus() == HarvestStatus.ERROR && getHarvestable().getAllowErrors())) 
+      {
         transformationStorage.databaseEnd();
         transformationStorage.commit();
         setStatus(HarvestStatus.FINISHED);
       }
-      //getStorage().commit();
+      else {
+        transformationStorage.databaseEnd();
+        transformationStorage.rollback();
+      }
     } catch (Exception e) {
       // Test
       logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!");
-      // Should detect SolrExceptions and avoid roll back if we cannnot communicate with it
+      // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
         getStorage().rollback();
       } catch (Exception ioe) {
