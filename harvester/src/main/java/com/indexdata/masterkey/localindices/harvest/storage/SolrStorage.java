@@ -42,7 +42,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
  * method so it can be run on the command line.
  * 
  */
-@SuppressWarnings("deprecation")
 public class SolrStorage implements HarvestStorage {
   public String POST_ENCODING = "UTF-8";
   public String VERSION_OF_THIS_TOOL = "1.2";
