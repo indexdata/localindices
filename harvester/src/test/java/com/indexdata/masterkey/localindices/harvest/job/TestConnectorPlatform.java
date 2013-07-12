@@ -18,7 +18,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
-import static junit.framework.Assert.assertTrue;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
@@ -117,7 +116,6 @@ public class TestConnectorPlatform extends JobTester {
   
 
   public void testConnectorHarvestJobACCE_overwrite() throws ParseException, IOException, StatusNotImplemented {
-    StorageStatus expected  = new SimpleStorageStatus(7, 0, true);
     HarvestConnectorResource resource = createResource(acceConnectorWithAuth, false, false);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
