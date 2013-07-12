@@ -106,7 +106,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.rollback();
       }
     } catch (Exception e) {
-      // Test
+      setStatus(HarvestStatus.ERROR);
       logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!");
       // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
