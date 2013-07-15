@@ -20,14 +20,13 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.LinkedList;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -43,7 +42,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
  * method so it can be run on the command line.
  * 
  */
-@SuppressWarnings("deprecation")
 public class SolrStorage implements HarvestStorage {
   public String POST_ENCODING = "UTF-8";
   public String VERSION_OF_THIS_TOOL = "1.2";
