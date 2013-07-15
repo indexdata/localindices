@@ -3,6 +3,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import java.io.IOException;
 import java.util.Stack;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContentHandler;
 import org.json.simple.parser.JSONParser;
@@ -14,11 +15,12 @@ import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.EmbeddedSolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
+import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
-import static junit.framework.Assert.assertTrue;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
@@ -28,6 +30,8 @@ public class TestConnectorPlatform extends JobTester {
   String acceConnectorWithAuth    = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.7.cf";
   String acceConnectorWithOutAuth = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.8.cf";
   String solrUrl = "http://localhost:8585/solr/";
+  SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
+  SolrServer solrServer = factory.create();
 
   
   private Transformation createPzTransformation(boolean inParallel) throws IOException {
@@ -83,7 +87,7 @@ public class TestConnectorPlatform extends JobTester {
   }
 
   private RecordStorage createStorage(HarvestConnectorResource resource, boolean clean) throws IOException {
-    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrServer, resource);
     Storage storageEntity = new SolrStorageEntity();
     storageEntity.setId(1l);
     storageEntity.setUrl(solrUrl);
