@@ -95,7 +95,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
   public void run() {
     setStatus(HarvestStatus.RUNNING);
     this.resource.setMessage(null);
-    // figure out harvesting period, eventhough we may end up using
+    // figure out harvesting period, even though we may end up using
     // resumptionTokens from the DB
     Date nextFrom = null;
     if (resource.getUntilDate() != null)
