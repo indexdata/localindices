@@ -19,6 +19,8 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import junit.framework.TestCase;
+
+import org.apache.log4j.Logger;
 import org.w3c.dom.NodeList;
 
 /**
@@ -31,7 +33,7 @@ public class TestOaiPmhIdentify extends TestCase {
   String url = "http://ir.ub.rug.nl/oai/";
   
   public void testIdentify() throws IOException, ParserConfigurationException, ResponseParsingException, TransformerException {
-      HarvesterVerb verb = new Identify(url, Proxy.NO_PROXY, null);
+      HarvesterVerb verb = new Identify(url, Proxy.NO_PROXY, null, Logger.getLogger(this.getClass()));
       
       NodeList nodes = verb.getNodeList("/");
       
