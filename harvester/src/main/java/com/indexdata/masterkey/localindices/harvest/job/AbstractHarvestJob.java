@@ -42,7 +42,7 @@ public abstract class AbstractHarvestJob implements HarvestJob {
    */
   @Override
   public void setStatus(HarvestStatus status, String msg) {
-    this.jobStatus = status;
+    setStatus(status);
     getHarvestable().setMessage(msg);
   }
 
