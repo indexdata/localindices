@@ -35,7 +35,7 @@ import com.indexdata.masterkey.localindices.util.TextUtils;
  * @author jakub
  */
 public class OAIHarvestJob extends AbstractHarvestJob {
-  private LocalIndicesLogger logger; 
+  private StorageJobLogger logger; 
   private OaiPmhResource resource;
   private Proxy proxy;
   private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
@@ -214,7 +214,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
   private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
       String metadataPrefix) throws IOException {
     try {
-      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       logger.log(Level.DEBUG, msg + " Erroneous response:\n"
@@ -229,7 +229,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
 
   private ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
     try {
-      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       logger.log(Level.ERROR,

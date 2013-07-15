@@ -319,7 +319,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
       String metadataPrefix) throws IOException {
     try {
-      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       //dumping  the response may cause ioexception
@@ -339,7 +339,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
     try {
-      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       //dumping  the response may cause ioexception
