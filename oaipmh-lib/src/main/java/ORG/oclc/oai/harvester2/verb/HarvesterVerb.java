@@ -77,7 +77,7 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class HarvesterVerb {
-    protected static Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
+    protected Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
     private final static int HTTP_MAX_RETRIES = 10;
     private final static int HTTP_RETRY_TIMEOUT = 600; //secs
@@ -242,8 +242,9 @@ public abstract class HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride) throws IOException,
+    public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride, Logger jobLogger) throws IOException,
     ParserConfigurationException, TransformerException, ResponseParsingException {
+      	logger = jobLogger;
         harvest(requestURL, proxy, encodingOverride);
     }
     
@@ -502,7 +503,7 @@ public abstract class HarvesterVerb {
     return getNodeList(getDocument(), xpath);
   }
   
-  public static NodeList getNodeList(Node node, String xpath) throws TransformerException {
+  public NodeList getNodeList(Node node, String xpath) throws TransformerException {
     try {
       XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, new OaiPmhNamespaceContext());
       return xpathHelper.evaluate(node, xpath);
@@ -517,7 +518,7 @@ public abstract class HarvesterVerb {
       return getBoolean(xpath, getDocument());
     }
 
-    public static Boolean getBoolean(String xpath, Node node) throws TransformerException {
+    public Boolean getBoolean(String xpath, Node node) throws TransformerException {
       try {
 	XPathHelper<Boolean> xpathHelper = new XPathHelper<Boolean>(XPathConstants.BOOLEAN, new OaiPmhNamespaceContext());
 	return xpathHelper.evaluate(node, xpath);
@@ -532,7 +533,7 @@ public abstract class HarvesterVerb {
       return getString(xpath, getDocument());
     }
 
-    public static String getString(String xpath, Node node) throws TransformerException {
+    public String getString(String xpath, Node node) throws TransformerException {
       try {
 	XPathHelper<String> xpathHelper = new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
 	return xpathHelper.evaluate(node, xpath);
@@ -547,7 +548,7 @@ public abstract class HarvesterVerb {
       return getNumber(xpath, getDocument());
     }
 
-    public static Number getNumber(String xpath, Node node) throws TransformerException {
+    public Number getNumber(String xpath, Node node) throws TransformerException {
       try {
 	XPathHelper<Number> xpathHelper = new XPathHelper<Number>(XPathConstants.NUMBER, new OaiPmhNamespaceContext());
 	return xpathHelper.evaluate(node, xpath);
@@ -562,7 +563,7 @@ public abstract class HarvesterVerb {
       return getNode(xpath, getDocument());
     }
 
-    public static Node getNode(String xpath, Node node) throws TransformerException {
+    public Node getNode(String xpath, Node node) throws TransformerException {
       try {
 	XPathHelper<Node> xpathHelper = new XPathHelper<Node>(XPathConstants.NODE, new OaiPmhNamespaceContext());
 	return xpathHelper.evaluate(node, xpath);

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 /**
@@ -45,10 +47,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public ListMetadataFormats(String baseURL, Proxy proxy, String encodingOverride)
+    public ListMetadataFormats(String baseURL, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        this(baseURL, null, proxy, encodingOverride);
+        this(baseURL, null, proxy, encodingOverride, logger);
     }
     
     /**
@@ -60,10 +62,10 @@ public class ListMetadataFormats extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListMetadataFormats(String baseURL, String identifier, Proxy proxy, String encodingOverride)
+    public ListMetadataFormats(String baseURL, String identifier, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier), proxy, encodingOverride);
+        super(getRequestURL(baseURL, identifier), proxy, encodingOverride, logger);
     }
     
     /**

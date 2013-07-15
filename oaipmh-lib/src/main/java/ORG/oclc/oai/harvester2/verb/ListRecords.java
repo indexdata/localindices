@@ -25,6 +25,7 @@ import java.net.URLEncoder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -53,10 +54,10 @@ public class ListRecords extends HarvesterVerb {
      * @exception IOException an I/O error occurred
      */
     public ListRecords(String baseURL, String from, String until,
-            String set, String metadataPrefix, Proxy proxy, String encodingOverride)
+            String set, String metadataPrefix, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy, encodingOverride);
+        super(getRequestURL(baseURL, from, until, set, metadataPrefix), proxy, encodingOverride, logger);
     }
     
     /**
@@ -68,10 +69,10 @@ public class ListRecords extends HarvesterVerb {
      * @throws SAXException
      * @throws TransformerException
      */
-    public ListRecords(String baseURL, String resumptionToken, Proxy proxy, String encodingOverride)
+    public ListRecords(String baseURL, String resumptionToken, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, resumptionToken), proxy, encodingOverride);
+        super(getRequestURL(baseURL, resumptionToken), proxy, encodingOverride, logger);
     }
     
     /**
