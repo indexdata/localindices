@@ -4,24 +4,21 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
-import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
-import ORG.oclc.oai.harvester2.verb.Identify;
-import java.io.Serializable;
-import java.net.Proxy;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import ORG.oclc.oai.harvester2.verb.Identify;
-import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 import java.io.IOException;
+import java.net.Proxy;
+
+import javax.persistence.Entity;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.NodeList;
+
+import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
+import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
+import ORG.oclc.oai.harvester2.verb.Identify;
 
 /**
  *
