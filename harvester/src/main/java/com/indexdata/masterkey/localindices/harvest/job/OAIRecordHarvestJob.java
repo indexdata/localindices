@@ -322,7 +322,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      //dumping  the response may cause ioexception
+      //dumping the response may cause IO Exception
       try {
         logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
             + TextUtils.readStream(hve.getResponseStream()));
