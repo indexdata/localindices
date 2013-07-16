@@ -14,16 +14,19 @@ import com.indexdata.masterkey.localindices.util.HarvestableLog;
 public abstract class StorageJobLogger implements LocalIndicesLogger {
 
   protected Logger logger; 
-  private String identify;
-  Layout layout = new PatternLayout("%d %-5p %m\n");
+  private String identify = "";
+  Layout layout = new PatternLayout("%d %-5p [%t] %m\n");
   Appender logAppender  = null;   
 
   public StorageJobLogger(Class<? extends Object> loggerClass, Storage resource) {
-    
     String logId = "storage-" + (resource != null ? resource.getId() : "null");
     logger = Logger.getLogger(logId);
     String logFilename = "/var/log/masterkey/harvester/" + logId  + ".log";
     setupAppender(loggerClass,logFilename, "storage");
+    Appender appender = Logger.getRootLogger().getAppender("LOGFILE");
+    if (appender != null) {
+      addAppender(appender);
+    }
     logger.setAdditivity(false);
     logger.setLevel(Level.DEBUG);
     if (resource != null)
@@ -34,11 +37,17 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
     String logFilename = HarvestableLog.getHarvesteableJobFilename(resource.getId());
     logger = Logger.getLogger(loggerClass.getName() + "JOB#" + resource.getId() );
     logger.setLevel(Level.DEBUG);
+    Appender appender = Logger.getRootLogger().getAppender("LOGFILE");
+    if (appender != null) {
+      addAppender(appender);
+    }
     setupAppender(loggerClass, logFilename, "job");
     logger.setAdditivity(false);
+/*
+    // Configured in the thread name
     if (resource != null)
       setIdentify("JOB(" + resource.getId() + " " + resource.getName() + "): ");
-    		//"" STORAGE#" + (resource.getStorage() != null? resource.getStorage().getId() : ""));
+*/
   }
 
   protected abstract void setupAppender(Class<? extends Object> loggerClass, String logFilename, String type);
@@ -77,54 +86,54 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   }
 
   public void warn(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " " + msg, null);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, null);
   }
 
   public void warn(String msg, Throwable t) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " " + msg, t);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, t);
   }
 
   public void info(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.INFO, getIdentify() + " " + msg, null);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.INFO, getIdentify() + msg, null);
   }
 
   public void error(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.ERROR, getIdentify() + " " + msg, null);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.ERROR, getIdentify() + msg, null);
   }
 
   public void fatal(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.FATAL, getIdentify() + " " + msg, null);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.FATAL, getIdentify() + msg, null);
     // System.exit(1);
   }
 
   @Override
   public void debug(String msg, Throwable t) {
-    logger.debug( getIdentify() + " " + msg, t);
+    logger.debug( getIdentify() + msg, t);
   }
 
   @Override
   public void info(String msg, Throwable t) {
-    logger.info( getIdentify() + " " + msg, t);
+    logger.info( getIdentify() + msg, t);
   }
 
   @Override
   public void error(String msg, Throwable t) {
-    logger.error( getIdentify() + " " + msg, t);
+    logger.error( getIdentify() + msg, t);
   }
 
   @Override
   public void fatal(String msg, Throwable t) {
-    logger.fatal( getIdentify() + " " + msg, t);
+    logger.fatal( getIdentify() + msg, t);
   }
 
   @Override
   public void log(Level level, String msg) {
-    logger.log( level, getIdentify() + " " + msg);
+    logger.log( level, getIdentify() + msg);
   }
 
   @Override
   public void log(Level level, String msg, Throwable t) {
-    logger.log( level, getIdentify() + " " + msg, t);
+    logger.log( level, getIdentify() + msg, t);
   }
 
   @Override
