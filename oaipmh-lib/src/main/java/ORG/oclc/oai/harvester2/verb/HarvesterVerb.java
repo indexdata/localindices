@@ -261,7 +261,7 @@ public abstract class HarvesterVerb {
     		IOException, ParserConfigurationException, 
     		TransformerException, ResponseParsingException {
         this.requestURL = requestURL;
-        logger.log(Level.INFO, "requestURL=" + requestURL);
+        logger.log(Level.INFO, "Request URL: " + requestURL);
         InputStream in = null;
         URL url = new URL(requestURL);
         HttpURLConnection con = null;
