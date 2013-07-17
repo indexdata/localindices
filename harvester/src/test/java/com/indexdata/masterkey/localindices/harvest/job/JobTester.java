@@ -55,7 +55,7 @@ public abstract class JobTester extends TestCase {
       byteArray.write(buf, 0, length);
       total += length;
     }
-    //System.out.println("Step " + resource  + " length: " + total );
+    System.out.println("Step " + resource  + " length: " + total );
     String template = byteArray.toString("UTF-8");
     return template;
   }

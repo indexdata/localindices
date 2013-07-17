@@ -287,7 +287,7 @@ public abstract class HarvesterVerb {
                   logger.log(Level.DEBUG, "Url: " + url + " ResponseCode: " + responseCode);
                 }
             } catch (Exception e) {
-                // response is majorly broken or a sokcet timeout occured, retry nevertheless
+                // response is broken or a socket timeout occurred, retry nevertheless
                 logger.log(Level.WARN, requestURL, e);
                 responseCode = -1;
             }

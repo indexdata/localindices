@@ -121,7 +121,6 @@ public class TestConnectorPlatform extends JobTester {
   
 
   public void testConnectorHarvestJobACCE_overwrite() throws ParseException, IOException, StatusNotImplemented {
-    StorageStatus expected  = new SimpleStorageStatus(7, 0, true);
     HarvestConnectorResource resource = createResource(acceConnectorWithAuth, false, false);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);

@@ -104,7 +104,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     resource.setUntilDate(lastDate);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 440, 0, 625);
+    checkStorageStatus(recordStorage.getStatus(), 439, 0, 624);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
     resource.setOverwrite(true);
@@ -197,7 +197,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createCustomStorage(resource, "testCleanFullOaiPmhJob_OaiMarc21", solrBadUrl, false);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
-    assertTrue(job.getStatus() == HarvestStatus.ERROR);
+    assertTrue("Status is not ERROR but " + job.getStatus(), job.getStatus() == HarvestStatus.ERROR);
     System.out.println(resource.getMessage());
   }
 
@@ -231,7 +231,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue(resource.getResumptionToken() == null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     // TODO Make test return fix count. 
-    checkStorageStatus(recordStorage.getStatus(), 554, 0, 754);
+    checkStorageStatus(recordStorage.getStatus(), 550, 0, 750);
 
 
   }

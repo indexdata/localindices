@@ -69,8 +69,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
           storage.purge(false);
       HarvestConnectorClient client = new HarvestConnectorClient(resource, proxy);
       client.setHarvestJob(this);
-      // The client will build it's urls 
+      // The client will build it's URLs 
       client.download(null);
+      if (getStatus() == HarvestStatus.RUNNING)
+	setStatus(HarvestStatus.OK);
       storage.databaseEnd();
       storage.commit();
       setStatus(HarvestStatus.FINISHED);

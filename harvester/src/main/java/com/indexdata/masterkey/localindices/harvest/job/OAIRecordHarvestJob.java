@@ -130,6 +130,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
+      if (HarvestStatus.RUNNING == getStatus()) {
+	// This shouldn't be possible 
+	logger.warn("Got RUNNING state at job end.");
+	setStatus(HarvestStatus.OK);
+      }
+      
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
