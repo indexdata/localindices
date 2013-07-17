@@ -72,16 +72,16 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
 
   void debug(StackTraceElement[] stackTrace) {
     for (int index = 0 ; index < stackTrace.length; index++)
-      logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + " " + stackTrace[index].toString(), null);
+      logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + stackTrace[index].toString(), null);
   }
 
   public void debug(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + " " + msg, null);
+    logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + msg, null);
   }
 
   public void warnIfNotExpectedResponse(String actual, String expected) {
     if (actual.indexOf(expected) < 0) {
-      logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + " Unexpected response '" + actual + "' does not contain '" + expected + "'", null);
+      logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + "Unexpected response '" + actual + "' does not contain '" + expected + "'", null);
     }
   }
 
