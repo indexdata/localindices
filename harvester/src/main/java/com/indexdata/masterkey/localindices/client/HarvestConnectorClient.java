@@ -83,7 +83,8 @@ public class HarvestConnectorClient implements HarvestClient {
     uploadConnector(resource.getConnectorUrl());
     init();
     harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
-    while (!job.isKillSent() && !linkTokens.isEmpty()) { 
+    while (!job.isKillSent() && !linkTokens.isEmpty()) {
+      pause();
       harvest(linkTokens.remove(0));
     }
     if (job.isKillSent()) {
@@ -387,11 +388,13 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createHarvestRequest(String linkToken) 
+  public JSONObject createHarvestRequest(String linkToken) throws ParseException 
   {
     JSONObject request = new JSONObject();
+    JSONParser p = new JSONParser();
+    Object token = p.parse(linkToken, containerFactory);
     if (linkToken != null)
-      request.put("link", linkToken);
+      request.put("link", token);
     return request;
   }
   
