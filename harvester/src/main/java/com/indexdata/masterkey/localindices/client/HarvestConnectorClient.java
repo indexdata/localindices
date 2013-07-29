@@ -1,7 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,6 +29,8 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
+import java.io.BufferedReader;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -137,7 +137,6 @@ public class HarvestConnectorClient implements HarvestClient {
     try {
      if (initData != null && !initData.equals(""))
        jsonObj = (JSONObject) parser.parse(initData);
-    
     } catch (ParseException pe) {
       logger.error("Failed to parse init data");
       throw new Exception("Failed to parse init data", pe);
@@ -145,15 +144,7 @@ public class HarvestConnectorClient implements HarvestClient {
     addField(jsonObj, "username", resource.getUsername());
     addField(jsonObj, "password", resource.getPassword());
     addField(jsonObj, "proxy",    resource.getProxy());
-    
-    if ( initData != null && !"".equals(initData)) {
-      conn.setDoOutput(true);
-      conn.setRequestProperty("Content-Length", "" + initData.length());
-      DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-      out.writeBytes(initData);
-      out.flush();
-      out.close();
-    }
+    writeJSON(jsonObj, conn);
     int rc = conn.getResponseCode();
     if (rc == 200) {
       return ;
@@ -227,11 +218,7 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private void harvest(JSONObject request) throws Exception {
       HttpURLConnection conn = createConnectionJSON("run_task/harvest");
-      conn.setDoOutput(true);
-      byte[] postData = request.toJSONString().getBytes("UTF-8");
-      conn.setRequestProperty("Content-Length", "" + postData.length);
-      conn.getOutputStream().write(postData);
-      conn.getOutputStream().flush();
+      writeJSON(request, conn);
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
       // String contentType = conn.getContentType();
@@ -247,26 +234,11 @@ public class HarvestConnectorClient implements HarvestClient {
   private String getLog() throws Exception {
     HttpURLConnection conn = createConnectionJSON("log");
     JSONObject jsonObj = new JSONObject();
-    String postdata = jsonObj.toJSONString();
-    conn.setDoOutput(true);
-    conn.setRequestProperty("Content-Length", "" + postdata.length());
-    OutputStream output = conn.getOutputStream();
-    DataOutputStream  data = new DataOutputStream(output);
-    data.writeBytes(postdata);
-    data.flush();
-    data.close();
-    
+    writeJSON(jsonObj, conn);
     int responseCode = conn.getResponseCode();
-    int contentLength = conn.getContentLength();
-    // String contentType = conn.getContentType();
     if (responseCode == 200) {
-      	InputStream in = conn.getInputStream();
-      	DataInputStream dataStream = new DataInputStream(in);
-      	byte[] b = new byte[contentLength];
-      	dataStream.readFully(b);
-      	return new String(b,"UTF-8");
-    }
-    else {
+      return readJSONString(conn);
+    } else {
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
@@ -431,5 +403,25 @@ public class HarvestConnectorClient implements HarvestClient {
       }
     }
     return sessionId;
+  }
+
+  private void writeJSON(JSONObject request, HttpURLConnection conn) throws
+    IOException, UnsupportedEncodingException {
+    byte[] postData = request.toJSONString().getBytes("UTF-8");
+    conn.setDoOutput(true);
+    conn.setRequestProperty("Content-Length", "" + postData.length);
+    conn.getOutputStream().write(postData);
+    conn.getOutputStream().flush();
+  }
+  
+  private String readJSONString(HttpURLConnection conn) throws IOException {
+    InputStream in = conn.getInputStream();
+    InputStreamReader is = new InputStreamReader(in, "UTF-8");
+    StringBuilder sb = new StringBuilder();
+    BufferedReader br = new BufferedReader(is);
+    String read = null;
+    while ((read = br.readLine()) != null)
+        sb.append(read);
+    return sb.toString();
   }
 }
