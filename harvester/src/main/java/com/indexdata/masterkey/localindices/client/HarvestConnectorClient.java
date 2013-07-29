@@ -227,14 +227,11 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private void harvest(JSONObject request) throws Exception {
       HttpURLConnection conn = createConnectionJSON("run_task/harvest");
-      String postdata = request.toJSONString();
       conn.setDoOutput(true);
-      conn.setRequestProperty("Content-Length", "" + postdata.length());
-      OutputStream output = conn.getOutputStream();
-      DataOutputStream  data = new DataOutputStream(output);
-      data.writeBytes(postdata);
-      data.flush();
-      data.close();
+      byte[] postData = request.toJSONString().getBytes("UTF-8");
+      conn.setRequestProperty("Content-Length", "" + postData.length);
+      conn.getOutputStream().write(postData);
+      conn.getOutputStream().flush();
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
       // String contentType = conn.getContentType();
