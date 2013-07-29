@@ -22,6 +22,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
+import java.util.Date;
+import static junit.framework.Assert.assertTrue;
+
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
   // String cfServer = "http://satay.index:9000/connector";
@@ -137,7 +140,7 @@ public class TestConnectorPlatform extends JobTester {
 
 
   @SuppressWarnings("unused")
-  private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, String startDate, String endDate) {
+  private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, Date startDate, Date endDate) {
     HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
