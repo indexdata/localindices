@@ -198,9 +198,8 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private HttpURLConnection createConnectionJSON(String task) throws Exception {
     HttpURLConnection conn = createConnectionRaw(task); 
-    conn.setRequestProperty("Content-Type", "application/json");
+    conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     conn.setRequestMethod("POST");
-
     return conn; 
   }
   
@@ -321,7 +320,7 @@ public class HarvestConnectorClient implements HarvestClient {
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
-    Reader reader = new InputStreamReader(inputStream);
+    Reader reader = new InputStreamReader(inputStream, "UTF-8");
     JSONParser parser = new JSONParser();
     //parse results
     Object object = parser.parse(reader, containerFactory);
@@ -425,7 +424,7 @@ public class HarvestConnectorClient implements HarvestClient {
   private String parseSessionResponse(InputStream in, long contentLength) throws ParseException, IOException {
     JSONParser parser = new JSONParser();
     sessionId = null;
-    Object object = parser.parse(new InputStreamReader(in));
+    Object object = parser.parse(new InputStreamReader(in, "UTF-8"));
     if (object instanceof Map) {
       Map json = (Map) object;
       Object id = json.get("id");
