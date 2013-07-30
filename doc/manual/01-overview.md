@@ -2,7 +2,7 @@
 
 This document describes the Harvester using the following notation:
 
-*   _Resource_: an external data source to harvest
+*   _Resource_: an external data source to harvest ADD TEXT
 
 *   _Harvest Job_: the actual instance of harvesting a gievn resource with a specified schedule, as configured in the harvester
 
