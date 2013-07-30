@@ -18,7 +18,8 @@ import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhProcotolException;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
-import com.indexdata.masterkey.localindices.oaipmh.server.handler.SimpleOaiPmhRequest;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhServerException;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.ServletOaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup.MockUpDispatcher;
 
 /**
@@ -49,21 +50,32 @@ public class OaiPmhMockupServlet extends HttpServlet {
       throws ServletException, IOException {
     
     try {
-      OaiPmhHandler handler = dispatcher.onRequest(request);
-      OaiPmhRequest oaiPmhRequest = new SimpleOaiPmhRequest(request);  
+      OaiPmhRequest oaiPmhRequest = new ServletOaiPmhRequest(request);  
+      request.getParameterValues("set");
+      OaiPmhHandler handler = dispatcher.onRequest(oaiPmhRequest);
+      // OaiPmhResponse oaiPmhResponse = new ServletOaiPmhResponse(response); 
       OaiPmhResponse oaiPmhResponse = handler.handle(oaiPmhRequest);
-      //TODO Need to be able to handle encoding as well
-      response.setContentType("text/xml;charset=UTF-8");
-      PrintWriter out = response.getWriter();
-      //TODO Need to be able to handle gzip data 
-      out.write(oaiPmhResponse.toString());
+      handleResponse(response, oaiPmhResponse);
     } catch (OaiPmhProcotolException e) {
       e.printStackTrace();
       response.setContentType("text/xml;charset=UTF-8");
       PrintWriter out = response.getWriter();
       out.write(e.toString());
       // response.sendError(500, e.getMessage());
+    } catch (OaiPmhServerException e) {
+      response.sendError(503, e.getMessage());
+    } catch (IOException ioe) {
+      PrintWriter out = response.getWriter();
+      out.close();
     }
+  }
+
+  public void handleResponse(HttpServletResponse response, OaiPmhResponse oaiPmhResponse) throws IOException {
+    //TODO Need to be able to handle encoding as well
+    response.setContentType("text/xml;charset=UTF-8");
+    PrintWriter out = response.getWriter();
+    //TODO Need to be able to handle gzip data 
+    out.write(oaiPmhResponse.toString());
   }
 
   public Dispatcher getDispatcher() {
