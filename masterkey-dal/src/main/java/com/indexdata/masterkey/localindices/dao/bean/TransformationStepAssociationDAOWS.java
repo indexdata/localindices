@@ -186,5 +186,17 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 		return 0;
 	}
 
+  @Override
+  public List<TransformationStepAssociation> retrieve(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
+    int max, String sortKey, boolean asc) {
+    return retrieveBriefs(start, max, sortKey, asc);
+  }
+
 	
 }

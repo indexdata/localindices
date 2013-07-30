@@ -1,7 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,12 +29,15 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
+import java.io.BufferedReader;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.json.simple.JSONArray;
 import org.w3c.dom.Document;
 
 public class HarvestConnectorClient implements HarvestClient {
@@ -45,35 +46,21 @@ public class HarvestConnectorClient implements HarvestClient {
   private String sessionId;
   private Proxy proxy = null; 
   private RecordHarvestJob job; 
+  private int recordCount = 0;
   RecordStorage storage; 
-
-  public class HarvestToken  {
-    public String resumptionToken; 
-    public Date startDate;
-    public Date endDate; 
-    //  Other values? 
-    HarvestToken(String token, Date start, Date end) {
-      resumptionToken = token; 
-      startDate = start;
-      endDate = end;
-    }
-
-  }
-  
-  List <HarvestToken> jobs = new LinkedList<HarvestToken>();
+  List <String> linkTokens = new LinkedList<String>();
 
   public void setHarvestJob(RecordHarvestJob parent) {
     job = parent;
     logger = job.getLogger();
   }
-
-
+  
   public HarvestConnectorClient(HarvestConnectorResource resource, Proxy proxy) {
     this.resource = resource; 
     this.proxy = proxy;
   }
 
-  ContainerFactory containerFactory = new ContainerFactory(){
+  ContainerFactory containerFactory = new ContainerFactory() {
     @SuppressWarnings("rawtypes")
     public List creatArrayContainer() {
       return new LinkedList();
@@ -85,8 +72,6 @@ public class HarvestConnectorClient implements HarvestClient {
     }
                         
   };
-  @SuppressWarnings("unused")
-  private int recordCount = 0;
   
   @Override
   public int download(URL url) throws Exception 
@@ -95,12 +80,12 @@ public class HarvestConnectorClient implements HarvestClient {
     createSession(resource.getUrl());
     // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
-
     uploadConnector(resource.getConnectorUrl());
     init();
-    add(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
-    while (!job.isKillSent() && !jobs.isEmpty()) { 
-      harvest(jobs.remove(0));
+    harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
+    while (!job.isKillSent() && !linkTokens.isEmpty()) {
+      pause();
+      harvest(linkTokens.remove(0));
     }
     if (job.isKillSent()) {
       logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
@@ -152,7 +137,6 @@ public class HarvestConnectorClient implements HarvestClient {
     try {
      if (initData != null && !initData.equals(""))
        jsonObj = (JSONObject) parser.parse(initData);
-    
     } catch (ParseException pe) {
       logger.error("Failed to parse init data");
       throw new Exception("Failed to parse init data", pe);
@@ -160,15 +144,7 @@ public class HarvestConnectorClient implements HarvestClient {
     addField(jsonObj, "username", resource.getUsername());
     addField(jsonObj, "password", resource.getPassword());
     addField(jsonObj, "proxy",    resource.getProxy());
-    
-    if ( initData != null && !"".equals(initData)) {
-      conn.setDoOutput(true);
-      conn.setRequestProperty("Content-Length", "" + initData.length());
-      DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-      out.writeBytes(initData);
-      out.flush();
-      out.close();
-    }
+    writeJSON(jsonObj, conn);
     int rc = conn.getResponseCode();
     if (rc == 200) {
       return ;
@@ -213,9 +189,8 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private HttpURLConnection createConnectionJSON(String task) throws Exception {
     HttpURLConnection conn = createConnectionRaw(task); 
-    conn.setRequestProperty("Content-Type", "application/json");
+    conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     conn.setRequestMethod("POST");
-
     return conn; 
   }
   
@@ -225,22 +200,25 @@ public class HarvestConnectorClient implements HarvestClient {
       return null;
     return new SimpleDateFormat(currentDateFormat).format(date);
   }
+  
+  private void harvest(String linkToken) throws Exception {
+    JSONObject jsonObj = createHarvestRequest(linkToken);    
+    if (jsonObj == null) 
+      throw new Exception("Error creating JSON harvest request object");
+    harvest(jsonObj);
+  }
+  
+  private void harvest(String startToken, Date startDate, Date endDate) throws Exception {
+    JSONObject jsonObj = createHarvestRequest(startToken, 
+      startDate, endDate);    
+    if (jsonObj == null) 
+      throw new Exception("Error creating JSON harvest request object");
+    harvest(jsonObj);
+  }
 
-
-  private void harvest(HarvestToken parameters) throws Exception 
-  {
+  private void harvest(JSONObject request) throws Exception {
       HttpURLConnection conn = createConnectionJSON("run_task/harvest");
-      JSONObject jsonObj = createHarvestRequest(parameters.resumptionToken, formatDate(parameters.startDate), formatDate(parameters.endDate));
-      if (jsonObj == null) 
-	throw new Exception("Error creating JSON harvest request object");
-      String postdata = jsonObj.toJSONString();
-      conn.setDoOutput(true);
-      conn.setRequestProperty("Content-Length", "" + postdata.length());
-      OutputStream output = conn.getOutputStream();
-      DataOutputStream  data = new DataOutputStream(output);
-      data.writeBytes(postdata);
-      data.flush();
-      data.close();
+      writeJSON(request, conn);
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
       // String contentType = conn.getContentType();
@@ -256,32 +234,17 @@ public class HarvestConnectorClient implements HarvestClient {
   private String getLog() throws Exception {
     HttpURLConnection conn = createConnectionJSON("log");
     JSONObject jsonObj = new JSONObject();
-    String postdata = jsonObj.toJSONString();
-    conn.setDoOutput(true);
-    conn.setRequestProperty("Content-Length", "" + postdata.length());
-    OutputStream output = conn.getOutputStream();
-    DataOutputStream  data = new DataOutputStream(output);
-    data.writeBytes(postdata);
-    data.flush();
-    data.close();
-    
+    writeJSON(jsonObj, conn);
     int responseCode = conn.getResponseCode();
-    int contentLength = conn.getContentLength();
-    // String contentType = conn.getContentType();
     if (responseCode == 200) {
-      	InputStream in = conn.getInputStream();
-      	DataInputStream dataStream = new DataInputStream(in);
-      	byte[] b = new byte[contentLength];
-      	dataStream.readFully(b);
-      	return new String(b,"UTF-8");
-    }
-    else {
+      return readJSONString(conn);
+    } else {
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
   
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public void postRecord(JSONObject record) throws IOException {
+  public void storeRecord(JSONObject record) throws IOException {
     Map<String, Collection<Serializable>> mapValues = new LinkedHashMap<String, Collection<Serializable>>();
     RecordImpl pzRecord = new RecordImpl(mapValues);
     recordCount++;
@@ -326,44 +289,49 @@ public class HarvestConnectorClient implements HarvestClient {
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
-    Reader reader = new InputStreamReader(inputStream);
+    Reader reader = new InputStreamReader(inputStream, "UTF-8");
     JSONParser parser = new JSONParser();
+    //parse results
     Object object = parser.parse(reader, containerFactory);
-    
     if (object instanceof Map) {
       Map json = (Map) object;
-      Object recordsObj = json.get("records");
+      Object recordsObj = json.get("results");
       if (recordsObj instanceof List) {
 	List records = (List) recordsObj;
 	for (Object recordObj: records) {
 	  if (recordObj instanceof Map) {
-	    Map record = (Map) recordObj; 
-	    pause();
-	    if (job.isKillSent())
-	      return ;
-	    harvestDetails(record);
-	    JSONObject obj = new JSONObject();
-	    obj.putAll(record);
-	    postRecord(obj);
+	    Map record = (Map) recordObj;
+            JSONObject recordJSON = new JSONObject();
+            recordJSON.putAll(record);
+	    storeRecord(recordJSON);
 	  }
 	}
       }
-      Object resumptionTokensArray = json.get("resumptiontokens");
-      if (resumptionTokensArray instanceof List) {
-	List resumptionArray = (List) resumptionTokensArray;
-	for (Object resumptionTokenObj: resumptionArray) {
-	  if (resumptionTokenObj instanceof String) {
-	    logger.debug("resumptiontoken received: " + resumptionTokenObj);
-	    pause();
-	    add((String) resumptionTokenObj, resource.getFromDate(), resource.getUntilDate());
-	  }
+      //parse links
+      Object linkTokensItem = json.get("links");
+      if (linkTokensItem instanceof List) {
+	List linkTokens = (List) linkTokensItem;
+	for (Object linkTokenItem: linkTokens) {
+	  if (linkTokenItem instanceof String) {
+            this.linkTokens.add((String) linkTokenItem);
+	  } else if (linkTokenItem instanceof List) {
+            this.linkTokens.add(JSONArray.toJSONString((List)linkTokenItem));
+          } else if (linkTokenItem instanceof Map) {
+            this.linkTokens.add(JSONObject.toJSONString((Map)linkTokenItem));
+          }
+	  logger.debug("link tokens received: " + linkTokenItem);
 	}
+      }
+      //parse and remember starttoken
+      Object startTokenItem = json.get("start");
+      if (startTokenItem instanceof String) {
+        resource.setResumptionToken((String) startTokenItem);
+      } else if (startTokenItem instanceof List) {
+        resource.setResumptionToken(JSONArray.toJSONString((List)startTokenItem));
+      } else if (startTokenItem instanceof Map) {
+        resource.setResumptionToken(JSONObject.toJSONString((Map)startTokenItem));
       }
     }
-  }
-
-  private void add(String resumptionTokenObj, Date startDate, Date endDate) {
-    jobs.add(new HarvestToken(resumptionTokenObj, startDate, endDate)); 
   }
 
   private void pause() throws InterruptedException {
@@ -372,51 +340,6 @@ public class HarvestConnectorClient implements HarvestClient {
       logger.debug("Sleeping " + sleep + " before next harvest");
       Thread.sleep(resource.getSleep());
     }
-  }
-
-  @SuppressWarnings("rawtypes")
-  private Map parseDetailResponse(InputStream inputStream, int contentLength) throws IOException, ParseException 
-  {
-    Reader reader = new InputStreamReader(inputStream);
-    JSONParser parser = new JSONParser();
-    Object object = parser.parse(reader, containerFactory);
-    
-    if (object instanceof Map) {
-      Map json = (Map) object;
-      return json; 
-    }
-    logger.warn("No Map in detailed response");
-    return null;
-  }
-
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  private void harvestDetails(Map record) throws Exception 
-  {
-    // printRecord(record);
-    Object detailTokenArrayObj = record.get("detailtoken");
-    if (detailTokenArrayObj != null && detailTokenArrayObj instanceof List) {
-	for (Object detailTokenObj : (List) detailTokenArrayObj) {
-	  if (detailTokenObj instanceof String) {
-	    HttpURLConnection conn = createConnectionJSON("run_task/detail");
-	    JSONObject detailRequest = createDetailRequest((String) detailTokenObj);
-	    conn.setDoOutput(true);
-	    DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-	    out.writeBytes(detailRequest.toJSONString());
-	    out.flush();
-	    int rc = conn.getResponseCode();
-	    if (rc == 200)  {
-	      Map detailedObj = parseDetailResponse(conn.getInputStream(), conn.getContentLength());
-	      record.putAll(detailedObj);
-	    } else {
-	      	logger.warn("Error getting detail for " + (String) detailTokenObj + ". Response Code: " + rc + ":\n" + getLog());
-	    }
-	    
-	  }
-	}
-    }
-    else 
-      logger.info("Not detail record for" + record.get("url"));
   }
 
   @SuppressWarnings("unchecked")
@@ -433,15 +356,26 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createHarvestRequest(String resumptiontoken, String startDate, String endDate) 
+  public JSONObject createHarvestRequest(String linkToken) throws ParseException 
   {
     JSONObject request = new JSONObject();
-    if (resumptiontoken != null)
-      request.put("resumptiontoken", resumptiontoken);
+    JSONParser p = new JSONParser();
+    Object token = p.parse(linkToken, containerFactory);
+    if (linkToken != null)
+      request.put("link", token);
+    return request;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public JSONObject createHarvestRequest(String startToken, Date startDate, Date endDate) 
+  {
+    JSONObject request = new JSONObject();
+    if (startToken != null)
+      request.put("start", startToken);
     if (startDate != null) 
-      request.put("startDate", startDate);
+      request.put("startDate", formatDate(startDate));
     if (endDate != null)
-      request.put("endDate", endDate);
+      request.put("endDate", formatDate(endDate));
     return request;
   }
 
@@ -459,7 +393,7 @@ public class HarvestConnectorClient implements HarvestClient {
   private String parseSessionResponse(InputStream in, long contentLength) throws ParseException, IOException {
     JSONParser parser = new JSONParser();
     sessionId = null;
-    Object object = parser.parse(new InputStreamReader(in));
+    Object object = parser.parse(new InputStreamReader(in, "UTF-8"));
     if (object instanceof Map) {
       Map json = (Map) object;
       Object id = json.get("id");
@@ -469,5 +403,25 @@ public class HarvestConnectorClient implements HarvestClient {
       }
     }
     return sessionId;
+  }
+
+  private void writeJSON(JSONObject request, HttpURLConnection conn) throws
+    IOException, UnsupportedEncodingException {
+    byte[] postData = request.toJSONString().getBytes("UTF-8");
+    conn.setDoOutput(true);
+    conn.setRequestProperty("Content-Length", "" + postData.length);
+    conn.getOutputStream().write(postData);
+    conn.getOutputStream().flush();
+  }
+  
+  private String readJSONString(HttpURLConnection conn) throws IOException {
+    InputStream in = conn.getInputStream();
+    InputStreamReader is = new InputStreamReader(in, "UTF-8");
+    StringBuilder sb = new StringBuilder();
+    BufferedReader br = new BufferedReader(is);
+    String read = null;
+    while ((read = br.readLine()) != null)
+        sb.append(read);
+    return sb.toString();
   }
 }

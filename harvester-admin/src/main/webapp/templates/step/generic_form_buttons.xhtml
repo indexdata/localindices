@@ -8,13 +8,12 @@
       xmlns:f="http://java.sun.com/jsf/core">
   <body>
     <ui:composition>
-      <h:outputText value=" Edit Step Action: " />
-      <h:commandLink value=" Save" action="#{stepController.save}">
-        <f:param name="id" value="#{item.id}" />
-      </h:commandLink>
-      <h:commandLink value=" Cancel" action="#{stepController.cancel}">
-        <f:param name="id" value="#{item.id}" />
-      </h:commandLink>
+      <h5>Actions: </h5>
+      <h:commandButton value="Add" action="#{stepController.save}" rendered="#{stepController.mode == 'add'}"/>
+      <h:commandButton value="Save" action="#{stepController.save}" rendered="#{stepController.mode == 'edit'}"/>
+      <h:commandButton value="Cancel" immediate="true" action="#{stepController.cancel}" />
+      <h:commandButton value="Delete" immediate="true" action="#{stepController.deleteStep}" onclick="return confirm('Are you sure?');"
+                       rendered="#{stepController.mode == 'edit'}"/>
     </ui:composition>
   </body>
 </html>

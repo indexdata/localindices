@@ -3,34 +3,47 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import java.util.Date;
 
 /**
- * Specifies the simplest common behaviour of all HarvestJobs that otherwise
- * would have to be re-implemented if every concrete job implementation.
- * 
+ * Specifies the simplest common behaviour of all HarvestJobs that otherwise would have to be
+ * re-implemented if every concrete job implementation.
+ *
  * @author jakub
  */
 public abstract class AbstractHarvestJob implements HarvestJob {
+
   private boolean updated;
   private HarvestStorage storage;
-  private HarvestStatus status;
+  private HarvestStatus runStatus;
+  private HarvestStatus jobStatus;
   private boolean die;
   private Thread jobThread;
 
   public void setStatus(HarvestStatus status) {
-    this.status = status;
+    this.runStatus = status;
+    // Setting the finished flag must not be reflected in the job status.
+    // This is first set on notifyFinished
+    if (status != HarvestStatus.FINISHED) {
+      jobStatus = status;
+    }
   }
 
-  public void setStatus(HarvestStatus status, String error) {
-    this.status = status;
-    getHarvestable().setMessage(error);
+  /**
+   *
+   * @param Set the job ending status
+   * @param error An optional message to be displayed
+   */
+  @Override
+  public void setStatus(HarvestStatus status, String msg) {
+    setStatus(status);
+    getHarvestable().setMessage(msg);
   }
 
   protected final void markForUpdate() {
@@ -43,20 +56,20 @@ public abstract class AbstractHarvestJob implements HarvestJob {
 
   @Override
   public synchronized void kill() {
-    if (status == HarvestStatus.RUNNING) {
-      status = HarvestStatus.KILLED;
-    }
     die = true;
-    if (jobThread != null)
+    if (jobThread != null) {
       jobThread.interrupt();
-    else
-      	Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown"); 
+    } else {
+      Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown");
+    }
+    if (runStatus == HarvestStatus.RUNNING) {
+      runStatus = HarvestStatus.KILLED;
+    }
   }
-
 
   @Override
   public final HarvestStatus getStatus() {
-    return status;
+    return runStatus;
   }
 
   @Override
@@ -70,10 +83,10 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   }
 
   @Override
-  public final synchronized void finishReceived() {
-    if (status != null && status.equals(HarvestStatus.FINISHED)) {
-      status = HarvestStatus.OK;
-    }
+  public final synchronized void finishReceived() 
+  {
+    runStatus = jobStatus;
+    getHarvestable().setLastHarvestFinished(new Date());
   }
 
   @Override
@@ -98,9 +111,7 @@ public abstract class AbstractHarvestJob implements HarvestJob {
     return jobThread;
   }
 
-  public void setJobThread(Thread jobThread) {
-    this.jobThread = jobThread;
+  public void setJobThread(Thread thread) {
+    jobThread = thread;
   }
-
-
 }

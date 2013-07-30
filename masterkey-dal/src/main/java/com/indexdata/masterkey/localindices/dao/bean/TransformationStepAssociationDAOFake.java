@@ -66,7 +66,7 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
     	List<TransformationStepAssociation> list = new LinkedList<TransformationStepAssociation>();
     	/* TODO filter right records */
     	for (TransformationStepAssociation transform: transformationStepAssociations.values()) {
-    		if (transform.getTransformationId() == id)
+    		if (transform.getTransformation().getId() == id)
     			list.add(transform);
     	}
     	return list;
@@ -77,7 +77,7 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
     	List<TransformationStepAssociation> list = new LinkedList<TransformationStepAssociation>();
     	/* TODO filter right records */
     	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
-    		if (transform.getStepId() == id)
+    		if (transform.getStep().getId() == id)
     		list.add(transform);
     	return list;
     }
@@ -90,7 +90,7 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 	public int getStepCountByTransformationId(Long id) {
     	int count = 0;
 		for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
-    		if (transform.getTransformationId() == id)
+    		if (transform.getTransformation().getId() == id)
     			count++;
 		return count;
 	}
@@ -99,7 +99,7 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 	public int getTransformationCountByStepId(Long id) {
     	int count = 0;
 		for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
-    		if (transform.getStepId() == id)
+    		if (transform.getStep().getId() == id)
     			count++;
 		return count;
 	}
@@ -126,4 +126,16 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 			TransformationStepAssociationBrief brief) {
 		return retrieveById(brief.getId()); 
 	}
+
+  @Override
+  public List<TransformationStepAssociation> retrieve(int start, int max,
+    String sortKey, boolean asc) {
+    return retrieve(start, max);
+  }
+
+  @Override
+  public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
+    int max, String sortKey, boolean asc) {
+    return retrieveBriefs(start, max, sortKey, asc);
+  }
 }

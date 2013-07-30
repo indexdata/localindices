@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.awt.JobAttributes;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +7,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -34,6 +34,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
+import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
 
 public class XmlMarcClient implements HarvestClient {
@@ -42,16 +43,20 @@ public class XmlMarcClient implements HarvestClient {
   private Proxy proxy; 
   private RecordHarvestJob harvesterJob;
   private boolean allowErrors = false;
+  private boolean useCondReq = false;
   private String errorText = "Failed to download/parse/store : ";
-  private String errors = errorText;  
-  private HarvestJob job; 
+  private String errors = errorText;
+  private HarvestJob job;
+  private Date lastRequested;
  
-  public XmlMarcClient(HarvestJob job, boolean allowErrors) {
+  public XmlMarcClient(HarvestJob job, boolean allowErrors, boolean useCondReq, 
+    Date lastRequested) {
     this.job = job;
     this.allowErrors = allowErrors;
+    this.useCondReq = useCondReq;
+    this.lastRequested = lastRequested;
   }
  
-  
   @Override
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
@@ -62,6 +67,12 @@ public class XmlMarcClient implements HarvestClient {
       else
 	conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
+      if (useCondReq && (lastRequested != null)) {
+        String lastModified = 
+          DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
+        logger.info("Conditional request If-Modified-Since: "+lastModified);
+        conn.setRequestProperty("If-Modified-Since", lastModified);
+      }
       conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
@@ -73,6 +84,10 @@ public class XmlMarcClient implements HarvestClient {
 	  ReadStore readStore = lookupCompresssionType(conn);
 	  readStore.readAndStore();
 	}
+      } else if (responseCode == 304) {//not-modifed
+        logger.info("Content was not modified since '"+DateUtil.serialize(
+          lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
+        return 0;
       } else {
 	if (allowErrors) {
 	  setErrors(getErrors() + (url.toString() + " "));
@@ -92,7 +107,7 @@ public class XmlMarcClient implements HarvestClient {
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
 	}
-	throw new Exception("Http connection failed.", ex);
+	throw ex;
     }
     return 0;
   }

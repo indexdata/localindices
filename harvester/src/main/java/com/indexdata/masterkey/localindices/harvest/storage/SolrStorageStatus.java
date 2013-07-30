@@ -8,7 +8,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 
-public class SolrStorageStatus implements StorageStatus {
+public class SolrStorageStatus extends AbstractStorageStatus {
 
   SolrServer server;
   String databaseSelect;
@@ -21,6 +21,11 @@ public class SolrStorageStatus implements StorageStatus {
 
   public SolrStorageStatus(String url, String selectDatabase) throws MalformedURLException {
     server = new HttpSolrServer(url);
+    databaseSelect = selectDatabase;
+  }
+
+  public SolrStorageStatus(SolrServer server, String selectDatabase) {
+    this.server = server;
     databaseSelect = selectDatabase;
   }
 

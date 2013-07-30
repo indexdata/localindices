@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.oaipmh.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +62,7 @@ public class OaiPmhMockupServlet extends HttpServlet {
       response.setContentType("text/xml;charset=UTF-8");
       PrintWriter out = response.getWriter();
       out.write(e.toString());
+      // response.sendError(500, e.getMessage());
     }
   }
 

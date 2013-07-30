@@ -14,8 +14,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.UriInfo;
 
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
+import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
+import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationsDAOJPA;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationsDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Transformation;
+import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationConverter;
 
 /**
@@ -25,6 +28,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
  */
 public class TransformationResource {
   private TransformationDAO dao = new TransformationsDAOJPA();
+  private TransformationStepAssociationDAO daoAssoc = new TransformationStepAssociationsDAOJPA();
   private Long id;
   private UriInfo context;
 
@@ -69,6 +73,11 @@ public class TransformationResource {
   @Consumes("application/xml")
   public void put(TransformationConverter data) {
     Transformation entity = data.getEntity();
+    //we need to re-persist the associations since some may be new
+    //and we cannot trust the tsas service to do this right because it doesn't
+    for (TransformationStepAssociation tsa : entity.getStepAssociations()) {
+      daoAssoc.update(tsa);
+    }
     dao.update(entity);
   }
 

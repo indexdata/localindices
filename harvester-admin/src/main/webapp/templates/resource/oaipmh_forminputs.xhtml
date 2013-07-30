@@ -24,16 +24,20 @@
         -->
         <h:outputText value="Use long date format:"/>
         <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
-        <h:outputText value="Harvest from (dd/mm/yyyy):"/>
+        <h:outputText value="Harvest from (yyyy-MM-dd):"/>
         <h:inputText value="#{resourceController.resource.fromDate}" size="8">
-          <f:convertDateTime pattern="dd/MM/yyyy" />
+          <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
-        <h:outputText value="Harvest until (dd/mm/yyyy):"/>
+        <h:outputText value="Harvest until (yyyy-MM-dd):"/>
         <h:inputText value="#{resourceController.resource.untilDate}" size="8">
-          <f:convertDateTime pattern="dd/MM/yyyy" />
+          <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
         <h:outputText value="Resumption token: (overrrides date)"/>
         <h:inputText value="#{resourceController.resource.resumptionToken}"/>
+        <h:outputText value="Clear resumption token on connection errors:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.clearRtOnError}"/>
+        <h:outputText value="Keep partial harvests:"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
       </h:panelGrid>
 
     </ui:composition>

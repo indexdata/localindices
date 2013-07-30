@@ -9,9 +9,10 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Proxy;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -41,7 +42,6 @@ import com.indexdata.masterkey.localindices.notification.Notification;
 import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
-import com.indexdata.masterkey.localindices.notification.SimpleMailSender;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 
@@ -59,9 +59,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private OaiPmhResource resource;
   private Proxy proxy;
-  private final static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-  private String currentDateFormat;
+  private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+  @SuppressWarnings("unused")
+  private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
+  private final DateFormat df;
   private boolean initialRun = true;
+  @SuppressWarnings("unused")
   private boolean moveUntilIntoFrom = false;
 
   @Override
@@ -94,10 +97,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setOaiSetName(null);
     }
     if (resource.getDateFormat() != null) {
-      currentDateFormat = resource.getDateFormat();
+      df = new SimpleDateFormat(resource.getDateFormat());
     } else {
-      currentDateFormat = DEFAULT_DATE_FORMAT;
+      df = new SimpleDateFormat(SHORT_DATE_FORMAT);
     }
+    df.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.resource = resource;
     this.proxy = proxy;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
@@ -114,26 +118,41 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
 
-    // figure out harvesting period, even though we may end up using resumptionTokens from the DB
-    if (resource.getUntilDate() == null)
-      resource.setUntilDate(yesterday());
-    Date nextFrom = plusOneDay(resource.getUntilDate());
+    // in OAI date ranges are inclusive
+    Date now = new Date();
+    if (resource.getUntilDate() == null) {
+        resource.setUntilDate(now);
+    }
+    // we don't need to compare from/until dates, let the server fail it
     try {
-      getStorage().begin();
+      getStorage().setOverwriteMode(resource.getOverwrite());
+      
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
+      if (HarvestStatus.RUNNING == getStatus()) {
+	// This shouldn't be possible 
+	logger.warn("Got RUNNING state at job end.");
+	setStatus(HarvestStatus.OK);
+      }
+      
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
+        //there's no way resumption token is valid if we get here
+        resource.setResumptionToken(null);
 	logOaiPmhException(e, e.getMessage());
       }
     } catch (IOException e) {
+      //when we get here the retry loop has already been exhausted
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
 	resource.setMessage(e.getMessage());
+        //the resumption token
+        if (resource.getClearRtOnError())
+          resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
-	e.printStackTrace();
+	//e.printStackTrace();
       }
     } catch (Exception e) {
       if (isKillSent()) {
@@ -141,22 +160,24 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       else {
 	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
-	e.printStackTrace();
+	//e.printStackTrace();
       }
     }
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
-      // TODO persist until and from, trash resumption token
-      resource.setFromDate(nextFrom);
-      resource.setUntilDate(null);
-      resource.setResumptionToken(null);
-      if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
-	setStatus(HarvestStatus.FINISHED);
-      logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
       try {
 	getStorage().commit();
-      } catch (IOException e) {
-	logger.log(Level.ERROR, "Storage commit failed due to I/O Exception", e);
+	// TODO persist until and from, trash resumption token
+	resource.setFromDate(resource.getUntilDate());
+	resource.setUntilDate(null);
+	resource.setResumptionToken(null);
+	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
+	  setStatus(HarvestStatus.FINISHED);
+	logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
+      } catch (Exception e) {
+        String errorMessage = "Storage commit failed due to Exception: " + e.getMessage();
+	logger.log(Level.ERROR, errorMessage);
+	setStatus(HarvestStatus.ERROR, errorMessage);
       }
     } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
@@ -165,28 +186,33 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING))
 	setStatus(HarvestStatus.FINISHED);
       try {
-	if (resource.getResumptionToken() != null) {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error "
-	      + "- Commiting up to Resumption Token " + resource.getResumptionToken());
+	if (resource.getKeepPartial()) {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error, "
+	      + "commiting up partial harvest as configured");
 	  getStorage().commit();
-	}
-	else {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error - Rollback until " + resource.getFromDate());
+        } else {
+	  logger.log(Level.INFO, "OAI harvest killed/faced error - rollingback until " 
+            + formatDate(resource.getFromDate()));
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
-	logger.log(Level.ERROR, "Storage commit/rollback failed.");
+	logger.log(Level.ERROR, "Storage commit/rollback failed.",ioe);
+        setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
       }
     }
-    if (getStatus() != HarvestStatus.OK) {
-	Sender sender = SenderFactory.getSender();
-	String status = getStatus().toString();
-	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
-	try {
+    
+    if (getStatus() == HarvestStatus.ERROR) {
+      Sender sender = SenderFactory.getSender();
+      String status = getStatus().toString();
+      Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
+      try {
+	if (sender != null)
 	  sender.send(msg);
-	} catch (NotificationException e1) {
-	  logger.error("Failed to send notification " + resource.getMessage()) ;
-	}
+	else
+	  logger.error("No sender specified. Unable to send message: " + resource.getMessage()) ;
+      } catch (NotificationException e1) {
+	logger.error("Failed to send notification " + resource.getMessage()) ;
+}
     }
     logger.close();
   }
@@ -197,8 +223,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
     ListRecords listRecords = null;
     if (resumptionToken == null || "".equals(resumptionToken)) {
-      logger.log(Level.INFO, "OAI harvest started. Harvesting from: "  
-	  + resource.getFromDate() + " until: " + resource.getUntilDate());
+      logger.log(Level.INFO, "OAI-PMH harvesting in " + metadataPrefix + " format from: "  
+	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
       listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
     } else {
       logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
@@ -248,7 +274,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (TransformerException e) {
-	  e.printStackTrace();
+	  //e.printStackTrace();
 	  throw e;
 	}
       }
@@ -276,13 +302,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.error("Failed to get " + string + " from OAI-PMH XML response: " + xml.toString());
     } catch (TransformerConfigurationException e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     } catch (TransformerFactoryConfigurationError e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     } catch (TransformerException e1) {
       logger.error("Failed to serialize XML Document on error: " + e.getMessage());
-      e1.printStackTrace();
+      //e1.printStackTrace();
     }
   }
 
@@ -299,10 +325,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
       String metadataPrefix) throws IOException {
     try {
-      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      //dumping  the response may cause ioexception
+      //dumping the response may cause IO Exception
       try {
         logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
             + TextUtils.readStream(hve.getResponseStream()));
@@ -319,7 +345,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   private ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
     try {
-      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding());
+      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       //dumping  the response may cause ioexception
@@ -353,23 +379,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     return null;
   }
 
-  private Date yesterday() {
-    Calendar c = Calendar.getInstance();
-    c.add(Calendar.DAY_OF_MONTH, -1); // back one
-    return c.getTime();
-  }
-
-  private Date plusOneDay(Date date) {
-    Calendar c = Calendar.getInstance();
-    c.setTime(date);
-    c.add(Calendar.DAY_OF_MONTH, 1);
-    return c.getTime();
-  }
-
   private String formatDate(Date date) {
     if (date == null)
       return null;
-    return new SimpleDateFormat(currentDateFormat).format(date);
+    return df.format(date);
   }
 
   @Override

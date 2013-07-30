@@ -127,9 +127,10 @@ public class JobInstance {
   public void start() {
     if (harvestingThread == null || !harvestingThread.isAlive()) {
       harvestingThread = new Thread(harvestJob);
-      harvestingThread.start();
+      harvestingThread.setName(harvestJob.getClass().getSimpleName() + "(" + harvestable.getId() + " " + harvestable.getName() +")");
       if (harvestJob != null)
-		harvestJob.setJobThread(harvestingThread);
+	harvestJob.setJobThread(harvestingThread);
+      harvestingThread.start();
       if (harvestable.getInitiallyHarvested() == null)
 	harvestable.setInitiallyHarvested(new Date());
       harvestable.setLastHarvestStarted(new Date());
@@ -165,6 +166,8 @@ public class JobInstance {
    */
   public void notifyFinish() {
     harvestJob.finishReceived();
+    // TODO Not sure this is a good idea. There are too many ways for a job to finish 
+    // that we should let the job decide self.    
     harvestable.setLastHarvestFinished(new Date());
   }
 

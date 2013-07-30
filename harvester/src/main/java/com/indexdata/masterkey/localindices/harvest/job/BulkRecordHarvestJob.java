@@ -25,12 +25,12 @@ import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
- * 
+ *
  * @author Dennis Schafroth
- * 
+ *
  */
-public class BulkRecordHarvestJob extends AbstractRecordHarvestJob 
-{
+public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
+
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
@@ -41,8 +41,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
-    splitDepth = getNumber(resource.getSplitAt(), splitDepth); 
-    splitSize  = getNumber(resource.getSplitSize(), splitSize);
+    splitDepth = getNumber(resource.getSplitAt(), splitDepth);
+    splitSize = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     setLogger((new FileStorageJobLogger(getClass(), resource)));
@@ -52,120 +52,131 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob
     int number;
     if (value != null && !"".equals(value)) {
       try {
-	number = Integer.parseInt(value);
-	if (number < 0)
-	  number = defaultValue;
-	return number;
+        number = Integer.parseInt(value);
+        if (number < 0) {
+          number = defaultValue;
+        }
+        return number;
       } catch (NumberFormatException nfe) {
-	logger.warn("Unable to parse number: " + value);
+        logger.warn("Unable to parse number: " + value);
       }
     }
     return defaultValue;
   }
-  
+
+  @Override
   public String getMessage() {
     return error;
   }
 
+  @Override
   public void run() {
     try {
 
       // Don't start if we already are in error
       if (!resource.getAllowErrors() && getStatus() == HarvestStatus.ERROR) {
-	  logger.error("Already in ERROR. Set Allowed Errors to run job");
-	  return ; 
+        logger.error("Already in ERROR. Set Allowed Errors to run job");
+        return;
       }
 
       getStorage().setLogger(logger);
       // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
-      if (resource.getOverwrite())
-	getStorage().purge(false);
+      if (resource.getOverwrite()) {
+        getStorage().purge(false);
+      }
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
-      if (getStatus() != HarvestStatus.WARN && getStatus() != HarvestStatus.ERROR)
-	setStatus(HarvestStatus.FINISHED);
+      if (getStatus() == HarvestStatus.RUNNING)
+	setStatus(HarvestStatus.OK);
+      if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
+        logError("Harvest status: " + getStatus().toString() , getHarvestable().getMessage());
+      }
+
+      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN || 
+	  (getStatus() == HarvestStatus.ERROR && getHarvestable().getAllowErrors())) 
+      {
+        transformationStorage.databaseEnd();
+        transformationStorage.commit();
+        setStatus(HarvestStatus.FINISHED);
+      }
       else {
-	Sender sender = SenderFactory.getSender();
-	String status = getStatus().toString();
-	Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
-	try {
-	  sender.send(msg);
-	} catch (NotificationException e1) {
-	  logger.error("Failed to send notification " + resource.getMessage()) ;
-	}
+        transformationStorage.databaseEnd();
+        transformationStorage.rollback();
       }
-      // A bit weird, that we need to close the transformation, but in order to flush out all records in the pipeline
-      transformationStorage.databaseEnd();
-      transformationStorage.commit();
-      //getStorage().commit();
     } catch (Exception e) {
-      // Test
-      e.printStackTrace();
-      logger.log(Level.ERROR, "Failed to complete job. Caught Exception" + e.getMessage() + ". Rolling back.");
-      try {
-	getStorage().rollback();
-      } catch (Exception ioe) {
-	logger.warn("Roll-back failed.", ioe);
-      }
       setStatus(HarvestStatus.ERROR);
-      error = e.getMessage();
-      resource.setMessage(e.getMessage());
-      logger.error("Download failed.", e);
-      Sender sender = SenderFactory.getSender();
-      String status = getStatus().toString();
-      Notification msg = new SimpleNotification(status, "Download failed", e.getMessage());
+      logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!");
+      // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
-	sender.send(msg);
-      } catch (NotificationException e1) {
-	logger.error("Failed to send notification" + e.getMessage(), e);
+        getStorage().rollback();
+      } catch (Exception ioe) {
+        logger.warn("Roll-back failed: " + ioe.getMessage());
       }
+      logError("Harevest failed", e.getMessage());
     } finally {
       logger.close();
     }
   }
 
-  private void downloadList(String[] urls) throws Exception 
-  {
-    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors());
+  private void downloadList(String[] urls) throws Exception {
+    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors(), resource.getAllowCondReq(), resource.getLastHarvestFinished());
     client.setHarvestJob(this);
     client.setProxy(proxy);
     client.setLogger(logger);
     client.setHarvestable(resource);
     for (String url : urls) {
       try {
-	int noErrors = client.download(new URL(url));
-	if (noErrors > 0) {
-	  setStatus(HarvestStatus.WARN, client.getErrors());
-	}
+        int noErrors = client.download(new URL(url));
+        if (noErrors > 0) {
+          setStatus(HarvestStatus.WARN, client.getErrors());
+        }
       } catch (Exception e) {
-	if (resource.getAllowErrors()) {
-	  if (errors == null)
-	    errors = "Failed to harvest: ";
-	  errors += url + ": " + e.getMessage();
-	  setStatus(HarvestStatus.WARN, errors);
-	}
-	else {
-	  throw e; 
-	}
+        if (resource.getAllowErrors()) {
+          if (errors == null) {
+            errors = "Failed to harvest: ";
+          }
+          errors += url + ": " + e.getMessage();
+          setStatus(HarvestStatus.WARN, errors);
+        } else {
+          throw e;
+        }
       }
     }
   }
+
   @Override
   public void setStorage(HarvestStorage storage) {
     if (storage instanceof RecordStorage) {
       super.setStorage((RecordStorage) storage);
-    }
-    else {
+    } else {
       setStatus(HarvestStatus.ERROR);
       resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
-	  + ". Requires RecordStorage");
+              + ". Requires RecordStorage");
     }
   }
 
   @Override
   protected Harvestable getHarvestable() {
     return resource;
+  }
+
+  protected void logError(String logSubject, String message) {
+    setStatus(HarvestStatus.ERROR, message);
+    resource.setMessage(message);
+    logger.error(logSubject + ": " +  message);
+    Sender sender = SenderFactory.getSender();
+    String status = getStatus().toString();
+    Notification msg = new SimpleNotification(status, logSubject, message);
+    try {
+      if (sender != null) {
+        sender.send(msg);
+      } else {
+        throw new NotificationException("No Sender configured", null);
+      }
+    } catch (NotificationException e1) {
+      logger.error("Failed to send notification " + e1.getMessage());
+    }
   }
 }

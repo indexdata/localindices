@@ -23,7 +23,7 @@ public class TransformationStepAssociationBrief implements Comparable<Object> {
 
     public TransformationStepAssociationBrief(TransformationStepAssociation entity) {
         setId(entity.getId());
-        setTransformationId(entity.getTransformationId());
+        setTransformationId(entity.getTransformation().getId());
         setStepId(entity.getStep().getId());
         setPosition(new Integer(entity.getPosition()));
     }

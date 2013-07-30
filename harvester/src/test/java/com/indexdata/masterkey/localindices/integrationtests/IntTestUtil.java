@@ -29,6 +29,11 @@ public class IntTestUtil {
   public final static String ROOT_URI = "http://"+HOST+":"+PORT+"/"+PATH;
   
   public static class TestException extends Exception {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -4448488377880979343L;
+
     public TestException(String message, Throwable cause) {
       super(message, cause);
     }

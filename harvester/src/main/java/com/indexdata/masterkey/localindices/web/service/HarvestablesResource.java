@@ -65,15 +65,20 @@ public class HarvestablesResource {
   @GET
   @Produces("application/xml")
   public HarvestablesConverter get(
-
   @QueryParam("start") @DefaultValue("0") int start,
-
-  @QueryParam("max") @DefaultValue("100") int max) {
+  @QueryParam("max") @DefaultValue("100") int max,
+  @QueryParam("sort") @DefaultValue("") String sortSpec) {
+    String sortKey = null;
+    boolean isAsc = true;
+    if (!sortSpec.isEmpty()) {
+      isAsc = !sortSpec.startsWith("~");
+      sortKey = isAsc ? sortSpec : sortSpec.substring(1);
+    }
     List<Harvestable> entities;
     if (max <= 0)
       entities = new ArrayList<Harvestable>();
     else
-      entities = dao.retrieve(start, max);
+      entities = dao.retrieve(start, max, sortKey, isAsc);
     return new HarvestablesConverter(entities, context.getAbsolutePath(), start, max,
 	dao.getCount());
   }

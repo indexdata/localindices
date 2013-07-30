@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 /**
@@ -45,10 +47,10 @@ public class GetRecord extends HarvesterVerb {
      * @exception SAXException the xml response is bad
      * @exception IOException an I/O error occurred
      */
-    public GetRecord(String baseURL, String identifier, String metadataPrefix, Proxy proxy, String encodingOverride)
+    public GetRecord(String baseURL, String identifier, String metadataPrefix, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL, identifier, metadataPrefix), proxy, encodingOverride);
+        super(getRequestURL(baseURL, identifier, metadataPrefix), proxy, encodingOverride, logger);
     }
     
     /**

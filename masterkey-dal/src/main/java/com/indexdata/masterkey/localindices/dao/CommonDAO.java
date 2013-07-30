@@ -13,11 +13,13 @@ public interface CommonDAO<Entity,EntityBrief>
      * @return
      */
     List<Entity> retrieve(int start, int max);
+    List<Entity> retrieve(int start, int max, String sortKey, boolean asc);
     /**
      * Retrieve a list of brief (listing) harvestables.
      * @return
      */
     List<EntityBrief> retrieveBriefs(int start, int max);
+    List<EntityBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc);
     /**
      * Convert from EntityBrief to Entity
      * @param brief

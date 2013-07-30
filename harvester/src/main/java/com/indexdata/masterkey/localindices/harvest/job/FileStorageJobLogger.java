@@ -2,7 +2,6 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 
-import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
 
@@ -26,7 +25,7 @@ public class FileStorageJobLogger extends StorageJobLogger {
 	RollingFileAppender rolling = new RollingFileAppender(layout, logFilename, true);
 	// TODO configurable 
 	rolling.setMaxBackupIndex(10);
-	rolling.setMaxFileSize("100KB");
+	rolling.setMaxFileSize("1MB");
 	logAppender = rolling;	
 	logAppender.setName(logFilename);
 	logger.addAppender(logAppender);

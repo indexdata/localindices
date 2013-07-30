@@ -26,6 +26,8 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private String splitSize;
   private String expectedSchema;
   private String outputSchema;
+  @Column(nullable=false)
+  private boolean allowCondReq;
 
   public XmlBulkResource() {
   }
@@ -88,4 +90,12 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     this.outputSchema = outputSchema;
   }
 
+  public boolean getAllowCondReq() {
+    return allowCondReq;
+  }
+
+  public void setAllowCondReq(boolean allowCondReq) {
+    this.allowCondReq = allowCondReq;
+  }
+  
 }

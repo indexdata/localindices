@@ -16,3 +16,4 @@ mem.*
 deb-src
 solr.log
 install-stamp
+data/

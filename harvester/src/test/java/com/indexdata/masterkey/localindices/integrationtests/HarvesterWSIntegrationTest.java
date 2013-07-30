@@ -24,6 +24,7 @@ import javax.xml.transform.TransformerException;
  * A simple intergation test case to test some basics of the harvester WS
  * @author jakub
  */
+@SuppressWarnings("unused")
 public class HarvesterWSIntegrationTest {
   
   @Test

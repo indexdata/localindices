@@ -8,16 +8,14 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Validation Step Editor" />
+      <ui:param name="title" value="Add Validation Step" rendered="#{stepController.mode == 'add'}" />
+      <ui:param name="title" value="Edit Validation Step" rendered="#{stepController.mode == 'edit'}"/>
       <ui:define name="content">
         <h:form>
-          <h:commandLink styleClass="navigation"  value="Steps" action="#{stepController.list}" />
-          <h3>Validation Step: </h3>
           <ui:include src="/templates/step/generic_forminputs.xhtml" />
           <ui:include src="/templates/step/xsd_forminputs.xhtml" />
           <ui:include src="/templates/step/test_forminputs.xhtml" />
-          <h:commandButton value="Save" action="#{stepController.save}"/>
-          <h:commandButton value="Cancel" action="#{stepController.cancel}"/>
+          <ui:include src="/templates/step/generic_form_buttons.xhtml" />
         </h:form>
       </ui:define>
     </ui:composition>

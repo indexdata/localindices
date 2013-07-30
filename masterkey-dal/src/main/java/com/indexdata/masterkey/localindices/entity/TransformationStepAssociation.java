@@ -3,12 +3,15 @@ package com.indexdata.masterkey.localindices.entity;
 import java.io.Serializable;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -28,65 +31,45 @@ import javax.xml.bind.annotation.XmlTransient;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @XmlRootElement(name = "transformationStepAssociation")
 public class TransformationStepAssociation implements Serializable, Cloneable {
-
-  public TransformationStepAssociation() {
-    step = null;
-    transformation = null;
-    id = null;
-  }
-
   private static final long serialVersionUID = -8041896324751041180L;
-
+  
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
-
-  /*
-   * @Column(name = "TRANSFORMATION_ID") private Long transformationId;
-   * 
-   * @Column(name = "STEP_ID") private Long stepId;
-   */
+  
   @Column(name = "POSITION")
   private int position;
   @ManyToOne
-  @PrimaryKeyJoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
+  @JoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
   private Transformation transformation;
   @ManyToOne
-  @PrimaryKeyJoinColumn(name = "STEP_ID", referencedColumnName = "ID")
-  @XmlTransient
+  @JoinColumn(name = "STEP_ID", referencedColumnName = "ID")
   private TransformationStep step;
 
-  public void setTransformation(Transformation transformation) {
-    this.transformation = transformation;
+  public TransformationStepAssociation() {
   }
 
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+  
   @XmlIDREF
   public Transformation getTransformation() {
     return transformation;
   }
 
-  public Long getTransformationId() {
-    if (transformation != null)
-      return transformation.getId();
-    return null;
+  public void setTransformation(Transformation transformation) {
+    this.transformation = transformation;
   }
-
-  /*
-   * public void setStepId(long stepId) { this.stepId = stepId; }
-   */
-
-  public Long getStepId() {
-    if (step != null)
-      return step.getId();
-    return null;
-  }
-
+  
   public void setStep(TransformationStep step) {
     this.step = step;
   }
 
-  @Id
-  @Column(name = "STEP_ID", nullable = false, insertable = false, updatable = false)
   public TransformationStep getStep() {
     return step;
   }
@@ -97,14 +80,6 @@ public class TransformationStepAssociation implements Serializable, Cloneable {
 
   public int getPosition() {
     return position;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
   }
 
   @Override

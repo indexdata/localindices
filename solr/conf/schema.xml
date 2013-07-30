@@ -468,9 +468,10 @@
 <!-- 
 -->
    <field name="id" type="string" indexed="true" stored="true" required="true" /> 
+   <field name="_version_" type="long" indexed="true" stored="true"/>
 
-   <field name="author"       type="text"   indexed="true" stored="true"  multiValued="true" compressed="false" omitNorms="true"/>
-   <field name="author_exact" type="facet" indexed="true" stored="true"  multiValued="true" compressed="false" omitNorms="true"/>
+   <field name="author"       type="text"   indexed="true" stored="true"  multiValued="true"  omitNorms="true"/>
+   <field name="author_exact" type="facet" indexed="true" stored="true"  multiValued="true"  omitNorms="true"/>
    <field name="author-date"  type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
    <field name="author-title" type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
 
@@ -479,17 +480,17 @@
    <field name="corporate-name"     type="text" indexed="true" stored="true" omitNorms="true"/>
 
    <field name="callnumber" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-   <field name="citation"   type="text" indexed="true" stored="true" multiValued="true" compressed="true" omitNorms="true"/>
+   <field name="citation"   type="text" indexed="true" stored="true" multiValued="true"  omitNorms="true"/>
 
    <field name="date"        type="text"    indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-   <field name="description" type="text_ws" indexed="true" stored="true" multiValued="true" compressed="true" omitNorms="true"/>
+   <field name="description" type="text_ws" indexed="true" stored="true" multiValued="true"  omitNorms="true"/>
 
    <field name="edition" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="electronic-format-instruction" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
    <field name="electronic-format-type"        type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-   <field name="electronic-note"               type="text" indexed="true" stored="true" multiValued="true" compressed="true" omitNorms="true"/>
-   <field name="electronic-text"               type="text" indexed="true" stored="true" multiValued="true" compressed="true" omitNorms="true"/>
+   <field name="electronic-note"               type="text" indexed="true" stored="true" multiValued="true"  omitNorms="true"/>
+   <field name="electronic-text"               type="text" indexed="true" stored="true" multiValued="true"  omitNorms="true"/>
    <field name="electronic-url"                type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="isbn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
@@ -513,8 +514,8 @@
 
    <field name="tech-rep-nr" type="text" indexed="true" multiValued="true" stored="true"/>
 
-   <field name="title"                  type="text"   indexed="true" multiValued="true" compressed="false" stored="true"/>
-   <field name="title-complete"         type="text"   indexed="true" multiValued="true" compressed="true"  stored="true"/>
+   <field name="title"                  type="text"   indexed="true" multiValued="true" stored="true"/>
+   <field name="title-complete"         type="text"   indexed="true" multiValued="true" stored="true"/>
    <field name="title-dates"            type="text"   indexed="true" multiValued="true" stored="true"/>
    <field name="title-medium"           type="text"   indexed="true" multiValued="true" stored="true"/>
    <field name="title-number-section"   type="text"   indexed="true" multiValued="true" stored="true"/>
@@ -526,8 +527,8 @@
    <field name="title-uniform-partname" type="text"   indexed="true" multiValued="true" stored="true"/>
    <field name="title-uniform-parts"    type="text"   indexed="true" multiValued="true" stored="true"/>
 
-   <field name="journal-title"          type="text" indexed="true" multiValued="true" compressed="false" stored="true"/>
-   <field name="journal-title_exact"    type="text" indexed="true" multiValued="true" compressed="false" stored="true"/>
+   <field name="journal-title"          type="text" indexed="true" multiValued="true"  stored="true"/>
+   <field name="journal-title_exact"    type="text" indexed="true" multiValued="true"  stored="true"/>
 
    <field name="physical-accomp"     type="text" indexed="true" stored="true" multiValued="true" />
    <field name="physical-dimensions" type="text" indexed="true" stored="true" multiValued="true" />

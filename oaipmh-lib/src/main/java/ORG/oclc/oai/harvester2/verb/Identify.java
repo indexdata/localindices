@@ -23,6 +23,8 @@ import java.net.Proxy;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import org.apache.log4j.Logger;
+
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 /**
@@ -46,10 +48,10 @@ public class Identify extends HarvesterVerb {
      * @exception MalformedURLException the baseURL is bad
      * @exception IOException an I/O error occurred
      */
-    public Identify(String baseURL, Proxy proxy, String encodingOverride)
+    public Identify(String baseURL, Proxy proxy, String encodingOverride, Logger logger)
     throws IOException, ParserConfigurationException, ResponseParsingException,
     TransformerException {
-        super(getRequestURL(baseURL), proxy, encodingOverride);
+        super(getRequestURL(baseURL), proxy, encodingOverride, logger);
     }
     
     /**

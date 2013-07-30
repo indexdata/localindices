@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 
+import static com.indexdata.utils.XmlUtils.escape;
+
 /**
  * A simple harvest scheduler status Web Service.
  * 
@@ -50,28 +52,32 @@ public class SchedulerStatusServlet extends HttpServlet {
     out.println("<jobs>");
     for (JobInfo ji : st.getJobInfo()) {
       Harvestable hable = ji.getHarvestable();
-      out.println("<job id=\"" + hable.getId() + "\">");
-      out.println("<name>" + hable.getName() + "</name>");
-      out.println("<scheduleString>" + hable.getScheduleString() + "</scheduleString>");
-      out.println("<lastUpdated>" + hable.getLastUpdated() + "</lastUpdated>");
-      out.println("<lastHarvested>" + hable.getLastHarvestStarted() + "</lastHarvested>");
-      out.println("<reportedStatus>" + hable.getCurrentStatus() + "</reportedStatus>");
-      out.println("<latestStatus>" + ji.getStatus() + "</latestStatus>");
-      out.println("<error>" + ji.getError() + "</error>");
+      out.println("<job id=\"" + safeEscape(hable.getId().toString()) + "\">");
+      out.println("<name>" + safeEscape(hable.getName()) + "</name>");
+      out.println("<scheduleString>" + safeEscape(hable.getScheduleString()) + "</scheduleString>");
+      out.println("<lastUpdated>" + safeEscape(hable.getLastUpdated()) + "</lastUpdated>");
+      out.println("<lastHarvested>" + safeEscape(hable.getLastHarvestStarted()) + "</lastHarvested>");
+      out.println("<reportedStatus>" + safeEscape(hable.getCurrentStatus()) + "</reportedStatus>");
+      out.println("<latestStatus>" + safeEscape(ji.getStatus().toString()) + "</latestStatus>");
+      out.println("<error>" + safeEscape(ji.getError()) + "</error>");
       if (hable instanceof OaiPmhResource) {
 	OaiPmhResource oaiHable = (OaiPmhResource) hable;
 	out.println("<typeSpecific type=\"OaiPmhResource\">");
-	out.println("<url>" + oaiHable.getUrl() + "</url>");
-	out.println("<metadataPrefix>" + oaiHable.getMetadataPrefix() + "</metadataPrefix>");
-	out.println("<setName>" + oaiHable.getOaiSetName() + "</setName>");
-	out.println("<fromDate>" + oaiHable.getFromDate() + "</fromDate>");
-	out.println("<untilDate>" + oaiHable.getUntilDate() + "</untilDate>");
-	out.println("<dateFormat>" + oaiHable.getDateFormat() + "</dateFormat>");
+	out.println("<url>" + safeEscape(oaiHable.getUrl()) + "</url>");
+	out.println("<metadataPrefix>" + safeEscape(oaiHable.getMetadataPrefix()) + "</metadataPrefix>");
+	out.println("<setName>" + safeEscape(oaiHable.getOaiSetName()) + "</setName>");
+	out.println("<fromDate>" + safeEscape(oaiHable.getFromDate()) + "</fromDate>");
+	out.println("<untilDate>" + safeEscape(oaiHable.getUntilDate()) + "</untilDate>");
+	out.println("<dateFormat>" + safeEscape(oaiHable.getDateFormat()) + "</dateFormat>");
 	out.println("</typeSpecific>");
       }
       out.println("</job>");
     }
     out.println("</jobs>");
+  }
+  
+  private String safeEscape(Object in) {
+    return in == null ? "" : escape(in.toString());
   }
 
   private void dispatchRequest(HttpServletRequest req, SchedulerThread st) {

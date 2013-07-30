@@ -72,6 +72,8 @@ public class ResourceController {
   private int firstItem = 0;
   private int batchSize = 20;
   private int itemCount = -1;
+  private String sortKey = "name";
+  private boolean isAsc = true;
   private Long currentId;
 
 
@@ -312,13 +314,14 @@ public class ResourceController {
 
   public int getLastItem() {
     int count = getItemCount();
-    return (count < firstItem + batchSize) ? count : firstItem + batchSize;
+    int lastItem = (count < firstItem + batchSize) ? count : firstItem + batchSize;
+    return lastItem;
   }
 
   public int getItemCount() {
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
+    if (itemCount == -1 || req.getAttribute("countRequestSeenFlag") == null) {
       req.setAttribute("countRequestSeenFlag", "yes");
       itemCount = dao.getCount();
     }
@@ -344,6 +347,38 @@ public class ResourceController {
     resources = null;
     itemCount = -1;
     return "list_resources";
+  }
+  
+  public boolean isDescending() {
+    return !isAsc;
+  }
+  
+  public String getSortKey() {
+    return sortKey;
+  }
+  
+  public String sortByName() {
+    isAsc = "name".equals(sortKey) ? !isAsc : true;
+    sortKey = "name";
+    return listResources();
+  }
+  
+  public String sortByStatus() {
+    isAsc = "currentStatus".equals(sortKey) ? !isAsc : true;
+    sortKey = "currentStatus";
+    return listResources();
+  }
+  
+  public String sortByLastHarvest() {
+    isAsc = "lastHarvestStartedOrFinished".equals(sortKey) ? !isAsc : true;
+    sortKey = "lastHarvestStartedOrFinished";
+    return listResources();
+  }
+
+  public String sortByNextHarvest() {
+    isAsc = "nextHarvestSchedule".equals(sortKey) ? !isAsc : true;
+    sortKey = "nextHarvestSchedule";
+    return listResources();
   }
 
   // </editor-fold>
@@ -431,23 +466,16 @@ public class ResourceController {
     return listResources();
   }
 
-  private boolean isPb() {
-    FacesContext ctx = FacesContext.getCurrentInstance();
-    return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
-  }
-
   /* list resources */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getResources() {
     // check if new request
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
+    if (resources == null || req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
-      resources = (List) dao.retrieveBriefs(firstItem, batchSize);
+      resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
     }
-    if (resources != null)
-      Collections.sort(resources);
     return new ListDataModel(resources);
   }
 

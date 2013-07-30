@@ -37,12 +37,14 @@ import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
-  Harvestable harvestableXml = new DummyXmlBulkResource(
+  DummyXmlBulkResource harvestableXml = new DummyXmlBulkResource(
       "http://lui-dev.indexdata.com/harvester/marc.xml");
 
   String catalog_gz = "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.gz";
@@ -51,8 +53,8 @@ public class TestTransformationChainStorage extends TestCase {
   String marcRecords = "http://lui.indexdata.com/ag/demo_org.mrc";
   Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords);
 
-  String catalog_zip = "http://www.gutenberg.org/feeds/catalog.rdf.zip";
-
+  String catalog_zip = // Not working from jenkins "http://www.gutenberg.org/cache/epub/feeds/catalog.rdf.zip";
+                        "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.zip";
   // SOLR Server in container
   String solrUrl = "http://localhost:8585/solr/";
   SolrStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
@@ -74,7 +76,7 @@ public class TestTransformationChainStorage extends TestCase {
       TransformerConfigurationException, ParserConfigurationException, SAXException {
 
     URL url = new URL(catalog_gz);
-    HttpURLConnection conn = null;
+    HttpURLConnection conn;
     conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     int responseCode = conn.getResponseCode();
@@ -104,7 +106,7 @@ public class TestTransformationChainStorage extends TestCase {
     conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     int responseCode = conn.getResponseCode();
-    assertTrue("responseCode: " + responseCode, responseCode == 200);
+    assertTrue("Failed to download " + catalog_zip + ". Response Code: " + responseCode, responseCode == 200);
     int contentLength = conn.getContentLength();
     //String contentType = conn.getContentType();
     int total = 0;
@@ -176,18 +178,21 @@ public class TestTransformationChainStorage extends TestCase {
     writer.close();
     transformStorage.commit();
   }
-
-  public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage()
+  
+   public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage()
       throws IOException, TransformerConfigurationException, ParserConfigurationException,
       SAXException {
     String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl };
     System.out.println("testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage");
     harvestableXml.setId(1l);
+    
     // harvestable.setTransformation(transformation)
     XMLReader xmlReader = createTransformChain(stylesheets);
-    // TODO setLogger on xmlBulkStorage?
+    BulkRecordHarvestJob job = new BulkRecordHarvestJob(harvestableXml, null);
+    job.setStatus(HarvestStatus.NEW);
+    xmlBulkStorage.setLogger(new ConsoleStorageJobLogger(xmlRecordStorage.getClass(), harvestableXml));
     TransformationChainRecordStorageProxy transformStorage = new TransformationChainRecordStorageProxy(
-	xmlBulkStorage, xmlReader, null);
+	xmlBulkStorage, xmlReader, job);
     transformStorage.begin();
     OutputStream output = transformStorage.getOutputStream();
     Writer writer = new OutputStreamWriter(output);

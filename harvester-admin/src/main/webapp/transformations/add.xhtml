@@ -11,11 +11,8 @@
       <ui:param name="title" value="Add new Transformation Pipeline" />
       <ui:define name="content">
         <h:form>
-          <h3>New Transformation: </h3>
           <ui:include src="/templates/transformation/generic_forminputs.xhtml" />
-          <h:commandButton value="Add" action="#{transformationController.saveExit}"/>
-          <h:commandButton value="Save" action="#{transformationController.save}"/>
-          <h:commandButton value="Cancel" action="#{transformationController.cancel}"/>
+          <ui:include src="/templates/transformation/generic_buttons_new.xhtml" />
         </h:form>
       </ui:define>
     </ui:composition>
