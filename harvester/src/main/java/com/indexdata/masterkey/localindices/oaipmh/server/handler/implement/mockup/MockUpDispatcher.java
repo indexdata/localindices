@@ -3,13 +3,12 @@ package com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.moc
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.Dispatcher;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhBadVerbException;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhHandler;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 
 public class MockUpDispatcher implements Dispatcher {
 
@@ -28,8 +27,8 @@ public class MockUpDispatcher implements Dispatcher {
 
   @SuppressWarnings("unchecked")
   @Override
-  public OaiPmhHandler onRequest(HttpServletRequest req) throws OaiPmhBadVerbException {
-    
+  public OaiPmhHandler onRequest(OaiPmhRequest req) throws OaiPmhBadVerbException {
+   
       String[] verbs = req.getParameterValues("verb");
       if (verbs == null || verbs.length !=  1 || !validVerb(verbs)) {
 	throw new OaiPmhBadVerbException("Value of the verb argument is not a legal OAI-PMH verb, the verb argument is missing, or the verb argument is repeated.");
