@@ -40,7 +40,11 @@ public class Identify extends HarvesterVerb {
     public Identify() {
         super();
     }
-    
+
+    public Identify(Logger jobLogger) {
+      super(jobLogger);
+  }
+
     /**
      * Client-side Identify verb constructor
      *

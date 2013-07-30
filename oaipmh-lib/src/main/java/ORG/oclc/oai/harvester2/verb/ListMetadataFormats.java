@@ -39,6 +39,9 @@ public class ListMetadataFormats extends HarvesterVerb {
         super();
     }
     
+    public ListMetadataFormats(Logger jobLogger) {
+      super(jobLogger);
+  }
     /**
      * Client-side ListMetadataFormats verb constructor
      *

@@ -79,9 +79,9 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
 public abstract class HarvesterVerb {
     protected Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
-    private final static int HTTP_MAX_RETRIES = 10;
-    private final static int HTTP_RETRY_TIMEOUT = 600; //secs
-    private final static int HTTP_TIMEOUT = 60000; //msecs
+    private int HTTP_MAX_RETRIES = 2;
+    private int HTTP_RETRY_TIMEOUT = 60; //secs
+    private int HTTP_TIMEOUT = 60000;    //msecs
 
     /* Primary OAI namespaces */
     public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
@@ -232,7 +232,14 @@ public abstract class HarvesterVerb {
      */
     public HarvesterVerb() {
     }
-    
+
+    /**
+     * Mock object creator (for unit testing purposes)
+     */
+    public HarvesterVerb(Logger jobLogger) {
+    	logger = jobLogger;
+    }
+
     /**
      * Performs the OAI request
      * 
@@ -241,11 +248,12 @@ public abstract class HarvesterVerb {
      * @throws ParserConfigurationException
      * @throws SAXException
      * @throws TransformerException
+     * 
      */
     public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride, Logger jobLogger) throws IOException,
     ParserConfigurationException, TransformerException, ResponseParsingException {
       	logger = jobLogger;
-        harvest(requestURL, proxy, encodingOverride);
+      	harvest(requestURL, proxy, encodingOverride);
     }
     
     /**

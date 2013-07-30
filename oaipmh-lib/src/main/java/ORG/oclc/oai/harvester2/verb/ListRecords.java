@@ -45,6 +45,9 @@ public class ListRecords extends HarvesterVerb {
         super();
     }
     
+    public ListRecords(Logger jobLogger) {
+      super(jobLogger);
+  }
     /**
      * Client-side ListRecords verb constructor
      *

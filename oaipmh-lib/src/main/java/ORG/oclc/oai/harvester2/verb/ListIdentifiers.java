@@ -41,6 +41,9 @@ public class ListIdentifiers extends HarvesterVerb {
         super();
     }
     
+    public ListIdentifiers(Logger jobLogger) {
+      super(jobLogger);
+  }
     /**
      * Client-side ListIdentifiers verb constructor
      *
