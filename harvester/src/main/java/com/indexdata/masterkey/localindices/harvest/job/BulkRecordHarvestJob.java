@@ -48,7 +48,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     setLogger((new FileStorageJobLogger(getClass(), resource)));
   }
 
-  private int getNumber(String value, int defaultValue) {
+  public int getNumber(String value, int defaultValue) {
     int number;
     if (value != null && !"".equals(value)) {
       try {
