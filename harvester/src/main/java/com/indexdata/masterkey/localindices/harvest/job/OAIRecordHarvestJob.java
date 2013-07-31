@@ -66,6 +66,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private boolean initialRun = true;
   @SuppressWarnings("unused")
   private boolean moveUntilIntoFrom = false;
+  private int totalCount;
 
   @Override
   public String getMessage() {
@@ -264,6 +265,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	try {
 	  list = listRecords.getRecords();
 	  int count = list.getLength();
+	  totalCount += count;
+	  if (totalCount % 1000 == 0) 
+	    logger.info("Harvested " + totalCount + " records from " + baseURL); 
 	  for (int index = 0; index < count; index++) {
 	    Node node = list.item(index);
 	    Record record = createRecord(node);
@@ -290,6 +294,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	listRecords = listRecords(baseURL, resumptionToken);
       }
     }
+    logger.info("Harvested " + totalCount + " records in total from " + baseURL); 
     if (dataStart)
       getStorage().databaseEnd();
   }
