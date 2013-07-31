@@ -19,14 +19,15 @@ import org.apache.solr.core.CoreContainer;
 public class EmbeddedSolrServerFactory implements SolrServerFactory {
   static JettySolrRunner jettyServer;
   String solrDirectory = "./solr";
+
   public EmbeddedSolrServerFactory(String directory) {
     solrDirectory = directory;
   };
-  
+
   public SolrServer createEmbeded() {
-      System.setProperty("solr.solr.home", "./solr");
+    System.setProperty("solr.solr.home", "./solr");
     File file = new File(".");
-    
+
     CoreContainer.Initializer initializer = new CoreContainer.Initializer();
     CoreContainer coreContainer;
     try {
@@ -40,23 +41,23 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
   }
 
   public SolrServer create() {
-  // System.setProperty("solr.solr.home", "./solr");
-  try {
-    if (jettyServer == null) {
-      URL url = new URL(solrDirectory);
-      String path = url.getPath();
-      if (path.endsWith("/")) {
-	path = path.substring(0, path.length()-1);
+    // System.setProperty("solr.solr.home", "./solr");
+    try {
+      if (jettyServer == null) {
+	URL url = new URL(solrDirectory);
+	String path = url.getPath();
+	if (path.endsWith("/")) {
+	  path = path.substring(0, path.length() - 1);
+	}
+	jettyServer = new JettySolrRunner("./solr", path, url.getPort());
+	jettyServer.start(true);
       }
-      jettyServer = new JettySolrRunner("./solr", path, url.getPort());
-      jettyServer.start(true);
-    };
+      ;
+    } catch (Throwable ex) {
+      Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, null, ex);
+    }
     SolrServer server = new HttpSolrServer(solrDirectory);
     return server;
-  } catch (Exception ex) {
-    Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, null, ex);
   }
-  return null;
-}
 
 }
