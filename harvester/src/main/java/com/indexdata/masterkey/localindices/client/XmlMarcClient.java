@@ -26,7 +26,7 @@ import org.marc4j.TurboMarcXmlWriter;
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
@@ -41,15 +41,15 @@ public class XmlMarcClient implements HarvestClient {
   protected StorageJobLogger logger; 
   private XmlBulkResource resource;
   private Proxy proxy; 
-  private RecordHarvestJob harvesterJob;
   private boolean allowErrors = false;
   private boolean useCondReq = false;
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private HarvestJob job;
+  private BulkRecordHarvestJob job;
   private Date lastRequested;
+  private int splitAt = 1;
  
-  public XmlMarcClient(HarvestJob job, boolean allowErrors, boolean useCondReq, 
+  public XmlMarcClient(BulkRecordHarvestJob job, boolean allowErrors, boolean useCondReq, 
     Date lastRequested) {
     this.job = job;
     this.allowErrors = allowErrors;
@@ -268,7 +268,7 @@ public class XmlMarcClient implements HarvestClient {
   	logger.info("Setting up Binary MARC to MarcXml converter");
  	//writer = new MarcXmlWriter(output, true);
     }
-    RecordStorage storage = harvesterJob.getStorage();
+    RecordStorage storage = job.getStorage();
     while (reader.hasNext()) {
       try {
 	org.marc4j.marc.Record record = reader.next();
@@ -284,7 +284,7 @@ public class XmlMarcClient implements HarvestClient {
 	else
 	  storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
 	
-	if (harvesterJob.isKillSent()) {
+	if (job.isKillSent()) {
 	  // Close to end the pipe 
 	  writer.close();
 	  throw new IOException("Download interruted with a kill signal.");
@@ -307,9 +307,9 @@ public class XmlMarcClient implements HarvestClient {
   }
 
   private void store(InputStream is, long contentLength) throws Exception {
-    RecordStorage storage = harvesterJob.getStorage();
+    RecordStorage storage = job.getStorage();
     SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage), 
-		Integer.parseInt(resource.getSplitAt()));
+		job.getNumber(resource.getSplitAt(), splitAt));
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
     xmlSplitter.processDataFromInputStream(is);
   }
@@ -326,7 +326,7 @@ public class XmlMarcClient implements HarvestClient {
     TotalProgressLogger progress = new TotalProgressLogger(total);
     for (int len = -1; (len = is.read(buf)) != -1;) {
       os.write(buf, 0, len);
-      if (harvesterJob.isKillSent()) {
+      if (job.isKillSent()) {
 	throw new IOException("Download interruted with a kill signal.");
       }
       progress.progress(len);
@@ -387,7 +387,11 @@ public class XmlMarcClient implements HarvestClient {
   }
 
   public void setHarvestJob(RecordHarvestJob parent) {
-    harvesterJob = parent;
+    if (parent instanceof BulkRecordHarvestJob)
+      job = (BulkRecordHarvestJob) parent;
+    else 
+      	throw new RuntimeException("Invalid usage of XmlMarcClient: Requires BulkRecordHarvestJob. Used by " 
+      	    + parent.getClass().getSimpleName());
   }
 
   public void setProxy(Proxy newProxy) {
