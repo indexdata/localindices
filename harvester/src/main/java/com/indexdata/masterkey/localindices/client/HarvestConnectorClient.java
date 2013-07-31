@@ -48,7 +48,7 @@ public class HarvestConnectorClient implements HarvestClient {
   private RecordHarvestJob job; 
   private int recordCount = 0;
   RecordStorage storage; 
-  List <String> linkTokens = new LinkedList<String>();
+  List <Object> linkTokens = new LinkedList<Object>();
 
   public void setHarvestJob(RecordHarvestJob parent) {
     job = parent;
@@ -201,7 +201,7 @@ public class HarvestConnectorClient implements HarvestClient {
     return new SimpleDateFormat(currentDateFormat).format(date);
   }
   
-  private void harvest(String linkToken) throws Exception {
+  private void harvest(Object linkToken) throws Exception {
     JSONObject jsonObj = createHarvestRequest(linkToken);    
     if (jsonObj == null) 
       throw new Exception("Error creating JSON harvest request object");
@@ -312,14 +312,8 @@ public class HarvestConnectorClient implements HarvestClient {
       if (linkTokensItem instanceof List) {
 	List linkTokens = (List) linkTokensItem;
 	for (Object linkTokenItem: linkTokens) {
-	  if (linkTokenItem instanceof String) {
-            this.linkTokens.add((String) linkTokenItem);
-	  } else if (linkTokenItem instanceof List) {
-            this.linkTokens.add(JSONArray.toJSONString((List)linkTokenItem));
-          } else if (linkTokenItem instanceof Map) {
-            this.linkTokens.add(JSONObject.toJSONString((Map)linkTokenItem));
-          }
-	  logger.debug("link tokens received: " + linkTokenItem);
+          this.linkTokens.add(linkTokenItem); //we don't care what JSON type it is
+	  logger.debug("link token received: " + linkTokenItem);
 	}
       }
       //parse and remember starttoken
@@ -356,13 +350,12 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createHarvestRequest(String linkToken) throws ParseException 
+  public JSONObject createHarvestRequest(Object linkToken) throws ParseException 
   {
     JSONObject request = new JSONObject();
-    JSONParser p = new JSONParser();
-    Object token = p.parse(linkToken, containerFactory);
-    if (linkToken != null)
-      request.put("link", token);
+    if (linkToken != null) {
+      request.put("link", linkToken);
+    }
     return request;
   }
   
