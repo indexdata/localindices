@@ -23,7 +23,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 import java.util.Date;
-import static junit.framework.Assert.assertTrue;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://usi03.indexdata.com:9010/connector";
