@@ -414,7 +414,7 @@ public class HarvestConnectorClient implements HarvestClient {
     BufferedReader br = new BufferedReader(is);
     String read = null;
     while ((read = br.readLine()) != null)
-        sb.append(read);
+        sb.append(read).append("\n");
     return sb.toString();
   }
 }
