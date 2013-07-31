@@ -37,7 +37,11 @@ public class ListSets extends HarvesterVerb {
     public ListSets(String baseUrl) {
         super();
     }
-    
+
+    public ListSets(Logger jobLogger) {
+      super(jobLogger);
+  }
+
     /**
      * Client-side ListSets verb constructor
      *
