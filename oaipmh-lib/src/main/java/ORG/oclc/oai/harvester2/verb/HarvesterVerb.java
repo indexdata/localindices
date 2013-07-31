@@ -79,9 +79,9 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
 public abstract class HarvesterVerb {
     protected Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
-    private int HTTP_MAX_RETRIES = 2;
-    private int HTTP_RETRY_TIMEOUT = 60; //secs
-    private int HTTP_TIMEOUT = 60000;    //msecs
+    private int httpRetries = 2;
+    private int httpRetryWait = 600; //secs
+    private int httpTimeout = 60000;    //msecs
 
     /* Primary OAI namespaces */
     public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
@@ -285,8 +285,8 @@ public abstract class HarvesterVerb {
             con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
             con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
             // TODO Make configurable. 
-            con.setConnectTimeout(HTTP_TIMEOUT);
-            con.setReadTimeout(HTTP_TIMEOUT);
+            con.setConnectTimeout(httpTimeout);
+            con.setReadTimeout(httpTimeout);
             try {
                 responseCode = con.getResponseCode();
                 if (responseCode != 200)
@@ -310,7 +310,7 @@ public abstract class HarvesterVerb {
                     retrySeconds = retryDate - now;
                 }
                 if (retrySeconds == 0) { //header not specified
-                    retrySeconds = HTTP_RETRY_TIMEOUT;
+                    retrySeconds = httpRetryWait;
                     logger.log(Level.INFO,"Server response code '"+responseCode
                             + "' retrying in "+ retrySeconds + " secs");
                 } else {
@@ -324,7 +324,7 @@ public abstract class HarvesterVerb {
                         throw new IOException("Interrupted while retrying HTTP connection.");
                     }
                 }
-                retry = ++totalRetries < HTTP_MAX_RETRIES;
+                retry = ++totalRetries < httpRetries;
             }
         } while (retry);
 
@@ -600,5 +600,29 @@ public abstract class HarvesterVerb {
 
     public void setUseTagSoup(boolean useTagSoup) {
       this.useTagSoup = useTagSoup;
+    }
+
+    public int getHttpRetries() {
+      return httpRetries;
+    }
+
+    public void setHttpRetries(int httpRetries) {
+      this.httpRetries = httpRetries;
+    }
+
+    public int getHttpRetryWait() {
+      return httpRetryWait;
+    }
+
+    public void setHttpRetryWait(int httpRetryWait) {
+      this.httpRetryWait = httpRetryWait;
+    }
+
+    public int getHttpTimeout() {
+      return httpTimeout;
+    }
+
+    public void setHttpTimeout(int httpTimeout) {
+      this.httpTimeout = httpTimeout;
     }
 }
