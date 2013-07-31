@@ -28,7 +28,7 @@
         <h:inputText value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
           <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
-        <h:outputText value="Resumption token:" styleClass="optionalInput"/>
+        <h:outputText value="Start token (incremental harvest):" styleClass="optionalInput"/>
         <h:inputText value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>
         <h:outputText value="Delay between requests (milliseconds):" styleClass="optionalInput" />
         <h:inputText value="#{resourceController.resource.sleep}" styleClass="optionalInput"/>
