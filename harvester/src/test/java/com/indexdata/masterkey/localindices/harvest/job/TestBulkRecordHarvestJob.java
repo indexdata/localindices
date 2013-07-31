@@ -443,7 +443,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus jobStatus = job.getStatus();
-    assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.OK);
+    assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.FINISHED);
   }
 
   /*
