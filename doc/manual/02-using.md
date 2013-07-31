@@ -1,57 +1,55 @@
-\newpage
+﻿\newpage
 
 # Using Harvester Admin #
 
 ## Harvest Jobs ##
 
-When you access Harvester Admin web site (URL and login credentials, or
-lack of thereof, is deployment specific) you will be welcomed by the Harvest
-Job page.
+The Harvester Admin web site (URL and login credentials are deployment specific) opens to the Harvest
+Jobs page.
 
-On the very top of the page you can see a naivigation menu that allows
-you to switch between main pages of the Harvester Admin.
+The navigation menu at the top of the Harvest Jobs page allows one to switch between sections of the Harvester Admin, such as "Storage Engines" or "Transformation Steps". 
 
-On the Harvest Job page, you can see a list of currently harvested resources and their status, and you can perform actions like Edit the job settings, Delete the job and View the latest job log.
+The Harvest Jobs page displays a list of currently harvested resources along with corresponding job status. Using the icons in the "Actions" column, one can Edit (the job settings), Run the job (a play/stop toggle icon), View the most recent job log, or Delete the job.
 
 ![Harvest Jobs page.](./img/01-harvestjobs.png)
 
-You can also Run/Stop jobs directly from the list by clicking the Play/Stop icons. By default, the job list view is refreshed automatically so you can monitor the status of the jobs without needing to refresh the page. You can turn off this behavior by unchecking the _Auto-Update_ check-box in the top-right corner.
+By default, the job list view is refreshed automatically to enable monitoring job status without having to refresh the page. Turn off this behavior by unchecking the _Auto-Update_ check-box in the top-right corner.
 
-Just below the navigation menu, you can see links for adding new harvest jobs.
+Links for adding new harvest jobs appear just below the navigation menu.
 
-### Editing or adding new Harvest Job ###
+### Editing or adding new Harvest Jobs ###
 
-The Harvester currently supports harvesting OAI-PMH resources and XML/MARC binary bulk data.
+The Harvester currently supports harvesting OAI-PMH resources, XML/MARC binary bulk data, and data obtained through Index Data screen-scraping Connectors. 
 
-Click the OAI-PMH or XML/Marc Bulk to add a new Resource to harvest.
+Click one of those three selections to add a new Resource to harvest, and follow the instructions below. 
 
 #### General Job Settings \
 
-Setting up a new Harvesting job consists of entering some general harvesting information plus specific settings for the type of job (OAI-PMH or XML/Marc Bulk). 
+Setting up a new Harvesting job consists of enteringgeneral harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
 
-The screen capture below shows the general settings:
+The screen capture below shows the general settings applicable to all three types of Harvesting jobs:
 
 ![General job settings.](./img/02-jobgeneric.png)
 
 * _Name_: Preferably a unique name for users to identify this Harvester resource.
 
-* _Content Description_,  _Technical Notes_ and _Contact Notes_: Not used by the Harvester, but for ease of support staff.
+* _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
-* _Harvest schedule_: A recurring time at which the Harvester job should run. 
+* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. [QUESTION: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.]
 
 Check-boxes for:
 
-* _Harvest now_: Run the harvesting job right after Add/Save.
+* _Harvest now_: Check to run the harvesting job immediately upon clicking Add/Save.
 
-* _Harvest job enabled_: The harvesting job will only be scheduled if checked.
+* _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". 
 
-* _Overwrite_: Delete all data before the run. Since OAI-PMH supports increment updates, this is not generally used with OAI-PMH jobs. If used with OAI-PMH, it is necessary to clear "Harvest From" and Resumption Token, otherwise it will only be a partial data set.
+* _Overwrite_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run. Since OAI-PMH supports incremental updates, "overwrite" is not generally used with such jobs. If this feature is used with OAI-PMH processes, it is necessary to clear the "Harvest From" and "Resumption Token" fields, otherwise OAI-PMH jobs with "overwrite" selected will produce only a partial data set.
 
 Drop-downs for:
 
-* _Transformation Pipeline_: In order to get the data stored, we need to transform the data from whatever input format the feed is delivering, into an internal format used by the Harvester.
+* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to an internal format used by the Harvester for data storage. [THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.]
 
-* _Storage_: Select which storage the harvested data should use. The Harvester supports multiple backend storages. This could be for staging like Development, Testing and Production, or it could be for different customers.
+* _Storage_: Select the storage type and location for the harvested data. The Harvester supports multiple backend storages. This could be for staging like Development, Testing and Production, or it could be for different customers.
 
 #### Resource-specific Settings \
 
