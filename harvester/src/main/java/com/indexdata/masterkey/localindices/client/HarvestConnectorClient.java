@@ -91,7 +91,7 @@ public class HarvestConnectorClient implements HarvestClient {
       logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
     }
     else {
-      logger.log(Level.INFO, "Engine Log:\n" + getLog()); 
+      logger.log(Level.INFO, getLog()); 
       logger.log(Level.INFO, "Finished - " + resource);
     }
     return 0;
@@ -226,7 +226,7 @@ public class HarvestConnectorClient implements HarvestClient {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
       else {
-	logger.error("Failed to harvest. Engine Log:" + getLog()); 
+	logger.error("Failed to harvest.\n" + getLog()); 
 	throw new Exception("Error: ResponseCode:" + responseCode);
       }
 }
@@ -237,7 +237,13 @@ public class HarvestConnectorClient implements HarvestClient {
     writeJSON(jsonObj, conn);
     int responseCode = conn.getResponseCode();
     if (responseCode == 200) {
-      return readJSONString(conn);
+      int numLines = 10;
+      String lines = readNLastLines(conn, numLines);
+      StringBuilder sb = new StringBuilder();
+      sb.append("Up to ").append(numLines).append(" trailing connector engine log lines shown:\n");
+      sb.append(lines);
+      sb.append("Engine log ends.\n");
+      return sb.toString();
     } else {
 	throw new Exception("Error: ResponseCode:" + responseCode);
     }
@@ -407,14 +413,21 @@ public class HarvestConnectorClient implements HarvestClient {
     conn.getOutputStream().flush();
   }
   
-  private String readJSONString(HttpURLConnection conn) throws IOException {
+  private String readNLastLines(HttpURLConnection conn, int numLines) throws IOException {
     InputStream in = conn.getInputStream();
     InputStreamReader is = new InputStreamReader(in, "UTF-8");
-    StringBuilder sb = new StringBuilder();
     BufferedReader br = new BufferedReader(is);
     String read = null;
-    while ((read = br.readLine()) != null)
-        sb.append(read).append("\n");
+    String[] lines = new String[numLines];
+    int i = 0;
+    while ((read = br.readLine()) != null) {
+        lines[i] = read;
+        i = ++i % numLines;
+    }
+    StringBuilder sb = new StringBuilder();
+    for (int j=i; j<numLines+i; j++) {
+      sb.append(lines[j%numLines]).append("\n");
+    }
     return sb.toString();
   }
 }
