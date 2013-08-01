@@ -1,22 +1,23 @@
 package com.indexdata.masterkey.localindices.oaipmh.server.handler.implement.mockup;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.ListRecordsHandler;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhProcotolException;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhResponse;
+import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhServerException;
+
 public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandler {
 
-  Map<String, String> properties = new HashMap<String, String>();
+  Properties properties = new Properties();
   
   String oai_dc = 
       "				<oai_dc:dc xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"\n" + 
@@ -78,62 +79,101 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
 
   private String resumptionTokenStart = "<resumptionToken>";
   private String resumptionTokenEnd = "</resumptionToken>";
-
   private boolean recordMode = true; 
+  private String[][] requiredParameters = {{"verb", "resumptionToken"}, {"verb", "metadataPrefix"}};
 
   @Override
-  public OaiPmhResponse handle(OaiPmhRequest request) {
+  public OaiPmhResponse handle(OaiPmhRequest request) throws OaiPmhProcotolException, IOException, OaiPmhServerException 
+  {
     if (request.getParameter("verb").equals("ListIdentifiers")) 
       recordMode = false;
 
-    String[][] requiredParameters = {{"verb", "resumptionToken"}, {"verb", "metadataPrefix"}};
     verifyParameters(request, requiredParameters); 
 
-    loadSetData(request);
+    OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);
+    loadSetData(generator);
     
     StringBuffer xml = new StringBuffer()
     		.append(getRequest(request))
 		.append(getElement(request));
-    
-    OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);  
+    // Handle errors, limits before generating response
+    delayResponse(generator);
+    forceServerError(generator);
+    checkStreamClose(generator);
     generator.setRecordMode(recordMode);
+    
     String resumptionToken = generator.generateRecords(xml);
     if (resumptionToken != null) {
-      xml.append(resumptionTokenStart + resumptionToken  + resumptionTokenEnd);
+      xml.append(resumptionTokenStart // + StringEscapeUtils.escapeXml(request.getBaseUrl() + "?verb=ListRecords&resumptionToken=" 
+	  	+ resumptionToken  // )
+	  	+ resumptionTokenEnd);
       
     }
     xml.append(getElementEnd(request));
     return new MockupOaiPmhResponse(xml.toString()); 
   }
 
-  private void loadSetData(OaiPmhRequest request) 
+  /* Not working at the Servlet end. Not sure how to force a servlet to close connection without writing an 
+   * HTTP response */
+  private void forceServerError(OaiMetaDataGenerator generator) throws OaiPmhServerException {
+    String stopString = properties.getProperty("server.error");
+    if (stopString != null) {
+      int stop = Integer.parseInt(stopString);
+      if (generator.getCount() >= stop) {
+	throw new OaiPmhServerException("503", "Internal Server Error", "After " + stop + " records");
+      }
+    }
+  }
+
+  private void checkStreamClose(OaiMetaDataGenerator generator) throws IOException {
+    String stopString = properties.getProperty("stream.close");
+    if (stopString != null) {
+      int stop = Integer.parseInt(stopString);
+      if (generator.getCount() >= stop) {
+	throw new IOException("Forcing stream closed");
+      }
+    }
+  }
+
+  private void delayResponse(OaiMetaDataGenerator generator) {
+    String delayIncrease = properties.getProperty("delay.increase");
+    if (delayIncrease != null) {
+      int increment = Integer.parseInt(delayIncrease);
+      long sleep = generator.getCount() * increment;
+      try {
+	Thread.sleep(sleep);
+      } catch (InterruptedException ie) {
+	Logger.getLogger(this.getClass()).warn("Failed to sleep full period of " + sleep + " seconds.");
+      }
+    }
+  }
+
+  private void loadSetData(OaiMetaDataGenerator request) throws OaiPmhProcotolException 
   {
-    String setValue = request.getParameter("set");
+    String setValue = request.getSet();
     if (setValue == null)
       return; 
     
     InputStream inputStream = getClass().getResourceAsStream(setValue);
     if (inputStream == null) {
-      File setFile = new File(setValue);
+      File setFile = new File("sets/" + setValue);
       try {
 	inputStream = new FileInputStream(setFile);
       } catch (FileNotFoundException e) {
 	e.printStackTrace();
-	throw new RuntimeException("Set '" + setValue + "' definition not found!"); 
+	throw new OaiPmhProcotolException("noRecordsMatch",
+	    "The combination of the values of the from, until, set and metadataPrefix arguments results in an empty list.", 
+	    "Set '" + setValue + "' definition not found!"); 
       }
     }
-    Reader reader = new InputStreamReader(inputStream);
-    BufferedReader lineReader = new BufferedReader(reader);
+    Properties properties = new Properties();
     try {
-      while (lineReader.ready()) {
-	String line = lineReader.readLine();
-	if (line == null) 
-	  break;
-	
-      }
-    }
-    catch(IOException ioe) {
-      
+      properties.load(inputStream);
+      this.properties = properties;
+    } catch (IOException e) {
+	throw new OaiPmhProcotolException("noRecordsMatch",
+	    "The combination of the values of the from, until, set and metadataPrefix arguments results in an empty list." , 
+	    "Set '" + setValue + "' failed to load!"); 
     }
   }
 
