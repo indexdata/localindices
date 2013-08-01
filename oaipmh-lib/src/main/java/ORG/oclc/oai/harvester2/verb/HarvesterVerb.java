@@ -80,8 +80,8 @@ public abstract class HarvesterVerb {
     protected Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
 
     private int httpRetries = 2;
-    private int httpRetryWait = 600; //secs
-    private int httpTimeout = 60000;    //msecs
+    private int httpRetryWait = 60;   // secs
+    private int httpTimeout = 60000;  // millisecs
 
     /* Primary OAI namespaces */
     public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
