@@ -142,6 +142,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         //there's no way resumption token is valid if we get here
         resource.setResumptionToken(null);
 	logOaiPmhException(e, e.getMessage());
+        logger.debug("Stack trace:", e);
       }
     } catch (IOException e) {
       //when we get here the retry loop has already been exhausted
@@ -152,7 +153,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         if (resource.getClearRtOnError())
           resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
-	//e.printStackTrace();
+	logger.debug("Stack trace:", e);
       }
     } catch (Exception e) {
       if (isKillSent()) {
@@ -160,7 +161,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       else {
 	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
-	//e.printStackTrace();
+	logger.debug("Stack trace:", e);
       }
     }
     // if there was no error we move the time marker
@@ -174,9 +175,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
 	  setStatus(HarvestStatus.FINISHED);
 	logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
-      } catch (Exception e) {
-        String errorMessage = "Storage commit failed due to Exception: " + e.getMessage();
+      } catch (IOException e) {
+        String errorMessage = "Storage commit failed: " + e.getMessage();
 	logger.log(Level.ERROR, errorMessage);
+        logger.debug("Stack trace:", e);
 	setStatus(HarvestStatus.ERROR, errorMessage);
       }
     } else {
@@ -196,8 +198,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  getStorage().rollback();
 	}
       } catch (IOException ioe) {
-	logger.log(Level.ERROR, "Storage commit/rollback failed.",ioe);
-        setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
+        String msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
+	logger.log(Level.ERROR, msg);
+        logger.debug("Stack trace:", ioe);
+        setStatus(HarvestStatus.ERROR, msg);
       }
     }
     
