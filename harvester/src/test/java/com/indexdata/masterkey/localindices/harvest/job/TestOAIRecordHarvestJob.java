@@ -116,7 +116,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
   }
 
   public void testCleanRangeOaiPmhJob_OaiDC_UTF8() throws IOException, StatusNotImplemented {
-    OaiPmhResource resource = createResource(resourceOaiDcIso8859_1, "oai_dc", createUTCDate(2008, 8, 1), createUTCDate(2008, 8, 2), null, "UTF-8");
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", createUTCDate(2008, 8, 1), createUTCDate(2008, 8, 2), null, "UTF-8");
     RecordStorage recordStorage = createStorage(resource, "testCleanRangeOaiPmhJob_OaiDC_UTF8", true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
