@@ -83,6 +83,11 @@ public class OaiPmhMockupServlet extends HttpServlet {
     out.write(oaiPmhResponse.toString());
   }
 
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    doGet(request, response);
+  }
+
   public Dispatcher getDispatcher() {
     return dispatcher;
   }
