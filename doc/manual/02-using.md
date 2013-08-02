@@ -35,7 +35,19 @@ The screen capture below shows the general settings applicable to all three type
 
 * _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
-* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. [QUESTION: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.]
+* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. 
+
+<!-- 
+    D: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.
+    Jakub: internally we can support any schedule that Cron supports:
+    * weekly -- select any day of the week, eg Monday
+    the otherss you mention cannot be directly represented with drop-downs:
+    (bimonthly could be hacked by choosing 31st, close)
+    What we could do is to let users specify multiple values for each category,
+    e.g:
+    * biweekly ~ 2 times a month, e.g on the 14th and 28th of any month
+    * bimonthly ~ list the exact month numbers: 1,3,5,7,9,11
+-->
 
 Check-boxes for:
 
@@ -47,7 +59,11 @@ Check-boxes for:
 
 Drop-downs for:
 
-* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to an internal format used by the Harvester for data storage. [THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.]
+* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to an internal format used by the Harvester for data storage. 
+<!---
+    D: THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.
+    Jakub: maybe a link to the transformation section?
+-->
 
 * _Storage_: Select the storage type and location for the harvested data. The Harvester supports multiple backend storages. This could be for staging like Development, Testing and Production, or it could be for different customers.
 
