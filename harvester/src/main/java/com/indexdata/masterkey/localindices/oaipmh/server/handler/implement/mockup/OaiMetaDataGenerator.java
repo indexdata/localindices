@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.oaipmh.server.handler.OaiPmhRequest;
 
 public class OaiMetaDataGenerator {
@@ -16,14 +18,14 @@ public class OaiMetaDataGenerator {
   long  step = 24 * 3600 * 1000; 
   int bulkSize = 10;
   int count = 0;
-  Date start =  new Date();
-  Date end   =  new Date();
-  Date next   = new Date(start.getTime());
+  Date from =  new Date();
+  Date until   =  new Date();
+  Date next   = new Date(from.getTime());
   // TODO This hack only works for steps of size day and only for short date format 
-  Date realEnd  = new Date(end.getTime() + step);
+  Date realEnd  = new Date(until.getTime() + step);
   OaiPmhRequest request;
   // One day
-  String set = "";
+  private String set = "";
   Map<String, Object> otherProperties;
   boolean more;
 
@@ -65,49 +67,53 @@ public class OaiMetaDataGenerator {
 
   public OaiMetaDataGenerator(OaiPmhRequest request) {
     this.request = request;
-    start = parseDate(request.getParameter("from"), 0);
-    end   = parseDate(request.getParameter("until"), new Date().getTime());
+    from  = parseDate(request.getParameter("from"), 0);
+    until    = parseDate(request.getParameter("until"), new Date().getTime());
+    count  = 0;
+    prefix = request.getParameter("metadataPrefix");
+    set    = request.getParameter("set");
+    parseResumptionToken();
+
   }
 
-  public OaiMetaDataGenerator(Date from, Date until, int seconds, Map<String, Object> properties) {
-    start  = from;
-    end  = until;
+  public OaiMetaDataGenerator(Date fromDate, Date untilDate, int seconds, Map<String, Object> properties) {
+    from  = fromDate;
+    until  = untilDate;
     this.step = seconds;
     otherProperties = properties;
-    more = start.before(end);
+    more = from.before(until);
   }
 
-
-
   public String generateRecords(StringBuffer xml) {
-    count = 0;
-    prefix = request.getParameter("metadataPrefix");
-    parseResumptionToken();
     if (!"oai_dc".equals(prefix))
     	throw new RuntimeException("Unsupported metadataPrefix: " + prefix);
-    next = new Date(start.getTime() + (count * step));
-    realEnd  = new Date(end.getTime() + step);
+    next = new Date(from.getTime() + (count * step));
+    realEnd  = new Date(until.getTime() + step);
     //TODO side effect in generateRecord of printing out a record. Must be called after count < bulkSize 
     int index = 0;
     while (index < bulkSize && generateRecord(xml)) {
       count++;
       index++;
-      next = new Date(start.getTime() + (count * step));
+      next = new Date(from.getTime() + (count * step));
     }
     
     return generateResumptionToken(); 
   }
 
-  private void parseResumptionToken() {
+  public void parseResumptionToken() {
     String resumptionToken = request.getParameter("resumptionToken");
     if (resumptionToken != null) {
       String[] parameters = resumptionToken.split("\\|");
       if (parameters.length >= 5) {
 	prefix = parameters[0];
-	start = parseDate(parameters[1], 0l);
-        end = parseDate(parameters[2], new Date().getTime());
+	from = parseDate(parameters[1], 0l);
+        until = parseDate(parameters[2], new Date().getTime());
         set = (parameters[3].equals("") ? null : parameters[3]); 
-      	count = Integer.parseInt(parameters[4]);
+        try {
+          count = Integer.parseInt(parameters[4]);
+        } catch (Exception ex) {
+          Logger.getLogger(this.getClass()).warn("Failed to parse count on resumption token: " + resumptionToken);
+        }
       }
       else throw new RuntimeException("Invalid resumption token '" + resumptionToken + "'");
     }
@@ -143,11 +149,11 @@ public class OaiMetaDataGenerator {
     if (more) {
       StringBuffer token = new StringBuffer("");
       token.append(prefix).append("|");
-      if (start != null) 
-	token.append(dateFormat.format(start));
+      if (from != null) 
+	token.append(dateFormat.format(from));
       token.append("|");
-      if (end != null)
-	token.append(dateFormat.format(end));
+      if (until != null)
+	token.append(dateFormat.format(until));
       token.append("|");
       token.append((set != null ? set: "")).append("|");
       token.append(count);
@@ -188,5 +194,45 @@ public class OaiMetaDataGenerator {
 
   public void setRecordMode(boolean recordMode) {
     this.recordMode = recordMode;
+  }
+
+  protected int getCount() {
+    return count;
+  }
+
+  protected void setCount(int count) {
+    this.count = count;
+  }
+
+  protected String getSet() {
+    return set;
+  }
+
+  protected void setSet(String set) {
+    this.set = set;
+  }
+
+  protected String getPrefix() {
+    return prefix;
+  }
+
+  protected void setPrefix(String prefix) {
+    this.prefix = prefix;
+  }
+
+  protected Date getFrom() {
+    return from;
+  }
+
+  protected void setFrom(Date from) {
+    this.from = from;
+  }
+
+  protected Date getUntil() {
+    return until;
+  }
+
+  protected void setUntil(Date until) {
+    this.until = until;
   }
 }
