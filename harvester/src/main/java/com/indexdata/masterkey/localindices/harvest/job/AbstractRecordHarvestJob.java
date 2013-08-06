@@ -97,7 +97,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
 	if (split) {
 	  // TODO check if the existing one exists and is alive. 
 	  if (streamStorage == null || streamStorage.isClosed() == true) {
-	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage()), splitDepth, splitSize);
+	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage(),logger), splitDepth, splitSize);
 	    xmlReader.setContentHandler(splitHandler);
 	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, this);
 	  }
