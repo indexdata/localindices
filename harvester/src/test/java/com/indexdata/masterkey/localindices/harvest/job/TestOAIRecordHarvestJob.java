@@ -57,7 +57,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   private RecordHarvestJob doXDaysHarvestJob(RecordStorage recordStorage, OaiPmhResource resource)
           throws IOException {
-    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
+    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
     job.setStorage(recordStorage);
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.run();
@@ -205,7 +205,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     OaiPmhResource resource = createResource(resourceOAI2MarcUrl, "marc21", null, createUTCDate(2013, 6, 8), "book", null);
     boolean purge = true;
     RecordStorage recordStorage = createStorage(resource, "testCleanResumptionOaiPmhJob_OaiMarc21", purge);
-    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
+    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
       int index = 0;
 
       @Override
