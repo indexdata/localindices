@@ -486,6 +486,13 @@ public class ResourceController {
     return listResources();
   }
 
+  public String getStorageUrl() {
+    if (resource != null) {
+      return resource.getStorage().getSearchUrl(resource);
+    }
+    return "";
+  }
+
   public String saveAndPurge() {
     dao.delete(resource);
     prePersist();
