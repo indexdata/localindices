@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 
 use Net::OAI::Harvester;
 
@@ -12,6 +13,12 @@ die "No metadataPrefix given" if (!$prefix);
 $set = '';
 $set = @ARGV[2] if ($ARGV[2]);
 
+$fromDate = '';
+$fromDate = @ARGV[3] if ($ARGV[3]);
+
+$untilDate = '';
+$untilDate  = @ARGV[4] if ($ARGV[4]);
+
 
 ## create a harvester for the Library of Congress
 my $harvester = Net::OAI::Harvester->new( 
@@ -23,7 +30,7 @@ print "name: ",$identity->repositoryName(),"\n";
 
 ## list all the records in a repository
 
-my $records = $harvester->listRecords( metadataPrefix => $prefix, from => "2008-09-01", 'until' => "2008-09-01");
+my $records = $harvester->listRecords( metadataPrefix => $prefix, from => $fromDate, 'until' => $untilDate);
 my $finished = 0;
 
 while ( ! $finished ) {
@@ -48,5 +55,3 @@ while ( ! $finished ) {
 	$finished = 1;
     }
 }
-
-
