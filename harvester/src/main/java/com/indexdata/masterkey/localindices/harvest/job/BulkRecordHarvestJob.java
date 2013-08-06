@@ -98,7 +98,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	  (getStatus() == HarvestStatus.ERROR && getHarvestable().getAllowErrors())) 
       {
         transformationStorage.databaseEnd();
-        transformationStorage.commit();
+        commit();
         setStatus(HarvestStatus.FINISHED);
       }
       else {
