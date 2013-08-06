@@ -33,9 +33,21 @@ The screen capture below shows the general settings applicable to all three type
 
 * _Name_: Preferably a unique name for users to identify this Harvester resource.
 
-* _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These fields are not used by the Harvester, but by support staff for recording useful administrative information.
+* _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These free-text fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
-* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. [QUESTION: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC. ANSWER (DS): The module follows the crontab model: minute, hourly, daily, weekly, monthly, and also multiple times per unit, but the UI does not support the later (multiple times)]
+* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. 
+
+<!-- 
+    D: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.
+    Jakub: internally we can support any schedule that Cron supports:
+    * weekly -- select any day of the week, eg Monday
+    the otherss you mention cannot be directly represented with drop-downs:
+    (bimonthly could be hacked by choosing 31st, close)
+    What we could do is to let users specify multiple values for each category,
+    e.g:
+    * biweekly ~ 2 times a month, e.g on the 14th and 28th of any month
+    * bimonthly ~ list the exact month numbers: 1,3,5,7,9,11
+-->
 
 Check-boxes for:
 
@@ -47,27 +59,54 @@ Check-boxes for:
 
 Drop-downs for:
 
-* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to an internal format used by the Harvester for data storage. [THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.]
+* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to the internal format used by the Harvester for data storage. 
+<!---
+    D: THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.
+    Jakub: maybe a link to the transformation section?
+    D: I don't see that helping much, unless I'm missing something.
+    Jakub: I mean there's a whole chapter on TPs in the manual, instead of putting more text here let's refer user to that section.
+-->
 
-* _Storage_: Select the storage type and location for the harvested data. The Harvester supports multiple backend storages. This could be for staging like Development, Testing and Production, or it could be for different customers.
+* _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported.
+
+* _Encoding override_: 
+<!---
+D. Encoding override needs explanation; it is missing in the manual right now. When would it be required? What values are allowed? What is the input format? Will this be a drop-down later?
+    Jakub: Dennis, could you please fill out this section?
+-->
 
 #### Resource-specific Settings \
 
 Depending on which resource type you choose, the following settings will apply.
 
 ##### OAI-PMH Specific Information: \
-
+ 
 ![OAI/PMH job settings.](./img/03-oaispecific.png)
 
-* _OAI Repository URL_: a link (http-based) to the resource to harvest. The base link defined by OAI Set Name: some resources have multiple sets within the repository. If none is selected, the full repository will be harvested.
+* _OAI Repository URL_: Enter a link (http-based) to the resource to be harvested. Include the base link defined by OAI Set Name: (see below). Some resources have multiple sets within the repository. If no specific set is identified by the URL, the full repository will be harvested.
 
-* _Metadata Prefix_: A repository uses one of two prefixes (or data embedding format): Dublin Core or MARC XML embedded data. It is important to choose the right one otherwise no data will be harvested. Also, the Transformation selected should match this format otherwise no record will be found. 
+* _OAI Set Name_: 
+<!---
+    D: This field needs definition on its own, not just as part of the field above. Is it free text? I assume that, but we need to be clear about it. 
+    Jakub: D, this field is very OAI-PMH specific, I fail to see what definition
+    we could provide rather than the redundant "name of a the OAI set". We
+    are working on having either a drop-down or auto-completion implemented
+    here thrugh the OAI ListSets command.
+-->
 
-* _Use long data format_: Check-box to indicate whether to use a long data format when asking for records from the OAI-PMH resource. This is not used very often, but should match what the resource requires.
+* _Metadata Prefix_: A string that specifies the metadata format in OAI-PMH requests issued to a targeted repository. It is important to choose the correct format or no data will be harvested from the repository. Make sure a Transformation Pipeline that matches the metadata format used in the repository is selected, otherwise records will not be understood by the Harvester. Repositories generally use one of the following prefixes (or embedded data formats): Dublin Core (OAI-DC) or MARC XML (MARC12/USMARC). Other less common MetadataPrefix values include PMC (PubMed Central full-text records), PMC (PubMed Central metadata records), and PZ2 (pazpar2).
 
-* _Harvest from date_: If empty and no resumption token is set, the Harvester will harvest the full data set from the resource. On completion the Harvester will set the date to yesterday, so next run will only harvest the newer records received since last run.
+* _Use long date format_: Check-box to indicate whether to use a long date format when requesting records from the OAI-PMH resource. This is not used very often, but is required by some resources.
 
-* _Resumption token_: The OAI-PMH protocol supports splitting bigger datasets into smaller chunks. On delivery of a chunk the OAI-PMH returns a token which the next request should use in order to get the next chunk. If an OAI-PMH job halts before completion the resumption token will be set in this field. Sometimes it is possible to run it again from this resumption point at a later stage, but this is not always supported.
+* _Harvest from (yyyy-MM-dd)_: If empty and no resumption token is set, the Harvester will harvest the full data set from the resource. When this field contains a value, upon completion of the job the Harvester will set the value to the day prior to the current run date, so subsequent runs will harvest only new records.
+<!---
+    Question: Is it necessary to change this date? I.e., when the second run is complete, will the Harvester ignore this date and use the current run's date "minus one"? Or does the user have to change the date before each new run of the job?
+    Jakub: the text says the harvester will change that value on consecutive runs
+-->
+
+* _Harvest until (yyyy-MM-dd)_: upper date limit for selective harvesting. On consecutive runs the Harvester will clear this field making the date interval open-ended.
+
+* _Resumption token_: The OAI-PMH protocol supports splitting bigger datasets into smaller chunks. On delivery of a chunk of records, the OAI-PMH returns a token which the next request should use in order to get the next chunk. If an OAI-PMH job halts before completion, the resumption token will be set in this field. Sometimes it is possible to run it again from this resumption point at a later stage, but this is not always supported.
 
 * _Clear resumption token on errors_: clear the resumption token for harvests that complete in an error state. This is useful when server errors out and the last resumption token is no longer valid.
 
