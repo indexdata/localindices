@@ -49,6 +49,7 @@ public class TransformationController {
   //private TransformationStepDAO stepDao;
   private Transformation current;
 
+  @SuppressWarnings("rawtypes")
   private DataModel model;
   @SuppressWarnings("rawtypes")
   /* Transformations */
