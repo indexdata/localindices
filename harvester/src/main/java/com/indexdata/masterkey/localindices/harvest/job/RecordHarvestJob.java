@@ -44,7 +44,7 @@ public interface RecordHarvestJob extends HarvestJob {
   RecordStorage getStorage();
 
   /**
-   * Inform the harvestesting job the the files harvest were received.
+   * Inform the harvesting job the the files harvest were received.
    */
   void finishReceived();
 
