@@ -39,7 +39,7 @@ public interface HarvestJob extends Runnable {
   HarvestStorage getStorage();
 
   /**
-   * Inform the harvestesting job the the files harvest were received.
+   * Inform the harvesting job the the files harvest were received.
    */
   void finishReceived();
 
