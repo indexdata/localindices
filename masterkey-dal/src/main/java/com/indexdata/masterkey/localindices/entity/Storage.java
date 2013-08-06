@@ -43,7 +43,7 @@ public abstract class Storage implements Serializable, Cloneable {
   protected String message;
   @Column(length = 100)
   protected String transformation;
-  private String url;
+  protected String url;
 
   /*
    * @OneToMany(mappedBy="storage") // try @XmlTransient private
@@ -151,6 +151,7 @@ public abstract class Storage implements Serializable, Cloneable {
     this.url = url;
   }
 
+  public abstract String getSearchUrl(Harvestable resource);
   /*
    * public void setHarvestables(Set<Harvestable> harvestables) {
    * this.harvestables = harvestables; }
