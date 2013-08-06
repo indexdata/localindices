@@ -487,10 +487,10 @@ public class ResourceController {
   }
 
   public String getStorageUrl() {
-    if (resource != null) {
+    if (resource != null && resource.getId() != null) {
       return resource.getStorage().getSearchUrl(resource);
     }
-    return "";
+    return null;
   }
 
   public String saveAndPurge() {
