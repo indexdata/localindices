@@ -70,7 +70,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   protected Date lastHarvestFinished;
   protected String currentStatus;
   // renamed v1
-  protected Integer amountHarvested;
+  protected Long amountHarvested;
   // renamed v1
   @Column(length = 4096)
   protected String message;
@@ -208,12 +208,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
     this.lastHarvestFinished = lastHarvestFinished;
   }
 
-  public Integer getAmountHarvested() {
+  public Long getAmountHarvested() {
     return amountHarvested;
   }
 
-  public void setAmountHarvested(Integer amountHarvested) {
-    this.amountHarvested = amountHarvested;
+  public void setAmountHarvested(Long amount) {
+    this.amountHarvested = amount;
   }
 
   @Transient
