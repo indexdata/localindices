@@ -26,6 +26,7 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 
   public SolrServer createEmbeded() {
     System.setProperty("solr.solr.home", "./solr");
+    @SuppressWarnings("unused")
     File file = new File(".");
 
     CoreContainer.Initializer initializer = new CoreContainer.Initializer();
