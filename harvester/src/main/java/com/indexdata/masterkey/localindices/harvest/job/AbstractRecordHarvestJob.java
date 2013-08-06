@@ -20,6 +20,8 @@ import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
@@ -123,5 +125,21 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     // Though, each thread needs it's own 
 
     return setupTransformation(getStorage()).getOutputStream();
+  }
+
+  protected void commit() throws IOException {
+    getStorage().commit();
+    Harvestable resource = getHarvestable();
+    try {
+      StorageStatus storageStatus = getStorage().getStatus();
+      if (storageStatus != null) {
+        resource.setAmountHarvested(storageStatus.getAdds());
+        if (getStatus() != HarvestStatus.WARN)
+          resource.setMessage("" + storageStatus.getAdds() + " added. " + storageStatus.getTotalRecords() + " in total");
+      }
+    }
+    catch (StatusNotImplemented exception) {
+      logger.warn("Failed to get Storage Status.");
+    }
   }
 }
