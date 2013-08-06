@@ -105,6 +105,25 @@ public class HarvestableResource {
     dao.delete(harvestable);
   }
 
+  @Path("purge/")
+  @GET
+  @Produces("text/plain")
+  public String purge() {
+    Harvestable harvestable = dao.retrieveById(id);
+    if (harvestable.getStorage() != null) {
+      try { 
+	HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
+	storage.purge(true);
+	return "OK"; 
+      } catch (Exception e) {
+	String error = "Failed to purge records in storage " + harvestable.getStorage().getId();
+	Logger.getLogger(this.getClass()).log(Level.ERROR, error, e);
+	return error;
+      }
+    }
+    return "No storage to purge";
+  }
+
   /**
    * Entry point to the Harvestable log file.
    * 
