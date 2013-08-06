@@ -167,7 +167,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
       try {
-	getStorage().commit();
+	commit();
 	// TODO persist until and from, trash resumption token
 	resource.setFromDate(resource.getUntilDate());
 	resource.setUntilDate(null);
@@ -179,6 +179,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         String errorMessage = "Storage commit failed due to Exception: " + e.getMessage();
 	logger.log(Level.ERROR, errorMessage);
 	setStatus(HarvestStatus.ERROR, errorMessage);
+	resource.setResumptionToken(null);
       }
     } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
@@ -190,15 +191,17 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (resource.getKeepPartial()) {
 	  logger.log(Level.INFO, "OAI harvest killed/faced error, "
 	      + "commiting up partial harvest as configured");
-	  getStorage().commit();
-        } else {
+	  commit();
+         } else {
 	  logger.log(Level.INFO, "OAI harvest killed/faced error - rollingback until " 
             + formatDate(resource.getFromDate()));
 	  getStorage().rollback();
-	}
+	  resource.setResumptionToken(null);
+        }
       } catch (IOException ioe) {
 	logger.log(Level.ERROR, "Storage commit/rollback failed.",ioe);
         setStatus(HarvestStatus.ERROR, "Storage commit failed due to I/O Exception");
+	resource.setResumptionToken(null);
       }
     }
     
@@ -232,6 +235,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       listRecords = listRecords(baseURL, resumptionToken);
     }
     boolean dataStart = false;
+    int count = 0;
     while (listRecords != null && !isKillSent()) {
       NodeList errorNodes = null;
       try {
@@ -264,7 +268,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	NodeList list;
 	try {
 	  list = listRecords.getRecords();
-	  int count = list.getLength();
+	  count = list.getLength();
 	  totalCount += count;
 	  if (totalCount % 1000 == 0) 
 	    logger.info("Harvested " + totalCount + " records from " + baseURL); 
@@ -283,11 +287,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
       }
       if (resumptionToken == null || resumptionToken.length() == 0) {
-	logger.log(Level.INFO, "Records stored. No resumptionToken received, harvest done.");
+	logger.log(Level.INFO, "" + count + " Records fetched. No resumptionToken received, harvest done.");
 	setStatus(HarvestStatus.OK);
 	break;
       } else {
-	logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
+	logger.log(Level.INFO, "" + count + " Records fetched, next resumptionToken is " + resumptionToken);
 	resource.setResumptionToken(resumptionToken);
 	//getStorage().commit();
 	markForUpdate();
