@@ -6,7 +6,7 @@ This document describes the Harvester using the following notation:
 
 *   _Harvest Job_: the actual instance of harvesting a given resource with a specified schedule, as configured in the harvester
 
-*   _Storage Engine_: or storage for short, a target index for the harvested data [THIS IS NOT CLEAR. Is it a designated Solr index into which the harvested data is placed for future indexing and/or retrieval?]
+*   _Storage Engine_: or storage for short, a indexing server for the harvested data [THIS IS NOT CLEAR. Is it a designated Solr index into which the harvested data is placed for future indexing and/or retrieval? DS: I think the answer is YES, but not sure what you by designated. The data from each job will become a (sub)database (the Z39.50 term) on that indexing server. Yes this will be retrival through exposed url in a Toroid]
 
 *   _Transformation Step_: or step, which transforms data from one format to another or performs normalizations within the same format
 
