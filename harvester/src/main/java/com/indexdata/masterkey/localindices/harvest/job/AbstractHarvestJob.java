@@ -86,7 +86,8 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   public final synchronized void finishReceived() 
   {
     runStatus = jobStatus;
-    getHarvestable().setLastHarvestFinished(new Date());
+    Harvestable harvestable = getHarvestable(); 
+    harvestable.setLastHarvestFinished(new Date());
   }
 
   @Override
