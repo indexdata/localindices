@@ -308,7 +308,7 @@ public class XmlMarcClient implements HarvestClient {
 
   private void store(InputStream is, long contentLength) throws Exception {
     RecordStorage storage = job.getStorage();
-    SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage), 
+    SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage, job.getLogger()), 
 		job.getNumber(resource.getSplitAt(), splitAt));
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
     xmlSplitter.processDataFromInputStream(is);
