@@ -29,14 +29,12 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private String database;
   @SuppressWarnings("unused")
   private Map<String, String> databaseProperties;
-  //protected int added;
-  //protected int deleted;
-  //private boolean committed;
   private Date transactionId;
   private boolean delayedPurge = true;
   private boolean waitSearcher = false;
   private boolean isPurged;
   private String transactionIdField = "solrLastModified";
+  @SuppressWarnings("unused")
   private SolrServerFactory factory;
 
   public SolrRecordStorage(String url, Harvestable harvestable) {
@@ -66,8 +64,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       UpdateResponse response = server.commit(true, waitSearcher);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
-      else	
+      else {	
 	storageStatus.setTransactionState(TransactionState.Committed);
+      }
     } catch (SolrServerException e) {
       logger.error("Commit failed when adding " + storageStatus.getOutstandingAdds() + " and deleting " + storageStatus.getOutstandingDeletes() + " to database " + database, e);
       e.getStackTrace();
@@ -303,11 +302,6 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
-  }
-
-  @Override
-  public StorageStatus getStatus()  {
-    return storageStatus;
   }
 
   @Override
