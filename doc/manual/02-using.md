@@ -35,7 +35,7 @@ The screen capture below shows the general settings applicable to all three type
 
 * _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
-* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. [QUESTION: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.]
+* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. [QUESTION: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC. ANSWER (DS): The module follows the crontab model: minute, hourly, daily, weekly, monthly, and also multiple times per unit, but the UI does not support the later (multiple times)]
 
 Check-boxes for:
 
