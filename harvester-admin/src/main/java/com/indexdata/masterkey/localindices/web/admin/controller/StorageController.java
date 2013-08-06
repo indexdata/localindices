@@ -41,6 +41,7 @@ public class StorageController {
   private StorageDAO dao;
   private Storage storage;
 
+  @SuppressWarnings("rawtypes")
   private DataModel model;
   private List<StorageBrief> storages;
   private String storageAdminSite;
