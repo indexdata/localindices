@@ -11,4 +11,14 @@ public class SolrStorageEntity extends Storage implements Serializable {
 
   private static final long serialVersionUID = -5840585258242340150L;
 
+  public String getSearchUrl(Harvestable resource) {
+    if (resource == null)
+      	return getUrl();
+    StringBuffer clientUrl = new  StringBuffer(getUrl());
+    if (clientUrl.lastIndexOf("/") + 1 != clientUrl.length())
+      clientUrl.append('/');
+    clientUrl.append("select?q=database:").append(resource.getId());
+    return clientUrl.toString();
+  }
+
 }
