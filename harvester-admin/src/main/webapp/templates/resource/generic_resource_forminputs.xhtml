@@ -11,7 +11,10 @@
       <h5>General information: </h5>
       <h:panelGrid columns="2">
         <h:outputText value="Id:"/>
-        <h:outputText value="#{resourceController.resource.id}"/>
+        <h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
+            <h:outputText value="#{resourceController.resource.id} show records" />
+        </h:outputLink>
+        <h:outputText value="" rendered="#{resourceController.storageUrl == null}"/> 
         <h:outputText value="Name:"/>
         <h:inputText value="#{resourceController.resource.name}" size="30"/>
         <h:outputText value="Service Provider:"/>
