@@ -370,7 +370,7 @@ public class HarvestConnectorClient implements HarvestClient {
     throws ParseException 
   {
     JSONObject request = new JSONObject();
-    if (startToken != null) {
+    if (startToken != null && !startToken.isEmpty()) {
       JSONParser p = new JSONParser();
       Map sT = (Map) p.parse(startToken, containerFactory);
       request.putAll(sT);
