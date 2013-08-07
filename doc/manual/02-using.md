@@ -250,11 +250,12 @@ An XSL step consists of the following:
 
 * _Description_: Description of what the step does.
 
-* _Type_: For future use. 
 <!--
+* _Type_: For future use. 
     D.: Yet some say "XSLT" in type. Is there any advantage to using this as a free-text field? 
     Jakub: Dennis, what is the purpose of this field?
     DS: Actually not sure what my plan was with this
+    Jakub: disabled in the UI and in the manual
 -->
 
 * _Input Format/Output Format_: In a future release, these fields will be used for automated filtering and validation. Currently, these fields are used for visual step validation when viewed as a list. As shown in the illustration below, steps viewed in a series must display the output type in a previous step corresponding to the input format in a succeeding step, otherwise the transformation will fail.  
@@ -265,10 +266,12 @@ The Output Format of the first Step is PZ but the second step expects MARCXML as
 
 * _Transformation (XSL)_: A valid XSL transformation script. Note that XSLT up to version 2 is supported. 
 
+<!---
+  Jakub: testing is disabled in the manual and the UI until it works
 * _Test data_: For future use. 
 
 * _Expected output_: For future use.
-<!--
+    
     D.: Since these huge fields are only for future use, we should make them smaller--at least in this image, and probably in the UI as well.
     Also--if the "Test" button doesn't do anything, remove it? If it does anything, let's describe it please. 
     Jakub: I agree, if those fields serve no purpose at the moment let's hide
