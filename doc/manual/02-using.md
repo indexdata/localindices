@@ -41,9 +41,10 @@ The screen capture below shows the general settings applicable to all three type
     D: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.
     Jakub: internally we can support any schedule that Cron supports:
     * weekly -- select any day of the week, eg Monday
-    the otherss you mention cannot be directly represented with drop-downs:
+    the others you mention cannot be directly represented with  drop-downs:
     (bimonthly could be hacked by choosing 31st, close)
-    What we could do is to let users specify multiple values for each category,
+    What we could do is to let users specify multiple schedules, which
+    the harvester will evaluate in order.
     e.g:
     * biweekly ~ 2 times a month, e.g on the 14th and 28th of any month
     * bimonthly ~ list the exact month numbers: 1,3,5,7,9,11
@@ -85,15 +86,7 @@ Depending on which resource type you choose, the following settings will apply.
 
 * _OAI Repository URL_: Enter a link (http-based) to the resource to be harvested. Include the base link defined by OAI Set Name: (see below). Some resources have multiple sets within the repository. If no specific set is identified by the URL, the full repository will be harvested.
 
-* _OAI Set Name_: 
-<!---
-    D: This field needs definition on its own, not just as part of the field above. Is it free text? I assume that, but we need to be clear about it. 
-    Jakub: D, this field is very OAI-PMH specific, I fail to see what definition
-    we could provide rather than the redundant "name of a the OAI set". We
-    are working on having either a drop-down or auto-completion implemented
-    here thrugh the OAI ListSets command.
-    D.: Is it a free-text name?
--->
+* _OAI Set Name_: an optional setting, an OAI-PMH _setSpec_ value which specifies set criteria for selective harvesting.
 
 * _Metadata Prefix_: A string that specifies the metadata format in OAI-PMH requests issued to a targeted repository. It is important to choose the correct format or no data will be harvested from the repository. Make sure a Transformation Pipeline that matches the metadata format used in the repository is selected, otherwise records will not be understood by the Harvester. Repositories generally use one of the following prefixes (or embedded data formats): Dublin Core (OAI-DC) or MARC XML (MARC12/USMARC). Other less common MetadataPrefix values include PMC (PubMed Central full-text records), PMC (PubMed Central metadata records), and PZ2 (pazpar2).
 
@@ -139,10 +132,8 @@ The Harvester  supports gzipped data (and partly supports zipped data: only the 
 
 * _Allow errors_: Check to continue harvesting and storing records even if retrieving some of the resources from the list fails
 
-* _Use conditional HTTP request_: ask the server if the files where updates before attempting a harvest, relies on proper timestamp handling on the server side.
-<!---
-D.: Please clarify the alternatives here. 
--->
+* _Use conditional HTTP request_: ask the server if the files are modified before attempting a harvest, relies on proper timestamp handling on the server side. It's usually safe to have this enabled as servers are eager to update the modification date, even in cases when the files themselves don't change.
+
 
 ##### Connector Specific Information: \
 
@@ -159,7 +150,9 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 * _Password_: Password required for access to a harvested resource that requires authentication.
 
 <!---
-D.: Is there a way to authenticate using IP? That's amore common authentication method
+    D.: Is there a way to authenticate using IP? That's amore common authentication method
+    Jakub: there is a way to provide proxy IP in the init JSON, but there's no
+    seperate input field in the UI. Dennis, should we add one?
 -->
 
 * _Init Data_: Advanced setting to provide additional initialization parameters to the harvesting connector. Any username/password specified in the inputs above will take precedence over settings specified in this field. These settings must be provided in JSON format.
@@ -217,7 +210,9 @@ A Transformation Pipeline consists of some descriptive information, plus an orde
 * _Enabled_: Check to enable the transformation pipeline. 
 
 <!--
-D.: I think we need some controls on this, since I just saved ID 5953 without putting any data into it. For a later version, perhaps require at least a name, so it shows up on the list
+    D.: I think we need some controls on this, since I just saved ID 5953 without putting any data into it. For a later version, perhaps require at least a name, so it shows up on the list
+    Jakub: good point, we need more field validation all over the place. I will
+    file a bug on it.
 -->
 
 After clicking _Save_ (first time), it will be possible to insert transformation steps into the pipeline: 
@@ -255,7 +250,8 @@ An XSL step consists of the following:
 
 * _Type_: For future use. 
 <!--
-D.: Yet some say "XSLT" in type. Is there any advantage to using this as a free-text field? 
+    D.: Yet some say "XSLT" in type. Is there any advantage to using this as a free-text field? 
+    Jakub: Dennis, what is the purpose of this field?
 -->
 
 * _Input Format/Output Format_: In a future release, these fields will be used for automated filtering and validation. Currently, these fields are used for visual step validation when viewed as a list. As shown in the illustration below, steps viewed in a series must display the output type in a previous step corresponding to the input format in a succeeding step, otherwise the transformation will fail.  
@@ -270,15 +266,18 @@ The Output Format of the first Step is PZ but the second step expects MARCXML as
 
 * _Expected output_: For future use.
 <!--
-D.: Since these huge fields are only for future use, we should make them smaller--at least in this image, and probably in the UI as well.
-Also--if the "Test" button doesn't do anything, remove it? If it does anything, let's describe it please. 
+    D.: Since these huge fields are only for future use, we should make them smaller--at least in this image, and probably in the UI as well.
+    Also--if the "Test" button doesn't do anything, remove it? If it does anything, let's describe it please. 
+    Jakub: I agree, if those fields serve no purpose at the moment let's hide
+    them entirely from the UI and remove entries from the manual.
 -->
 
 ### Add a new Custom Step ###
 
 ### Add a new XML Logging Step ###
 <!--
-D.: Don't these two options need to be described? They're mostly similar to adding an XSL step, but also include at least one unique field.
+    D.: Don't these two options need to be described? They're mostly similar to adding an XSL step, but also include at least one unique field.
+    Jakub: agree
 -->
 
 # Searching the indexed resources #
