@@ -372,9 +372,9 @@ public class HarvestConnectorClient implements HarvestClient {
     if (startToken != null)
       request.put("start", startToken);
     if (startDate != null) 
-      request.put("startDate", formatDate(startDate));
+      request.put("startdate", formatDate(startDate));
     if (endDate != null)
-      request.put("endDate", formatDate(endDate));
+      request.put("enddate", formatDate(endDate));
     return request;
   }
 
