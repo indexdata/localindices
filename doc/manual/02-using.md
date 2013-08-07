@@ -44,10 +44,11 @@ The screen capture below shows the general settings applicable to all three type
     the others you mention cannot be directly represented with  drop-downs:
     (bimonthly could be hacked by choosing 31st, close)
     What we could do is to let users specify multiple schedules, which
-    the harvester will evaluate in order.
+    the harvester will evaluate in order:
     e.g:
     * biweekly ~ 2 times a month, e.g on the 14th and 28th of any month
     * bimonthly ~ list the exact month numbers: 1,3,5,7,9,11
+    This is new development though.
 -->
 
 Check-boxes for:
