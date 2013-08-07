@@ -71,12 +71,7 @@ Drop-downs for:
 
 * _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported.
 
-* _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actual return ISO-8859-1 in the data. Setting this field to the actually encoding will force the reader to use the specified encoding. 
-<!---
-D. Encoding override needs explanation; it is missing in the manual right now. When would it be required? What values are allowed? What is the input format? Will this be a drop-down later?
-    Jakub: Dennis, could you please fill out this section?
-    DS: See above.  
--->
+* _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
 #### Resource-specific Settings \
 
@@ -211,12 +206,6 @@ A Transformation Pipeline consists of some descriptive information, plus an orde
 * _Description_: Optional description of the details of the transformation, such as "Converting from OAI-PMH(DC) to PZ".
 
 * _Enabled_: Check to enable the transformation pipeline. 
-
-<!--
-    D.: I think we need some controls on this, since I just saved ID 5953 without putting any data into it. For a later version, perhaps require at least a name, so it shows up on the list
-    Jakub: good point, we need more field validation all over the place. I will
-    file a bug on it.
--->
 
 After clicking _Save_ (first time), it will be possible to insert transformation steps into the pipeline: 
 
