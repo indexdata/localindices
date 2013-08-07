@@ -16,7 +16,7 @@ public class OaiMetaDataGenerator {
   SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
   // TODO For now there will be one document for each day. 
   long  step = 24 * 3600 * 1000; 
-  int bulkSize = 10;
+  int bulkSize = 100;
   int count = 0;
   Date from =  new Date();
   Date until   =  new Date();
