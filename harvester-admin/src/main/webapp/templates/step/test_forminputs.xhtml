@@ -10,6 +10,7 @@
     <ui:composition>
       <div id="XSLeditStep" style="display:inline">
         <h:panelGrid columns="1">
+          <!-- enable the display when the test feature is implemented
           <h:outputText value="Test data:" />
           <h:inputTextarea rows="30" cols="100" value="#{stepController.current.testData}" />
           <h:outputText value="Expected Output:" />
@@ -17,6 +18,7 @@
           <h:commandButton value="Test" action="#{stepController.test}">
             <f:param name="id" value="#{item.id}" />
           </h:commandButton>
+          -->
         </h:panelGrid>
       </div>  
     </ui:composition>

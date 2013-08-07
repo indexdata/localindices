@@ -44,10 +44,11 @@ The screen capture below shows the general settings applicable to all three type
     the others you mention cannot be directly represented with  drop-downs:
     (bimonthly could be hacked by choosing 31st, close)
     What we could do is to let users specify multiple schedules, which
-    the harvester will evaluate in order.
+    the harvester will evaluate in order:
     e.g:
     * biweekly ~ 2 times a month, e.g on the 14th and 28th of any month
     * bimonthly ~ list the exact month numbers: 1,3,5,7,9,11
+    This is new development though.
 -->
 
 Check-boxes for:
@@ -70,12 +71,7 @@ Drop-downs for:
 
 * _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported.
 
-* _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actual return ISO-8859-1 in the data. Setting this field to the actually encoding will force the reader to use the specified encoding. 
-<!---
-D. Encoding override needs explanation; it is missing in the manual right now. When would it be required? What values are allowed? What is the input format? Will this be a drop-down later?
-    Jakub: Dennis, could you please fill out this section?
-    DS: See above.  
--->
+* _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
 #### Resource-specific Settings \
 
@@ -211,12 +207,6 @@ A Transformation Pipeline consists of some descriptive information, plus an orde
 
 * _Enabled_: Check to enable the transformation pipeline. 
 
-<!--
-    D.: I think we need some controls on this, since I just saved ID 5953 without putting any data into it. For a later version, perhaps require at least a name, so it shows up on the list
-    Jakub: good point, we need more field validation all over the place. I will
-    file a bug on it.
--->
-
 After clicking _Save_ (first time), it will be possible to insert transformation steps into the pipeline: 
 
 ![Saved transformation.](./img/10-edittrans.png)
@@ -250,11 +240,12 @@ An XSL step consists of the following:
 
 * _Description_: Description of what the step does.
 
-* _Type_: For future use. 
 <!--
+* _Type_: For future use. 
     D.: Yet some say "XSLT" in type. Is there any advantage to using this as a free-text field? 
     Jakub: Dennis, what is the purpose of this field?
     DS: Actually not sure what my plan was with this
+    Jakub: disabled in the UI and in the manual
 -->
 
 * _Input Format/Output Format_: In a future release, these fields will be used for automated filtering and validation. Currently, these fields are used for visual step validation when viewed as a list. As shown in the illustration below, steps viewed in a series must display the output type in a previous step corresponding to the input format in a succeeding step, otherwise the transformation will fail.  
@@ -265,10 +256,12 @@ The Output Format of the first Step is PZ but the second step expects MARCXML as
 
 * _Transformation (XSL)_: A valid XSL transformation script. Note that XSLT up to version 2 is supported. 
 
+<!---
+  Jakub: testing is disabled in the manual and the UI until it works
 * _Test data_: For future use. 
 
 * _Expected output_: For future use.
-<!--
+    
     D.: Since these huge fields are only for future use, we should make them smaller--at least in this image, and probably in the UI as well.
     Also--if the "Test" button doesn't do anything, remove it? If it does anything, let's describe it please. 
     Jakub: I agree, if those fields serve no purpose at the moment let's hide
