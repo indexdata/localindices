@@ -25,19 +25,7 @@ public class ListMetadataFormats extends CommonOaiPmhHandler implements ListReco
       "       </schema>\n" + 
       "     <metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/\n" + 
       "       </metadataNamespace>\n" + 
-      "   </metadataFormat>\n" + 
-      "   <metadataFormat>\n" + 
-      "     <metadataPrefix>olac</metadataPrefix>\n" + 
-      "     <schema>http://www.language-archives.org/OLAC/olac-0.2.xsd</schema>\n" + 
-      "     <metadataNamespace>http://www.language-archives.org/OLAC/0.2/\n" + 
-      "      </metadataNamespace>\n" + 
-      "   </metadataFormat>\n" + 
-      "   <metadataFormat>\n" + 
-      "     <metadataPrefix>perseus</metadataPrefix>\n" + 
-      "     <schema>http://www.perseus.tufts.edu/persmeta.xsd</schema>\n" + 
-      "     <metadataNamespace>http://www.perseus.tufts.edu/persmeta.dtd\n" + 
-      "       </metadataNamespace>\n" + 
-      "   </metadataFormat>\n";
+      "   </metadataFormat>\n"; 
   
   private String resumptionTokenStart = "<resumptionToken>";
   private String resumptionTokenEnd = "</resumptionToken>"; 
