@@ -325,11 +325,11 @@ public class HarvestConnectorClient implements HarvestClient {
       //parse and remember starttoken
       Object startTokenItem = json.get("start");
       if (startTokenItem instanceof String) {
-        resource.setResumptionToken((String) startTokenItem);
+        resource.setResumptionToken("{\"start\": \""+(String) startTokenItem+"\"}");
       } else if (startTokenItem instanceof List) {
-        resource.setResumptionToken(JSONArray.toJSONString((List)startTokenItem));
+        resource.setResumptionToken("{\"start\": "+JSONArray.toJSONString((List)startTokenItem)+"}");
       } else if (startTokenItem instanceof Map) {
-        resource.setResumptionToken(JSONObject.toJSONString((Map)startTokenItem));
+        resource.setResumptionToken("{\"start\": "+JSONObject.toJSONString((Map)startTokenItem)+"}");
       }
     }
   }
@@ -367,10 +367,14 @@ public class HarvestConnectorClient implements HarvestClient {
   
   @SuppressWarnings("unchecked")
   public JSONObject createHarvestRequest(String startToken, Date startDate, Date endDate) 
+    throws ParseException 
   {
     JSONObject request = new JSONObject();
-    if (startToken != null)
-      request.put("start", startToken);
+    if (startToken != null) {
+      JSONParser p = new JSONParser();
+      Map sT = (Map) p.parse(startToken, containerFactory);
+      request.putAll(sT);
+    }
     if (startDate != null) 
       request.put("startdate", formatDate(startDate));
     if (endDate != null)
@@ -406,9 +410,11 @@ public class HarvestConnectorClient implements HarvestClient {
 
   private void writeJSON(JSONObject request, HttpURLConnection conn) throws
     IOException, UnsupportedEncodingException {
-    byte[] postData = request.toJSONString().getBytes("UTF-8");
+    String jsonStr = request.toJSONString();
+    byte[] postData = jsonStr.getBytes("UTF-8");
     conn.setDoOutput(true);
     conn.setRequestProperty("Content-Length", "" + postData.length);
+    logger.debug("Task input: "+jsonStr);
     conn.getOutputStream().write(postData);
     conn.getOutputStream().flush();
   }

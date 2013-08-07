@@ -140,7 +140,7 @@ public class TestConnectorPlatform extends JobTester {
 
 
   @SuppressWarnings("unused")
-  private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, Date startDate, Date endDate) {
+  private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, Date startDate, Date endDate) throws ParseException {
     HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
