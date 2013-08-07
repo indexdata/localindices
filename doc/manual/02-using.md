@@ -146,12 +146,8 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 
 * _Password_: Password required for access to a harvested resource that requires authentication.
 
-<!---
-    D.: Is there a way to authenticate using IP? That's amore common authentication method
-    Jakub: there is a way to provide proxy IP in the init JSON, but there's no
-    seperate input field in the UI. Dennis, should we add one? 
-    DS: Could do. 
--->
+* _Proxy server address_: address of the proxy server that should be used by
+the harvesting engine, e.g to deal with cases when the resource is IP authenticated.
 
 * _Init Data_: Advanced setting to provide additional initialization parameters to the harvesting connector. Any username/password specified in the inputs above will take precedence over settings specified in this field. These settings must be provided in JSON format.
 
