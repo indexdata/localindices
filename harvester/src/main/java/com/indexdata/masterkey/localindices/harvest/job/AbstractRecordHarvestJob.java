@@ -134,8 +134,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       StorageStatus storageStatus = getStorage().getStatus();
       if (storageStatus != null) {
         resource.setAmountHarvested(storageStatus.getAdds());
-        if (getStatus() != HarvestStatus.WARN)
-          resource.setMessage("" + storageStatus.getAdds() + " added. " + storageStatus.getTotalRecords() + " in total");
       }
     }
     catch (StatusNotImplemented exception) {
