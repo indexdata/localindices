@@ -73,13 +73,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   public void run() {
     try {
 
-      // Don't start if we already are in error
-      if (!resource.getAllowErrors() && getStatus() == HarvestStatus.ERROR) {
-        logger.error("Already in ERROR. Set Allowed Errors to run job");
-        return;
-      }
-
       getStorage().setLogger(logger);
+      
       // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
