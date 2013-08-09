@@ -29,6 +29,7 @@ public class HarvestableBrief implements Comparable<Object> {
     private Date lastHarvestStarted;
     private Date lastHarvestFinished;
     private Date nextHarvestSchedule;
+    private Long amountHarvested;
     private Boolean enabled;
     private Date lastUpdated;
     /* Resource uri */
@@ -51,6 +52,7 @@ public class HarvestableBrief implements Comparable<Object> {
         lastHarvestStarted = entity.getLastHarvestStarted();
         lastHarvestFinished = entity.getLastHarvestFinished();
         nextHarvestSchedule = entity.getNextHarvestSchedule();
+        amountHarvested = entity.getAmountHarvested();
         enabled = entity.getEnabled();
         lastUpdated = entity.getLastUpdated();
     }
@@ -202,6 +204,15 @@ public class HarvestableBrief implements Comparable<Object> {
     
     public int hashCode() {
         return this.getName().hashCode();
+    }
+
+    @XmlElement
+    public Long getAmountHarvested() {
+      return amountHarvested;
+    }
+
+    public void setAmountHarvested(Long amountHarvested) {
+      this.amountHarvested = amountHarvested;
     }
     
 }
