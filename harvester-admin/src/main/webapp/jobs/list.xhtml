@@ -102,6 +102,19 @@
                   <f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
                 </h:outputText>
               </h:column>
+              <h:column headerClass="amountHarvest">
+                <f:facet name="header">
+                    <h:outputText value="Added"/>
+                </f:facet>
+                <h:outputText styleClass="attempt"
+                              rendered="#{item.amountHarvested != null}"
+                              value="#{item.amountHarvested}">
+                </h:outputText>
+                <h:outputText styleClass="attempt"
+                              rendered="#{item.amountHarvested == null}"
+                              value="">
+                </h:outputText>       
+              </h:column>
               <h:column headerClass="nextharvest">
                 <f:facet name="header">
                     <h:outputText value="Next harvest"/>
