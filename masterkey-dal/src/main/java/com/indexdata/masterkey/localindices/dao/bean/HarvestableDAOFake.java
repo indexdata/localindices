@@ -147,4 +147,9 @@ public class HarvestableDAOFake implements HarvestableDAO {
     String sortKey, boolean asc) {
     return retrieveBriefs(start, max);
   }
+
+  @Override
+  public InputStream reset(long id) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 }
