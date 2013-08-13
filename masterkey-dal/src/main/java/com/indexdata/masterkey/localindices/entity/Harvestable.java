@@ -316,4 +316,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setAllowErrors(Boolean allowErrors) {
     this.allowErrors = allowErrors;
   }
+  
+  public void reset() {
+    setAmountHarvested(null);
+    setInitiallyHarvested(null);
+    setLastHarvestStarted(null);
+    setLastHarvestFinished(null);
+    setCurrentStatus("NEW");
+  }
 }
