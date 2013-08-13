@@ -406,7 +406,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       } else {
 	try {
 	  xmlEnd();
-	  getStorage().commit();
+	  commit();
 	  resource.setMessage("OK. " + que.numSeen() + " pages harvested");
 	  setStatus(HarvestStatus.FINISHED);
 	  // setError("All done - but we call it an error so we can do again");
