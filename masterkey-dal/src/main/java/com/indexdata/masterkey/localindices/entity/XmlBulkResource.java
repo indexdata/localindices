@@ -98,4 +98,7 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     this.allowCondReq = allowCondReq;
   }
   
+  public void reset() {
+    super.reset();
+  }
 }
