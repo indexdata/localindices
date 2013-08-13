@@ -123,5 +123,11 @@ public class HarvestConnectorResource extends Harvestable {
     this.sleep = sleep;
   }
 
+  public void reset() {
+    super.reset();
+    setFromDate(null);
+    setUntilDate(null);
+    setResumptionToken(null);
+  }
 
 }
