@@ -55,7 +55,7 @@
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
                          var="item"
-                         columnClasses="resourcename,status,lastharvest,nextharvest,actions,statusmessage"
+                         columnClasses="resourcename,status,lastharvest,amountharvest,nextharvest,actions,statusmessage"
                          styleClass="harvestjobs">
               <h:column headerClass="resourcename">
                 <f:facet name="header">
@@ -102,15 +102,15 @@
                   <f:convertDateTime pattern="yyyy-MM-dd HH:mm z" />
                 </h:outputText>
               </h:column>
-              <h:column headerClass="amountHarvest">
+              <h:column headerClass="amountharvest">
                 <f:facet name="header">
                     <h:outputText value="Added"/>
                 </f:facet>
-                <h:outputText styleClass="attempt"
+                <h:outputText styleClass="amountharvest"
                               rendered="#{item.amountHarvested != null}"
                               value="#{item.amountHarvested}">
                 </h:outputText>
-                <h:outputText styleClass="attempt"
+                <h:outputText styleClass="amountharvest"
                               rendered="#{item.amountHarvested == null}"
                               value="">
                 </h:outputText>       
