@@ -228,4 +228,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public InputStream reset(long id) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }
