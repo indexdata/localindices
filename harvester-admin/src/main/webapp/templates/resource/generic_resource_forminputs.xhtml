@@ -62,7 +62,10 @@
           <f:selectItems value="#{transformationController.transformationItems}" />
         </h:selectOneMenu>
         <!-- List box of Storages -->
-        <h:outputText value="Storage:"/>
+        <h:outputText value="Storage:" rendered="#{resourceController.storageUrl == null}" />
+	<h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
+          <h:outputText value="Storage:" />
+	</h:outputLink>
         <h:panelGroup>
           <h:selectOneMenu id="storageList" value="#{resourceController.storage}" required="true"
                            requiredMessage="Please specify a storage for this job!">
