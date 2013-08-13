@@ -136,4 +136,10 @@ public class OaiPmhResource extends Harvestable implements Serializable {
     return true;
   }
 
+  public void reset() {
+    super.reset();
+    setFromDate(null);
+    setUntilDate(null);
+    setResumptionToken(null);
+  }
 }
