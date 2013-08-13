@@ -8,8 +8,10 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,9 +24,6 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.rest.client.ResourceConnector;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
 
 /**
  *
@@ -221,5 +220,19 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
   @Override
   public List<HarvestableBrief> retrieveBriefs(int start, int max) {
     return retrieveBriefs(start, max, null, true);
+  }
+  
+  @Override
+  public InputStream reset(long id) {
+      String logURL = serviceBaseURL + id + "/" + "reset/";
+      try {
+          URL url = new URL(logURL);
+          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+          conn.setRequestMethod("GET");
+          return conn.getInputStream();
+      } catch (IOException ioe) {
+          logger.log(Level.DEBUG, ioe);
+          return null;
+      }
   }
 }
