@@ -33,8 +33,10 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableCon
  * REST Web service (resource) that maps to a Harvestable entity.
  * 
  * @author jakub
+ * @author Dennis
  */
 public class HarvestableResource {
+  Logger logger = Logger.getLogger(this.getClass());    
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   private Long id;
   private UriInfo context;
@@ -86,6 +88,18 @@ public class HarvestableResource {
     dao.update(entity);
   }
 
+  private void purgeStorage(Harvestable harvestable) throws IOException {
+    if (harvestable.getStorage() != null) {
+      HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
+      if (storage != null)
+	storage.purge(true);
+      else 
+	logger.warn("No storage client. Unable to purge harvestable: " + id);
+    }
+    else 
+      logger.log(Level.WARN, "No storage configured on harvestable " + id);
+  }
+
   /**
    * Delete method for deleting an instance of referenced Harvestable.
    * 
@@ -93,35 +107,37 @@ public class HarvestableResource {
   @DELETE
   public void delete() {
     Harvestable harvestable = dao.retrieveById(id);
-    if (harvestable.getStorage() != null) {
+    if (harvestable != null) {
       try { 
-	HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
-	storage.purge(true);
+	purgeStorage(harvestable);
+	dao.delete(harvestable);
+	return ;
       } catch (Exception e) {
-	Logger.getLogger(this.getClass()).log(Level.ERROR, "Failed to delete records in storage " 
+	logger.log(Level.ERROR, "Failed to delete records in storage " 
 	    + harvestable.getStorage().getId(), e);
       }
     }
-    dao.delete(harvestable);
+    logger.log(Level.ERROR, "No harvestable with id " + id); 
   }
 
-  @Path("purge/")
+  @Path("reset/")
   @GET
   @Produces("text/plain")
-  public String purge() {
+  public String reset() {
     Harvestable harvestable = dao.retrieveById(id);
-    if (harvestable.getStorage() != null) {
+    if (harvestable != null) {
       try { 
-	HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
-	storage.purge(true);
+	purgeStorage(harvestable);
+	harvestable.reset();
+	dao.update(harvestable);
 	return "OK"; 
       } catch (Exception e) {
-	String error = "Failed to purge records in storage " + harvestable.getStorage().getId();
-	Logger.getLogger(this.getClass()).log(Level.ERROR, error, e);
+	String error = "Failed to reset harvestable " + harvestable.getStorage().getId() + ": " + e.getMessage();
+	logger.log(Level.ERROR, error, e);
 	return error;
       }
     }
-    return "No storage to purge";
+    return "No harvestable to reset with id: " + id;
   }
 
   /**
