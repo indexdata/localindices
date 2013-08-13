@@ -11,20 +11,25 @@
       <h5>Actions: </h5>
       <h:commandButton value="Save" action="#{resourceController.saveResource}"/>
       <h:commandButton value="Cancel" action="#{resourceController.listResources}"/>
-      <h:commandButton onclick="return confirm('Are you sure?');" 
-                       value="Delete Job and Harvested Records" 
+      <h:commandButton onclick="return confirm('This will reset the job to NEW state and delete all harvested records. Are you sure?');" 
+                       value="Reset"
+                       action="#{resourceController.reset}"/>
+      <h:commandButton onclick="return confirm('This will delete the job and all harvested records. Are you sure?');" 
+                       value="Delete Job and Records" 
                        action="#{resourceController.saveAndPurge}"/>
       <br/>
       <h5>Status Info: </h5>
-      <h:outputText styleClass="item" value="Initially harvested -- #{resourceController.resource.initiallyHarvested}"/>
+      <h:outputText styleClass="item" value="Initially harvested: #{resourceController.resource.initiallyHarvested}"/>
       <br/>
-      <h:outputText styleClass="item" value="Start time of last harvest -- #{resourceController.resource.lastHarvestStarted}"/>
+      <h:outputText styleClass="item" value="Start time of last harvest: #{resourceController.resource.lastHarvestStarted}"/>
       <br/>
-      <h:outputText styleClass="item" value="Finish time of last harvest -- #{resourceController.resource.lastHarvestFinished}"/> 
+      <h:outputText styleClass="item" value="Finish time of last harvest: #{resourceController.resource.lastHarvestFinished}"/> 
       <br/>
-<!-- 
-      <h:outputText styleClass="item" value="Added: #{resourceController.resource.lastHarvested} Added: #{resourceController.resource.storage.status.}"/> 
- -->
+      <h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
+        <h:outputText value="View records: #{resourceController.storageUrl}" />
+      </h:outputLink>
+      <br/>
+      <h:outputText styleClass="item" value="Added: #{resourceController.resource.amountHarvested}" rendered="#{resourceController.resource.amountHarvested!= null}" /> 
       <br/>
       <div class="footer">
         <h:outputText value="Last Updated -- #{resourceController.resource.lastUpdated}"/>
