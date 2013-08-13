@@ -17,4 +17,5 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
  */
 public interface HarvestableDAO extends CommonDAO<Harvestable, HarvestableBrief> {
 	public InputStream getLog(long id);
+	public InputStream reset(long id);
 }
