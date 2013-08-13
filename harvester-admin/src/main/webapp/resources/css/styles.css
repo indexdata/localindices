@@ -198,6 +198,15 @@ th.nextharvest, td.nextharvest {
   width: 10%;
 }
 
+th.amountharvest {
+  width: 5%;
+}
+
+td.amountharvest {
+  text-align: right;
+  width: 5%;
+}
+
 td.enabled {
     text-align: center;
 }
