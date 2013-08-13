@@ -93,7 +93,7 @@ public class Identify extends CommonOaiPmhHandler {
 
   private String getDeletedRecords() {
     String[] options = {"no", "transient", "persistent"};
-    return options[0];
+    return options[1];
   }
 
   public String getRequest(OaiPmhRequest request) {
