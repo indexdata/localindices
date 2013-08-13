@@ -297,7 +297,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       } else {
 	logger.log(Level.INFO, "" + count + " Records fetched, next resumptionToken is " + resumptionToken);
 	resource.setResumptionToken(resumptionToken);
-	//getStorage().commit();
 	markForUpdate();
 	listRecords = listRecords(baseURL, resumptionToken);
       }
