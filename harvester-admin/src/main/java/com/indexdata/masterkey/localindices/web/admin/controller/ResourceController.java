@@ -502,6 +502,13 @@ public class ResourceController {
     return listResources();
   }
 
+  public String reset() {
+    dao.reset(resource.getId());
+    prePersist();
+    String type = resource.getClass().getSimpleName();
+    return "edit_" + type;
+  }
+
   private void prePersist() {
     resource.setScheduleString(scheduleInputsToString());
     if (resource instanceof OaiPmhResource) {
