@@ -11,10 +11,7 @@
       <h5>General information: </h5>
       <h:panelGrid columns="2">
         <h:outputText value="Id:"/>
-        <h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
-            <h:outputText value="#{resourceController.resource.id} show records" />
-        </h:outputLink>
-        <h:outputText value="" rendered="#{resourceController.storageUrl == null}"/> 
+        <h:outputText value="#{resourceController.resource.id}"/> 
         <h:outputText value="Name:"/>
         <h:inputText value="#{resourceController.resource.name}" size="30"/>
         <h:outputText value="Service Provider:"/>
@@ -62,10 +59,7 @@
           <f:selectItems value="#{transformationController.transformationItems}" />
         </h:selectOneMenu>
         <!-- List box of Storages -->
-        <h:outputText value="Storage:" rendered="#{resourceController.storageUrl == null}" />
-	<h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
-          <h:outputText value="Storage:" />
-	</h:outputLink>
+        <h:outputText value="Storage:"/>
         <h:panelGroup>
           <h:selectOneMenu id="storageList" value="#{resourceController.storage}" required="true"
                            requiredMessage="Please specify a storage for this job!">
@@ -73,6 +67,10 @@
           </h:selectOneMenu>
           <h:message for="storageList" style="color: red;"/>
         </h:panelGroup>
+        <h:outputText value="Stored records:" rendered="#{resourceController.storageUrl != null}" />
+	<h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
+          <h:outputText value="click to view" />
+	</h:outputLink>
         <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):"/>
         <h:inputText  value="#{resourceController.resource.encoding}" size="20" />
       </h:panelGrid>
