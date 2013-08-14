@@ -25,7 +25,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
  * @author jakub
  */
 public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
-  private String error;
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private HarvestConnectorResource resource;
@@ -59,11 +58,13 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   }
 
   public void run() {
+    String startResumptionToken = resource.getResumptionToken();
     try {
       setStatus(HarvestStatus.RUNNING);
       RecordStorage storage = getStorage(); 
       storage.setOverwriteMode(resource.getOverwrite());
       storage.begin();
+      
       storage.databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
           storage.purge(false);
@@ -77,10 +78,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       commit();
       setStatus(HarvestStatus.FINISHED);
     } catch (Exception e) {
-      setStatus(HarvestStatus.ERROR);
-      error = e.getMessage();
-      resource.setMessage(e.getMessage());
-      logger.log(Level.ERROR, "Harvest failed.", e);
+      String error = e.getMessage();
+      setStatus(HarvestStatus.ERROR, error);
+      resource.setResumptionToken(startResumptionToken);
+      logger.log(Level.ERROR, "Harvest failed: " + error, e);
     }
   }
 
