@@ -26,7 +26,7 @@
       <h:outputText styleClass="item" value="Finish time of last harvest: #{resourceController.resource.lastHarvestFinished}"/> 
       <br/>
       <h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
-        <h:outputText value="View records: #{resourceController.storageUrl}" />
+        <h:outputText styleClass="item" value="View records: #{resourceController.storageUrl}" />
       </h:outputLink>
       <br/>
       <h:outputText styleClass="item" value="Added: #{resourceController.resource.amountHarvested}" rendered="#{resourceController.resource.amountHarvested!= null}" /> 

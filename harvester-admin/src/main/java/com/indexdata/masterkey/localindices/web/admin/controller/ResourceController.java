@@ -503,10 +503,14 @@ public class ResourceController {
   }
 
   public String reset() {
+    resource.setLastUpdated(new Date());
     dao.reset(resource.getId());
-    prePersist();
+    // Reload resource. 
+    resource = dao.retrieveById(resource.getId());
     String type = resource.getClass().getSimpleName();
     return "edit_" + type;
+    //resource = null;
+    //return listResources();
   }
 
   private void prePersist() {
