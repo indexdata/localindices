@@ -73,6 +73,11 @@ public class XmlMarcClient implements HarvestClient {
         logger.info("Conditional request If-Modified-Since: "+lastModified);
         conn.setRequestProperty("If-Modified-Since", lastModified);
       }
+      if (resource.getTimeout() != null) {
+	conn.setConnectTimeout(resource.getTimeout());
+	conn.setReadTimeout(resource.getTimeout());
+	logger.info("Configured client connection/read timeout to " + resource.getTimeout());
+      }
       conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
@@ -96,9 +101,9 @@ public class XmlMarcClient implements HarvestClient {
 	else
 	  throw new Exception("Http connection failed. (" + responseCode + ")");
       }
-      logger.info("Finished - " + url.toString());
       // TODO HACK HACK HACK
       Thread.sleep(2000);
+      logger.info("Finished - " + url.toString());
     } catch (Exception ex) {
       if (job.isKillSent())
 	  return 0; 
