@@ -116,9 +116,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // TODO: Remove
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
-    setStatus(HarvestStatus.RUNNING);
     resource.setMessage(null);
-
+    resource.setAmountHarvested(null);
+    setStatus(HarvestStatus.RUNNING);
+    String startResumptionToken = resource.getResumptionToken();
     // in OAI date ranges are inclusive
     Date now = new Date();
     if (resource.getUntilDate() == null) {
@@ -150,7 +151,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
 	resource.setMessage(e.getMessage());
-        //the resumption token
+        // The resumption token
         if (resource.getClearRtOnError())
           resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
@@ -161,8 +162,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.INFO, "Shutting down.");
       }
       else {
-	logger.log(Level.WARN, "Recieved uncaught exception while running: " + e.getClass() + " " + e.getMessage());
+	logger.log(Level.WARN, "Recieved exception while running: " + e.getClass() + " " + e.getMessage());
 	logger.debug("Stack trace:", e);
+	setStatus(HarvestStatus.ERROR, e.getMessage());
       }
     }
     // if there was no error we move the time marker
@@ -181,7 +183,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.ERROR, errorMessage);
         logger.debug("Stack trace:", e);
 	setStatus(HarvestStatus.ERROR, errorMessage);
-	resource.setResumptionToken(null);
+	resource.setResumptionToken(startResumptionToken);
       }
     } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
@@ -195,17 +197,17 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	      + "commiting up partial harvest as configured");
 	  commit();
          } else {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error - rollingback until " 
+	  logger.log(Level.INFO, "OAI harvest killed/faced error - rolling back until " 
             + formatDate(resource.getFromDate()));
 	  getStorage().rollback();
-	  resource.setResumptionToken(null);
+	  resource.setResumptionToken(startResumptionToken);
         }
       } catch (IOException ioe) {
         String msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
 	logger.log(Level.ERROR, msg);
         logger.debug("Stack trace:", ioe);
         setStatus(HarvestStatus.ERROR, msg);
-	resource.setResumptionToken(null);
+	resource.setResumptionToken(startResumptionToken);
       }
     }
     
