@@ -1,13 +1,16 @@
 package com.indexdata.masterkey.localindices.client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -17,11 +20,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Level;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContainerFactory;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.w3c.dom.Document;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
@@ -29,16 +39,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
-import java.io.BufferedReader;
-import java.io.UnsupportedEncodingException;
-import java.net.*;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.json.simple.JSONArray;
-import org.w3c.dom.Document;
 
 public class HarvestConnectorClient implements HarvestClient {
   private StorageJobLogger logger; 
