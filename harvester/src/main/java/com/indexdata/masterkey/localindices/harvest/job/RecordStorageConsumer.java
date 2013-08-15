@@ -25,7 +25,7 @@ public class RecordStorageConsumer implements MessageConsumer {
     Record record = new RecordDOMImpl(null, null, xmlNode);
     recordStorage.add(record);
     if (++added % 1000 == 0)
-      	logger.info("Added " + added + " records");
+      	logger.info("Fetched " + added + " records.");
   }
 
   @Override
