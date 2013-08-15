@@ -34,6 +34,8 @@
         <h:inputText value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>
         <h:outputText value="Delay between requests (milliseconds):" styleClass="optionalInput" />
         <h:inputText value="#{resourceController.resource.sleep}" styleClass="optionalInput"/>
+        <h:outputText value="Failed request retry count:" styleClass="optionalInput" />
+        <h:inputText value="#{resourceController.resource.retryCount}" styleClass="optionalInput"/>
         <h:outputText value="Continue on errors:" styleClass="optionalInput" />
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
       </h:panelGrid>

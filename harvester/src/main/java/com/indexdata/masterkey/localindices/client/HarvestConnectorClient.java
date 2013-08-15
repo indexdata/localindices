@@ -70,7 +70,7 @@ public class HarvestConnectorClient implements HarvestClient {
           action();
           return true;
         } catch (Exception e) {
-          boolean retry = tried < maxRetries;
+          boolean retry = tried <= maxRetries;
           logger.warn("Invoking task '"+toString()+"' failed, "
             + (retry ? "retrying "+tried+" of "+maxRetries : "giving up task"));
           logger.debug("Task failure details: ", e);
@@ -120,7 +120,7 @@ public class HarvestConnectorClient implements HarvestClient {
     createSession(resource.getUrl());
     uploadConnector(resource.getConnectorUrl());
     init();
-    new RetryInvoker(3) {
+    new RetryInvoker(resource.getRetryCount()) {
       @Override
       void action() throws Exception {
         harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
@@ -132,7 +132,7 @@ public class HarvestConnectorClient implements HarvestClient {
     }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
       pause();
-      RetryInvoker invoker = new RetryInvoker(3) {
+      RetryInvoker invoker = new RetryInvoker(resource.getRetryCount()) {
         @Override
         void action() throws Exception {
           harvest(linkTokens.remove(0));

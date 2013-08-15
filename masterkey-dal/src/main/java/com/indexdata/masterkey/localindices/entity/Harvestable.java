@@ -87,6 +87,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private String encoding;
   @Column(nullable=false)
   private Boolean allowErrors = false;
+  @Column(nullable=false)
+  private Integer timeout;
+  @Column(nullable=false)
+  private Integer retryCount;
+  @Column(nullable=false)
+  private Integer retryWait;
 
   public String getDescription() {
     return description;
@@ -315,6 +321,30 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setAllowErrors(Boolean allowErrors) {
     this.allowErrors = allowErrors;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getRetryCount() {
+    return retryCount;
+  }
+
+  public void setRetryCount(Integer retryCount) {
+    this.retryCount = retryCount;
+  }
+
+  public Integer getRetryWait() {
+    return retryWait;
+  }
+
+  public void setRetryWait(Integer retryWait) {
+    this.retryWait = retryWait;
   }
   
   public void reset() {
