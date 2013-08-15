@@ -41,8 +41,7 @@ public class RouterFactory {
       }
       
     } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new RuntimeException("Failed to create MessageRouter: " + e.getMessage(), e);
     }
     return null;
   }
