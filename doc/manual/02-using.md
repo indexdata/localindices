@@ -27,6 +27,8 @@ Click one of those three selections to add a new Resource to harvest, and follow
 
 Setting up a new Harvesting job consists of enteringgeneral harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
 
+The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete and Purge button will delete the job and the harvested records.
+
 The screen capture below shows the general settings applicable to all three types of Harvesting jobs:
 
 ![General job settings.](./img/02-jobgeneric.png)
@@ -116,7 +118,6 @@ The XML/MARC specific settings look like this:
      …
     </root>
 ```
-
 * _Split (number of records)_: The Harvester tries to imply streaming parsing where possible, but many XSL Transformations will not support this. Attempting to transform millions of records will be too memory consuming, so breaking the resource into chunks of 1000 records seems to be a reasonable option. Enter into this field the number of records to be contained in each chunk. 
 
 * _MIME-type for compressed data_: The Harvester detects the type (XML vs MARC binary) from the MIME-type. A correctly configured web site will send a MIME-type of Application/marc if the file type is .mrc. If the MIME-type received is different than expected (because of a wrongly configured web site or wrong file type), the MIME-type might need to be overridden. The format of this field is:
