@@ -32,6 +32,7 @@ import com.indexdata.utils.XmlUtils;
 import java.io.BufferedReader;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.util.ArrayList;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -48,6 +49,11 @@ public class HarvestConnectorClient implements HarvestClient {
   private RecordHarvestJob job; 
   RecordStorage storage; 
   List <Object> linkTokens = new LinkedList<Object>();
+  List <String> errors = new ArrayList<String>();
+
+  public List<String> getErrors() {
+    return errors;
+  }
   
   //command pattern starts
   
@@ -132,10 +138,11 @@ public class HarvestConnectorClient implements HarvestClient {
     }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
       pause();
+      final Object linkToken = linkTokens.remove(0);
       RetryInvoker invoker = new RetryInvoker(resource.getRetryCount()) {
         @Override
         void action() throws Exception {
-          harvest(linkTokens.remove(0));
+          harvest(linkToken);
         }
         @Override
         public String toString() {
@@ -144,8 +151,11 @@ public class HarvestConnectorClient implements HarvestClient {
       };
       boolean success = invoker.invoke();
       if (!success) {
-        if (resource.getAllowErrors())
+        if (resource.getAllowErrors()) {
+          errors.add("link token '"+linkToken+"' failed with '"
+            +invoker.finalException.getMessage()+"'");
           continue;
+        }
         else throw invoker.finalException;
       }
     }

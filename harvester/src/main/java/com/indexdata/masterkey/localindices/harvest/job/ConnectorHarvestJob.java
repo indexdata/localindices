@@ -74,6 +74,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       client.download(null);
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
+      //if we have accumulated errors, warn
+      if (!client.getErrors().isEmpty()) {
+        setStatus(HarvestStatus.WARN, "Completed with problems, see logfile for details.");
+      }
       storage.databaseEnd();
       commit();
       setStatus(HarvestStatus.FINISHED);
