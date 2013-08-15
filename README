@@ -52,6 +52,14 @@ in the webapps:
 - /etc/masterkey/harvester/harvester-context.xml
 - /etc/masterkey/harvester-admin/harvester-admin-context.xml
 
+-- Upgrading the Harvester and the MySQL database (V2.3 => V2.4) 
+
+v 2.4 also adds new columns to the database, so it is required to add these fields to an existing V2.3 installation 
+
+$ cd /usr/share/masterkey/harvester/sql/v2.4
+$ mysqldump -u <localidxadm> -p<localidxadmpass> localindices > ~/localindices_backup.sql 
+$ mysql -f -u <localidxadm> -p<localidxadmpass> localindices < 2013-08-15.sql
+
 -- Upgrading the Harvester and the MySQL database (V2.2 => V2.3) 
 
 v 2.3 also adds new columns to the database, so it is required to add these fields to an existing V2.2 installation 
