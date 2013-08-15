@@ -27,7 +27,7 @@ Click one of those three selections to add a new Resource to harvest, and follow
 
 Setting up a new Harvesting job consists of enteringgeneral harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
 
-The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete and Purge button will delete the job and the harvested records.
+The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete Job and Records button will as stated delete both the job and the harvested records in the associated storage.
 
 The screen capture below shows the general settings applicable to all three types of Harvesting jobs:
 
