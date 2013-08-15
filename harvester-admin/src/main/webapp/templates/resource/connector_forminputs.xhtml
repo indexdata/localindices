@@ -34,8 +34,9 @@
         <h:inputText value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>
         <h:outputText value="Delay between requests (milliseconds):" styleClass="optionalInput" />
         <h:inputText value="#{resourceController.resource.sleep}" styleClass="optionalInput"/>
+        <h:outputText value="Continue on errors:" styleClass="optionalInput" />
+        <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
       </h:panelGrid>
-
     </ui:composition>
   </body>
 </html>

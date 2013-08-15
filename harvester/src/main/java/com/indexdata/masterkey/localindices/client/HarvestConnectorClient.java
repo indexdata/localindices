@@ -46,9 +46,48 @@ public class HarvestConnectorClient implements HarvestClient {
   private String sessionId;
   private Proxy proxy = null; 
   private RecordHarvestJob job; 
-  private int recordCount = 0;
   RecordStorage storage; 
   List <Object> linkTokens = new LinkedList<Object>();
+  
+  //command pattern starts
+  
+  abstract class RetryInvoker {
+    final int maxRetries;
+    Exception finalException;
+
+    public RetryInvoker(int maxRetries) {
+      this.maxRetries = maxRetries;
+    }
+    
+    abstract void action() throws Exception;
+    public abstract String toString(); //force
+    
+    boolean invoke() {
+      int tried = 0;
+      while (true) {
+        try {
+          tried++;
+          action();
+          return true;
+        } catch (Exception e) {
+          boolean retry = tried < maxRetries;
+          logger.warn("Invoking task '"+toString()+"' failed, "
+            + (retry ? "retrying "+tried+" of "+maxRetries : "giving up task"));
+          logger.debug("Task failure details: ", e);
+          if (!retry) {
+            finalException = e;
+            return false;
+          }
+        }
+      }
+    }
+    
+    void invokeOrFail() throws Exception {
+      if (!invoke()) throw finalException;
+    }
+  }
+  
+  //command pattern ends
 
   public void setHarvestJob(RecordHarvestJob parent) {
     job = parent;
@@ -77,15 +116,38 @@ public class HarvestConnectorClient implements HarvestClient {
   public int download(URL url) throws Exception 
   {
     storage = job.getStorage();
-    createSession(resource.getUrl());
-    // TODO fetchConnector(cfrepo, resource); 
     logger.log(Level.INFO, "Starting - " + resource);
+    createSession(resource.getUrl());
     uploadConnector(resource.getConnectorUrl());
     init();
-    harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
+    new RetryInvoker(3) {
+      @Override
+      void action() throws Exception {
+        harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
+      }
+      @Override
+      public String toString() {
+        return "harvest";
+      }
+    }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
       pause();
-      harvest(linkTokens.remove(0));
+      RetryInvoker invoker = new RetryInvoker(3) {
+        @Override
+        void action() throws Exception {
+          harvest(linkTokens.remove(0));
+        }
+        @Override
+        public String toString() {
+          return "harvest";
+        }
+      };
+      boolean success = invoker.invoke();
+      if (!success) {
+        if (resource.getAllowErrors())
+          continue;
+        else throw invoker.finalException;
+      }
     }
     if (job.isKillSent()) {
       logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
@@ -221,7 +283,6 @@ public class HarvestConnectorClient implements HarvestClient {
       writeJSON(request, conn);
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
-      // String contentType = conn.getContentType();
       if (responseCode == 200) {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
@@ -253,7 +314,6 @@ public class HarvestConnectorClient implements HarvestClient {
   public void storeRecord(JSONObject record) throws IOException {
     Map<String, Collection<Serializable>> mapValues = new LinkedHashMap<String, Collection<Serializable>>();
     RecordImpl pzRecord = new RecordImpl(mapValues);
-    recordCount++;
     for (Object keyObj: record.keySet()) {
       if (keyObj instanceof String) {
 	String key = (String) keyObj;
