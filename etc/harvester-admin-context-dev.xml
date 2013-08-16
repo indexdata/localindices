@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context 
+   docBase="/home/indexdata/localindices/harvester-admin/target/harvester-admin/"
+   path="/harvester-admin" 
+   debug="0" 
+   privileged="true" 
+   allowLinking="true" 
+   crossContext="true"
+>
+  <!-- make symlinks work in Tomcat 5 -->
+  <Resources className="org.apache.naming.resources.FileDirContext" allowLinking="true" />
+  <Resource 
+    name="localindicesDS"
+    username="localidxadm"
+    password="localidxadmpass"
+    auth="Container" 
+    driverClassName="com.mysql.jdbc.Driver" 
+    maxActive="100" maxIdle="30" maxWait="10000" 
+    type="javax.sql.DataSource" 
+    url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" 
+    />
+</Context>
