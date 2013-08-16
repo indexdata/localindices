@@ -11,7 +11,12 @@
       <h5>XML bulk specific information:</h5>
       <h:panelGrid columns="2">
         <h:outputText value="URLs (space-separated):"/>
-        <h:inputTextarea cols="100" rows="15" value="#{resourceController.resource.url}"/>
+        <h:panelGroup>
+        <h:inputTextarea id="resourceUrls" 
+                         cols="60" rows="15" value="#{resourceController.resource.url}"
+           required="true" requiredMessage="Please provide target URL(s)!"/>
+          <h:message for="resourceUrls" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Split at depth (Zero disables splitting):"/>
         <h:inputText value="#{resourceController.resource.splitAt}"/>
         <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
@@ -20,7 +25,7 @@
         <h:inputText value="#{resourceController.resource.expectedSchema}"/>
         <h:outputText value="Output format (application/tmarc for TurboMARC)"/>
         <h:inputText value="#{resourceController.resource.outputSchema}"/>
-        <h:outputText value="Allow errors:"/>
+        <h:outputText value="Continue on errors:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
         <h:outputText value="Use conditional HTTP request"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>

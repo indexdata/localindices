@@ -12,7 +12,11 @@
         <h:outputText value="ID:"/>
         <h:outputText value="#{storageController.storage.id}"/>
         <h:outputText value="Name:"/>
-        <h:inputText value="#{storageController.storage.name}" size="30"/>
+        <h:panelGroup>
+          <h:inputText id="storageName" value="#{storageController.storage.name}" size="30"
+              required="true" requiredMessage="Please provide storage name!"/>
+          <h:message for="storageName" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Storage Description:"/>
         <h:inputTextarea cols="60" rows="3" value="#{storageController.storage.description}"/>
         <h:outputText value="Enabled:"/>
