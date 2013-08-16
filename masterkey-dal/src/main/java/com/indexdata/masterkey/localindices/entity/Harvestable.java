@@ -88,11 +88,11 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @Column(nullable=false)
   private Boolean allowErrors = false;
   @Column(nullable=false)
-  private Integer timeout;
+  private Integer timeout = 60; //SECS
   @Column(nullable=false)
-  private Integer retryCount;
+  private Integer retryCount = 2;
   @Column(nullable=false)
-  private Integer retryWait;
+  private Integer retryWait = 60; //SECS
 
   public String getDescription() {
     return description;
