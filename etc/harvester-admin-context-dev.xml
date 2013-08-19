@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context 
-   docBase="/usr/share/masterkey/harvester.war"
-   path="/harvester" 
+   docBase="/home/indexdata/localindices/harvester-admin/target/harvester-admin/"
+   path="/harvester-admin" 
    debug="0" 
    privileged="true" 
    allowLinking="true" 

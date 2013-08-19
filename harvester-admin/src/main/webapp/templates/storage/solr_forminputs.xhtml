@@ -10,7 +10,11 @@
       <h5>SOLR specific information: </h5>
       <h:panelGrid columns="2">
         <h:outputText value="Basic SOLR Server URL:"/>
-        <h:inputText value="#{storageController.storage.url}" size="100"/>
+        <h:panelGroup>
+          <h:inputText id="solrUrl" value="#{storageController.storage.url}" size="100"
+             required="true" requiredMessage="Please provide SOLR URL!"/>
+          <h:message for="solrUrl" style="color: red;"/>
+        </h:panelGroup>
         <!-- 
                 <h:inputText value="#{storageController.storage.transformation}"/>
         -->

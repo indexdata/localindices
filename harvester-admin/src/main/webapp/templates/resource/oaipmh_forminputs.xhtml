@@ -11,7 +11,11 @@
       <h5>OAI-PMH specific information: </h5>
       <h:panelGrid columns="2">
         <h:outputText value="OAI Repository URL:"/>
-        <h:inputText value="#{resourceController.resource.url}" size="50"/>
+        <h:panelGroup>
+          <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
+                       required="true" requiredMessage="Please provide the repository URL!"/>
+          <h:message for="resourceUrl" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="OAI Set Name:"/>
         <h:inputText value="#{resourceController.resource.oaiSetName}" size="50"/>
         <h:outputText value="Metadata Prefix: "/>

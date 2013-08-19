@@ -9,7 +9,11 @@
     <ui:composition>
       <h:panelGrid columns="2">
         <h:outputText value="Step Name:" />
-        <h:inputText value="#{stepController.current.name}" />
+        <h:panelGroup>
+          <h:inputText id="stepName" value="#{stepController.current.name}"
+             required="true" requiredMessage="Please provide a name for the step!"/>
+          <h:message for="stepName" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Description:" />
         <h:inputText value="#{stepController.current.description}" />
         <!-- for future use

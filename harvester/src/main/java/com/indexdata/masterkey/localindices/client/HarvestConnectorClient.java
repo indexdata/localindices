@@ -129,7 +129,18 @@ public class HarvestConnectorClient implements HarvestClient {
     new RetryInvoker(resource.getRetryCount()) {
       @Override
       void action() throws Exception {
-        harvest(resource.getResumptionToken(), resource.getFromDate(), resource.getUntilDate());
+        try {
+          harvest(resource.getResumptionToken(), resource.getFromDate(),
+            resource.getUntilDate());
+        } catch (Exception e) {
+          // log on failure
+          try {
+            logger.debug("Engine log for the failed invocation:\n" + getLog());
+          } catch (Exception le) {
+            logger.warn("Retrieving engine log failed with: " + le.getMessage());
+          }
+          throw e; //rethrow
+          }
       }
       @Override
       public String toString() {
@@ -142,7 +153,17 @@ public class HarvestConnectorClient implements HarvestClient {
       RetryInvoker invoker = new RetryInvoker(resource.getRetryCount()) {
         @Override
         void action() throws Exception {
-          harvest(linkToken);
+          try {
+            harvest(linkToken);
+          } catch (Exception e) {
+            // log on failure
+            try {
+              logger.debug("Engine log for the failed invocation:\n" + getLog());
+            } catch (Exception le) {
+              logger.warn("Retrieving engine log failed with: "+le.getMessage());
+            }
+            throw e; //rethrow
+          }
         }
         @Override
         public String toString() {
@@ -163,7 +184,6 @@ public class HarvestConnectorClient implements HarvestClient {
       logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
     }
     else {
-      logger.log(Level.INFO, getLog()); 
       logger.log(Level.INFO, "Finished - " + resource);
     }
     return 0;
@@ -186,7 +206,7 @@ public class HarvestConnectorClient implements HarvestClient {
         throw new Exception("Fetching connector from the repo failed - status "+res);
       }
       Document connector = XmlUtils.parse(hm.getResponseBodyAsStream());
-      HttpURLConnection cfwsConn = createConnectionJSON("load_cf");
+      HttpURLConnection cfwsConn = createConnectionJSON("load_cf", null);
       cfwsConn.setDoOutput(true);
       XmlUtils.serialize(connector, cfwsConn.getOutputStream());
       int rc = cfwsConn.getResponseCode();
@@ -202,7 +222,7 @@ public class HarvestConnectorClient implements HarvestClient {
   
 
   private void init() throws Exception {
-    HttpURLConnection conn = createConnectionJSON("run_task_opt/init");
+    HttpURLConnection conn = createConnectionJSON("run_task_opt/init", null);
     String initData = resource.getInitData();
     JSONParser parser = new JSONParser();
     JSONObject jsonObj = new JSONObject();
@@ -233,7 +253,7 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   private void createSession(String url) throws Exception {
-    HttpURLConnection conn = createConnectionJSON(null);
+    HttpURLConnection conn = createConnectionJSON(null, "logmodules=runtime&loglevel=INFO");
     int rc = conn.getResponseCode();
     if (rc == 200) {
       parseSessionResponse(conn.getInputStream(), conn.getContentLength());
@@ -245,9 +265,12 @@ public class HarvestConnectorClient implements HarvestClient {
     throw new Exception(error);
   }
 
-  private HttpURLConnection createConnectionRaw(String task) throws Exception {
+  private HttpURLConnection createConnectionRaw(String task, String params) throws Exception {
     HttpURLConnection conn = null; 
-    String urlString = resource.getUrl() + (sessionId != null ? "/" + sessionId : "") + (task != null ? "/" + task : "");
+    String urlString = resource.getUrl() + 
+      (sessionId != null ? "/" + sessionId : "") + 
+      (task != null ? "/" + task : "") +
+      (params != null ? "?" + params : "");
     URL url = new URL(urlString);
     logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
 
@@ -259,8 +282,8 @@ public class HarvestConnectorClient implements HarvestClient {
     return conn; 
   }
 
-  private HttpURLConnection createConnectionJSON(String task) throws Exception {
-    HttpURLConnection conn = createConnectionRaw(task); 
+  private HttpURLConnection createConnectionJSON(String task, String params) throws Exception {
+    HttpURLConnection conn = createConnectionRaw(task, params); 
     conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     conn.setRequestMethod("POST");
     return conn; 
@@ -289,34 +312,27 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   private void harvest(JSONObject request) throws Exception {
-      HttpURLConnection conn = createConnectionJSON("run_task/harvest");
+      HttpURLConnection conn = createConnectionJSON("run_task/harvest", null);
       writeJSON(request, conn);
       int responseCode = conn.getResponseCode();
       int contentLength = conn.getContentLength();
       if (responseCode == 200) {
 	  parseHarvestResponse(conn.getInputStream(), contentLength);
       }
-      else {
-	logger.error("Failed to harvest.\n" + getLog()); 
+      else {  
 	throw new Exception("Error: ResponseCode:" + responseCode);
       }
 }
 	
   private String getLog() throws Exception {
-    HttpURLConnection conn = createConnectionJSON("log");
+    HttpURLConnection conn = createConnectionJSON("log", "clear=1");
     JSONObject jsonObj = new JSONObject();
     writeJSON(jsonObj, conn);
     int responseCode = conn.getResponseCode();
     if (responseCode == 200) {
-      int numLines = 10;
-      String lines = readNLastLines(conn, numLines);
-      StringBuilder sb = new StringBuilder();
-      sb.append("Up to ").append(numLines).append(" trailing connector engine log lines shown:\n");
-      sb.append(lines);
-      sb.append("Engine log ends.\n");
-      return sb.toString();
+      return read(conn);
     } else {
-	throw new Exception("Error: ResponseCode:" + responseCode);
+      throw new Exception("Error: ResponseCode:" + responseCode);
     }
   }
   
@@ -442,6 +458,7 @@ public class HarvestConnectorClient implements HarvestClient {
     JSONObject request = new JSONObject();
     if (startToken != null && !startToken.isEmpty()) {
       JSONParser p = new JSONParser();
+      @SuppressWarnings("rawtypes")
       Map sT = (Map) p.parse(startToken, containerFactory);
       request.putAll(sT);
     }
@@ -488,6 +505,19 @@ public class HarvestConnectorClient implements HarvestClient {
     conn.getOutputStream().write(postData);
     conn.getOutputStream().flush();
   }
+  
+  private String read(HttpURLConnection conn) throws IOException {
+    InputStream in = conn.getInputStream();
+    InputStreamReader is = new InputStreamReader(in, "UTF-8");
+    BufferedReader br = new BufferedReader(is);
+    String line = null;
+    StringBuilder sb = new StringBuilder();
+    while ((line = br.readLine()) != null) {
+      sb.append(line).append("\n");
+    }
+    return sb.toString();
+  }
+  
   
   private String readNLastLines(HttpURLConnection conn, int numLines) throws IOException {
     InputStream in = conn.getInputStream();

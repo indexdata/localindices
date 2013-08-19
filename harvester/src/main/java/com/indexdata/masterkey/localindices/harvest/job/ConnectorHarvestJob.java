@@ -60,6 +60,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   public void run() {
     String startResumptionToken = resource.getResumptionToken();
     try {
+      resource.setMessage(null);
+      resource.setAmountHarvested(null);
       setStatus(HarvestStatus.RUNNING);
       RecordStorage storage = getStorage(); 
       storage.setOverwriteMode(resource.getOverwrite());
@@ -82,6 +84,16 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       commit();
       setStatus(HarvestStatus.FINISHED);
     } catch (Exception e) {
+      if (isKillSent()) {
+	if (resource.getAllowErrors()) 
+	  try { 
+	    logger.log(Level.INFO, "Harvest Job killed. Commiting partial due to Allow Errors");
+	    commit();
+	    return ; 
+	  } catch (Exception ioe) {
+	    logger.error("Failed to commit on job killed: " + ioe.getMessage());
+	  }
+      }
       String error = e.getMessage();
       setStatus(HarvestStatus.ERROR, error);
       resource.setResumptionToken(startResumptionToken);

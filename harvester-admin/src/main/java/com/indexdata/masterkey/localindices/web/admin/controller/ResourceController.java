@@ -415,7 +415,7 @@ public class ResourceController {
 
   /* update resource */
   public String prepareResourceToEdit() {
-    logger.info("prepare resource to debug called..................");
+    logger.debug("prepare resource to edit called..................");
     resource = getResourceFromRequestParam();
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getSimpleName());
@@ -440,17 +440,17 @@ public class ResourceController {
     String action = getParameterFromRequestParam("action");
     if (resource != null) { 
       if (!resource.getCurrentStatus().equals("RUNNING")) {
+	if (action != null && !"run".equals(action))
+	  logger.warn("Got " + action + " on stopped harvester job (" + resource.getId() + "). Expected run.");
 	resource.setHarvestImmediately(true);
 	resource.setLastUpdated(new Date());
 	resource = dao.update(resource);
-	if (!"run".equals(action))
-	  logger.warn("Got " + action + " on already running harvester job (" + resource.getId() + "). Expected run.");
       }
       else {
 	// Just edit the records should stop it 
 	resource.setLastUpdated(new Date());
 	resource = dao.update(resource);
-	if (!"stop".equals(action))
+	if (action != null && !"stop".equals(action))
 	  logger.warn("Got " + action + " on already running harvester job (" + resource.getId() + "). Expected stop.");
       }
     } else {

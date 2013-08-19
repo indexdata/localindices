@@ -61,7 +61,7 @@ install-stamp: build
 
 	# Harvester core
 	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
-	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
+	cp harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/
 	
 	mkdir -p $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 	cp README $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
@@ -74,7 +74,7 @@ install-stamp: build
 
 	# Harvester Admin core
 	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester-admin
-	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester-admin/
+	cp harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/
 
 	mkdir -p $(ADMINROOT)/etc/masterkey/harvester-admin
 	cp -p etc/harvester-admin-context.xml $(ADMINROOT)/etc/masterkey/harvester-admin
