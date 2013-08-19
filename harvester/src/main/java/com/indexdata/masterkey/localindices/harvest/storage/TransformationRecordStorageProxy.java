@@ -50,6 +50,8 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 
   @Override 
   public void add(Record record) {
+    if (job.isKillSent())
+      throw new RuntimeException("Job killed");
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
     while (true)
       try {
@@ -74,7 +76,9 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   @Override
   public void delete(String id) {
     RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null);
-    while (true)
+    while (true) {
+      if (job.isKillSent())
+	      throw new RuntimeException("Job killed");
       try {
 	Record transformed = transformNode(recordDOM);
 	if (transformed != null)
@@ -92,6 +96,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 	  e1.printStackTrace();
 	}
       }
+    }
   }
 
   

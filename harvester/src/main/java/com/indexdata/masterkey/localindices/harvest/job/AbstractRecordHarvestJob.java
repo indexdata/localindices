@@ -28,10 +28,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecord
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
- * Specifies the simplest common behaviour of all HarvestJobs that otherwise
+ * Specifies the simplest common behavior of all HarvestJobs that otherwise
  * would have to be re-implemented if every concrete job implementation.
  * 
- * @author jakub
+ * @author Dennis
  */
 public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
@@ -88,6 +88,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     this.logger = logger;
   }
 
+  @Deprecated
   protected RecordStorage setupTransformation(RecordStorage storage) {
     Harvestable resource = getHarvestable(); 
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
@@ -135,9 +136,9 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       StorageStatus storageStatus = storage.getStatus();  
       if (storageStatus != null) {
         resource.setAmountHarvested(storageStatus.getAdds());
-        logger.info("Committed " + storageStatus.getAdds() 
-            	     + (storageStatus.getAdds() > 0 ?  storageStatus.getAdds() + " adds " : "")  
-            	     + (storageStatus.getDeletes() > 0 ?  storageStatus.getDeletes() + " deletes" : "") 
+        logger.info("Committed "  
+            	     + (storageStatus.getAdds() > 0 ?  storageStatus.getAdds() + " adds " : " ")  
+            	     + (storageStatus.getDeletes() > 0 ?  storageStatus.getDeletes() + " deletes " : "") 
             	     + storageStatus.getTotalRecords() + " in total (pending warming of index).");
       }
     }
