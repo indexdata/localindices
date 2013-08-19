@@ -442,6 +442,7 @@ public class HarvestConnectorClient implements HarvestClient {
     JSONObject request = new JSONObject();
     if (startToken != null && !startToken.isEmpty()) {
       JSONParser p = new JSONParser();
+      @SuppressWarnings("rawtypes")
       Map sT = (Map) p.parse(startToken, containerFactory);
       request.putAll(sT);
     }
