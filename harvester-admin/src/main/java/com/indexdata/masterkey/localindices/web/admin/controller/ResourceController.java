@@ -415,7 +415,7 @@ public class ResourceController {
 
   /* update resource */
   public String prepareResourceToEdit() {
-    logger.info("prepare resource to debug called..................");
+    logger.debug("prepare resource to edit called..................");
     resource = getResourceFromRequestParam();
     postDePersist();
     logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getSimpleName());
