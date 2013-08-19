@@ -40,6 +40,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
+import java.io.FileNotFoundException;
 
 public class HarvestConnectorClient implements HarvestClient {
   private StorageJobLogger logger; 
@@ -57,6 +58,14 @@ public class HarvestConnectorClient implements HarvestClient {
   
   //command pattern starts
   
+  public class Unrecoverable extends Exception {
+
+    public Unrecoverable(Throwable cause) {
+      super(cause);
+    }
+    
+  }
+  
   abstract class RetryInvoker {
     final int maxRetries;
     Exception finalException;
@@ -65,7 +74,8 @@ public class HarvestConnectorClient implements HarvestClient {
       this.maxRetries = maxRetries;
     }
     
-    abstract void action() throws Exception;
+    abstract void onInvoke() throws Exception, Unrecoverable;
+    
     public abstract String toString(); //force
     
     boolean invoke() {
@@ -73,8 +83,12 @@ public class HarvestConnectorClient implements HarvestClient {
       while (true) {
         try {
           tried++;
-          action();
+          onInvoke();
           return true;
+        } catch (Unrecoverable ue) {
+          logger.warn("Invoking task '"+toString()+"' failed with unretriable error, giving up task");
+          finalException = ue;
+          return false;
         } catch (Exception e) {
           boolean retry = tried <= maxRetries;
           logger.warn("Invoking task '"+toString()+"' failed, "
@@ -93,7 +107,81 @@ public class HarvestConnectorClient implements HarvestClient {
     }
   }
   
-  //command pattern ends
+  public class NotInitialized extends Exception {
+
+    public NotInitialized(String message) {
+      super(message);
+    }
+    
+  }
+  
+  public abstract class InitializeRetryInvoker extends RetryInvoker {
+
+    public InitializeRetryInvoker(int maxRetries) {
+      super(maxRetries);
+    }
+    
+    public abstract void onInit() throws Exception;
+    
+    public abstract void onPerform() throws Exception, NotInitialized;
+    
+    public abstract void onError();
+    
+    @Override
+    public void onInvoke() throws Exception {
+      try {
+        onPerform();
+      } catch (NotInitialized ni) {
+        logger.warn("Engine session dead, '"+ni.getMessage()+"' trying to initialize..");
+        try {
+          onInit();
+          onPerform();
+        } catch (NotInitialized ni2) {
+          logger.warn("Initializing session failed.");
+          logger.debug("Reason:", ni2);
+          onError();
+          throw new Unrecoverable(ni2);
+        }
+      } catch (Exception e) { //everything but non-initialized
+        onError();
+        throw e;
+      }
+    }
+  }
+  
+  //command pattern ends, implementation starts
+  
+  abstract class HarvestInvoker extends InitializeRetryInvoker {
+
+    public HarvestInvoker(int maxRetries) {
+      super(maxRetries);
+    }
+    
+    @Override
+    final public void onInit() throws Exception {
+      createSession();
+      uploadConnector(resource.getConnectorUrl());
+      init();
+    }
+
+    @Override
+    public abstract void onPerform() throws Exception, NotInitialized;
+    
+    @Override
+    final public void onError() {
+      try {
+        logger.debug("Engine log for the failed invocation:\n" + getLog());
+      } catch (Exception le) {
+        logger.warn("Retrieving engine log failed with: " + le.getMessage());
+      }
+    }
+
+    @Override
+    final public String toString() {
+      return "harvest";
+    }
+    
+  } 
 
   public void setHarvestJob(RecordHarvestJob parent) {
     job = parent;
@@ -123,51 +211,23 @@ public class HarvestConnectorClient implements HarvestClient {
   {
     storage = job.getStorage();
     logger.log(Level.INFO, "Starting - " + resource);
-    createSession(resource.getUrl());
+    createSession();
     uploadConnector(resource.getConnectorUrl());
     init();
-    new RetryInvoker(resource.getRetryCount()) {
+    new HarvestInvoker(resource.getRetryCount()) {
       @Override
-      void action() throws Exception {
-        try {
-          harvest(resource.getResumptionToken(), resource.getFromDate(),
-            resource.getUntilDate());
-        } catch (Exception e) {
-          // log on failure
-          try {
-            logger.debug("Engine log for the failed invocation:\n" + getLog());
-          } catch (Exception le) {
-            logger.warn("Retrieving engine log failed with: " + le.getMessage());
-          }
-          throw e; //rethrow
-          }
-      }
-      @Override
-      public String toString() {
-        return "harvest";
+      public void onPerform() throws Exception {
+        harvest(resource.getResumptionToken(), resource.getFromDate(),
+          resource.getUntilDate());
       }
     }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
-      pause();
       final Object linkToken = linkTokens.remove(0);
-      RetryInvoker invoker = new RetryInvoker(resource.getRetryCount()) {
+      RetryInvoker invoker = new HarvestInvoker(resource.getRetryCount()) {
         @Override
-        void action() throws Exception {
-          try {
-            harvest(linkToken);
-          } catch (Exception e) {
-            // log on failure
-            try {
-              logger.debug("Engine log for the failed invocation:\n" + getLog());
-            } catch (Exception le) {
-              logger.warn("Retrieving engine log failed with: "+le.getMessage());
-            }
-            throw e; //rethrow
-          }
-        }
-        @Override
-        public String toString() {
-          return "harvest";
+        public void onPerform() throws Exception {
+          pause();
+          harvest(linkToken);
         }
       };
       boolean success = invoker.invoke();
@@ -175,6 +235,10 @@ public class HarvestConnectorClient implements HarvestClient {
         if (resource.getAllowErrors()) {
           errors.add("link token '"+linkToken+"' failed with '"
             +invoker.finalException.getMessage()+"'");
+          if (invoker.finalException instanceof Unrecoverable) {
+            logger.warn("Unrecoverable condition met, harvest terminated.");
+            throw invoker.finalException;
+          }
           continue;
         }
         else throw invoker.finalException;
@@ -206,7 +270,7 @@ public class HarvestConnectorClient implements HarvestClient {
         throw new Exception("Fetching connector from the repo failed - status "+res);
       }
       Document connector = XmlUtils.parse(hm.getResponseBodyAsStream());
-      HttpURLConnection cfwsConn = createConnectionJSON("load_cf", null);
+      HttpURLConnection cfwsConn = createConnection("load_cf", null);
       cfwsConn.setDoOutput(true);
       XmlUtils.serialize(connector, cfwsConn.getOutputStream());
       int rc = cfwsConn.getResponseCode();
@@ -222,7 +286,7 @@ public class HarvestConnectorClient implements HarvestClient {
   
 
   private void init() throws Exception {
-    HttpURLConnection conn = createConnectionJSON("run_task_opt/init", null);
+    HttpURLConnection conn = createConnection("run_task_opt/init", null);
     String initData = resource.getInitData();
     JSONParser parser = new JSONParser();
     JSONObject jsonObj = new JSONObject();
@@ -237,13 +301,7 @@ public class HarvestConnectorClient implements HarvestClient {
     addField(jsonObj, "password", resource.getPassword());
     addField(jsonObj, "proxy",    resource.getProxy());
     writeJSON(jsonObj, conn);
-    int rc = conn.getResponseCode();
-    if (rc == 200) {
-      return ;
-    }
-    String error = "Unable to do init request. Response code: " + rc ;
-    logger.warn(error);
-    throw new Exception(error); 
+    executeConnection(conn);
   }
 
   @SuppressWarnings("unchecked")
@@ -252,20 +310,14 @@ public class HarvestConnectorClient implements HarvestClient {
       jsonObj.put(fieldname, value);
   }
 
-  private void createSession(String url) throws Exception {
-    HttpURLConnection conn = createConnectionJSON(null, "logmodules=runtime&loglevel=INFO");
-    int rc = conn.getResponseCode();
-    if (rc == 200) {
-      parseSessionResponse(conn.getInputStream(), conn.getContentLength());
-      logger.info("New Session (" + sessionId + ") created");
-      return ; 
-    }
-    String error = "Error creating session on " + url + ". Return code: " + rc;
-    logger.error(error);
-    throw new Exception(error);
+  private void createSession() throws Exception {
+    sessionId = null;
+    HttpURLConnection conn = createConnection(null, "logmodules=runtime&loglevel=INFO");
+    executeConnection(conn);
+    parseSessionResponse(conn.getInputStream(), conn.getContentLength());
   }
 
-  private HttpURLConnection createConnectionRaw(String task, String params) throws Exception {
+  private HttpURLConnection createConnection(String task, String params) throws Exception {
     HttpURLConnection conn = null; 
     String urlString = resource.getUrl() + 
       (sessionId != null ? "/" + sessionId : "") + 
@@ -279,14 +331,29 @@ public class HarvestConnectorClient implements HarvestClient {
     else
       conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("POST");
+    conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     return conn; 
   }
-
-  private HttpURLConnection createConnectionJSON(String task, String params) throws Exception {
-    HttpURLConnection conn = createConnectionRaw(task, params); 
-    conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-    conn.setRequestMethod("POST");
-    return conn; 
+  
+  /**
+   * HUC is very rigid to use -- 404s will throw FileNotFound when retrieving
+   * the response code and so will 5xx.
+   * @param conn
+   * @return
+   * @throws Exception 
+   */
+  private int executeConnection(HttpURLConnection conn) throws Exception {
+    int resp = conn.getResponseCode();
+    InputStream is = resp >= 400 ? conn.getErrorStream() : conn.getInputStream();
+    if (resp >= 400) {
+      StringBuilder sb = new StringBuilder();
+      read(is, sb, "UTF-8", " ");
+      String content = sb.toString();
+      if (resp == 400 && content.equals("no such session")) //dead session
+        throw new NotInitialized("400 - no such session");
+      throw new Exception("Response code "+resp+" - '"+content+"'");
+    }
+    return resp;
   }
   
   String currentDateFormat = "yyyy-MM-dd";
@@ -312,28 +379,18 @@ public class HarvestConnectorClient implements HarvestClient {
   }
 
   private void harvest(JSONObject request) throws Exception {
-      HttpURLConnection conn = createConnectionJSON("run_task/harvest", null);
-      writeJSON(request, conn);
-      int responseCode = conn.getResponseCode();
-      int contentLength = conn.getContentLength();
-      if (responseCode == 200) {
-	  parseHarvestResponse(conn.getInputStream(), contentLength);
-      }
-      else {  
-	throw new Exception("Error: ResponseCode:" + responseCode);
-      }
+    HttpURLConnection conn = createConnection("run_task/harvest", null);
+    writeJSON(request, conn);
+    executeConnection(conn);
+    parseHarvestResponse(conn.getInputStream(), conn.getContentLength());
 }
 	
   private String getLog() throws Exception {
-    HttpURLConnection conn = createConnectionJSON("log", "clear=1");
+    HttpURLConnection conn = createConnection("log", "clear=1");
     JSONObject jsonObj = new JSONObject();
     writeJSON(jsonObj, conn);
-    int responseCode = conn.getResponseCode();
-    if (responseCode == 200) {
-      return read(conn);
-    } else {
-      throw new Exception("Error: ResponseCode:" + responseCode);
-    }
+    executeConnection(conn);
+    return read(conn);
   }
   
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -423,7 +480,7 @@ public class HarvestConnectorClient implements HarvestClient {
   private void pause() throws InterruptedException {
     Long sleep = resource.getSleep();
     if (sleep != null) {
-      logger.debug("Sleeping " + sleep + " before next harvest");
+      logger.debug("Sleeping " + sleep + " before next request...");
       Thread.sleep(resource.getSleep());
     }
   }
@@ -507,14 +564,20 @@ public class HarvestConnectorClient implements HarvestClient {
   
   private String read(HttpURLConnection conn) throws IOException {
     InputStream in = conn.getInputStream();
-    InputStreamReader is = new InputStreamReader(in, "UTF-8");
+    StringBuilder sb = new StringBuilder();
+    read(in, sb, "UTF-8", "\n");
+    return sb.toString();
+  }
+  
+  private void read(InputStream in, StringBuilder sb, String encoding, String sepString) throws IOException {
+    InputStreamReader is = new InputStreamReader(in, encoding);
     BufferedReader br = new BufferedReader(is);
     String line = null;
-    StringBuilder sb = new StringBuilder();
+    String sep = "";
     while ((line = br.readLine()) != null) {
-      sb.append(line).append("\n");
+      sb.append(sep).append(line);
+      sep = sepString;
     }
-    return sb.toString();
   }
   
   
