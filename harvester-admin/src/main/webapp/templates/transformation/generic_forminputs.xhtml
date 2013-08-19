@@ -12,7 +12,11 @@
         <h:outputText value="ID:"/>
         <h:outputText value="#{transformationController.transformation.id}"/>
         <h:outputText value="Name:"/>
-        <h:inputText value="#{transformationController.transformation.name}" size="30"/>
+        <h:panelGroup>
+          <h:inputText id="transName" value="#{transformationController.transformation.name}" size="30"
+             required="true" requiredMessage="Please provide a name for the transformation!"/>
+          <h:message for="transName" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Description:"/>
         <h:inputTextarea cols="60" rows="3" value="#{transformationController.transformation.description}"/>
         <h:outputText value="Enabled:"/>

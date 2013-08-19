@@ -11,7 +11,11 @@
         <h:panelGrid columns="1">
           <h:outputText value="Custom Step Class:" />
           <!--  Nice to list all available classes, but they are not present in the Admin (yet) -->
-          <h:inputText size="100" value="#{stepController.current.customClass}" />
+          <h:panelGroup>
+            <h:inputText id="className" size="100" value="#{stepController.current.customClass}"
+               required="true" requiredMessage="Please provide a fully-qualified Java class name!"/>
+          <h:message for="className" style="color: red;"/>
+        </h:panelGroup>
         </h:panelGrid>
       </div>  
     </ui:composition>

@@ -27,17 +27,20 @@ Click one of those three selections to add a new Resource to harvest, and follow
 
 Setting up a new Harvesting job consists of enteringgeneral harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
 
-The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete and Purge button will delete the job and the harvested records.
+The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete Job and Records button will as stated delete both the job and the harvested records in the associated storage.
 
 The screen capture below shows the general settings applicable to all three types of Harvesting jobs:
 
 ![General job settings.](./img/02-jobgeneric.png)
 
+* _ID_: Automatically assigned identifier for the job.
+
 * _Name_: Preferably a unique name for users to identify this Harvester resource.
 
 * _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These free-text fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
-* _Harvest schedule_: Use these fields To define a recurring time/interval at which the Harvester job should run. 
+* _Harvest schedule_: Use these fields to define a recurring time/interval at which the Harvester job should run. E.g for weekly runs specify a day of the week
+on which the harvest should be executed. 
 
 <!-- 
     D: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.
@@ -57,13 +60,14 @@ Check-boxes for:
 
 * _Harvest now_: Check to run the harvesting job immediately upon clicking Add/Save.
 
-* _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". 
+* _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". Leaving this box unchecked will
+make the job inactive.
 
 * _Overwrite_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run. Since OAI-PMH supports incremental updates, "overwrite" is not generally used with such jobs. If this feature is used with OAI-PMH processes, it is necessary to clear the "Harvest From" and "Resumption Token" fields, otherwise OAI-PMH jobs with "overwrite" selected will produce only a partial data set.
 
 Drop-downs for:
 
-* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to the internal format used by the Harvester for data storage. 
+* _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to the internal format used by the Harvester for data storage. See the _Transformation Pipelines_ manual section for more details. 
 <!---
     D: THIS SECTION NEEDS MORE INFORMATION ON THE TRANSFORMATION CHOICES THEMSELVES.
     Jakub: maybe a link to the transformation section?
@@ -128,7 +132,7 @@ The Harvester  supports gzipped data (and partly supports zipped data: only the 
 
 * _Output format_: This field expresses the output format of binary MARC reading--which will also be the input format for the transformation pipeline. If the Transformation Pipeline expects MARC21 XML, this should be set to Application/marc. If the pipeline expects Turbo MARC XML, it should be set to Application/tmarc.
 
-* _Allow errors_: Check to continue harvesting and storing records even if retrieving some of the resources from the list fails
+* _Continue on errors_: Check to continue harvesting and storing records even if retrieving some of the listed resources fails.
 
 * _Use conditional HTTP request_: ask the server if the files are modified before attempting a harvest, relies on proper timestamp handling on the server side. It's usually safe to have this enabled as servers are eager to update the modification date, even in cases when the files themselves don't change.
 
@@ -150,16 +154,20 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 * _Proxy server address_: address of the proxy server that should be used by
 the harvesting engine, e.g to deal with cases when the resource is IP authenticated.
 
-* _Init Data_: Advanced setting to provide additional initialization parameters to the harvesting connector. Any username/password specified in the inputs above will take precedence over settings specified in this field. These settings must be provided in JSON format.
+* _Init Data_: Advanced setting to provide additional initialization parameters to the harvesting connector. Any username/password/proxy specified in the inputs above will take precedence over settings specified in this field. These settings must be provided in JSON format.
 
 * _Harvest from_: Start date for selective harvesting; this functionality depends on the connector capability.
 
 * _Harvest until_: End date for selective harvesting; this functionality depends on the connector capability.
 
-* _Resumption token_: The use of a resumption token for incremental harvesting is connector specific and depends on the connector capability.
+* _Start token_: The use of a start token for incremental harvesting is connector specific and depends on the connector capability. This setting must be provided in JSON format.
 
 * _Delay between requests_: delay between requests made from the harvester to the connector engine. Use when the resource is sensitive to high loads.
 
+* _Failed request retry count_: specify how many times the harvester should retry failed harvest requests, 0 disables retrying entirely..
+
+* _Continue on errors_: if checked the harvester will ignore failed harvest
+requests (subject to retry count) and continue until link tokens are exhausted. This may lead to partial harvests.
 
 ## Storage Engines ##
 
@@ -268,7 +276,15 @@ The Output Format of the first Step is PZ but the second step expects MARCXML as
 
 ### Add a new Custom Step ###
 
+Allows to specify a custom Java class for transforming records. This requires
+that the fully qualified Java class names is specified and that the class
+is available on the harvester classpath.
+
 ### Add a new XML Logging Step ###
+
+A special instance of a Custom Step that allows dumping incoming records to the
+job logfile.
+
 <!--
     D.: Don't these two options need to be described? They're mostly similar to adding an XSL step, but also include at least one unique field.
     Jakub: agree
