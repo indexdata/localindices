@@ -74,8 +74,8 @@ public class XmlMarcClient implements HarvestClient {
         conn.setRequestProperty("If-Modified-Since", lastModified);
       }
       if (resource.getTimeout() != null) {
-	conn.setConnectTimeout(resource.getTimeout());
-	conn.setReadTimeout(resource.getTimeout());
+	conn.setConnectTimeout(resource.getTimeout() * 1000); 
+	conn.setReadTimeout(resource.getTimeout() * 1000);
 	logger.info("Configured client connection/read timeout to " + resource.getTimeout());
       }
       conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
@@ -89,7 +89,7 @@ public class XmlMarcClient implements HarvestClient {
 	  ReadStore readStore = lookupCompresssionType(conn);
 	  readStore.readAndStore();
 	}
-      } else if (responseCode == 304) {//not-modifed
+      } else if (responseCode == 304) {//not-modified
         logger.info("Content was not modified since '"+DateUtil.serialize(
           lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
         return 0;
@@ -106,7 +106,7 @@ public class XmlMarcClient implements HarvestClient {
       logger.info("Finished - " + url.toString());
     } catch (Exception ex) {
       if (job.isKillSent())
-	  return 0; 
+	  throw ex; 
 	if (allowErrors) {
 	  logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
 	  setErrors(getErrors() + (url.toString() + " "));
