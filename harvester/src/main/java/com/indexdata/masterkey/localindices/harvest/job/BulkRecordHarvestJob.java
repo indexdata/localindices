@@ -71,7 +71,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
+
     try {
+      resource.setMessage(null);
+      resource.setAmountHarvested(null);
 
       getStorage().setLogger(logger);
       
@@ -128,7 +131,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
           setStatus(HarvestStatus.WARN, client.getErrors());
         }
       } catch (Exception e) {
-        if (resource.getAllowErrors()) {
+	if (isKillSent()) {
+	  logger.info("Job killed. Stopping.");
+	  return;
+	}
+	if (resource.getAllowErrors()) {
           if (errors == null) {
             errors = "Failed to harvest: ";
           }
