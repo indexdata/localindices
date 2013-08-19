@@ -50,6 +50,8 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 
   @Override 
   public void add(Record record) {
+    if (job.isKillSent())
+      throw new RuntimeException("Job killed");
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
     while (true)
       try {
