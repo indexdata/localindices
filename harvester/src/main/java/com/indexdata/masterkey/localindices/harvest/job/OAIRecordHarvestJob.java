@@ -193,12 +193,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	setStatus(HarvestStatus.FINISHED);
       try {
 	if (resource.getKeepPartial()) {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error, "
+	  logger.log(Level.INFO, "OAI harvest stopped premature, "
 	      + "commiting up partial harvest as configured");
 	  commit();
          } else {
-	  logger.log(Level.INFO, "OAI harvest killed/faced error - rolling back until " 
-            + formatDate(resource.getFromDate()));
+	  logger.log(Level.INFO, "OAI harvest stopped premature - rolling back until " 
+            + (startResumptionToken != null ? " resumptionToken (at start): " + startResumptionToken : formatDate(resource.getFromDate())));
 	  getStorage().rollback();
 	  resource.setResumptionToken(startResumptionToken);
         }
