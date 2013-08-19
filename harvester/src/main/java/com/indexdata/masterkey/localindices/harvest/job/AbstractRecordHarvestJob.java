@@ -28,10 +28,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecord
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
- * Specifies the simplest common behaviour of all HarvestJobs that otherwise
+ * Specifies the simplest common behavior of all HarvestJobs that otherwise
  * would have to be re-implemented if every concrete job implementation.
  * 
- * @author jakub
+ * @author Dennis
  */
 public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
@@ -88,6 +88,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     this.logger = logger;
   }
 
+  @Deprecated
   protected RecordStorage setupTransformation(RecordStorage storage) {
     Harvestable resource = getHarvestable(); 
     if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
