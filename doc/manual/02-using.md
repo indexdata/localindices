@@ -25,9 +25,7 @@ Click one of those three selections to add a new Resource to harvest, and follow
 
 #### General Job Settings \
 
-Setting up a new Harvesting job consists of enteringgeneral harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
-
-The Reset button will reset a job back to state as newly created, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete Job and Records button will as stated delete both the job and the harvested records in the associated storage.
+Setting up a new Harvesting job consists of entering general harvesting information as well as settings specific to the type of job (OAI-PMH, XML/Marc Bulk or Connector-based). 
 
 The screen capture below shows the general settings applicable to all three types of Harvesting jobs:
 
@@ -75,9 +73,12 @@ Drop-downs for:
     Jakub: I mean there's a whole chapter on TPs in the manual, instead of putting more text here let's refer user to that section.
 -->
 
-* _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported.
+* _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported. Once the _Storage_ has been selected, it is possible to view the indexed records by clicking the _Stored records: click to view_ field.
 
 * _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
+
+The Reset button will reset a job back to the initial (newly created) stated, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete Job and Records button will as stated delete both the job and the harvested records in the associated storage.
+
 
 #### Resource-specific Settings \
 
