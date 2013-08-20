@@ -1,3 +1,5 @@
+\newpage
+
 # Overview #
 
 This document describes the Harvester using the following notation:
