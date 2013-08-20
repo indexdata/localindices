@@ -9,7 +9,7 @@ Jobs page.
 
 The navigation menu at the top of the Harvest Jobs page allows one to switch between sections of the Harvester Admin, such as "Storage Engines" or "Transformation Steps". 
 
-The Harvest Jobs page displays a list of currently harvested resources along with corresponding job status. Using the icons in the "Actions" column, one can Edit (the job settings), Run the job (a play/stop toggle icon), View the most recent job log, or Delete the job.
+The Harvest Jobs page displays a list of currently harvested resources along with: corresponding job status (NEW/OK, RUNNING, ERROR, WARN), date of the last harvest, number of records harvested during the last harvest, date for the next harvest and most recent status message. Using the icons in the "Actions" column, one can Edit (the job settings), Run the job (a play/stop toggle icon), View the most recent job log, or Delete the job.
 
 ![Harvest Jobs page.](./img/01-harvestjobs.png)
 
