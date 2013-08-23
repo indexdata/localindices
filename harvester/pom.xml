@@ -196,10 +196,8 @@
                 <configuration>
                   <contextPath>/solr</contextPath>
                   <daemon>true</daemon>
-                  <webApp>../webapps/solr.war</webApp>
-<!-- 
+                  <webApp>../webapps/solr</webApp>
                    <webXml>${project.build.directory}/web.xml</webXml>
- -->
                 </configuration>
               </execution>
               <execution>
