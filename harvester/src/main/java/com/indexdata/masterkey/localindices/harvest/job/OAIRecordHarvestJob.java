@@ -227,7 +227,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     logger.close();
   }
 
-  private void harvest(String baseURL, String from, String until, String metadataPrefix,
+  protected void harvest(String baseURL, String from, String until, String metadataPrefix,
       String setSpec, String resumptionToken, RecordStorage storage) throws TransformerException, IOException 
       {
 
@@ -308,7 +308,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().databaseEnd();
   }
 
-  private void logOaiPmhException(OaiPmhException e, String string) {
+  protected void logOaiPmhException(OaiPmhException e, String string) {
     try {
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
       Result xml = new StreamResult();
@@ -326,7 +326,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private RecordDOMImpl createRecord(Node node) throws TransformerException 
+  protected RecordDOMImpl createRecord(Node node) throws TransformerException 
   {
     String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
     String isDeleted = HarvesterVerb.getSingleString(node, "attribute::status"); 
@@ -336,7 +336,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     return record;
   }
 
-  private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
+  protected ListRecords listRecords(String baseURL, String from, String until, String setSpec,
       String metadataPrefix) throws IOException {
     try {
       return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
@@ -357,7 +357,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
+  protected ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
     try {
       return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
     } catch (ResponseParsingException hve) {
@@ -377,7 +377,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  private OAIError[] getErrors(NodeList errorNodes) {
+  protected OAIError[] getErrors(NodeList errorNodes) {
     if (errorNodes != null && errorNodes.getLength() > 0) {
       int length = errorNodes.getLength();
       OAIError[] errors = new OAIError[length];
