@@ -6,7 +6,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 /**
  *
- * @author dennis
+ * @author Dennis
  */
 public abstract class AbstractStorageStatus implements StorageStatus {
 
@@ -16,5 +16,10 @@ public abstract class AbstractStorageStatus implements StorageStatus {
 	   status.getDeletes().equals(getDeletes()) && 
 	   status.getTotalRecords().equals(getTotalRecords());
   }
-  
+
+  public String toString() {
+    StringBuffer result = new StringBuffer("Adds: ");
+    result.append(getAdds()).append(" Deletes: ").append(getDeletes()).append(" Total: ").append(getTotalRecords());
+    return result.toString();
+  }
 }
