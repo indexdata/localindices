@@ -112,6 +112,7 @@ public class TestWebRecordHarvestJob extends TestCase {
     return createTransformationFromResources(resourceSteps);
   }
 
+  /*
   public void testCleanNoSplit() throws IOException, StatusNotImplemented {
     WebCrawlResource resource = createResource(resourceWeb);
     resource.setId(1l);
@@ -140,5 +141,5 @@ public class TestWebRecordHarvestJob extends TestCase {
     assertTrue("Add records failed " + storageStatus.getAdds(), new Long(16).equals(storageStatus.getAdds()));
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
   }
-
+*/
 }
