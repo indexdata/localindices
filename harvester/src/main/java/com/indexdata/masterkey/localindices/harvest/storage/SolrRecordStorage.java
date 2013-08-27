@@ -3,11 +3,13 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -33,7 +35,14 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private boolean delayedPurge = true;
   private boolean waitSearcher = false;
   private boolean isPurged;
-  private String transactionIdField = "solrLastModified";
+  private String transactionIdField = "transactionId";
+  private String harvestDateField = "harvest-timestamp";
+  private String harvestDateStringField = "harvest-date";
+  private String harvestDate; 
+  private String harvestDateShort; 
+  private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+  private SimpleDateFormat formatterShort = new SimpleDateFormat("yyyy-MM-dd");
+
   @SuppressWarnings("unused")
   private SolrServerFactory factory;
 
@@ -49,6 +58,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   synchronized public void begin() throws IOException {
     super.begin();
     transactionId = new Date();
+    formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    harvestDate =  formatter.format(transactionId);
+    harvestDateShort =  formatterShort.format(transactionId);
     database = harvestable.getId().toString();
     storageStatus.setTransactionState(TransactionState.InTransaction);
   }
@@ -171,9 +183,11 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     if (databaseField != null)
       document.setField(databaseField, database);
     
-    if (transactionId  != null)
+    if (transactionId  != null) {
       document.setField(transactionIdField, transactionId.getTime());
-
+      document.setField(harvestDateField, harvestDate);
+      document.setField(harvestDateStringField, harvestDateShort);
+    }
     return document;
   }
 
