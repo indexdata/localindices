@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Proxy;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.xml.transform.TransformerException;
@@ -98,9 +97,6 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     // figure out harvesting period, even though we may end up using
     // resumptionTokens from the DB
     Date nextFrom = null;
-    if (resource.getUntilDate() != null)
-      logger.log(Level.INFO, "OAI harvest: until param will be overwritten to yesterday.");
-    resource.setUntilDate(yesterday());
     nextFrom = new Date();
     logger.log(Level.INFO, "OAI harvest started. Harvesting from: "
 	+ resource.getFromDate() + " until: " + resource.getUntilDate());
@@ -257,12 +253,6 @@ public class OAIHarvestJob extends AbstractHarvestJob {
       return errors;
     }
     return null;
-  }
-
-  private Date yesterday() {
-    Calendar c = Calendar.getInstance();
-    c.add(Calendar.DAY_OF_MONTH, -1); // back one
-    return c.getTime();
   }
 
   private String formatDate(Date date) {
