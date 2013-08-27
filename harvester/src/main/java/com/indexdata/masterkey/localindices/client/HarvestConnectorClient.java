@@ -13,13 +13,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -40,7 +40,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
-import java.io.FileNotFoundException;
 
 public class HarvestConnectorClient implements HarvestClient {
   private StorageJobLogger logger; 
@@ -59,6 +58,11 @@ public class HarvestConnectorClient implements HarvestClient {
   //command pattern starts
   
   public class Unrecoverable extends Exception {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -4160573871208853646L;
 
     public Unrecoverable(Throwable cause) {
       super(cause);
@@ -108,6 +112,11 @@ public class HarvestConnectorClient implements HarvestClient {
   }
   
   public class NotInitialized extends Exception {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -882116435061360920L;
 
     public NotInitialized(String message) {
       super(message);
@@ -342,6 +351,7 @@ public class HarvestConnectorClient implements HarvestClient {
    * @return
    * @throws Exception 
    */
+  @SuppressWarnings("resource")
   private int executeConnection(HttpURLConnection conn) throws Exception {
     int resp = conn.getResponseCode();
     InputStream is = resp >= 400 ? conn.getErrorStream() : conn.getInputStream();
@@ -582,6 +592,7 @@ public class HarvestConnectorClient implements HarvestClient {
   }
   
   
+  @SuppressWarnings("unused")
   private String readNLastLines(HttpURLConnection conn, int numLines) throws IOException {
     InputStream in = conn.getInputStream();
     InputStreamReader is = new InputStreamReader(in, "UTF-8");
