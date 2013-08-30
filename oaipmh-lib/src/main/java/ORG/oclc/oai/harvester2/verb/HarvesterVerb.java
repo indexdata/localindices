@@ -421,9 +421,14 @@ public abstract class HarvesterVerb {
       }
     } catch (SAXException saxe) {
       bin.reset();
-      throw new ResponseParsingException("Cannot parse response: " + saxe.
-        getMessage(),
-        saxe, TextUtils.readStream(bin), requestURL);
+      String resp;
+      try {
+        resp = TextUtils.readStream(bin);
+      } catch (IOException ioe) {
+        resp = "<unreadable response>";
+      }
+      throw new ResponseParsingException("Cannot parse response: " + 
+        saxe.getMessage(), saxe, resp, requestURL);
     } finally {
       bin.close();
     }
