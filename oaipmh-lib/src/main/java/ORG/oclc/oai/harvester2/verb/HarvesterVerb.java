@@ -1,18 +1,16 @@
 /**
- Copyright 2006 OCLC, Online Computer Library Center
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- 
- http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
+ * Copyright 2006 OCLC, Online Computer Library Center Licensed under the Apache
+ * License, Version 2.0 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
-
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.BufferedInputStream;
@@ -70,335 +68,366 @@ import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import com.indexdata.io.FailsafeXMLCharacterInputStream;
 import com.indexdata.utils.TextUtils;
 
-
 /**
  * HarvesterVerb is the parent class for each of the OAI verbs.
- * 
+ *
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class HarvesterVerb {
-    final protected Logger logger;
+  final protected Logger logger;
+  private int httpRetries = 2;
+  private int httpRetryWait = 60;   // secs
+  private int httpTimeout = 60000;  // millisecs
 
-    private int httpRetries = 2;
-    private int httpRetryWait = 60;   // secs
-    private int httpTimeout = 60000;  // millisecs
+  /* Primary OAI namespaces */
+  public static final String NAMESPACE_V2_0 =
+    "http://www.openarchives.org/OAI/2.0/";
+  public static final String SCHEMA_LOCATION_V2_0 = NAMESPACE_V2_0
+    + " http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
+  public static final String NAMESPACE_V1_1 =
+    "http://www.openarchives.org/OAI/1.1/";
+  public static final String NAMESPACE_V1_1_GET_RECORD = NAMESPACE_V1_1
+    + "OAI_GetRecord";
+  public static final String SCHEMA_LOCATION_V1_1_GET_RECORD =
+    NAMESPACE_V1_1_GET_RECORD
+    + " http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd";
+  public static final String NAMESPACE_V1_1_IDENTIFY = NAMESPACE_V1_1
+    + "OAI_Identify";
+  public static final String SCHEMA_LOCATION_V1_1_IDENTIFY =
+    NAMESPACE_V1_1_IDENTIFY
+    + " http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd";
+  public static final String NAMESPACE_V1_1_LIST_IDENTIFIERS = NAMESPACE_V1_1
+    + "OAI_ListIdentify";
+  public static final String SCHEMA_LOCATION_V1_1_LIST_IDENTIFIERS =
+    NAMESPACE_V1_1_LIST_IDENTIFIERS
+    + " http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd";
+  public static final String NAMESPACE_V1_1_LIST_METADATA_FORMATS =
+    NAMESPACE_V1_1 + "OAI_ListMetadataFormats";
+  public static final String SCHEMA_LOCATION_V1_1_LIST_METADATA_FORMATS =
+    NAMESPACE_V1_1_LIST_METADATA_FORMATS
+    + " http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd";
+  public static final String NAMESPACE_V1_1_LIST_RECORDS = NAMESPACE_V1_1
+    + "OAI_ListRecords";
+  public static final String SCHEMA_LOCATION_V1_1_LIST_RECORDS =
+    NAMESPACE_V1_1_LIST_RECORDS
+    + " http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd";
+  public static final String NAMESPACE_V1_1_LIST_SETS = NAMESPACE_V1_1
+    + "OAI_ListSets";
+  public static final String SCHEMA_LOCATION_V1_1_LIST_SETS =
+    NAMESPACE_V1_1_LIST_SETS
+    + " http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
+  private Document doc = null;
+  private String schemaLocation = null;
+  private String requestURL = null;
+  private static HashMap<Thread, DocumentBuilder> builderMap =
+    new HashMap<Thread, DocumentBuilder>();
+  public static Element namespaceElement = null;
+  private static DocumentBuilderFactory factory = null;
+  private boolean useTagSoup = false;
+  private static HashMap<Thread, TransformerFactory> transformerFactoryMap =
+    new HashMap<Thread, TransformerFactory>();
+  private static HashMap<Thread, XPathFactory> xpathFactoryMap =
+    new HashMap<Thread, XPathFactory>();
+  //private static boolean debug = false;
 
-    /* Primary OAI namespaces */
-    public static final String NAMESPACE_V2_0 = "http://www.openarchives.org/OAI/2.0/";
-    public static final String SCHEMA_LOCATION_V2_0 = NAMESPACE_V2_0 + " http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd";
-    
-    public static final String NAMESPACE_V1_1 = "http://www.openarchives.org/OAI/1.1/";
-    
-    public static final String NAMESPACE_V1_1_GET_RECORD = NAMESPACE_V1_1 + "OAI_GetRecord";
-    public static final String SCHEMA_LOCATION_V1_1_GET_RECORD = NAMESPACE_V1_1_GET_RECORD + " http://www.openarchives.org/OAI/1.1/OAI_GetRecord.xsd";
-    
-    public static final String NAMESPACE_V1_1_IDENTIFY = NAMESPACE_V1_1 + "OAI_Identify";
-    public static final String SCHEMA_LOCATION_V1_1_IDENTIFY = NAMESPACE_V1_1_IDENTIFY + " http://www.openarchives.org/OAI/1.1/OAI_Identify.xsd";
-    
-    public static final String NAMESPACE_V1_1_LIST_IDENTIFIERS = NAMESPACE_V1_1 + "OAI_ListIdentify";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_IDENTIFIERS = NAMESPACE_V1_1_LIST_IDENTIFIERS + " http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers.xsd";
-    
-    public static final String NAMESPACE_V1_1_LIST_METADATA_FORMATS = NAMESPACE_V1_1 + "OAI_ListMetadataFormats";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_METADATA_FORMATS = NAMESPACE_V1_1_LIST_METADATA_FORMATS + " http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats.xsd";
+  static XPath createXPath() {
+    /* create transformer */
+    XPathFactory xpathFactory = xpathFactoryMap.get(Thread.currentThread());
+    if (xpathFactory == null) {
+      xpathFactory = XPathFactory.newInstance();
+      xpathFactoryMap.put(Thread.currentThread(), xpathFactory);
+    }
+    return xpathFactory.newXPath();
+  }
 
-    public static final String NAMESPACE_V1_1_LIST_RECORDS = NAMESPACE_V1_1 + "OAI_ListRecords";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_RECORDS = NAMESPACE_V1_1_LIST_RECORDS + " http://www.openarchives.org/OAI/1.1/OAI_ListRecords.xsd";
-    
-    public static final String NAMESPACE_V1_1_LIST_SETS = NAMESPACE_V1_1 + "OAI_ListSets";
-    public static final String SCHEMA_LOCATION_V1_1_LIST_SETS = NAMESPACE_V1_1_LIST_SETS + " http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
+  static Transformer createTransformer() {
+    /* create transformer */
+    TransformerFactory xformFactory = transformerFactoryMap.get(Thread.
+      currentThread());
+    if (xformFactory == null) {
+      xformFactory = TransformerFactory.newInstance();
+      transformerFactoryMap.put(Thread.currentThread(), xformFactory);
+    }
+    try {
+      Transformer transformer = xformFactory.newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+      return transformer;
+    } catch (TransformerException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
-    private Document doc = null;
-    private String schemaLocation = null;
-    private String requestURL = null;
-    private static HashMap<Thread, DocumentBuilder> builderMap = new HashMap<Thread, DocumentBuilder>();
-    public static Element namespaceElement = null;
-    private static DocumentBuilderFactory factory = null;
-    private boolean useTagSoup = false;
-    private static HashMap<Thread, TransformerFactory> transformerFactoryMap = new HashMap<Thread, TransformerFactory>();
-    private static HashMap<Thread, XPathFactory> xpathFactoryMap = new HashMap<Thread, XPathFactory>();
-    //private static boolean debug = false;
-    
-    static XPath createXPath() {
-      /* create transformer */
-      XPathFactory xpathFactory = xpathFactoryMap.get(Thread.currentThread());
-      if (xpathFactory == null) {
-	xpathFactory = XPathFactory.newInstance();
-	xpathFactoryMap.put(Thread.currentThread(), xpathFactory);
-      }
-      return xpathFactory.newXPath();
-    }
+  static {
+    try {
 
-    static Transformer createTransformer() {
-      /* create transformer */
-      TransformerFactory xformFactory = transformerFactoryMap.get(Thread.currentThread());
-      if (xformFactory == null) {
-	xformFactory = TransformerFactory.newInstance();
-	transformerFactoryMap.put(Thread.currentThread(), xformFactory);
-      }
-      try {
-          Transformer transformer = xformFactory.newTransformer();
-          transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-          transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-          return transformer;
-      } catch (TransformerException e) {
-          e.printStackTrace();
-      }
-      return null;
+      /* Load DOM Document */
+      factory = DocumentBuilderFactory.newInstance();
+      factory.setNamespaceAware(true);
+      Thread t = Thread.currentThread();
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      builderMap.put(t, builder);
+      DOMImplementation impl = builder.getDOMImplementation();
+      Document namespaceHolder = impl.createDocument(
+        "http://www.oclc.org/research/software/oai/harvester",
+        "harvester:namespaceHolder", null);
+      namespaceElement = namespaceHolder.getDocumentElement();
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:harvester",
+        "http://www.oclc.org/research/software/oai/harvester");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:xsi",
+        "http://www.w3.org/2001/XMLSchema-instance");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai20",
+        "http://www.openarchives.org/OAI/2.0/");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_GetRecord",
+        "http://www.openarchives.org/OAI/1.1/OAI_GetRecord");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_Identify",
+        "http://www.openarchives.org/OAI/1.1/OAI_Identify");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_ListIdentifiers",
+        "http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_ListMetadataFormats",
+        "http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_ListRecords",
+        "http://www.openarchives.org/OAI/1.1/OAI_ListRecords");
+      namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+        "xmlns:oai11_ListSets",
+        "http://www.openarchives.org/OAI/1.1/OAI_ListSets");
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
     }
-    static {
-        try {
-          
-            /* Load DOM Document */
-            factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            Thread t = Thread.currentThread();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            builderMap.put(t, builder);
-            DOMImplementation impl = builder.getDOMImplementation();
-            Document namespaceHolder = impl.createDocument(
-                    "http://www.oclc.org/research/software/oai/harvester",
-                    "harvester:namespaceHolder", null);
-            namespaceElement = namespaceHolder.getDocumentElement();
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:harvester", 
-        	"http://www.oclc.org/research/software/oai/harvester");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi", 
-        	"http://www.w3.org/2001/XMLSchema-instance");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai20", 
-        	"http://www.openarchives.org/OAI/2.0/");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_GetRecord",
-        	"http://www.openarchives.org/OAI/1.1/OAI_GetRecord");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_Identify",
-        	"http://www.openarchives.org/OAI/1.1/OAI_Identify");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListIdentifiers",
-        	"http://www.openarchives.org/OAI/1.1/OAI_ListIdentifiers");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListMetadataFormats",
-        	"http://www.openarchives.org/OAI/1.1/OAI_ListMetadataFormats");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListRecords",
-        	"http://www.openarchives.org/OAI/1.1/OAI_ListRecords");
-            namespaceElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:oai11_ListSets",
-        	"http://www.openarchives.org/OAI/1.1/OAI_ListSets");
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Get the OAI response as a DOM object
-     * 
-     * @return the DOM for the OAI response
-     */
-    public Document getDocument() {
-        return doc;
-    }
-    
-    /**
-     * Get the xsi:schemaLocation for the OAI response
-     * 
-     * @return the xsi:schemaLocation value
-     */
-    public String getSchemaLocation() {
-        return schemaLocation;
-    }
-    
-    /**
-     * Get the OAI errors
-     * @return a NodeList of /oai:OAI-PMH/oai:error elements
-     * @throws TransformerException
-     */
-    public NodeList getErrors() throws TransformerException 
-    {
-      	String schemas = getSchemaLocation();
-        if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
-            return getNodeList("/oai20:OAI-PMH/oai20:error");
-        }
-        else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1)  {
-          return getNodeList("/oai11:OAI-PMH/oai11:error");
-          
-        }
-        else   
-          return getNodeList("/OAI-PMH/error");
-    }
-    
-    /**
-     * Get the OAI request URL for this response
-     * @return the OAI request URL as a String
-     */
-    public String getRequestURL() {
-        return requestURL;
-    }
-    
-    /**
-     * Mock object creator (for unit testing purposes)
-     */
-    public HarvesterVerb() {
-      logger = Logger.getLogger("org.oclc.oai.harvester2");
-    }
+  }
 
-    /**
-     * Mock object creator (for unit testing purposes)
-     */
-    public HarvesterVerb(Logger jobLogger) {
-    	logger = jobLogger;
-    }
+  /**
+   * Get the OAI response as a DOM object
+   *
+   * @return the DOM for the OAI response
+   */
+  public Document getDocument() {
+    return doc;
+  }
 
-    /**
-     * Performs the OAI request
-     * 
-     * @param requestURL
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws TransformerException
-     * 
-     */
-    public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride, Logger jobLogger) throws IOException,
+  /**
+   * Get the xsi:schemaLocation for the OAI response
+   *
+   * @return the xsi:schemaLocation value
+   */
+  public String getSchemaLocation() {
+    return schemaLocation;
+  }
+
+  /**
+   * Get the OAI errors
+   *
+   * @return a NodeList of /oai:OAI-PMH/oai:error elements
+   * @throws TransformerException
+   */
+  public NodeList getErrors() throws TransformerException {
+    String schemas = getSchemaLocation();
+    if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
+      return getNodeList("/oai20:OAI-PMH/oai20:error");
+    } else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
+      return getNodeList("/oai11:OAI-PMH/oai11:error");
+
+    } else
+      return getNodeList("/OAI-PMH/error");
+  }
+
+  /**
+   * Get the OAI request URL for this response
+   *
+   * @return the OAI request URL as a String
+   */
+  public String getRequestURL() {
+    return requestURL;
+  }
+
+  /**
+   * Mock object creator (for unit testing purposes)
+   */
+  public HarvesterVerb() {
+    logger = Logger.getLogger("org.oclc.oai.harvester2");
+  }
+
+  /**
+   * Mock object creator (for unit testing purposes)
+   */
+  public HarvesterVerb(Logger jobLogger) {
+    logger = jobLogger;
+  }
+
+  /**
+   * Performs the OAI request
+   *
+   * @param requestURL
+   * @throws IOException
+   * @throws ParserConfigurationException
+   * @throws SAXException
+   * @throws TransformerException
+   *
+   */
+  public HarvesterVerb(String requestURL, Proxy proxy, String encodingOverride,
+    Logger jobLogger) throws IOException,
     ParserConfigurationException, TransformerException, ResponseParsingException {
-      	logger = jobLogger;
-      	harvest(requestURL, proxy, encodingOverride);
-    }
-    
-    /**
-     * Preforms the OAI request
-     * 
-     * @param requestURL
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws TransformerException
-     */
-    public void harvest(String requestURL, Proxy proxy, String encodingOverride) throws 
-    		IOException, ParserConfigurationException, 
-    		TransformerException, ResponseParsingException {
-        this.requestURL = requestURL;
-        logger.log(Level.INFO, "Request URL: " + requestURL);
-        InputStream in = null;
-        URL url = new URL(requestURL);
-        HttpURLConnection con = null;
-        int responseCode = 0;
-        boolean retry;
-        int totalRetries = 0;
-        do {
-            retry = false;
-            if (proxy != null)
-                con = (HttpURLConnection) url.openConnection(proxy);
-            else
-                con = (HttpURLConnection) url.openConnection();
-            con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
-            con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
-            // TODO Make configurable. 
-            con.setConnectTimeout(httpTimeout);
-            con.setReadTimeout(httpTimeout);
-            try {
-                responseCode = con.getResponseCode();
-                if (responseCode != 200)
-                  logger.log(Level.WARN, "Url: " + url + " ResponseCode: " + responseCode);
-                else if (logger.isDebugEnabled()) {
-                  logger.log(Level.DEBUG, "Url: " + url + " ResponseCode: " + responseCode);
-                }
-            } catch (Exception e) {
-                // response is broken or a socket timeout occurred, retry nevertheless
-                logger.log(Level.WARN, requestURL, e);
-                responseCode = -1;
-            }
-            //for some responses the server will tell us when to retry
-            //for others we'll use the defaults
-            if (isRetry(responseCode)) {
-                long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
-                if (retrySeconds == -1) {
-                    //this is because in HTTP date may be already parsed as seconds
-                    long now = (new Date()).getTime();
-                    long retryDate = con.getHeaderFieldDate("Retry-After", now);
-                    retrySeconds = retryDate - now;
-                }
-                if (retrySeconds == 0) { //header not specified
-                    retrySeconds = httpRetryWait;
-                    logger.log(Level.INFO,"Server response code '"+responseCode
-                            + "' retrying in "+ retrySeconds + " secs");
-                } else {
-                    logger.log(Level.INFO,"Server response code '"+responseCode
-                            + "' Retry-After: "+ retrySeconds);
-                }
-                if (retrySeconds > 0) {
-                    try {
-                        Thread.sleep(retrySeconds * 1000);
-                    } catch (InterruptedException ex) {
-                        throw new IOException("Interrupted while retrying HTTP connection.");
-                    }
-                }
-                retry = ++totalRetries < httpRetries;
-            }
-        } while (retry);
+    logger = jobLogger;
+    harvest(requestURL, proxy, encodingOverride);
+  }
 
-        if (responseCode == -1) {
-            throw new BrokenHttpResponseException("Could not read HTTP response code. Bad URL?");
+  /**
+   * Preforms the OAI request
+   *
+   * @param requestURL
+   * @throws IOException
+   * @throws ParserConfigurationException
+   * @throws SAXException
+   * @throws TransformerException
+   */
+  public void harvest(String requestURL, Proxy proxy, String encodingOverride)
+    throws
+    IOException, ParserConfigurationException,
+    TransformerException, ResponseParsingException {
+    this.requestURL = requestURL;
+    logger.log(Level.INFO, "Request URL: " + requestURL);
+    InputStream in = null;
+    URL url = new URL(requestURL);
+    HttpURLConnection con = null;
+    int responseCode = 0;
+    boolean retry;
+    int totalRetries = 0;
+    do {
+      retry = false;
+      if (proxy != null)
+        con = (HttpURLConnection) url.openConnection(proxy);
+      else
+        con = (HttpURLConnection) url.openConnection();
+      con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
+      con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
+      // TODO Make configurable. 
+      con.setConnectTimeout(httpTimeout);
+      con.setReadTimeout(httpTimeout);
+      try {
+        responseCode = con.getResponseCode();
+        if (responseCode != 200)
+          logger.log(Level.WARN, "Url: " + url + " ResponseCode: "
+            + responseCode);
+        else if (logger.isDebugEnabled()) {
+          logger.log(Level.DEBUG, "Url: " + url + " ResponseCode: "
+            + responseCode);
         }
-
-        //stop for non-recoverable HTTP client/server errrors
-        if (responseCode >= 400 && responseCode < 600) {
-            String statusMessage = null;
-            try {
-                statusMessage = con.getResponseMessage();
-            } catch (IOException ioe) {
-                statusMessage = "<couldn't parse status message>";
-            }
-            throw new HttpErrorException(responseCode, statusMessage, requestURL);
+      } catch (Exception e) {
+        // response is broken or a socket timeout occurred, retry nevertheless
+        logger.log(Level.WARN, requestURL, e);
+        responseCode = -1;
+      }
+      //for some responses the server will tell us when to retry
+      //for others we'll use the defaults
+      if (isRetry(responseCode)) {
+        long retrySeconds = con.getHeaderFieldInt("Retry-After", -1);
+        if (retrySeconds == -1) {
+          //this is because in HTTP date may be already parsed as seconds
+          long now = (new Date()).getTime();
+          long retryDate = con.getHeaderFieldDate("Retry-After", now);
+          retrySeconds = retryDate - now;
         }
-
-        String contentEncoding = con.getHeaderField("Content-Encoding");
-        if (contentEncoding != null)
-          logger.log(Level.INFO, "Content-Encoding: " + contentEncoding);
-        if ("compress".equals(contentEncoding)) {
-            @SuppressWarnings("resource")
-	    ZipInputStream zis = new ZipInputStream(con.getInputStream());
-            zis.getNextEntry();
-            in = zis;
-        } else if ("gzip".equals(contentEncoding)) {
-            in = new GZIPInputStream(con.getInputStream());
-        } else if ("deflate".equals(contentEncoding)) {
-            in = new InflaterInputStream(con.getInputStream());
+        if (retrySeconds == 0) { //header not specified
+          retrySeconds = httpRetryWait;
+          logger.log(Level.INFO, "Server response code '" + responseCode
+            + "' retrying in " + retrySeconds + " secs");
         } else {
-            in = con.getInputStream();
+          logger.log(Level.INFO, "Server response code '" + responseCode
+            + "' Retry-After: " + retrySeconds);
         }
-        
-        int contentLength = con.getContentLength();
-        InputSource data = new InputSource();
-        BufferedInputStream bin;
-        
-        if (encodingOverride == null || "".equals(encodingOverride)) {
-          bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-          data.setByteStream(bin);
-        } else {
-          logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
-          bin = new BufferedInputStream(in);
-          Reader reader = new InputStreamReader(bin, encodingOverride);
-          data.setCharacterStream(reader);
-        }
-        
-	try {
-	  if (bin.markSupported())
-	    bin.mark(contentLength);
-	  if (isUseTagSoup()) 
-	    doc = createTagSoupDocument(data);
-	  else 
-	    doc = createDocument(data);
-          boolean respLogged = false;
-          this.schemaLocation = parseSchemaLocation();
-          if ("".equals(schemaLocation)) {
-            logger.error("No Schema Location found, dumpging response"); 
-            logResponse(bin, Level.WARN);
-            respLogged = true;
+        if (retrySeconds > 0) {
+          try {
+            Thread.sleep(retrySeconds * 1000);
+          } catch (InterruptedException ex) {
+            throw new IOException("Interrupted while retrying HTTP connection.");
           }
-          if (logger.isTraceEnabled() && !respLogged) {
-            logResponse(bin, Level.TRACE);
-          }
-	} catch (SAXException saxe) {
-          bin.reset();
-          throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
-                  saxe, TextUtils.readStream(bin), requestURL);
-	} finally {
-          bin.close();
         }
+        retry = ++totalRetries < httpRetries;
+      }
+    } while (retry);
+
+    if (responseCode == -1) {
+      throw new BrokenHttpResponseException(
+        "Could not read HTTP response code. Bad URL?");
     }
+
+    //stop for non-recoverable HTTP client/server errrors
+    if (responseCode >= 400 && responseCode < 600) {
+      String statusMessage = null;
+      try {
+        statusMessage = con.getResponseMessage();
+      } catch (IOException ioe) {
+        statusMessage = "<couldn't parse status message>";
+      }
+      throw new HttpErrorException(responseCode, statusMessage, requestURL);
+    }
+
+    String contentEncoding = con.getHeaderField("Content-Encoding");
+    if (contentEncoding != null)
+      logger.log(Level.INFO, "Content-Encoding: " + contentEncoding);
+    if ("compress".equals(contentEncoding)) {
+      @SuppressWarnings("resource")
+      ZipInputStream zis = new ZipInputStream(con.getInputStream());
+      zis.getNextEntry();
+      in = zis;
+    } else if ("gzip".equals(contentEncoding)) {
+      in = new GZIPInputStream(con.getInputStream());
+    } else if ("deflate".equals(contentEncoding)) {
+      in = new InflaterInputStream(con.getInputStream());
+    } else {
+      in = con.getInputStream();
+    }
+
+    int contentLength = con.getContentLength();
+    InputSource data = new InputSource();
+    BufferedInputStream bin;
+
+    if (encodingOverride == null || "".equals(encodingOverride)) {
+      bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
+      data.setByteStream(bin);
+    } else {
+      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride
+        + "'");
+      bin = new BufferedInputStream(in);
+      Reader reader = new InputStreamReader(bin, encodingOverride);
+      data.setCharacterStream(reader);
+    }
+
+    try {
+      if (bin.markSupported())
+        bin.mark(contentLength);
+      if (isUseTagSoup())
+        doc = createTagSoupDocument(data);
+      else
+        doc = createDocument(data);
+      boolean respLogged = false;
+      this.schemaLocation = parseSchemaLocation();
+      if ("".equals(schemaLocation)) {
+        logger.error("No Schema Location found, dumpging response");
+        logResponse(bin, Level.WARN);
+        respLogged = true;
+      }
+      if (logger.isTraceEnabled() && !respLogged) {
+        logResponse(bin, Level.TRACE);
+      }
+    } catch (SAXException saxe) {
+      bin.reset();
+      throw new ResponseParsingException("Cannot parse response: " + saxe.
+        getMessage(),
+        saxe, TextUtils.readStream(bin), requestURL);
+    } finally {
+      bin.close();
+    }
+  }
 
   private void logResponse(BufferedInputStream bin, Level level) {
     try {
@@ -409,7 +438,7 @@ public abstract class HarvesterVerb {
       logger.warn("Failed to dump response", ex);
     }
   }
-  
+
   private String parseSchemaLocation() throws TransformerException {
     StringTokenizer tokenizer = new StringTokenizer(
       getSingleString("/*/@xsi:schemaLocation"), " ");
@@ -422,93 +451,100 @@ public abstract class HarvesterVerb {
     return sb.toString();
   }
 
-    private boolean isRetry(int responseCode) {
-      return responseCode == -1
-       || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
-       || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
-       || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
-       || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
-       || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
-       || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
-    }
-
-    private Document createDocument(InputSource data) throws ParserConfigurationException,
-	SAXException, IOException {
-      Thread t = Thread.currentThread();
-      DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
-      if (builder == null) {
-          builder = factory.newDocumentBuilder();
-          builderMap.put(t, builder);
-      }
-      return builder.parse(data);
-    }
-
-    private Document createTagSoupDocument(InputSource data) throws SAXException,
-	TransformerConfigurationException, TransformerFactoryConfigurationError,
-	TransformerException, ParserConfigurationException {
-      XMLReader reader = XMLReaderFactory.createXMLReader("org.ccil.cowan.tagsoup.Parser");
-      boolean useNamespace = reader.getFeature("http://xml.org/sax/features/namespaces");
-      boolean usePrefixes = reader.getFeature("http://xml.org/sax/features/namespace-prefixes");
-      reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-      logger.debug("Namespace: " + useNamespace + ". Prefixes: " + usePrefixes);
-      Source input = new SAXSource(reader, data);
-      Transformer transformer = createTransformer();
-      //SAXResult saxResult = new SAXResult(new CleanXMLHandler)
-      DOMResult dom = new DOMResult();
-      transformer.transform(input, dom);
-      
-      if (dom.getNode() instanceof Document) { 	
-	
-	Document doc = (Document) dom.getNode();
-	/*
-	NodeList list = doc.getElementsByTagName("OAI-PMH");
-	Element element = (Element) list.item(0);
-	DocumentBuilder builder = factory.newDocumentBuilder();
-	Document doc2 = builder.newDocument();
-	*/
-	return doc;
-      }
-        
-      else 
-        logger.error("Not a Document");
-      return null;
-    }
-    
-    /**
-     * Get the String value for the given XPath location in the response DOM
-     * 
-     * @param xpath
-     * @return a String containing the value of the XPath location.
-     * @throws TransformerException
-     */
-    public String getSingleString(String xpath) throws TransformerException {
-        return getSingleString(getDocument(), xpath);
-    }
-    
-  public static String getSingleString(Node node, String xpath) throws TransformerException {
-    XPathHelper<String> stringHelper =  new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
-    try {
-      return  stringHelper.evaluate(node, xpath);
-    } catch (XPathExpressionException xpee) {
-       throw new TransformerException("Failed to evaluate XPath expression: " + xpath, xpee);
-     }
+  private boolean isRetry(int responseCode) {
+    return responseCode == -1
+      || responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+      || responseCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE
+      || responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR
+      || responseCode == HttpURLConnection.HTTP_BAD_GATEWAY
+      || responseCode == HttpURLConnection.HTTP_UNAVAILABLE
+      || responseCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
   }
-    
-    /**
-     * Get a NodeList containing the nodes in the response DOM for the specified
-     * xpath
-     * @param xpath
-     * @return the NodeList for the xpath into the response DOM
-     * @throws TransformerException
-     */
-  
+
+  private Document createDocument(InputSource data) throws
+    ParserConfigurationException,
+    SAXException, IOException {
+    Thread t = Thread.currentThread();
+    DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
+    if (builder == null) {
+      builder = factory.newDocumentBuilder();
+      builderMap.put(t, builder);
+    }
+    return builder.parse(data);
+  }
+
+  private Document createTagSoupDocument(InputSource data) throws SAXException,
+    TransformerConfigurationException, TransformerFactoryConfigurationError,
+    TransformerException, ParserConfigurationException {
+    XMLReader reader = XMLReaderFactory.createXMLReader(
+      "org.ccil.cowan.tagsoup.Parser");
+    boolean useNamespace = reader.getFeature(
+      "http://xml.org/sax/features/namespaces");
+    boolean usePrefixes = reader.getFeature(
+      "http://xml.org/sax/features/namespace-prefixes");
+    reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+    logger.debug("Namespace: " + useNamespace + ". Prefixes: " + usePrefixes);
+    Source input = new SAXSource(reader, data);
+    Transformer transformer = createTransformer();
+    //SAXResult saxResult = new SAXResult(new CleanXMLHandler)
+    DOMResult dom = new DOMResult();
+    transformer.transform(input, dom);
+
+    if (dom.getNode() instanceof Document) {
+
+      Document doc = (Document) dom.getNode();
+      /*
+       NodeList list = doc.getElementsByTagName("OAI-PMH");
+       Element element = (Element) list.item(0);
+       DocumentBuilder builder = factory.newDocumentBuilder();
+       Document doc2 = builder.newDocument();
+       */
+      return doc;
+    } else
+      logger.error("Not a Document");
+    return null;
+  }
+
+  /**
+   * Get the String value for the given XPath location in the response DOM
+   *
+   * @param xpath
+   * @return a String containing the value of the XPath location.
+   * @throws TransformerException
+   */
+  public String getSingleString(String xpath) throws TransformerException {
+    return getSingleString(getDocument(), xpath);
+  }
+
+  public static String getSingleString(Node node, String xpath) throws
+    TransformerException {
+    XPathHelper<String> stringHelper = new XPathHelper<String>(
+      XPathConstants.STRING, new OaiPmhNamespaceContext());
+    try {
+      return stringHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException xpee) {
+      throw new TransformerException("Failed to evaluate XPath expression: "
+        + xpath, xpee);
+    }
+  }
+
+  /**
+   * Get a NodeList containing the nodes in the response DOM for the specified
+   * xpath
+   *
+   * @param xpath
+   * @return the NodeList for the xpath into the response DOM
+   * @throws TransformerException
+   */
   public NodeList getNodeList(String xpath) throws TransformerException {
     return getNodeList(getDocument(), xpath);
   }
-  
-  public NodeList getNodeList(Node node, String xpath) throws TransformerException {
+
+  public NodeList getNodeList(Node node, String xpath) throws
+    TransformerException {
     try {
-      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, new OaiPmhNamespaceContext());
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(
+        XPathConstants.NODESET, new OaiPmhNamespaceContext());
       return xpathHelper.evaluate(node, xpath);
     } catch (XPathExpressionException e) {
       String message = "getNodeList: XPath Expression Exception: ";
@@ -516,108 +552,112 @@ public abstract class HarvesterVerb {
       throw new TransformerException(message + xpath, e);
     }
   }
-    
-    public Boolean getBoolean(String xpath) throws TransformerException {
-      return getBoolean(xpath, getDocument());
-    }
 
-    public Boolean getBoolean(String xpath, Node node) throws TransformerException {
-      try {
-	XPathHelper<Boolean> xpathHelper = new XPathHelper<Boolean>(XPathConstants.BOOLEAN, new OaiPmhNamespaceContext());
-	return xpathHelper.evaluate(node, xpath);
-      } catch (XPathExpressionException e) {
-	String message = "getBoolean: XPath Expression Exception: ";
-	logger.error(message + xpath, e);
-	throw new TransformerException(message + xpath, e);
-      }
-    }
+  public Boolean getBoolean(String xpath) throws TransformerException {
+    return getBoolean(xpath, getDocument());
+  }
 
-    public String getString(String xpath) throws TransformerException {
-      return getString(xpath, getDocument());
+  public Boolean getBoolean(String xpath, Node node) throws TransformerException {
+    try {
+      XPathHelper<Boolean> xpathHelper = new XPathHelper<Boolean>(
+        XPathConstants.BOOLEAN, new OaiPmhNamespaceContext());
+      return xpathHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException e) {
+      String message = "getBoolean: XPath Expression Exception: ";
+      logger.error(message + xpath, e);
+      throw new TransformerException(message + xpath, e);
     }
+  }
 
-    public String getString(String xpath, Node node) throws TransformerException {
-      try {
-	XPathHelper<String> xpathHelper = new XPathHelper<String>(XPathConstants.STRING, new OaiPmhNamespaceContext());
-	return xpathHelper.evaluate(node, xpath);
-      } catch (XPathExpressionException e) {
-	String message = "getString: XPath Expression Exception: ";
-	logger.error(message + xpath, e);
-	throw new TransformerException(message + xpath, e);
-      }
-    }
+  public String getString(String xpath) throws TransformerException {
+    return getString(xpath, getDocument());
+  }
 
-    public Number getNumber(String xpath) throws TransformerException {
-      return getNumber(xpath, getDocument());
+  public String getString(String xpath, Node node) throws TransformerException {
+    try {
+      XPathHelper<String> xpathHelper = new XPathHelper<String>(
+        XPathConstants.STRING, new OaiPmhNamespaceContext());
+      return xpathHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException e) {
+      String message = "getString: XPath Expression Exception: ";
+      logger.error(message + xpath, e);
+      throw new TransformerException(message + xpath, e);
     }
+  }
 
-    public Number getNumber(String xpath, Node node) throws TransformerException {
-      try {
-	XPathHelper<Number> xpathHelper = new XPathHelper<Number>(XPathConstants.NUMBER, new OaiPmhNamespaceContext());
-	return xpathHelper.evaluate(node, xpath);
-      } catch (XPathExpressionException e) {
-	String message = "getNumber: XPath Expression Exception: ";
-	logger.error(message + xpath, e);
-	throw new TransformerException(message + xpath, e);
-      }
-    }
+  public Number getNumber(String xpath) throws TransformerException {
+    return getNumber(xpath, getDocument());
+  }
 
-    public Node getNode(String xpath) throws TransformerException {
-      return getNode(xpath, getDocument());
+  public Number getNumber(String xpath, Node node) throws TransformerException {
+    try {
+      XPathHelper<Number> xpathHelper = new XPathHelper<Number>(
+        XPathConstants.NUMBER, new OaiPmhNamespaceContext());
+      return xpathHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException e) {
+      String message = "getNumber: XPath Expression Exception: ";
+      logger.error(message + xpath, e);
+      throw new TransformerException(message + xpath, e);
     }
+  }
 
-    public Node getNode(String xpath, Node node) throws TransformerException {
-      try {
-	XPathHelper<Node> xpathHelper = new XPathHelper<Node>(XPathConstants.NODE, new OaiPmhNamespaceContext());
-	return xpathHelper.evaluate(node, xpath);
-      } catch (XPathExpressionException e) {
-	String message = "getNumber: XPath Expression Exception: ";
-	logger.error(message + xpath, e);
-	throw new TransformerException(message + xpath, e);
-      }
-    }
+  public Node getNode(String xpath) throws TransformerException {
+    return getNode(xpath, getDocument());
+  }
 
-    public String toString() {
-        Source input = new DOMSource(getDocument());
-        StringWriter sw = new StringWriter();
-        Result output = new StreamResult(sw);
-        try {
-            createTransformer().transform(input, output);
-            return sw.toString();
-        } catch (TransformerException e) {
-            return e.getMessage();
-        }
+  public Node getNode(String xpath, Node node) throws TransformerException {
+    try {
+      XPathHelper<Node> xpathHelper = new XPathHelper<Node>(XPathConstants.NODE,
+        new OaiPmhNamespaceContext());
+      return xpathHelper.evaluate(node, xpath);
+    } catch (XPathExpressionException e) {
+      String message = "getNumber: XPath Expression Exception: ";
+      logger.error(message + xpath, e);
+      throw new TransformerException(message + xpath, e);
     }
+  }
 
-    public boolean isUseTagSoup() {
-      return useTagSoup;
+  public String toString() {
+    Source input = new DOMSource(getDocument());
+    StringWriter sw = new StringWriter();
+    Result output = new StreamResult(sw);
+    try {
+      createTransformer().transform(input, output);
+      return sw.toString();
+    } catch (TransformerException e) {
+      return e.getMessage();
     }
+  }
 
-    public void setUseTagSoup(boolean useTagSoup) {
-      this.useTagSoup = useTagSoup;
-    }
+  public boolean isUseTagSoup() {
+    return useTagSoup;
+  }
 
-    public int getHttpRetries() {
-      return httpRetries;
-    }
+  public void setUseTagSoup(boolean useTagSoup) {
+    this.useTagSoup = useTagSoup;
+  }
 
-    public void setHttpRetries(int httpRetries) {
-      this.httpRetries = httpRetries;
-    }
+  public int getHttpRetries() {
+    return httpRetries;
+  }
 
-    public int getHttpRetryWait() {
-      return httpRetryWait;
-    }
+  public void setHttpRetries(int httpRetries) {
+    this.httpRetries = httpRetries;
+  }
 
-    public void setHttpRetryWait(int httpRetryWait) {
-      this.httpRetryWait = httpRetryWait;
-    }
+  public int getHttpRetryWait() {
+    return httpRetryWait;
+  }
 
-    public int getHttpTimeout() {
-      return httpTimeout;
-    }
+  public void setHttpRetryWait(int httpRetryWait) {
+    this.httpRetryWait = httpRetryWait;
+  }
 
-    public void setHttpTimeout(int httpTimeout) {
-      this.httpTimeout = httpTimeout;
-    }
+  public int getHttpTimeout() {
+    return httpTimeout;
+  }
+
+  public void setHttpTimeout(int httpTimeout) {
+    this.httpTimeout = httpTimeout;
+  }
 }
