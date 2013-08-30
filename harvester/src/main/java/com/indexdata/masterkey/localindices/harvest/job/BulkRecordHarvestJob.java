@@ -22,6 +22,7 @@ import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
+import java.util.Date;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
@@ -37,6 +38,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   //private RecordStorage transformationStorage;
   private Proxy proxy;
   private String errors;
+  private HarvestStatus initialStatus;
+  
 
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -44,7 +47,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     splitDepth = getNumber(resource.getSplitAt(), splitDepth);
     splitSize = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
-    setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
+    initialStatus = HarvestStatus.valueOf(resource.getCurrentStatus());
+    setStatus(initialStatus);
     setLogger((new FileStorageJobLogger(getClass(), resource)));
   }
 
@@ -122,7 +126,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void downloadList(String[] urls) throws Exception {
-    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors(), resource.getAllowCondReq(), resource.getLastHarvestFinished());
+    Date lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestFinished();
+    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors(), resource.getAllowCondReq(), lastDate);
     client.setHarvestJob(this);
     client.setProxy(proxy);
     client.setLogger(logger);
