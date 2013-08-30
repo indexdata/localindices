@@ -343,12 +343,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       //dumping the response may cause IO Exception
-      try {
-        logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
-            + TextUtils.readStream(hve.getResponseStream()));
-      } catch (IOException io) {
-        logger.log(Level.ERROR, "IO exception when trying to dump bad ListRecords response - "+io.getMessage());
-      }
+      logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
+        + hve.getResponseString());
       throw new IOException(msg, hve);
     } catch (IOException io) {
       throw io;
@@ -363,12 +359,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       //dumping  the response may cause ioexception
-      try {
-        logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
-            + TextUtils.readStream(hve.getResponseStream()));
-      } catch (IOException io) {
-        logger.log(Level.ERROR, "IO exception when trying to dump bad ListRecords response - "+io.getMessage());
-      }
+      logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
+        + hve.getResponseString());
       throw new IOException(msg, hve);
     } catch (IOException io) {
       throw io;

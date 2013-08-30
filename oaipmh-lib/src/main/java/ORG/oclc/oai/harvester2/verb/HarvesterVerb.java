@@ -16,7 +16,6 @@
 package ORG.oclc.oai.harvester2.verb;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -69,6 +68,7 @@ import ORG.oclc.oai.harvester2.transport.HttpErrorException;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 import com.indexdata.io.FailsafeXMLCharacterInputStream;
+import com.indexdata.utils.TextUtils;
 
 
 /**
@@ -77,7 +77,7 @@ import com.indexdata.io.FailsafeXMLCharacterInputStream;
  * @author Jefffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class HarvesterVerb {
-    protected Logger logger = Logger.getLogger("org.oclc.oai.harvester2");
+    final protected Logger logger;
 
     private int httpRetries = 2;
     private int httpRetryWait = 60;   // secs
@@ -231,6 +231,7 @@ public abstract class HarvesterVerb {
      * Mock object creator (for unit testing purposes)
      */
     public HarvesterVerb() {
+      logger = Logger.getLogger("org.oclc.oai.harvester2");
     }
 
     /**
@@ -361,18 +362,18 @@ public abstract class HarvesterVerb {
         
         int contentLength = con.getContentLength();
         InputSource data = new InputSource();
-        BufferedInputStream bin = null;
+        BufferedInputStream bin;
         
         if (encodingOverride == null || "".equals(encodingOverride)) {
           bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
           data.setByteStream(bin);
-        }
-        else {
+        } else {
           logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
           bin = new BufferedInputStream(in);
           Reader reader = new InputStreamReader(bin, encodingOverride);
           data.setCharacterStream(reader);
         }
+        
 	try {
 	  if (bin.markSupported())
 	    bin.mark(contentLength);
@@ -380,51 +381,45 @@ public abstract class HarvesterVerb {
 	    doc = createTagSoupDocument(data);
 	  else 
 	    doc = createDocument(data);
-	    in.close();
+          boolean respLogged = false;
+          this.schemaLocation = parseSchemaLocation();
+          if ("".equals(schemaLocation)) {
+            logger.error("No Schema Location found, dumpging response"); 
+            logResponse(bin, Level.WARN);
+            respLogged = true;
+          }
+          if (logger.isTraceEnabled() && !respLogged) {
+            logResponse(bin, Level.TRACE);
+          }
 	} catch (SAXException saxe) {
-	  in.close();
           bin.reset();
-          saxe.printStackTrace();
           throw new ResponseParsingException("Cannot parse response: " + saxe.getMessage(),
-                  saxe, bin, requestURL);
-	}
-	if (logger.isTraceEnabled()) {
-          bin.reset();
-	  logResponse(doc, bin);
-	}
-        StringTokenizer tokenizer = new StringTokenizer(
-                getSingleString("/*/@xsi:schemaLocation"), " ");
-        StringBuffer sb = new StringBuffer();
-        while (tokenizer.hasMoreTokens()) {
-            if (sb.length() > 0)
-                sb.append(" ");
-            sb.append(tokenizer.nextToken());
-        }
-        this.schemaLocation = sb.toString();
-        if ("".equals(schemaLocation)) {
-          logger.error("No Schema Location found. Dumping response: "); 
-          bin.reset();
-          logResponse(doc, bin);
+                  saxe, TextUtils.readStream(bin), requestURL);
+	} finally {
+          bin.close();
         }
     }
 
-  private void logResponse(Document doc, BufferedInputStream bin) {
+  private void logResponse(BufferedInputStream bin, Level level) {
     try {
-      Transformer transformer = createTransformer();
-      transformer.transform(new DOMSource(doc), new StreamResult(System.out));
-    } catch (Exception e) {
-      logger.error("Failed to trace Response XML document. Dumping buffered response");
-      try {
-	bin.reset();
-	BufferedReader reader = new BufferedReader(new InputStreamReader(bin));
-	String line; 
-	while ((line = reader.readLine()) != null) {
-	  System.out.print("" + line);
-	}
-      } catch (IOException e1) {
-	logger.error("Failed to dump Response");
-      }
+      bin.reset();
+      String out = TextUtils.readStream(bin);
+      logger.log(level, out);
+    } catch (IOException ex) {
+      logger.warn("Failed to dump response", ex);
     }
+  }
+  
+  private String parseSchemaLocation() throws TransformerException {
+    StringTokenizer tokenizer = new StringTokenizer(
+      getSingleString("/*/@xsi:schemaLocation"), " ");
+    StringBuilder sb = new StringBuilder();
+    while (tokenizer.hasMoreTokens()) {
+      if (sb.length() > 0)
+        sb.append(" ");
+      sb.append(tokenizer.nextToken());
+    }
+    return sb.toString();
   }
 
     private boolean isRetry(int responseCode) {

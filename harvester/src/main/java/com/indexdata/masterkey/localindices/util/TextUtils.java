@@ -33,12 +33,12 @@ public class TextUtils {
     if (tokens != null) {
       tokenLen = tokens.length % 2 == 1 ? tokens.length - 1 : tokens.length;
     }
-    for (String line = null; (line = br.readLine()) != null;) {
+    for (String line; (line = br.readLine()) != null;) {
       String replaced = line;
       for (int i = 0; i < tokenLen; i += 2) {
 	replaced = replaced.replaceAll(tokens[i], tokens[i + 1]);
       }
-      sb.append(replaced + "\n");
+      sb.append(replaced).append("\n");
     }
     br.close();
     os.write(sb.toString().getBytes());
@@ -47,10 +47,9 @@ public class TextUtils {
   public static String readStream(InputStream stream) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(stream));
     StringBuilder sb = new StringBuilder();
-    String line = null;
-
+    String line;
     while ((line = br.readLine()) != null) {
-      sb.append(line + "\n");
+      sb.append(line).append("\n");
     }
 
     br.close();

@@ -214,7 +214,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       logger.log(Level.DEBUG, msg + " Erroneous response:\n"
-	  + TextUtils.readStream(hve.getResponseStream()));
+	  + hve.getResponseString());
       throw new IOException(msg, hve);
     } catch (IOException io) {
       throw io;
@@ -229,7 +229,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       logger.log(Level.ERROR,
-	  msg + " Erroneous respponse:\n" + TextUtils.readStream(hve.getResponseStream()));
+	  msg + " Erroneous respponse:\n" + hve.getResponseString());
       throw new IOException(msg, hve);
     } catch (IOException io) {
       throw io;

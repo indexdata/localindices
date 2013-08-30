@@ -17,17 +17,17 @@ public class ResponseParsingException extends IOException {
    *
    */
   private static final long serialVersionUID = -4509192622653512403L;
-  InputStream responseStream;
+  String responseStream;
   String requestURL;
 
   public ResponseParsingException(String msg, Throwable cause,
-    InputStream responseStream, String requestURL) {
+    String responseString, String requestURL) {
     super(msg, cause);
     this.requestURL = requestURL;
     this.responseStream = responseStream;
   }
 
-  public InputStream getResponseStream() {
+  public String getResponseString() {
     return responseStream;
   }
 
