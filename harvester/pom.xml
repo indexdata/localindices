@@ -193,12 +193,14 @@
                 <goals>
                   <goal>run-war</goal>
                 </goals>
+<!--
                 <configuration>
                   <contextPath>/solr</contextPath>
                   <daemon>true</daemon>
                   <webApp>../webapps/solr</webApp>
                    <webXml>${project.build.directory}/web.xml</webXml>
                 </configuration>
+-->
               </execution>
               <execution>
                 <id>stop-jetty</id>
