@@ -5,7 +5,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,8 +34,8 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
       coreContainer = initializer.initialize();
       EmbeddedSolrServer embedServer = new EmbeddedSolrServer(coreContainer, "");
       return embedServer;
-    } catch (FileNotFoundException ex) {
-      Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (Exception ex) {
+      Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, "Failed to crete embedded Solr" , ex);
     }
     return null;
   }
@@ -55,7 +54,7 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
       }
       ;
     } catch (Throwable ex) {
-      Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, null, ex);
+      Logger.getLogger(EmbeddedSolrServerFactory.class.getName()).log(Level.SEVERE, "Failed to create JettySolrRunner", ex);
     }
     SolrServer server = new HttpSolrServer(solrDirectory);
     return server;
