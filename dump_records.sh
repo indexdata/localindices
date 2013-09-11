@@ -1,0 +1,1 @@
+mysqldump -t --skip-create -cn --extended-insert=FALSE -ulocalidxadm -plocalidxadmpass localindices | less
