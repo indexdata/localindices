@@ -22,6 +22,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
@@ -423,7 +424,11 @@ public class TransformationController {
     int index = setupStep();
     if (currentStepAssociation != null && currentStepAssociation.getTransformation() != null) {
       currentStepAssociation = current.getStepAssociations().remove(index);
-      associationDao.delete(currentStepAssociation);
+      try {
+        associationDao.delete(currentStepAssociation);
+      }  catch (EntityInUse eiu) {
+        logger.warn("Cannot remove step association", eiu);
+      }
       logger.debug("" + currentStepAssociation + " was removed.");
       currentStepAssociation = null;
       // TODO Need reordering!

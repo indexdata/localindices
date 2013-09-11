@@ -7,7 +7,7 @@ public interface CommonDAO<Entity,EntityBrief>
 	void   		 create(Entity entity);
     Entity 		 retrieveById(Long id);
     Entity 		 update(Entity entity);
-    void   		 delete(Entity entity);
+    void   		 delete(Entity entity) throws EntityInUse;
     /**
      * Retrieve a list of harvestables.
      * @return

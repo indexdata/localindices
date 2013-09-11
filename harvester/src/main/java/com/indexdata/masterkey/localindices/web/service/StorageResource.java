@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.web.service;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +18,7 @@ import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageConverter;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * REST Web service (resource) that maps to a Storage entity.
@@ -81,7 +83,11 @@ public class StorageResource {
    */
   @DELETE
   public void delete() {
-    dao.delete(dao.retrieveById(id));
+    try {
+      dao.delete(dao.retrieveById(id));
+    } catch (EntityInUse eiu) {
+      throw new WebApplicationException(WSUtils.buildError(400, EntityInUse.ERROR_MESSAGE));
+    }
   }
 
 }

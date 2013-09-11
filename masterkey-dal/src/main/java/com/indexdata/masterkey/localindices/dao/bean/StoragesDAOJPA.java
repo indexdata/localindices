@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 import com.indexdata.utils.persistence.EntityUtil;
+import org.eclipse.persistence.exceptions.DatabaseException;
 
 
 /**
@@ -86,7 +88,7 @@ public class StoragesDAOJPA implements StorageDAO {
     }    
 
     @Override
-    public void delete(Storage entity) {
+    public void delete(Storage entity) throws EntityInUse {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -96,6 +98,12 @@ public class StoragesDAOJPA implements StorageDAO {
             tx.commit();
         } catch (Exception ex) {
             logger.log(Level.DEBUG, ex);
+            if (ex.getCause() instanceof DatabaseException) {
+              DatabaseException de = (DatabaseException) ex.getCause();
+              if ("MySQLIntegrityConstraintViolationException".equals(de.getInternalException().getClass().getSimpleName())) {
+                throw new EntityInUse("cannot remove storage because it's in use", de.getInternalException());
+              }
+            }
             try {
                 tx.rollback();
             } catch (Exception e) {

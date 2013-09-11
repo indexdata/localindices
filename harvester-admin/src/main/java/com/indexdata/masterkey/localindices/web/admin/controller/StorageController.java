@@ -22,6 +22,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
@@ -194,14 +195,22 @@ public class StorageController {
 
   public String deleteStorage() {
     storage = getResourceFromRequestParam();
-    dao.delete(storage);
+    try {
+      dao.delete(storage);
+    } catch (EntityInUse ex) {
+      logger.warn("Cannot remove storage that is in use!", ex);
+      return "failure";
+    }
     storage = null;
     return listStorages();
   }
 
   public String saveAndPurge() {
-
-    dao.delete(storage);
+    try {
+      dao.delete(storage);
+    } catch (EntityInUse ex) {
+      logger.warn("Cannot remove storage that is in use!", ex);
+    }
     prePersist();
     storage.setId(null);
     dao.create(storage);

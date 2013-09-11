@@ -31,6 +31,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
@@ -481,7 +482,11 @@ public class ResourceController {
 
   public String deleteResource() {
     resource = getResourceFromRequestParam();
-    dao.delete(resource);
+    try {
+      dao.delete(resource);
+    } catch (EntityInUse eiu) {
+      logger.warn("Cannot remove job", eiu);
+    }
     resource = null;
     return listResources();
   }
@@ -494,7 +499,11 @@ public class ResourceController {
   }
 
   public String saveAndPurge() {
-    dao.delete(resource);
+    try {
+      dao.delete(resource);
+    } catch (EntityInUse eiu) {
+      logger.warn("Job is in use", eiu);
+    }
     prePersist();
     resource.setId(null);
     dao.create(resource);

@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -21,7 +22,9 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.StoragesConverter;
+import com.indexdata.rest.client.ResourceConnectionException;
 import com.indexdata.rest.client.ResourceConnector;
+import java.net.MalformedURLException;
 
 /**
  *
@@ -137,7 +140,7 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
     } // updateJob
 
     @Override
-    public void delete(Storage storage) {
+    public void delete(Storage storage) throws EntityInUse {
         try {
             ResourceConnector<StorageConverter> storageConnector =
                 new ResourceConnector<StorageConverter>(
@@ -145,8 +148,12 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
             storageConnector.delete();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
+        } catch (ResourceConnectionException rce) {
+            if (EntityInUse.ERROR_MESSAGE.equals(rce.getServerMessage())) {
+              throw new EntityInUse("Storage is in use", rce);
+            }
+        } catch (MalformedURLException male) {
+          logger.warn(male.getMessage(), male);
         }
     }
 

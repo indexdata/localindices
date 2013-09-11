@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.web.service;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +18,7 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepsDAOJPA;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepConverter;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * REST Web service (resource) that maps to a TranformationStep entity.
@@ -78,7 +80,11 @@ public class TransformationStepResource {
    */
   @DELETE
   public void delete() {
-    dao.delete(dao.retrieveById(id));
+    try {
+      dao.delete(dao.retrieveById(id));
+    } catch (EntityInUse eiu) {
+      throw new WebApplicationException(WSUtils.buildError(400, "storage is in use"));
+    }
   }
 
 }

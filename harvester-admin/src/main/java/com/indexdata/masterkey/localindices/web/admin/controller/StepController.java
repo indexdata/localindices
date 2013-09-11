@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.reflections.Reflections;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
@@ -301,8 +302,11 @@ public class StepController {
   public String delete() {
     current = getResourceFromRequestParam();
     if (current != null) {
-      dao.delete(current);
-      // TODO return some error message
+      try {
+        dao.delete(current);
+      } catch (EntityInUse eiu) {
+        logger.warn("Cannot remove step", eiu);
+      }
     }
     current = null;
     return list();
@@ -375,7 +379,11 @@ public class StepController {
     if (current != null) {
       if (associationDao.getTransformationCountByStepId(current.getId()) > 0)
 	return "step_in_use";
-      dao.delete(current);
+      try {
+        dao.delete(current);
+      } catch (EntityInUse eiu) {
+        //never gets here
+      }
       return list();
     }
     return "failure";
