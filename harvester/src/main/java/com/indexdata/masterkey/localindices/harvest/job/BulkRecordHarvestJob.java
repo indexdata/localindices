@@ -171,14 +171,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   protected Harvestable getHarvestable() {
     return resource;
   }
-
-  protected void logError(String logSubject, String message) {
-    setStatus(HarvestStatus.ERROR, message);
-    resource.setMessage(message);
-    logger.error(logSubject + ": " +  message);
+  
+  protected void mailMessage(String subject, String message) {
     Sender sender = SenderFactory.getSender();
     String status = getStatus().toString();
-    Notification msg = new SimpleNotification(status, logSubject, message);
+    Notification msg = new SimpleNotification(status, subject, message);
     try {
       if (sender != null) {
         sender.send(msg);
@@ -188,5 +185,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (NotificationException e1) {
       logger.error("Failed to send notification " + e1.getMessage());
     }
+  }
+
+  protected void logError(String logSubject, String message) {
+    setStatus(HarvestStatus.ERROR, message);
+    getHarvestable().setMessage(message);
+    logger.error(logSubject + ": " +  message);
+    mailMessage(logSubject, message);
   }
 }
