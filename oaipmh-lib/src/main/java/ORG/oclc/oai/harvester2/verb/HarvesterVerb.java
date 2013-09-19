@@ -77,8 +77,22 @@ public abstract class HarvesterVerb {
   final protected Logger logger;
   private int httpRetries = 2;
   private int httpRetryWait = 60;   // secs
-  private int httpTimeout = 60000;  // millisecs
-
+  private int httpTimeout   = 60;   // secs
+  private String baseURL;
+  private String requestURL;
+  private Document doc = null;
+  private String schemaLocation = null;
+  private static HashMap<Thread, DocumentBuilder> builderMap =
+    new HashMap<Thread, DocumentBuilder>();
+  public static Element namespaceElement = null;
+  private static DocumentBuilderFactory factory = null;
+  private boolean useTagSoup = false;
+  private static HashMap<Thread, TransformerFactory> transformerFactoryMap =
+    new HashMap<Thread, TransformerFactory>();
+  private static HashMap<Thread, XPathFactory> xpathFactoryMap =
+    new HashMap<Thread, XPathFactory>();
+  //private static boolean debug = false;
+  
   /* Primary OAI namespaces */
   public static final String NAMESPACE_V2_0 =
     "http://www.openarchives.org/OAI/2.0/";
@@ -116,19 +130,6 @@ public abstract class HarvesterVerb {
   public static final String SCHEMA_LOCATION_V1_1_LIST_SETS =
     NAMESPACE_V1_1_LIST_SETS
     + " http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
-  private Document doc = null;
-  private String schemaLocation = null;
-  private String requestURL = null;
-  private static HashMap<Thread, DocumentBuilder> builderMap =
-    new HashMap<Thread, DocumentBuilder>();
-  public static Element namespaceElement = null;
-  private static DocumentBuilderFactory factory = null;
-  private boolean useTagSoup = false;
-  private static HashMap<Thread, TransformerFactory> transformerFactoryMap =
-    new HashMap<Thread, TransformerFactory>();
-  private static HashMap<Thread, XPathFactory> xpathFactoryMap =
-    new HashMap<Thread, XPathFactory>();
-  //private static boolean debug = false;
 
   static XPath createXPath() {
     /* create transformer */
@@ -249,6 +250,10 @@ public abstract class HarvesterVerb {
     return requestURL;
   }
 
+  public String getBaseURL() {
+    return baseURL;
+  }
+
   /**
    * Mock object creator (for unit testing purposes)
    */
@@ -260,6 +265,14 @@ public abstract class HarvesterVerb {
    * Mock object creator (for unit testing purposes)
    */
   public HarvesterVerb(Logger jobLogger) {
+    logger = jobLogger;
+  }
+
+  /**
+   * Mock object creator (for unit testing purposes)
+   */
+  public HarvesterVerb(String baseUrl, Proxy proxy, Logger jobLogger) {
+    this.baseURL = baseUrl; 
     logger = jobLogger;
   }
 
@@ -289,11 +302,10 @@ public abstract class HarvesterVerb {
    * @throws SAXException
    * @throws TransformerException
    */
-  public void harvest(String requestURL, Proxy proxy, String encodingOverride)
-    throws
-    IOException, ParserConfigurationException,
-    TransformerException, ResponseParsingException {
-    this.requestURL = requestURL;
+  public void harvest(String parameters, Proxy proxy, String encodingOverride)
+    throws IOException, ParserConfigurationException, TransformerException, ResponseParsingException 
+    {
+    this.requestURL = baseURL + parameters;
     logger.log(Level.INFO, "Request URL: " + requestURL);
     InputStream in = null;
     URL url = new URL(requestURL);
@@ -310,8 +322,8 @@ public abstract class HarvesterVerb {
       con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
       con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
       // TODO Make configurable. 
-      con.setConnectTimeout(httpTimeout);
-      con.setReadTimeout(httpTimeout);
+      con.setConnectTimeout(httpTimeout * 1000);
+      con.setReadTimeout(httpTimeout * 1000);
       try {
         responseCode = con.getResponseCode();
         if (responseCode != 200)
@@ -420,14 +432,14 @@ public abstract class HarvesterVerb {
         logResponse(bin, Level.TRACE);
       }
     } catch (SAXException saxe) {
-      bin.reset();
-      String resp;
-      try {
-        resp = TextUtils.readStream(bin);
-      } catch (IOException ioe) {
-        resp = "<unreadable response>";
-      }
-      throw new ResponseParsingException("Cannot parse response: " + 
+	String resp;
+	try {
+	  bin.reset();
+	  resp = TextUtils.readStream(bin);
+	} catch (IOException ioe) {
+	  resp = "<unreadable response>";
+	}
+	throw new ResponseParsingException("Cannot parse response: " + 
         saxe.getMessage(), saxe, resp, requestURL);
     } finally {
       bin.close();
