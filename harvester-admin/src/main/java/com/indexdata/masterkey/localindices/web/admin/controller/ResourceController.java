@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Stack;
@@ -45,6 +46,7 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -467,6 +469,11 @@ public class ResourceController {
     return listResources();
   }
 
+  public String runResource() {
+    resource.setHarvestImmediately(true);
+    return saveResource();
+  }
+
   /* list resources */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getResources() {
@@ -702,6 +709,18 @@ public class ResourceController {
 
   public void setCurrentId(Long currentId) {
     this.currentId = currentId;
+  }
+
+  String[] logLevels = {"DEBUG", "INFO", "WARN", "FATAL"};
+  public List<SelectItem> getLogLevelItems() {
+    List<SelectItem> list = new LinkedList<SelectItem>();
+    for (String logLevel : logLevels) {
+      SelectItem selectItem = new SelectItem();
+      selectItem.setLabel(logLevel);
+      selectItem.setValue(logLevel);
+      list.add(selectItem);
+    }
+    return list;
   }
 
 }
