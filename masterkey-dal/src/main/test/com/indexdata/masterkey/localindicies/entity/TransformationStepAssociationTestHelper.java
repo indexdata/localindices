@@ -2,6 +2,7 @@ package com.indexdata.masterkey.localindicies.entity;
 
 import java.io.PrintStream;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -36,7 +37,7 @@ public class TransformationStepAssociationTestHelper implements
 
 	@Override
 	public void print(TransformationStepAssociation entity, PrintStream out) {
-		out.println("TSA: " + entity.getId() + " TransformationId: " + entity.getTransformationId() + " StepId: " + entity.getStepId());
+		out.println("TSA: " + entity.getId() + " TransformationId: " + entity.getId() + " StepId: " + entity.getId());
 	}
 
 	@Override
@@ -67,7 +68,11 @@ public class TransformationStepAssociationTestHelper implements
 	@Override
 	public void cleanup() {
 		transformationDAO.delete(transformation);
-		transformationStepDAO.delete(step);
+		try {
+		  transformationStepDAO.delete(step);
+		} catch (EntityInUse e) {
+		  e.printStackTrace();
+		}
 	}
 
 }

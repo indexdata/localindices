@@ -2,7 +2,7 @@ package com.indexdata.masterkey.localindicies.entity;
 
 import java.io.PrintStream;
 
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindicies.entity.TestDAOs.EntityTester;
 
@@ -11,7 +11,7 @@ public class TransformationStepTestHelper implements
 
 	@Override
 	public TransformationStep create() {
-		TransformationStep entity = new BasicTransformationStep();
+		TransformationStep entity = new XmlTransformationStep();
 		entity.setName("Test Transformation");
         entity.setDescription("Test Description");
         entity.setScript("<?xml version=\"1.0\" ?>");
