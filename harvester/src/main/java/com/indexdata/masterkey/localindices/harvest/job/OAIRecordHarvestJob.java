@@ -43,7 +43,6 @@ import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
-import com.indexdata.masterkey.localindices.util.TextUtils;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -211,7 +210,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
     }
     
-    if (getStatus() == HarvestStatus.ERROR) {
+    if (getStatus() == HarvestStatus.ERROR ) {
       Sender sender = SenderFactory.getSender();
       String status = getStatus().toString();
       Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
@@ -231,14 +230,23 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       String setSpec, String resumptionToken, RecordStorage storage) throws TransformerException, IOException 
       {
 
-    ListRecords listRecords = null;
+    ListRecords listRecords = new ListRecords(baseURL, proxy, logger.getLogger());
+    listRecords.setHttpRetries(resource.getRetryCount());
+    listRecords.setHttpTimeout(resource.getTimeout() );
+    listRecords.setHttpRetryWait(resource.getRetryWait());
+    
+    
+    try {
     if (resumptionToken == null || "".equals(resumptionToken)) {
       logger.log(Level.INFO, "OAI-PMH harvesting in " + metadataPrefix + " format from: "  
 	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
-      listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
+      listRecords.harvest(from, until, setSpec, metadataPrefix, proxy, resource.getEncoding());
+      
     } else {
       logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
-      listRecords = listRecords(baseURL, resumptionToken);
+      listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
+    }
+    } catch (Exception ex) {
     }
     boolean dataStart = false;
     int count = 0;
@@ -300,7 +308,18 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.log(Level.INFO, "" + count + " Records fetched, next resumptionToken is " + resumptionToken);
 	resource.setResumptionToken(resumptionToken);
 	markForUpdate();
-	listRecords = listRecords(baseURL, resumptionToken);
+	try {
+	  listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
+	} catch (ResponseParsingException hve) {
+	  String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
+	  // dumping the response may cause IO Exception
+	  logger.log(Level.DEBUG, msg + " Erroneous respponse:\n" + hve.getResponseString());
+	  throw new IOException(msg, hve);
+	} catch (IOException io) {
+	  throw io;
+	} catch (Exception e) {
+	  throw new IOException(e);
+	}
       }
     }
     logger.info("Harvested " + totalCount + " records in total from " + baseURL); 
@@ -334,39 +353,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     if ("deleted".equalsIgnoreCase(isDeleted)) 
       record.setDeleted(true);
     return record;
-  }
-
-  protected ListRecords listRecords(String baseURL, String from, String until, String setSpec,
-      String metadataPrefix) throws IOException {
-    try {
-      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
-    } catch (ResponseParsingException hve) {
-      String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      //dumping the response may cause IO Exception
-      logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
-        + hve.getResponseString());
-      throw new IOException(msg, hve);
-    } catch (IOException io) {
-      throw io;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  protected ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
-    try {
-      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
-    } catch (ResponseParsingException hve) {
-      String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      //dumping  the response may cause ioexception
-      logger.log(Level.DEBUG, msg + " Erroneous respponse:\n"
-        + hve.getResponseString());
-      throw new IOException(msg, hve);
-    } catch (IOException io) {
-      throw io;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 
   protected OAIError[] getErrors(NodeList errorNodes) {
