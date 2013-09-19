@@ -465,13 +465,14 @@
        when adding a document.
    -->
 
-<!-- 
--->
+<!-- -->
    <field name="id" type="string" indexed="true" stored="true" required="true" /> 
    <field name="_version_" type="long" indexed="true" stored="true"/>
 
+   <field name="transactionId" type="long" indexed="true" stored="false"/>
+
    <field name="author"       type="text"   indexed="true" stored="true"  multiValued="true"  omitNorms="true"/>
-   <field name="author_exact" type="facet" indexed="true" stored="true"  multiValued="true"  omitNorms="true"/>
+   <field name="author_exact" type="string"  indexed="true" stored="false" multiValued="true"  omitNorms="true" docValues="true" />
    <field name="author-date"  type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
    <field name="author-title" type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
 
@@ -497,8 +498,8 @@
    <field name="issn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
    <field name="lccn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
-   <field name="medium"       type="text"   indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-   <field name="medium_exact" type="facet" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+   <field name="medium"       type="text"  indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
+   <field name="medium_exact" type="facet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
 
    <field name="meeting-date"     type="text" indexed="true" stored="true" omitNorms="true"/>
    <field name="meeting-location" type="text" indexed="true" stored="true" omitNorms="true"/>
@@ -507,7 +508,7 @@
    <field name="series-title" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="subject"       type="text_ws" indexed="true" stored="true"  multiValued="true" omitNorms="true" />
-   <field name="subject_exact" type="facet" indexed="true" stored="true"  multiValued="true" omitNorms="true" />
+   <field name="subject_exact" type="facet"   indexed="true" stored="false" multiValued="true" omitNorms="true" />
    <field name="subject-long"  type="text_ws" indexed="true" stored="true"  multiValued="true" omitNorms="true" />
 
    <field name="system-control-nr" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
@@ -527,8 +528,8 @@
    <field name="title-uniform-partname" type="text"   indexed="true" multiValued="true" stored="true"/>
    <field name="title-uniform-parts"    type="text"   indexed="true" multiValued="true" stored="true"/>
 
-   <field name="journal-title"          type="text" indexed="true" multiValued="true"  stored="true"/>
-   <field name="journal-title_exact"    type="text" indexed="true" multiValued="true"  stored="true"/>
+   <field name="journal-title"          type="text" indexed="true" multiValued="true"  stored="true" />
+   <field name="journal-title_exact"    type="text" indexed="true" multiValued="true"  stored="false"/>
 
    <field name="physical-accomp"     type="text" indexed="true" stored="true" multiValued="true" />
    <field name="physical-dimensions" type="text" indexed="true" stored="true" multiValued="true" />
@@ -557,9 +558,10 @@
    <field name="keywords" type="textgen" indexed="true" stored="true"/>
    <field name="category" type="textgen" indexed="true" stored="true"/>
    <field name="content_type" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="last_modified" type="date" indexed="true" stored="true"/>
    <field name="links" type="string" indexed="true" stored="true" multiValued="true"/>
 -->
+   <field name="harvest-timestamp" type="date"   indexed="true" stored="true"/>
+   <field name="harvest-date"      type="string" indexed="true" stored="true"/>
 
    <!-- catchall field, containing all other searchable text fields (implemented
         via copyField further on in this schema  -->
