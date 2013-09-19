@@ -22,7 +22,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 /**
  * Simple console storage that prints out the harvested data.
  * 
- * @author jakub
+ * @author Jakub
  */
 public class FileStorage implements RecordStorage {
   private boolean overwriteMode = false;
