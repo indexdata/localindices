@@ -46,7 +46,7 @@ public abstract class AbstractHarvestJob implements HarvestJob {
     getHarvestable().setMessage(msg);
   }
 
-  protected final void markForUpdate() {
+  protected void markForUpdate() {
     updated = true;
   }
 
