@@ -12,6 +12,7 @@ import java.net.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Level;
@@ -23,7 +24,6 @@ import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.util.TextUtils;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -151,12 +151,20 @@ public class OAIHarvestJob extends AbstractHarvestJob {
 
   private void harvest(String baseURL, String from, String until, String metadataPrefix,
       String setSpec, String resumptionToken, OutputStream out) throws IOException {
-    ListRecords listRecords = null;
+    ListRecords listRecords = new ListRecords(baseURL, proxy, logger.getLogger());
     // resumption Token present in DB?
-    if (resumptionToken == null || "".equals(resumptionToken)) {
-      listRecords = listRecords(baseURL, from, until, setSpec, metadataPrefix);
-    } else {
-      listRecords = listRecords(baseURL, resumptionToken);
+    try {
+      if (resumptionToken == null || "".equals(resumptionToken)) {
+	listRecords.harvest(from, until, setSpec, metadataPrefix, proxy, null);
+      } else {
+	listRecords.harvest(resumptionToken, proxy, null);
+      }
+    } catch (ParserConfigurationException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+    } catch (TransformerException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
     }
     boolean dataStart = false;
     while (listRecords != null && !isKillSent()) {
@@ -200,32 +208,16 @@ public class OAIHarvestJob extends AbstractHarvestJob {
 	logger.log(Level.INFO, "Records stored, next resumptionToken is " + resumptionToken);
 	resource.setResumptionToken(resumptionToken);
 	markForUpdate();
-	listRecords = listRecords(baseURL, resumptionToken);
+	listRecords(listRecords, resumptionToken);
       }
     }
     if (dataStart)
       out.write("</harvest>\n".getBytes("UTF-8"));
   }
 
-  private ListRecords listRecords(String baseURL, String from, String until, String setSpec,
-      String metadataPrefix) throws IOException {
+  private void listRecords(ListRecords listRecords, String resumptionToken) throws IOException {
     try {
-      return new ListRecords(baseURL, from, until, setSpec, metadataPrefix, proxy, resource.getEncoding(), logger.getLogger());
-    } catch (ResponseParsingException hve) {
-      String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
-      logger.log(Level.DEBUG, msg + " Erroneous response:\n"
-	  + hve.getResponseString());
-      throw new IOException(msg, hve);
-    } catch (IOException io) {
-      throw io;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  private ListRecords listRecords(String baseURL, String resumptionToken) throws IOException {
-    try {
-      return new ListRecords(baseURL, resumptionToken, proxy, resource.getEncoding(), logger.getLogger());
+      listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
     } catch (ResponseParsingException hve) {
       String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
       logger.log(Level.ERROR,
