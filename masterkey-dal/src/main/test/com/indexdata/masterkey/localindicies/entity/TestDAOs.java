@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 import org.junit.BeforeClass;
 
 import com.indexdata.masterkey.localindices.dao.CommonDAO;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
@@ -36,10 +37,10 @@ import com.indexdata.masterkey.localindices.dao.bean.TransformationStepDAOFake;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepDAOWS;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepsDAOJPA;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationsDAOJPA;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -153,7 +154,7 @@ public class TestDAOs extends TestCase {
 
 		@Override
 		public Storage create() {
-            Storage entity = new SolrStorage();
+            Storage entity = new SolrStorageEntity();
             entity.setName("Test " + entity.getClass().getCanonicalName());
             entity.setEnabled(false);
 			return entity;
@@ -199,7 +200,7 @@ public class TestDAOs extends TestCase {
 	}
 
 	class EntityDAOTester<Entity, EntityBrief> {
-		public void testEntity(CommonDAO<Entity, EntityBrief> dao, EntityTester<Entity> tester) {
+		public void testEntity(CommonDAO<Entity, EntityBrief> dao, EntityTester<Entity> tester) throws EntityInUse {
             tester.setup();
 			Entity entity = tester.create();
 			System.out.println("testEntity " + entity.getClass().getName() + " start");
@@ -278,7 +279,7 @@ public class TestDAOs extends TestCase {
 		testUITransformationEditStep(factory);
 	}
 	
-	public void testDAOWS() {
+	public void testDAOWS() throws EntityInUse {
 		System.out.println("Testing WebService DAOs");
 		WebServiceDAOFactory factory = new WebServiceDAOFactory();
 		testDAOs(factory);
@@ -287,7 +288,7 @@ public class TestDAOs extends TestCase {
 	}
 
 	
-	public void testDAOs(DAOFactory factory) {
+	public void testDAOs(DAOFactory factory) throws EntityInUse {
 		HarvestableDAO dao = factory.newHavestableDAO(); 
 		EntityDAOTester<Harvestable, HarvestableBrief> test = new EntityDAOTester<Harvestable, HarvestableBrief>();
 		testHarvestables(dao);
@@ -311,7 +312,7 @@ public class TestDAOs extends TestCase {
 		tsaTest.testEntity(tsaDao , new TransformationStepAssociationTestHelper(transformationDao, stepDao));
 	}
 	
-	private void testUITransformationCreateflow(DAOFactory factory) {
+	private void testUITransformationCreateflow(DAOFactory factory) throws EntityInUse {
 		TransformationDAO transformationDao = factory.newTransformationDAO(); 
 		
 		TransformationTestHelper transformationHelper = new TransformationTestHelper();
@@ -340,7 +341,7 @@ public class TestDAOs extends TestCase {
 		// Validate clean up
 	}
 
-	private void testUITransformationEditStep(DAOFactory factory) {
+	private void testUITransformationEditStep(DAOFactory factory) throws EntityInUse {
 		TransformationDAO transformationDao = factory.newTransformationDAO(); 
 		TransformationTestHelper transformationHelper = new TransformationTestHelper();
 		TransformationStepTestHelper stepHelper = new TransformationStepTestHelper();
@@ -377,7 +378,7 @@ public class TestDAOs extends TestCase {
 
 	
 	
-	public void testHarvestables(HarvestableDAO dao) {
+	public void testHarvestables(HarvestableDAO dao) throws EntityInUse {
         	List<Harvestable> list = dao.retrieve(0, dao.getCount());
             
             for (Harvestable ref : list) {
@@ -487,7 +488,7 @@ public class TestDAOs extends TestCase {
                 System.out.println(ref.getResourceUri());
             }
 
-            TransformationStep entity = new BasicTransformationStep();
+            TransformationStep entity = new XmlTransformationStep();
             entity.setName("Test Transformation");
             entity.setDescription("Test Description");
 

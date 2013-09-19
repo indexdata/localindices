@@ -5,9 +5,9 @@ import java.net.URL;
 import java.util.Date;
 
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.BasicTransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.SolrStorage;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -135,7 +135,7 @@ public class TestWebServices extends TestCase {
             
             System.out.println("+++ Creating new instance ");
             
-            Storage entity = new SolrStorage();
+            Storage entity = new SolrStorageEntity();
             entity.setName("Test " + entity.getClass().getCanonicalName());
             entity.setEnabled(false);
             
@@ -262,7 +262,7 @@ public class TestWebServices extends TestCase {
             for (TransformationStepBrief ref : hc.getReferences()) {
                 System.out.println(ref.getId() + " " + ref.getResourceUri());
             }
-            TransformationStep entity = new BasicTransformationStep();
+            TransformationStep entity = new XmlTransformationStep();
             entity.setName("Test Transformation");
             entity.setDescription("Test Description");
 
@@ -326,7 +326,7 @@ public class TestWebServices extends TestCase {
 			System.out.println(ref.getResourceUri());
 		}
 
-		TransformationStep step = new BasicTransformationStep();
+		TransformationStep step = new XmlTransformationStep();
 		step.setName("Test Step");
 		step.setScript("<?xml version=\"1.0\" ?>");
 		Transformation transformation = new BasicTransformation();
@@ -355,7 +355,7 @@ public class TestWebServices extends TestCase {
 		System.out.println("+++ Retrieved entity:");
 		System.out.println("Id: " + entity.getId());
 		System.out.println("Step: " + entity.getStep());
-		System.out.println("Transformation Id: " + entity.getTransformationId());
+		System.out.println("Transformation Id: " + entity.getId());
 
 		System.out.println("+++ Updating the transformation-step association with new values.");
 
