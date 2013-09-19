@@ -441,6 +441,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
  */
 
   OutputStream finalOutputStream = null; 
+  @SuppressWarnings("deprecation")
   @Override
   public synchronized OutputStream getOutputStream() {
     if (finalOutputStream  == null) 

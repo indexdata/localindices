@@ -101,6 +101,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
+  @SuppressWarnings("deprecation")
   protected RecordStorage setupTransformation(RecordStorage storage) {
     splitSize = 1;
     splitDepth =  1;
