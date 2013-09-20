@@ -91,15 +91,15 @@
 				size="20" />
 			<h:outputText value="Connection/read timeout (seconds):" />
 			<h:inputText value="#{resourceController.resource.timeout}" size="20" />
-			<h:outputText value="Log Level:" />
+			<h:outputText value="Job Log Level:" />
             <h:selectOneMenu value="#{resourceController.resource.logLevel}">
                 <f:selectItems
                     value="#{resourceController.logLevelItems}" />
             </h:selectOneMenu>
-            <h:outputText value="Email on succes:" />
+            <h:outputText value="Email on Job status: " />
             <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
                 <f:selectItems
-                    value="#{resourceController.logLevelItems}" />
+                    value="#{resourceController.jobLevelItems}" />
             </h:selectOneMenu>
 		</h:panelGrid>
 	</ui:composition>
