@@ -46,7 +46,6 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -712,13 +711,30 @@ public class ResourceController {
   }
 
   String[] logLevels = {"DEBUG", "INFO", "WARN", "FATAL"};
-  public List<SelectItem> getLogLevelItems() {
+  public List<SelectItem> getLogLevelItems() 
+  {
+    int index = 0;
     List<SelectItem> list = new LinkedList<SelectItem>();
     for (String logLevel : logLevels) {
       SelectItem selectItem = new SelectItem();
       selectItem.setLabel(logLevel);
-      selectItem.setValue(logLevel);
+      selectItem.setValue(index);
       list.add(selectItem);
+      index++;
+    }
+    return list;
+  }
+
+  String[] jobLevels = {"OK", "WARN", "ERROR" };
+  public List<SelectItem> getJobLevelItems() {
+    int index = 0;
+    List<SelectItem> list = new LinkedList<SelectItem>();
+    for (String logLevel : jobLevels) {
+      SelectItem selectItem = new SelectItem();
+      selectItem.setLabel(logLevel);
+      selectItem.setValue(index);
+      list.add(selectItem);
+      index++;
     }
     return list;
   }
