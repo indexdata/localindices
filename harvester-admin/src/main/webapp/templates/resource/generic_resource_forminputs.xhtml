@@ -96,6 +96,8 @@
                 <f:selectItems
                     value="#{resourceController.logLevelItems}" />
             </h:selectOneMenu>
+            <h:outputText value="Custom e-mails (multiple separated with comma): " />
+            <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
             <h:outputText value="Email on Job status: " />
             <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
                 <f:selectItems
