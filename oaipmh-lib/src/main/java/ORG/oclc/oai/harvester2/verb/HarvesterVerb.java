@@ -232,13 +232,15 @@ public abstract class HarvesterVerb {
    */
   public NodeList getErrors() throws TransformerException {
     String schemas = getSchemaLocation();
-    if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
-      return getNodeList("/oai20:OAI-PMH/oai20:error");
-    } else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
-      return getNodeList("/oai11:OAI-PMH/oai11:error");
-
-    } else
-      return getNodeList("/OAI-PMH/error");
+    if (schemas != null) {
+      if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
+	return getNodeList("/oai20:OAI-PMH/oai20:error");
+      } else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
+	return getNodeList("/oai11:OAI-PMH/oai11:error");
+    } else 
+      logger.warn("No schemas found in response.");
+    }
+    return getNodeList("/OAI-PMH/error");
   }
 
   /**
