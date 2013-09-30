@@ -112,7 +112,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-    // TODO: Remove
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
     resource.setMessage(null);
@@ -169,6 +168,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
       try {
+	String subject = "OAI harvest finished."; 
 	commit();
 	// TODO persist until and from, trash resumption token
 	resource.setFromDate(resource.getUntilDate());
@@ -176,53 +176,48 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	resource.setResumptionToken(null);
 	if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
 	  setStatus(HarvestStatus.FINISHED);
-	logger.log(Level.INFO, "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate());
+	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
+	logger.log(Level.INFO, subject + msg);
+	mailMessage(subject, msg);
       } catch (IOException e) {
-        String errorMessage = "Storage commit failed: " + e.getMessage();
-	logger.log(Level.ERROR, errorMessage);
-        logger.debug("Stack trace:", e);
-	setStatus(HarvestStatus.ERROR, errorMessage);
+        String subject = "Storage commit failed: ";
+        String errorMessage = e.getMessage();
+	logError(subject, errorMessage);
 	resource.setResumptionToken(startResumptionToken);
+	mailMessage(subject, errorMessage);
       }
     } else {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
-      // We do not want to override a ERROR mesage, but should reset a killed/running status. 
+      // We do not want to override a ERROR message, but should reset a killed/running status. 
       // Perhaps even leave killed, just be sure that we will start the job in this state. 
-      if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING))
+      if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING)) {
+	mailMessage("Completed with status: ", getStatus().toString());
 	setStatus(HarvestStatus.FINISHED);
-      try {
+      }
+      else {
+	String subject = "OAI harvest stopped premature. ";
+	String msg = null; 
+	try {
 	if (resource.getKeepPartial()) {
-	  logger.log(Level.INFO, "OAI harvest stopped premature, "
-	      + "commiting up partial harvest as configured");
+	  msg = "Commiting up partial harvest as configured";
+	  logger.log(Level.INFO, subject + msg);
 	  commit();
          } else {
-	  logger.log(Level.INFO, "OAI harvest stopped premature - rolling back until " 
-            + (startResumptionToken != null ? " resumptionToken (at start): " + startResumptionToken : formatDate(resource.getFromDate())));
-	  getStorage().rollback();
+           getStorage().rollback();
+           resource.setResumptionToken(startResumptionToken);
+           msg = "Rolling back until "
+            + (startResumptionToken != null ? " resumptionToken (at start): " + startResumptionToken : formatDate(resource.getFromDate()));
+            logger.log(Level.INFO, msg);
+         }
+	 logError(subject, msg);
+	} catch (IOException ioe) {
+	  msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
+	  logger.debug("Stack trace:", ioe);
+	  logError(subject, msg);
 	  resource.setResumptionToken(startResumptionToken);
-        }
-      } catch (IOException ioe) {
-        String msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
-	logger.log(Level.ERROR, msg);
-        logger.debug("Stack trace:", ioe);
-        setStatus(HarvestStatus.ERROR, msg);
-	resource.setResumptionToken(startResumptionToken);
+	}	
       }
-    }
-    
-    if (getStatus() == HarvestStatus.ERROR ) {
-      Sender sender = SenderFactory.getSender();
-      String status = getStatus().toString();
-      Notification msg = new SimpleNotification(status, resource.getName(), resource.getMessage());
-      try {
-	if (sender != null)
-	  sender.send(msg);
-	else
-	  logger.error("No sender specified. Unable to send message: " + resource.getMessage()) ;
-      } catch (NotificationException e1) {
-	logger.error("Failed to send notification " + resource.getMessage()) ;
-}
-    }
+    }   
     logger.close();
   }
 
