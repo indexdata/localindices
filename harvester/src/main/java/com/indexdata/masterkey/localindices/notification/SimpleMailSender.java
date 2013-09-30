@@ -82,8 +82,14 @@ private String smtpServer;
  }
   @Override
   public void send(Notification notification) throws NotificationException {
-    send(smtpServer, recievers, from, notification.getStatus() + ":" + notification.getSubject(), notification.getMesage()); 
+    send(smtpServer, recievers, from, notification.getStatus() + ": " + notification.getSubject(), notification.getMesage()); 
   }
+
+  public void send(String recievers, Notification notification) throws NotificationException {
+    setRecievers(recievers);
+    send(notification); 
+  }
+
   public String getFrom() {
     return from;
   }
