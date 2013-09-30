@@ -713,28 +713,24 @@ public class ResourceController {
   String[] logLevels = {"DEBUG", "INFO", "WARN", "FATAL"};
   public List<SelectItem> getLogLevelItems() 
   {
-    int index = 0;
     List<SelectItem> list = new LinkedList<SelectItem>();
     for (String logLevel : logLevels) {
       SelectItem selectItem = new SelectItem();
       selectItem.setLabel(logLevel);
-      selectItem.setValue(index);
+      selectItem.setValue(logLevel);
       list.add(selectItem);
-      index++;
     }
     return list;
   }
 
   String[] jobLevels = {"OK", "WARN", "ERROR" };
   public List<SelectItem> getJobLevelItems() {
-    int index = 0;
     List<SelectItem> list = new LinkedList<SelectItem>();
     for (String logLevel : jobLevels) {
       SelectItem selectItem = new SelectItem();
       selectItem.setLabel(logLevel);
-      selectItem.setValue(index);
+      selectItem.setValue(logLevel);
       list.add(selectItem);
-      index++;
     }
     return list;
   }
