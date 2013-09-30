@@ -37,6 +37,7 @@ import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.job.AbstractRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
@@ -188,7 +189,7 @@ public class TestTransformationChainStorage extends TestCase {
     
     // harvestable.setTransformation(transformation)
     XMLReader xmlReader = createTransformChain(stylesheets);
-    BulkRecordHarvestJob job = new BulkRecordHarvestJob(harvestableXml, null);
+    AbstractRecordHarvestJob job = new BulkRecordHarvestJob(harvestableXml, null);
     job.setStatus(HarvestStatus.NEW);
     xmlBulkStorage.setLogger(new ConsoleStorageJobLogger(xmlRecordStorage.getClass(), harvestableXml));
     TransformationChainRecordStorageProxy transformStorage = new TransformationChainRecordStorageProxy(
