@@ -23,10 +23,12 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
     logger = Logger.getLogger(logId);
     String logFilename = "/var/log/masterkey/harvester/" + logId  + ".log";
     setupAppender(loggerClass,logFilename, "storage");
+    /* 
     Appender appender = Logger.getRootLogger().getAppender("LOGFILE");
     if (appender != null) {
       addAppender(appender);
     }
+    */
     logger.setAdditivity(false);
     logger.setLevel(Level.DEBUG);
     if (resource != null)
@@ -36,12 +38,19 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   public StorageJobLogger(Class<? extends Object> loggerClass, Harvestable resource) {
     String logFilename = HarvestableLog.getHarvesteableJobFilename(resource.getId());
     logger = Logger.getLogger(loggerClass.getName() + "JOB#" + resource.getId() );
-    logger.setLevel(Level.DEBUG);
+    /*
     Appender appender = Logger.getRootLogger().getAppender("LOGFILE");
     if (appender != null) {
       addAppender(appender);
     }
+    */
     setupAppender(loggerClass, logFilename, "job");
+    logger.setLevel(Level.INFO);
+    if (resource.getLogLevel() != null) {
+      Level level = Level.toLevel(resource.getLogLevel());
+      logger.setLevel(level);
+    }
+    
     logger.setAdditivity(false);
 /*
     // Configured in the thread name
