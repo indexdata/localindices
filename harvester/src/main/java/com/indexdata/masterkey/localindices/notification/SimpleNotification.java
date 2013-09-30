@@ -4,8 +4,8 @@ public class SimpleNotification implements Notification {
 
   private String status, subject, message;
 
-  public SimpleNotification(String stat, String subj, String msg) {
-    status = stat;
+  public SimpleNotification(String state, String subj, String msg) {
+    status = state;
     subject = subj;
     message = msg;
   }
