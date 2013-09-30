@@ -96,6 +96,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   private String logLevel  = "INFO"; 
   private String mailLevel = "WARN"; 
+  private String mailAddress = null; 
 
   public String getDescription() {
     return description;
@@ -372,5 +373,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setMailLevel(String mailLevel) {
     this.mailLevel = mailLevel;
+  }
+
+  public String getMailAddress() {
+    return mailAddress;
+  }
+
+  public void setMailAddress(String mailAddresses) {
+    this.mailAddress = mailAddresses;
   }
 }
