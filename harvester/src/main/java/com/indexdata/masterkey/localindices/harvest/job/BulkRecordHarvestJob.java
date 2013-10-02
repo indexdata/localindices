@@ -85,10 +85,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
+      String subject = "Completed.";
+      String msg = "";
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
-        logError("Harvest status: " + getStatus().toString() , getHarvestable().getMessage());
+	subject = "Harvest status: " + getStatus().toString() ;
+	msg = getHarvestable().getMessage();
+	logError(subject, msg);
       }
 
       if ( getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN || 
@@ -105,7 +109,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.databaseEnd();
         transformationStorage.rollback();
       }
-      mailMessage("Completed", "");
+      mailMessage(subject, msg);
     } catch (Exception e) {
       setStatus(HarvestStatus.ERROR);
       String message = "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!";
