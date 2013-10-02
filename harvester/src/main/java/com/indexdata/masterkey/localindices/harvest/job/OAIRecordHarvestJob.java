@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -222,7 +223,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   protected void harvest(String baseURL, String from, String until, String metadataPrefix,
-      String setSpec, String resumptionToken, RecordStorage storage) throws TransformerException, IOException 
+      String setSpec, String resumptionToken, RecordStorage storage) throws 
+      	TransformerException, IOException, ParserConfigurationException
       {
 
     ListRecords listRecords = new ListRecords(baseURL, proxy, logger.getLogger());
@@ -230,8 +232,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     listRecords.setHttpTimeout(resource.getTimeout() );
     listRecords.setHttpRetryWait(resource.getRetryWait());
     
-    
-    try {
     if (resumptionToken == null || "".equals(resumptionToken)) {
       logger.log(Level.INFO, "OAI-PMH harvesting in " + metadataPrefix + " format from: "  
 	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
@@ -241,11 +241,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
       listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
     }
-    } catch (Exception ex) {
-    }
+
     boolean dataStart = false;
     int count = 0;
-    while (listRecords != null && !isKillSent()) {
+    while (!isKillSent()) {
+      if (listRecords.getDocument() == null) {
+	throw new OaiPmhException("Failed to parse response (empty document).", null);
+      }
       NodeList errorNodes = null;
       try {
 	errorNodes = listRecords.getErrors();
@@ -309,7 +311,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
 	  // dumping the response may cause IO Exception
 	  logger.log(Level.DEBUG, msg + " Erroneous respponse:\n" + hve.getResponseString());
-	  throw new IOException(msg, hve);
+	  throw hve;
+	  
 	} catch (IOException io) {
 	  throw io;
 	} catch (Exception e) {
