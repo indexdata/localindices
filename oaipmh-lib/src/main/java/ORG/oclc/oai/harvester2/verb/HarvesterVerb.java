@@ -409,8 +409,7 @@ public abstract class HarvesterVerb {
       bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
       data.setByteStream(bin);
     } else {
-      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride
-        + "'");
+      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
       bin = new BufferedInputStream(in);
       Reader reader = new InputStreamReader(bin, encodingOverride);
       data.setCharacterStream(reader);
@@ -426,7 +425,7 @@ public abstract class HarvesterVerb {
       boolean respLogged = false;
       this.schemaLocation = parseSchemaLocation();
       if ("".equals(schemaLocation)) {
-        logger.error("No Schema Location found, dumpging response");
+        logger.error("No Schema Location found, dumping response");
         logResponse(bin, Level.WARN);
         respLogged = true;
       }
@@ -481,8 +480,7 @@ public abstract class HarvesterVerb {
   }
 
   private Document createDocument(InputSource data) throws
-    ParserConfigurationException,
-    SAXException, IOException {
+    ParserConfigurationException, SAXException, IOException {
     Thread t = Thread.currentThread();
     DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
     if (builder == null) {
@@ -535,8 +533,7 @@ public abstract class HarvesterVerb {
     return getSingleString(getDocument(), xpath);
   }
 
-  public static String getSingleString(Node node, String xpath) throws
-    TransformerException {
+  public static String getSingleString(Node node, String xpath) throws TransformerException {
     XPathHelper<String> stringHelper = new XPathHelper<String>(
       XPathConstants.STRING, new OaiPmhNamespaceContext());
     try {
