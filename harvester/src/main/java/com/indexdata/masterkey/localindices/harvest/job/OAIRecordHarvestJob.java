@@ -39,11 +39,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.notification.Notification;
-import com.indexdata.masterkey.localindices.notification.NotificationException;
-import com.indexdata.masterkey.localindices.notification.Sender;
-import com.indexdata.masterkey.localindices.notification.SenderFactory;
-import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -64,8 +59,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
   private final DateFormat df;
   private boolean initialRun = true;
-  @SuppressWarnings("unused")
-  private boolean moveUntilIntoFrom = false;
   private int totalCount;
 
   @Override
@@ -136,7 +129,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	logger.warn("Got RUNNING state at job end.");
 	setStatus(HarvestStatus.OK);
       }
+/*
+    } catch (ResponseParsingException e) {
+      if (!isKillSent()) {
+	setStatus(HarvestStatus.ERROR, e.getMessage());
       
+      }
+*/      
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
@@ -264,6 +263,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (errors.length == 1 && errors[0].getCode().equalsIgnoreCase("noRecordsMatch")) {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
 	  setStatus(HarvestStatus.WARN, "No Records matched");
+	  markForUpdate();
 	  return;
 	} 
 	else
