@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.SAXParserFactory;
@@ -137,6 +138,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     RecordStorage storage = getStorage();
     storage.commit();
     Harvestable resource = getHarvestable();
+    resource.setLastHarvestFinished(new Date());
     try {
       StorageStatus storageStatus = storage.getStatus();  
       if (storageStatus != null) {
