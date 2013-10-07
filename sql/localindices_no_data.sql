@@ -1,8 +1,3 @@
--- MySQL dump 10.13  Distrib 5.6.12, for osx10.7 (x86_64)
---
--- Host: localhost    Database: localindices
--- ------------------------------------------------------
--- Server version	5.6.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,11 +9,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `HARVESTABLE`
---
-
 DROP TABLE IF EXISTS `HARVESTABLE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -75,16 +65,14 @@ CREATE TABLE `HARVESTABLE` (
   `ALLOWCONDREQ` tinyint(4) DEFAULT NULL,
   `CLEARRTONERROR` tinyint(1) NOT NULL DEFAULT '0',
   `KEEPPARTIAL` tinyint(1) NOT NULL DEFAULT '1',
+  `TIMEOUT` smallint(4) NOT NULL DEFAULT '60',
+  `RETRYCOUNT` tinyint(3) NOT NULL DEFAULT '2',
+  `RETRYWAIT` smallint(4) NOT NULL DEFAULT '60',
   PRIMARY KEY (`ID`),
   KEY `FK_HARVESTABLE_STORAGE_ID` (`STORAGE_ID`),
   CONSTRAINT `FK_HARVESTABLE_STORAGE_ID` FOREIGN KEY (`STORAGE_ID`) REFERENCES `STORAGE` (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `SEQUENCE`
---
-
 DROP TABLE IF EXISTS `SEQUENCE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -94,11 +82,6 @@ CREATE TABLE `SEQUENCE` (
   PRIMARY KEY (`SEQ_NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `STEP`
---
-
 DROP TABLE IF EXISTS `STEP`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -118,11 +101,6 @@ CREATE TABLE `STEP` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `STORAGE`
---
-
 DROP TABLE IF EXISTS `STORAGE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -139,11 +117,6 @@ CREATE TABLE `STORAGE` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `TRANSFORMATION`
---
-
 DROP TABLE IF EXISTS `TRANSFORMATION`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -157,11 +130,6 @@ CREATE TABLE `TRANSFORMATION` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `TRANSFORMATION_STEP`
---
-
 DROP TABLE IF EXISTS `TRANSFORMATION_STEP`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -188,4 +156,3 @@ CREATE TABLE `TRANSFORMATION_STEP` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-06-20 11:39:51
