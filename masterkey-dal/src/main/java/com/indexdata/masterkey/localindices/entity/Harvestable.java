@@ -94,6 +94,10 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @Column(nullable=false)
   private Integer retryWait = 60; //SECS
 
+  private String logLevel  = "INFO"; 
+  private String mailLevel = "WARN"; 
+  private String mailAddress = null; 
+
   public String getDescription() {
     return description;
   }
@@ -353,5 +357,29 @@ public abstract class Harvestable implements Serializable, Cloneable {
     setLastHarvestStarted(null);
     setLastHarvestFinished(null);
     setCurrentStatus("NEW");
+  }
+
+  public String getLogLevel() {
+    return logLevel;
+  }
+
+  public void setLogLevel(String logLevel) {
+    this.logLevel = logLevel;
+  }
+
+  public String getMailLevel() {
+    return mailLevel;
+  }
+
+  public void setMailLevel(String mailLevel) {
+    this.mailLevel = mailLevel;
+  }
+
+  public String getMailAddress() {
+    return mailAddress;
+  }
+
+  public void setMailAddress(String mailAddresses) {
+    this.mailAddress = mailAddresses;
   }
 }

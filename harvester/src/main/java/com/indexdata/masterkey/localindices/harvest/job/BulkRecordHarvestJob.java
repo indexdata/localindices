@@ -17,11 +17,6 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.notification.Notification;
-import com.indexdata.masterkey.localindices.notification.NotificationException;
-import com.indexdata.masterkey.localindices.notification.Sender;
-import com.indexdata.masterkey.localindices.notification.SenderFactory;
-import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import java.util.Date;
 
 /**
@@ -90,10 +85,14 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       setStatus(HarvestStatus.RUNNING);
       downloadList(resource.getUrl().split(" "));
+      String subject = "Completed.";
+      String msg = "";
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
-        logError("Harvest status: " + getStatus().toString() , getHarvestable().getMessage());
+	subject = "Harvest status: " + getStatus().toString() ;
+	msg = getHarvestable().getMessage();
+	logError(subject, msg);
       }
 
       if ( getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN || 
@@ -110,16 +109,21 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.databaseEnd();
         transformationStorage.rollback();
       }
+      mailMessage(subject, msg);
     } catch (Exception e) {
       setStatus(HarvestStatus.ERROR);
-      logger.log(Level.ERROR, "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!");
+      String message = "Failed to complete job. Caught Exception: " + e.getMessage() + ". Rolling back!";
+      logger.log(Level.ERROR, message);
       // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
         getStorage().rollback();
       } catch (Exception ioe) {
-        logger.warn("Roll-back failed: " + ioe.getMessage());
+	message += "Roll-back failed: " + ioe.getMessage();  
+        logger.error(message);
       }
-      logError("Harevest failed", e.getMessage());
+      String subject = "Harvest failed"; 
+      logError(subject, e.getMessage());
+      mailMessage(subject, message);
     } finally {
       logger.close();
     }
@@ -170,23 +174,5 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @Override
   protected Harvestable getHarvestable() {
     return resource;
-  }
-
-  protected void logError(String logSubject, String message) {
-    setStatus(HarvestStatus.ERROR, message);
-    resource.setMessage(message);
-    logger.error(logSubject + ": " +  message);
-    Sender sender = SenderFactory.getSender();
-    String status = getStatus().toString();
-    Notification msg = new SimpleNotification(status, logSubject, message);
-    try {
-      if (sender != null) {
-        sender.send(msg);
-      } else {
-        throw new NotificationException("No Sender configured", null);
-      }
-    } catch (NotificationException e1) {
-      logger.error("Failed to send notification " + e1.getMessage());
-    }
   }
 }

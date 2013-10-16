@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.SAXParserFactory;
@@ -25,6 +26,11 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.notification.Notification;
+import com.indexdata.masterkey.localindices.notification.NotificationException;
+import com.indexdata.masterkey.localindices.notification.Sender;
+import com.indexdata.masterkey.localindices.notification.SenderFactory;
+import com.indexdata.masterkey.localindices.notification.SimpleNotification;
 import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
@@ -132,6 +138,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     RecordStorage storage = getStorage();
     storage.commit();
     Harvestable resource = getHarvestable();
+    resource.setLastHarvestFinished(new Date());
     try {
       StorageStatus storageStatus = storage.getStatus();  
       if (storageStatus != null) {
@@ -145,5 +152,40 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     catch (StatusNotImplemented exception) {
       logger.warn("Failed to get Storage Status.");
     }
+  }
+
+  protected void mailMessage(String subject, String message) {
+    Sender sender = SenderFactory.getSender();
+    String status = getStatus().toString();
+    Harvestable harvestable = getHarvestable();
+    if (checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) {
+      Notification msg = new SimpleNotification(status, 
+  		harvestable.getName() + "(" + harvestable.getId() + "): "  + subject, message);
+      try {
+        if (sender != null) {
+          String customRecievers = harvestable.getMailAddress();
+          if (customRecievers != null && !"".equals(customRecievers))
+            sender.send(customRecievers, msg);
+          else
+            sender.send(msg);
+        } else {
+          throw new NotificationException("No Sender configured", null);
+        }
+      } catch (NotificationException e1) {
+        logger.error("Failed to send notification " + e1.getMessage());
+      }
+    }
+  }
+
+  private boolean checkMailLevel(HarvestStatus mailLevel, HarvestStatus status) {
+    if (mailLevel.ordinal() <= status.ordinal())
+      return true;
+    return false;
+  }
+
+  protected void logError(String logSubject, String message) {
+    setStatus(HarvestStatus.ERROR, message);
+    getHarvestable().setMessage(message);
+    logger.error(logSubject + ": " +  message);
   }
 }

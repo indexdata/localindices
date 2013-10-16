@@ -1,84 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"   
-      xmlns:ui="http://java.sun.com/jsf/facelets"      
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
-  <body>
-    <ui:composition>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core">
+<body>
+	<ui:composition>
 
-      <h5>General information: </h5>
-      <h:panelGrid columns="2">
-        <h:outputText value="Id:"/>
-        <h:outputText value="#{resourceController.resource.id}"/> 
-        <h:outputText value="Name:"/>
-        <h:panelGroup>
-          <h:inputText id="resourceName" 
-                       value="#{resourceController.resource.name}" size="30"
-                       required="true" requiredMessage="Please provide a name for the job!"/>
-          <h:message for="resourceName" style="color: red;"/>
-        </h:panelGroup>
-        <h:outputText value="Service Provider:"/>
-        <h:inputText value="#{resourceController.resource.serviceProvider}" size="30"/>
-        <h:outputText value="Content Description:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.description}"/>
-        <h:outputText value="Technical Notes:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.technicalNotes}"/>
-        <h:outputText value="Contact notes:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{resourceController.resource.contactNotes}" />
-        <h:outputText value="Harvest schedule:"/>
-        <h:panelGrid columns="7">
+		<h5>General information:</h5>
+		<h:panelGrid columns="2">
+			<h:outputText value="Id:" />
+			<h:outputText value="#{resourceController.resource.id}" />
+			<h:outputText value="Name:" />
+			<h:panelGroup>
+				<h:inputText id="resourceName"
+					value="#{resourceController.resource.name}" size="30"
+					required="true"
+					requiredMessage="Please provide a name for the job!" />
+				<h:message for="resourceName" style="color: red;" />
+			</h:panelGroup>
+			<h:outputText value="Service Provider:" />
+			<h:inputText value="#{resourceController.resource.serviceProvider}"
+				size="30" />
+			<h:outputText value="Content Description:" />
+			<h:inputTextarea cols="60" rows="3"
+				value="#{resourceController.resource.description}" />
+			<h:outputText value="Technical Notes:" />
+			<h:inputTextarea cols="60" rows="3"
+				value="#{resourceController.resource.technicalNotes}" />
+			<h:outputText value="Contact notes:" />
+			<h:inputTextarea cols="60" rows="3"
+				value="#{resourceController.resource.contactNotes}" />
+			<h:outputText value="Harvest schedule:" />
+			<h:panelGrid columns="7">
           Harvest
           <h:selectOneMenu value="#{resourceController.dayOfMonth}">
-            <f:selectItems value="#{resourceController.daysOfMonth}" />
-          </h:selectOneMenu>
+					<f:selectItems value="#{resourceController.daysOfMonth}" />
+				</h:selectOneMenu>
           (day) of
           <h:selectOneMenu value="#{resourceController.month}">
-            <f:selectItems value="#{resourceController.months}" />
-          </h:selectOneMenu>
+					<f:selectItems value="#{resourceController.months}" />
+				</h:selectOneMenu>
           (month) if it's
           <h:selectOneMenu value="#{resourceController.dayOfWeek}">
-            <f:selectItems value="#{resourceController.daysOfWeek}" />
-          </h:selectOneMenu>
+					<f:selectItems value="#{resourceController.daysOfWeek}" />
+				</h:selectOneMenu>
           (day of the week)
           <h:column>Harvesting time:</h:column>
-          <h:selectOneMenu value="#{resourceController.hour}">
-            <f:selectItems value="#{resourceController.hours}" />
-          </h:selectOneMenu>
+				<h:selectOneMenu value="#{resourceController.hour}">
+					<f:selectItems value="#{resourceController.hours}" />
+				</h:selectOneMenu>
           (hour in 24 format)
           <h:selectOneMenu value="#{resourceController.min}">
-            <f:selectItems value="#{resourceController.mins}" />
-          </h:selectOneMenu>
+					<f:selectItems value="#{resourceController.mins}" />
+				</h:selectOneMenu>
           (min)
         </h:panelGrid>
-        <h:outputText value="Harvest now:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.harvestImmediately}"/>
-        <h:outputText value="Harvest job enabled:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.enabled}"/>
-        <h:outputText value="Overwrite:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.overwrite}"/>
-        <!-- List box of Transformations pipeline-->
-        <h:outputText value="Transformation Pipeline:"/>
-        <h:selectOneMenu value="#{resourceController.transformation}">
-          <f:selectItems value="#{transformationController.transformationItems}" />
-        </h:selectOneMenu>
-        <!-- List box of Storages -->
-        <h:outputText value="Storage:"/>
-        <h:panelGroup>
-          <h:selectOneMenu id="storageList" value="#{resourceController.storage}" required="true"
-                           requiredMessage="Please specify a storage for this job!">
-            <f:selectItems value="#{storageController.storageItems}" />
-          </h:selectOneMenu>
-          <h:message for="storageList" style="color: red;"/>
-        </h:panelGroup>
-        <h:outputText value="Stored records:" rendered="#{resourceController.storageUrl != null}" />
-	<h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
-          <h:outputText value="click to view" />
-	</h:outputLink>
-        <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):"/>
-        <h:inputText  value="#{resourceController.resource.encoding}" size="20" />
-      </h:panelGrid>
-    </ui:composition>
-  </body>
+			<h:outputText value="Harvest job enabled:" />
+			<h:selectBooleanCheckbox
+				value="#{resourceController.resource.enabled}" />
+			<h:outputText value="Overwrite:" />
+			<h:selectBooleanCheckbox
+				value="#{resourceController.resource.overwrite}" />
+			<!-- List box of Transformations pipeline-->
+			<h:outputText value="Transformation Pipeline:" />
+			<h:selectOneMenu value="#{resourceController.transformation}">
+				<f:selectItems
+					value="#{transformationController.transformationItems}" />
+			</h:selectOneMenu>
+			<!-- List box of Storages -->
+			<h:outputText value="Storage:" />
+			<h:panelGroup>
+				<h:selectOneMenu id="storageList"
+					value="#{resourceController.storage}" required="true"
+					requiredMessage="Please specify a storage for this job!">
+					<f:selectItems value="#{storageController.storageItems}" />
+				</h:selectOneMenu>
+				<h:message for="storageList" style="color: red;" />
+			</h:panelGroup>
+			<h:outputText value="Stored records:"
+				rendered="#{resourceController.storageUrl != null}" />
+			<h:outputLink target="_blank"
+				value="#{resourceController.storageUrl}"
+				rendered="#{resourceController.storageUrl != null}">
+				<h:outputText value="click to view" />
+			</h:outputLink>
+			<h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
+			<h:inputText value="#{resourceController.resource.encoding}"
+				size="20" />
+			<h:outputText value="Connection/read timeout (seconds):" />
+			<h:inputText value="#{resourceController.resource.timeout}" size="20" />
+			<h:outputText value="Job Log Level:" />
+            <h:selectOneMenu value="#{resourceController.resource.logLevel}">
+                <f:selectItems
+                    value="#{resourceController.logLevelItems}" />
+            </h:selectOneMenu>
+            <h:outputText value="Custom e-mails (multiple separated with comma): " />
+            <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
+            <h:outputText value="Email on Job status: " />
+            <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
+                <f:selectItems
+                    value="#{resourceController.jobLevelItems}" />
+            </h:selectOneMenu>
+		</h:panelGrid>
+	</ui:composition>
+</body>
 </html>

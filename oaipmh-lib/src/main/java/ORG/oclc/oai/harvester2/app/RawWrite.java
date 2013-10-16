@@ -86,9 +86,10 @@ public class RawWrite {
                            OutputStream out)
         throws IOException, ParserConfigurationException, ResponseParsingException, TransformerException,
                NoSuchFieldException {
-        ListRecords listRecords = new ListRecords(baseURL, resumptionToken, null, null, logger);
+        ListRecords listRecords = new ListRecords(baseURL, null, logger);
         while (listRecords != null) {
-            NodeList errors = listRecords.getErrors();
+          listRecords.harvest(resumptionToken, null, null); 
+          NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
                 System.out.println("Found errors");
                 int length = errors.getLength();
@@ -106,8 +107,7 @@ public class RawWrite {
             System.out.println("resumptionToken: " + resumptionToken);
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
-            } else {
-                listRecords = new ListRecords(baseURL, resumptionToken, null, null, logger);
+                break; 
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));
@@ -126,9 +126,9 @@ public class RawWrite {
         out.write("\n".getBytes("UTF-8"));
         out.write(new ListSets(baseURL, null, null, logger).toString().getBytes("UTF-8"));
         out.write("\n".getBytes("UTF-8"));
-        ListRecords listRecords = new ListRecords(baseURL, from, until, setSpec,
-                                                  metadataPrefix, null, null, logger);
+        ListRecords listRecords = new ListRecords(baseURL, null, logger); 
         while (listRecords != null) {
+          listRecords.harvest(from, until, setSpec, metadataPrefix, null, null);
             NodeList errors = listRecords.getErrors();
             if (errors != null && errors.getLength() > 0) {
                 System.out.println("Found errors");
@@ -147,8 +147,9 @@ public class RawWrite {
             System.out.println("resumptionToken: " + resumptionToken);
             if (resumptionToken == null || resumptionToken.length() == 0) {
                 listRecords = null;
+                break;
             } else {
-                listRecords = new ListRecords(baseURL, resumptionToken, null, null, logger);
+                listRecords.harvest(resumptionToken, null, null);
             }
         }
         out.write("</harvest>\n".getBytes("UTF-8"));

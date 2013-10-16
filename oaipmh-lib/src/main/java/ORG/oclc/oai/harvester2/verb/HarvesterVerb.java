@@ -77,8 +77,22 @@ public abstract class HarvesterVerb {
   final protected Logger logger;
   private int httpRetries = 2;
   private int httpRetryWait = 60;   // secs
-  private int httpTimeout = 60000;  // millisecs
-
+  private int httpTimeout   = 60;   // secs
+  private String baseURL;
+  private String requestURL;
+  private Document doc = null;
+  private String schemaLocation = null;
+  private static HashMap<Thread, DocumentBuilder> builderMap =
+    new HashMap<Thread, DocumentBuilder>();
+  public static Element namespaceElement = null;
+  private static DocumentBuilderFactory factory = null;
+  private boolean useTagSoup = false;
+  private static HashMap<Thread, TransformerFactory> transformerFactoryMap =
+    new HashMap<Thread, TransformerFactory>();
+  private static HashMap<Thread, XPathFactory> xpathFactoryMap =
+    new HashMap<Thread, XPathFactory>();
+  //private static boolean debug = false;
+  
   /* Primary OAI namespaces */
   public static final String NAMESPACE_V2_0 =
     "http://www.openarchives.org/OAI/2.0/";
@@ -116,19 +130,6 @@ public abstract class HarvesterVerb {
   public static final String SCHEMA_LOCATION_V1_1_LIST_SETS =
     NAMESPACE_V1_1_LIST_SETS
     + " http://www.openarchives.org/OAI/1.1/OAI_ListSets.xsd";
-  private Document doc = null;
-  private String schemaLocation = null;
-  private String requestURL = null;
-  private static HashMap<Thread, DocumentBuilder> builderMap =
-    new HashMap<Thread, DocumentBuilder>();
-  public static Element namespaceElement = null;
-  private static DocumentBuilderFactory factory = null;
-  private boolean useTagSoup = false;
-  private static HashMap<Thread, TransformerFactory> transformerFactoryMap =
-    new HashMap<Thread, TransformerFactory>();
-  private static HashMap<Thread, XPathFactory> xpathFactoryMap =
-    new HashMap<Thread, XPathFactory>();
-  //private static boolean debug = false;
 
   static XPath createXPath() {
     /* create transformer */
@@ -231,13 +232,15 @@ public abstract class HarvesterVerb {
    */
   public NodeList getErrors() throws TransformerException {
     String schemas = getSchemaLocation();
-    if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
-      return getNodeList("/oai20:OAI-PMH/oai20:error");
-    } else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
-      return getNodeList("/oai11:OAI-PMH/oai11:error");
-
-    } else
-      return getNodeList("/OAI-PMH/error");
+    if (schemas != null) {
+      if (schemas.indexOf(SCHEMA_LOCATION_V2_0) != -1) {
+	return getNodeList("/oai20:OAI-PMH/oai20:error");
+      } else if (schemas.indexOf(SCHEMA_LOCATION_V1_1_LIST_RECORDS) != -1) {
+	return getNodeList("/oai11:OAI-PMH/oai11:error");
+    } else 
+      logger.warn("No schemas found in response.");
+    }
+    return getNodeList("/OAI-PMH/error");
   }
 
   /**
@@ -247,6 +250,10 @@ public abstract class HarvesterVerb {
    */
   public String getRequestURL() {
     return requestURL;
+  }
+
+  public String getBaseURL() {
+    return baseURL;
   }
 
   /**
@@ -260,6 +267,14 @@ public abstract class HarvesterVerb {
    * Mock object creator (for unit testing purposes)
    */
   public HarvesterVerb(Logger jobLogger) {
+    logger = jobLogger;
+  }
+
+  /**
+   * Mock object creator (for unit testing purposes)
+   */
+  public HarvesterVerb(String baseUrl, Proxy proxy, Logger jobLogger) {
+    this.baseURL = baseUrl; 
     logger = jobLogger;
   }
 
@@ -289,11 +304,10 @@ public abstract class HarvesterVerb {
    * @throws SAXException
    * @throws TransformerException
    */
-  public void harvest(String requestURL, Proxy proxy, String encodingOverride)
-    throws
-    IOException, ParserConfigurationException,
-    TransformerException, ResponseParsingException {
-    this.requestURL = requestURL;
+  public void harvest(String parameters, Proxy proxy, String encodingOverride)
+    throws IOException, ParserConfigurationException, TransformerException, ResponseParsingException 
+    {
+    this.requestURL = baseURL + parameters;
     logger.log(Level.INFO, "Request URL: " + requestURL);
     InputStream in = null;
     URL url = new URL(requestURL);
@@ -310,8 +324,8 @@ public abstract class HarvesterVerb {
       con.setRequestProperty("User-Agent", "OAIHarvester/2.0");
       con.setRequestProperty("Accept-Encoding", "compress, gzip, identify");
       // TODO Make configurable. 
-      con.setConnectTimeout(httpTimeout);
-      con.setReadTimeout(httpTimeout);
+      con.setConnectTimeout(httpTimeout * 1000);
+      con.setReadTimeout(httpTimeout * 1000);
       try {
         responseCode = con.getResponseCode();
         if (responseCode != 200)
@@ -395,8 +409,7 @@ public abstract class HarvesterVerb {
       bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
       data.setByteStream(bin);
     } else {
-      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride
-        + "'");
+      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
       bin = new BufferedInputStream(in);
       Reader reader = new InputStreamReader(bin, encodingOverride);
       data.setCharacterStream(reader);
@@ -412,7 +425,7 @@ public abstract class HarvesterVerb {
       boolean respLogged = false;
       this.schemaLocation = parseSchemaLocation();
       if ("".equals(schemaLocation)) {
-        logger.error("No Schema Location found, dumpging response");
+        logger.error("No Schema Location found, dumping response");
         logResponse(bin, Level.WARN);
         respLogged = true;
       }
@@ -420,14 +433,14 @@ public abstract class HarvesterVerb {
         logResponse(bin, Level.TRACE);
       }
     } catch (SAXException saxe) {
-      bin.reset();
-      String resp;
-      try {
-        resp = TextUtils.readStream(bin);
-      } catch (IOException ioe) {
-        resp = "<unreadable response>";
-      }
-      throw new ResponseParsingException("Cannot parse response: " + 
+	String resp;
+	try {
+	  bin.reset();
+	  resp = TextUtils.readStream(bin);
+	} catch (IOException ioe) {
+	  resp = "<unreadable response>";
+	}
+	throw new ResponseParsingException("Cannot parse response: " + 
         saxe.getMessage(), saxe, resp, requestURL);
     } finally {
       bin.close();
@@ -467,8 +480,7 @@ public abstract class HarvesterVerb {
   }
 
   private Document createDocument(InputSource data) throws
-    ParserConfigurationException,
-    SAXException, IOException {
+    ParserConfigurationException, SAXException, IOException {
     Thread t = Thread.currentThread();
     DocumentBuilder builder = (DocumentBuilder) builderMap.get(t);
     if (builder == null) {
@@ -521,8 +533,7 @@ public abstract class HarvesterVerb {
     return getSingleString(getDocument(), xpath);
   }
 
-  public static String getSingleString(Node node, String xpath) throws
-    TransformerException {
+  public static String getSingleString(Node node, String xpath) throws TransformerException {
     XPathHelper<String> stringHelper = new XPathHelper<String>(
       XPathConstants.STRING, new OaiPmhNamespaceContext());
     try {

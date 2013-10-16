@@ -7,7 +7,10 @@
         <non-jta-data-source>java:/comp/env/localindicesDS</non-jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
-            <property name="eclipselink.cache.type.default" value="NONE"/>
+            <property name="eclipselink.cache.shared.default" value="true"/>
+            <property name="eclipselink .cache.type.default" value="Soft"/>
+            <property name="eclipselink.cache.size.default" value="1000"/>
+
             <!--
               direct non-DataSource connection is possible but is generally
               not safe
@@ -35,7 +38,9 @@
         <properties>
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
-            <property name="eclipselink.cache.type.default" value="NONE"/>
+            <property name="eclipselink.cache.shared.default" value="true"/>
+            <property name="eclipselink .cache.type.default" value="Soft"/>
+            <property name="eclipselink.cache.size.default" value="1000"/>
             <property name="eclipselink.target-database" value="Auto"/>
             <!--
               direct non-DataSource connection is possible but is generally

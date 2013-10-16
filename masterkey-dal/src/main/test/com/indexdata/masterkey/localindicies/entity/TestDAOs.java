@@ -347,7 +347,7 @@ public class TestDAOs extends TestCase {
 		TransformationStepTestHelper stepHelper = new TransformationStepTestHelper();
 		TransformationStepAssociationDAO tsaDao = factory.newTransformationStepAssociationDAO();
 		TransformationStepDAO stepDao = factory.newTransformationStepDAO();
-		TransformationStepAssociationTestHelper tsaHelper = new TransformationStepAssociationTestHelper(transformationDao, stepDao);
+		//TransformationStepAssociationTestHelper tsaHelper = new TransformationStepAssociationTestHelper(transformationDao, stepDao);
 
 		transformationHelper.setup();
 		Transformation transformation = transformationHelper.create();

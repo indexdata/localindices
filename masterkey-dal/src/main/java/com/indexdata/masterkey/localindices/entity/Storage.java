@@ -44,6 +44,8 @@ public abstract class Storage implements Serializable, Cloneable {
   @Column(length = 100)
   protected String transformation;
   protected String url;
+  @Column(length = 1000)
+  protected String customClass;
 
   /*
    * @OneToMany(mappedBy="storage") // try @XmlTransient private

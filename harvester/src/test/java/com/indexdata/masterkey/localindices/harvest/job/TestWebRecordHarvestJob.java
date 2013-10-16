@@ -22,15 +22,11 @@ import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
-import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
-import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class TestWebRecordHarvestJob extends TestCase {
 
@@ -39,6 +35,7 @@ public class TestWebRecordHarvestJob extends TestCase {
   String solrUrl = "http://localhost:8585/solr/";
   RecordStorage recordStorage;
 
+  @SuppressWarnings("unused")
   private WebCrawlResource createResource(String url)
       throws IOException {
     WebCrawlResource resource = new WebCrawlResource();
@@ -97,6 +94,7 @@ public class TestWebRecordHarvestJob extends TestCase {
     return transformation;
   }
 
+  @SuppressWarnings("unused")
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, WebCrawlResource resource)
       throws IOException {
     WebRecordHarvestJob job = new WebRecordHarvestJob(resource, null);

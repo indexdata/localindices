@@ -9,8 +9,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 
-import ORG.oclc.oai.harvester2.verb.ListRecords;
-
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
@@ -235,11 +233,12 @@ public class TestOAIRecordHarvestJob extends JobTester {
         return super.isKillSent();
       }
       
-      protected ListRecords listRecords(String baseURL, String resumptionToken) throws IOException { 
+      protected void markForUpdate() { 
 	index++;
-	return super.listRecords(baseURL, resumptionToken);
+	super.markForUpdate();
       }
     };
+    
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();
