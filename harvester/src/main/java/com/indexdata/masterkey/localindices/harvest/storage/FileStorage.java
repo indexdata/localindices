@@ -46,7 +46,7 @@ public class FileStorage implements RecordStorage {
     Storage storage = harvestable.getStorage();
     if (storage instanceof FileStorageEntity) {
       FileStorageEntity fileStorage = (FileStorageEntity) storage;
-      String url = fileStorage.getUrl();
+      String url = fileStorage.getIndexingUrl();
       if (url.startsWith("file://")) {
 	url = url.substring("file://".length());
       }
