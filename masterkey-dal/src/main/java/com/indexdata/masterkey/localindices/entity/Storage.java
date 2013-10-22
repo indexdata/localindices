@@ -17,6 +17,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlID;
 
 /**
@@ -43,8 +44,7 @@ public abstract class Storage implements Serializable, Cloneable {
   protected String message;
   @Column(length = 100)
   protected String transformation;
-  protected String indexingUrl;
-  protected String searchUrl;
+  protected String url;
   @Column(length = 1000)
   protected String customClass;
 
@@ -146,26 +146,31 @@ public abstract class Storage implements Serializable, Cloneable {
     this.transformation = transformation;
   }
 
+  @Transient
   public String getIndexingUrl() {
-    return indexingUrl;
+      int beginIndex = url.indexOf(";");
+      if (beginIndex > 0)
+	  return url.substring(0, beginIndex-1);
+    return url;
   }
 
+  @Transient
   public String getSearchUrl() {
-    return searchUrl;
+      int beginIndex = url.indexOf(";");
+      if (beginIndex > 0)
+	  return url.substring(beginIndex+1);
+    return url;
   }
 
   public void setUrl(String url) {
-    int beginIndex = url.indexOf(";");
-    if (beginIndex > 0) {
-      this.indexingUrl = url.substring(0, beginIndex-1);
-      this.searchUrl = url.substring(beginIndex+1);
-    } else {
-      indexingUrl = url;
-      searchUrl = url;
-    }
-      
+    this.url = url;
   }
 
+  public String getUrl() {
+    return url;
+  }
+
+  @Transient
   public abstract String getSearchUrl(Harvestable resource);
   /*
    * public void setHarvestables(Set<Harvestable> harvestables) {
