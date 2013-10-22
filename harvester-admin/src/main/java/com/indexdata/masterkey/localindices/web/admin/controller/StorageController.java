@@ -226,12 +226,13 @@ public class StorageController {
 
   }
 
-  public String getStorageAdmin() {
+  @SuppressWarnings("unused")
+  private String getStorageAdmin() {
     Storage storage = getResourceFromRequestParam();
     if (storageAdminSite == null)
     if (storage instanceof SolrStorageEntity) {
       Storage solrStorage = (Storage) storage;
-      storageAdminSite = solrStorage.getUrl() + "admin";
+      storageAdminSite = solrStorage.getSearchUrl() + "admin";
       return storageAdminSite;     
     }
     return "";
