@@ -9,8 +9,18 @@ public class FileStorageEntity extends Storage {
 
   public String getSearchUrl(Harvestable resource) {
     if (resource == null)
-      	return getUrl();
-    StringBuffer clientUrl = new  StringBuffer(getUrl());
+      	return super.getSearchUrl();
+    StringBuffer clientUrl = new  StringBuffer(super.getSearchUrl());
+    if (clientUrl.lastIndexOf("/") + 1 != clientUrl.length())
+      clientUrl.append('/');
+    clientUrl.append(resource.getId());
+    return clientUrl.toString();
+  }
+
+  public String getIndexingUrl(Harvestable resource) {
+    if (resource == null)
+      	return super.getIndexingUrl();
+    StringBuffer clientUrl = new  StringBuffer(super.getIndexingUrl());
     if (clientUrl.lastIndexOf("/") + 1 != clientUrl.length())
       clientUrl.append('/');
     clientUrl.append(resource.getId());
