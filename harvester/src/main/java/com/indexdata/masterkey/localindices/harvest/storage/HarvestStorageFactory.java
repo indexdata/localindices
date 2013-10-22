@@ -28,7 +28,7 @@ public class HarvestStorageFactory {
     Storage entity = (Storage) harvestable.getStorage();
     /* TODO Extend to create other types */
     if (entity instanceof com.indexdata.masterkey.localindices.entity.SolrStorageEntity) {
-      SolrStorage storage = new BulkSolrRecordStorage(entity.getUrl(), harvestable);
+      SolrStorage storage = new BulkSolrRecordStorage(entity.getIndexingUrl(), harvestable);
       storage.setStorageId(entity.getId().toString());
       return storage;
     }
