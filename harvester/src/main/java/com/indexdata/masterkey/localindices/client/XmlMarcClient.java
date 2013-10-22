@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
@@ -30,17 +29,14 @@ import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
 
-public class XmlMarcClient implements HarvestClient {
-  protected StorageJobLogger logger; 
-  private XmlBulkResource resource;
-  private Proxy proxy; 
+public class XmlMarcClient extends AbstractHarvestClient {
+  private XmlBulkResource xmlBulkResource;
   private boolean allowErrors = false;
   private boolean useCondReq = false;
   private String errorText = "Failed to download/parse/store : ";
@@ -51,6 +47,7 @@ public class XmlMarcClient implements HarvestClient {
  
   public XmlMarcClient(BulkRecordHarvestJob job, boolean allowErrors, boolean useCondReq, 
     Date lastRequested) {
+    super(null, null, null);
     this.job = job;
     this.allowErrors = allowErrors;
     this.useCondReq = useCondReq;
@@ -61,11 +58,7 @@ public class XmlMarcClient implements HarvestClient {
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
     try {
-      HttpURLConnection conn = null;
-      if (proxy != null)
-	conn = (HttpURLConnection) url.openConnection(proxy);
-      else
-	conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = createConnection(url);
       conn.setRequestMethod("GET");
       if (useCondReq && (lastRequested != null)) {
         String lastModified = 
@@ -73,16 +66,11 @@ public class XmlMarcClient implements HarvestClient {
         logger.info("Conditional request If-Modified-Since: "+lastModified);
         conn.setRequestProperty("If-Modified-Since", lastModified);
       }
-      if (resource.getTimeout() != null) {
-	conn.setConnectTimeout(resource.getTimeout() * 1000); 
-	conn.setReadTimeout(resource.getTimeout() * 1000);
-	logger.info("Configured client connection/read timeout to " + resource.getTimeout());
-      }
       conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
 	String contentType = conn.getContentType();
-	if (contentType.equals("text/html")) {
+	if ("text/html".equals(contentType)) {
 	  return handleJumpPage(conn);
 	}
 	else {
@@ -228,14 +216,14 @@ public class XmlMarcClient implements HarvestClient {
     }
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
     // Expected type overrides content type
-    if (resource.getExpectedSchema() != null)
-       mimeCharset =  new MimeTypeCharSet(resource.getExpectedSchema());
+    if (xmlBulkResource.getExpectedSchema() != null)
+       mimeCharset =  new MimeTypeCharSet(xmlBulkResource.getExpectedSchema());
     if (mimeCharset.isMimeType("application/marc") ||
 	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader ("  
 	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
-	  + (resource.getExpectedSchema() != null ? 
-	      " Override by resource mime-type: " + resource.getExpectedSchema() 
+	  + (xmlBulkResource.getExpectedSchema() != null ? 
+	      " Override by resource mime-type: " + xmlBulkResource.getExpectedSchema() 
 	      : "Content-type: " + contentType));
       
       MarcReadStore readStore = new MarcReadStore(inputStreamDecoded, streamIterator);
@@ -263,7 +251,7 @@ public class XmlMarcClient implements HarvestClient {
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
     MarcWriter writer;
-    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(resource.getOutputSchema());
+    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(xmlBulkResource.getOutputSchema());
     boolean isTurboMarc = false;
     if (mimetypeCharset.isMimeType("application/tmarc")) {
     	isTurboMarc = true;
@@ -314,7 +302,7 @@ public class XmlMarcClient implements HarvestClient {
   private void store(InputStream is, long contentLength) throws Exception {
     RecordStorage storage = job.getStorage();
     SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage, job.getLogger()), 
-		job.getNumber(resource.getSplitAt(), splitAt));
+		job.getNumber(xmlBulkResource.getSplitAt(), splitAt));
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
     xmlSplitter.processDataFromInputStream(is);
   }
@@ -399,17 +387,10 @@ public class XmlMarcClient implements HarvestClient {
       	    + parent.getClass().getSimpleName());
   }
 
-  public void setProxy(Proxy newProxy) {
-    proxy = newProxy;
-  }
-
-  public void setLogger(StorageJobLogger newLogger) {
-    logger = newLogger;
-  }
-  
   public void setHarvestable(Harvestable newResource) {
+    super.resource = newResource; 
     if (newResource instanceof XmlBulkResource) {
-      resource = (XmlBulkResource) newResource;
+      xmlBulkResource = (XmlBulkResource) newResource;
     } else {
       String errorMsg = new String("XmlMarcClient configured with wrong harvestable type: " + newResource.getClass().getCanonicalName()); 
       if (logger != null)
