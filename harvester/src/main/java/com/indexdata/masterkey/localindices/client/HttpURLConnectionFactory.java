@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public interface HarvestClient {
+public interface HttpURLConnectionFactory {
   
-  int download(URL url) throws Exception;
   HttpURLConnection createConnection(URL url) throws IOException;
-}
 
+}

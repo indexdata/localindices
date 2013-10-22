@@ -13,12 +13,11 @@ public class SolrStorageEntity extends Storage implements Serializable {
 
   public String getSearchUrl(Harvestable resource) {
     if (resource == null)
-      	return getUrl();
-    StringBuffer clientUrl = new  StringBuffer(getUrl());
+      	return getSearchUrl();
+    StringBuffer clientUrl = new  StringBuffer(getSearchUrl());
     if (clientUrl.lastIndexOf("/") + 1 != clientUrl.length())
       clientUrl.append('/');
     clientUrl.append("select?q=database:").append(resource.getId());
     return clientUrl.toString();
   }
-
 }
