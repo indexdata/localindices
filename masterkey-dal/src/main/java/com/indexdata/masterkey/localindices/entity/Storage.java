@@ -43,7 +43,8 @@ public abstract class Storage implements Serializable, Cloneable {
   protected String message;
   @Column(length = 100)
   protected String transformation;
-  protected String url;
+  protected String indexingUrl;
+  protected String searchUrl;
   @Column(length = 1000)
   protected String customClass;
 
@@ -145,12 +146,24 @@ public abstract class Storage implements Serializable, Cloneable {
     this.transformation = transformation;
   }
 
-  public String getUrl() {
-    return url;
+  public String getIndexingUrl() {
+    return indexingUrl;
+  }
+
+  public String getSearchUrl() {
+    return searchUrl;
   }
 
   public void setUrl(String url) {
-    this.url = url;
+    int beginIndex = url.indexOf(";");
+    if (beginIndex > 0) {
+      this.indexingUrl = url.substring(0, beginIndex-1);
+      this.searchUrl = url.substring(beginIndex+1);
+    } else {
+      indexingUrl = url;
+      searchUrl = url;
+    }
+      
   }
 
   public abstract String getSearchUrl(Harvestable resource);
