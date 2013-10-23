@@ -307,7 +307,10 @@ public abstract class HarvesterVerb {
   public void harvest(String parameters, Proxy proxy, String encodingOverride)
     throws IOException, ParserConfigurationException, TransformerException, ResponseParsingException 
     {
-    this.requestURL = baseURL + parameters;
+    if (baseURL != null)
+      this.requestURL = baseURL + parameters;
+    else 
+      this.requestURL = parameters;
     logger.log(Level.INFO, "Request URL: " + requestURL);
     InputStream in = null;
     URL url = new URL(requestURL);
