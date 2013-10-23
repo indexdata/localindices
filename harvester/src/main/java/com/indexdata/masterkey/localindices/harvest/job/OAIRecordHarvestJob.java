@@ -190,34 +190,42 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.warn("Terminated with non-OK status: Job status " + getStatus());
       // We do not want to override a ERROR message, but should reset a killed/running status. 
       // Perhaps even leave killed, just be sure that we will start the job in this state. 
+      String subject = "OAI harvest stopped premature. ";
+      String msg = ""; 
+      boolean isError = false;
       if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING)) {
-	mailMessage("Completed with status: ", getStatus().toString());
-	setStatus(HarvestStatus.FINISHED);
+	msg = "Completed with status: " + getStatus().toString() + ". ";
+	setStatus(HarvestStatus.FINISHED, msg);
       }
       else {
-	String subject = "OAI harvest stopped premature. ";
-	String msg = null; 
-	try {
+	setStatus(HarvestStatus.ERROR, msg);
+	isError = true;
+      }
+      try {
 	if (resource.getKeepPartial()) {
-	  msg = "Commiting up partial harvest as configured";
+	  msg = msg + "Commiting up partial harvest as configured. ";
 	  logger.log(Level.INFO, subject + msg);
 	  commit();
-         } else {
-           getStorage().rollback();
-           resource.setResumptionToken(startResumptionToken);
-           msg = "Rolling back until "
-            + (startResumptionToken != null ? " resumptionToken (at start): " + startResumptionToken : formatDate(resource.getFromDate()));
-            logger.log(Level.INFO, msg);
-         }
-	 logError(subject, msg);
-	} catch (IOException ioe) {
-	  msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
-	  logger.debug("Stack trace:", ioe);
-	  logError(subject, msg);
+	} else {
+	  getStorage().rollback();
 	  resource.setResumptionToken(startResumptionToken);
-	}	
+	  msg = msg + "Rolling back until "
+	      + (startResumptionToken != null ? " resumptionToken (at start): "
+		  + startResumptionToken : formatDate(resource.getFromDate()));
+	  logger.log(Level.INFO, msg);
+
+	}
+	if (isError)
+	  logError(subject, msg);
+	mailMessage(subject, msg);
+      } catch (IOException ioe) {
+	msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
+	logger.debug("Stack trace:", ioe);
+	logError(subject, msg);
+	mailMessage(subject, msg);
+	resource.setResumptionToken(startResumptionToken);
       }
-    }   
+    }
     logger.close();
   }
 
