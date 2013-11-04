@@ -17,6 +17,10 @@
                         required="true" requiredMessage="Please provide the Connector Engine URL!"/>
           <h:message for="engineUrl" style="color: red;"/>
         </h:panelGroup>
+        <h:outputText value="Available engines" />
+        <h:selectOneMenu value="none" converter="settingsConverter">
+          <selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.name}" />
+        </h:selectOneMenu>
         <h:outputText value="Connector (e.g repo) URL:"  styleClass="required"/>
         <h:panelGroup>
         <h:inputText id="connectorUrl" value="#{resourceController.resource.connectorUrl}" 

@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -23,7 +25,10 @@ public class HarvestConnectorResource extends Harvestable {
   private String initData;
   @Column(length = 4096)
   private String connectorUrl;
-  
+  @ManyToOne(optional = true)
+  private Setting connectorEngineUrlSetting;
+  @ManyToOne(optional = true)
+  private Setting connectorRepoUrlSetting;
   @Temporal(TemporalType.TIMESTAMP)
   private Date fromDate;
   @Temporal(TemporalType.TIMESTAMP)
@@ -32,15 +37,36 @@ public class HarvestConnectorResource extends Harvestable {
   private String isPersistence;
   @Column(length = 4096)
   private String url;
-  private Long   sleep;
-  
+  private Long sleep;
+
   public String getConnectorUrl() {
     return connectorUrl;
   }
 
-  public void setConnectorUrl(String connector) {
-    this.connectorUrl = connector;
+  public void setConnectorUrl(String connectorUrl) {
+    this.connectorUrl = connectorUrl;
   }
+
+  //for now
+  
+  public Setting getConnectorEngineUrlSetting() {
+    return connectorEngineUrlSetting;
+  }
+
+  public void setConnectorEngineUrlSetting(Setting connectorEngineUrlSetting) {
+    this.connectorEngineUrlSetting = connectorEngineUrlSetting;
+  }
+
+  public Setting getConnectorRepoUrlSetting() {
+    return connectorRepoUrlSetting;
+  }
+
+  public void setConnectorRepoUrlSetting(Setting connectorRepoUrlSetting) {
+    this.connectorRepoUrlSetting = connectorRepoUrlSetting;
+  }
+  
+  // end
+  
 
   public Date getFromDate() {
     return fromDate;

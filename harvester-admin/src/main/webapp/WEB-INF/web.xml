@@ -52,6 +52,14 @@
     <param-value>http://${harvester.host}:${harvester.port}/harvester/records/tsas/</param-value>
   </context-param>
   <context-param>
+    <param-name>com.indexdata.masterkey.localindices.SettingDAO</param-name>
+    <param-value>SettingDAOWS</param-value>
+  </context-param>
+  <context-param>
+    <param-name>com.indexdata.masterkey.localindices.SettingDAO.WS_BASE_URL</param-name>
+    <param-value>http://${harvester.host}:${harvester.port}/harvester/records/settings/</param-value>
+  </context-param>
+  <context-param>
     <param-name>com.sun.faces.verifyObjects</param-name>
     <param-value>false</param-value>
   </context-param>
