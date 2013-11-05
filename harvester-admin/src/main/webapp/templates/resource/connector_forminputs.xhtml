@@ -18,8 +18,8 @@
           <h:message for="engineUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Available engines" />
-        <h:selectOneMenu value="none" converter="settingsConverter">
-          <selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.name}" />
+        <h:selectOneMenu value="#{resourceController.resource.connectorEngineUrlSetting}" converter="settingsConverter">
+          <f:selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.name}" />
         </h:selectOneMenu>
         <h:outputText value="Connector (e.g repo) URL:"  styleClass="required"/>
         <h:panelGroup>
