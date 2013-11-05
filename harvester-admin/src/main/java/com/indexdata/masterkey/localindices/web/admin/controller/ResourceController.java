@@ -408,12 +408,23 @@ public class ResourceController {
     return "new_XmlBulkResource";
   }
 
-  public String addResource() {
+  private String createResource() {
     prePersist();
     dao.create(resource);
     resource = null;
     return listResources();
   }
+  
+  public String addResource() {
+    resource.setHarvestImmediately(false);
+    return createResource();
+  }
+  
+  public String addRunResource() {
+    resource.setHarvestImmediately(true);
+    return createResource();
+  }
+  
 
   /* update resource */
   public String prepareResourceToEdit() {
@@ -460,17 +471,22 @@ public class ResourceController {
     }
     return listResources();
   }
-
-  public String saveResource() {
+  
+  private String updateResource() {
     prePersist();
     resource = dao.update(resource);
     resource = null;
     return listResources();
   }
 
+  public String saveResource() {
+    resource.setHarvestImmediately(false);
+    return updateResource();
+  }
+
   public String runResource() {
     resource.setHarvestImmediately(true);
-    return saveResource();
+    return updateResource();
   }
 
   /* list resources */
