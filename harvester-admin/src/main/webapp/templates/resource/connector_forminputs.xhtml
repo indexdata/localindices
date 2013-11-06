@@ -10,22 +10,31 @@
 
       <h5>Connector specific information: </h5>
       <h:panelGrid columns="2">
-        <h:outputText value="Connector Engine URL:" styleClass="required" />
+        <h:outputText value="CF Engine:" styleClass="required" />
         <h:panelGroup>
-          <h:inputText  id="engineUrl" value="#{resourceController.resource.url}" 
-                        size="50" styleClass="requiredInput"
-                        required="true" requiredMessage="Please provide the Connector Engine URL!"/>
+          <h:selectOneMenu value="#{resourceController.resource.connectorEngineUrlSetting}" 
+                           converter="settingsConverter"
+                           requiredMessage="Please select a Connector Engine!"
+                           required="true">
+            <f:selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.label}" />
+          </h:selectOneMenu>
           <h:message for="engineUrl" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="Available engines" />
-        <h:selectOneMenu value="#{resourceController.resource.connectorEngineUrlSetting}" converter="settingsConverter">
-          <f:selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.label}" />
-        </h:selectOneMenu>
-        <h:outputText value="Connector (e.g repo) URL:"  styleClass="required"/>
+        <h:outputText value="CF Repository:" styleClass="required" />
         <h:panelGroup>
-        <h:inputText id="connectorUrl" value="#{resourceController.resource.connectorUrl}" 
+          <h:selectOneMenu value="#{resourceController.resource.connectorRepoUrlSetting}" 
+                           converter="settingsConverter"
+                           requiredMessage="Please select a Connector Repository!"
+                           required="true">
+            <f:selectItems value="#{settings.connectorRepos}" var="s" itemValue="#{s}" itemLabel="#{s.label}" />
+          </h:selectOneMenu>
+          <h:message for="connectorUrl" style="color: red;"/>
+        </h:panelGroup>
+        <h:outputText value="Connector Name (filename):"  styleClass="required"/>
+        <h:panelGroup>
+        <h:inputText id="connectorUrl" value="#{resourceController.resource.connector}" 
                      size="50" styleClass="requiredInput"
-                     required="true" requiredMessage="Please provide the Connector file URL!"/>
+                     required="true" requiredMessage="Please provide the Connector filename!"/>
           <h:message for="connectorUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>

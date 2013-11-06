@@ -29,6 +29,16 @@ public class Setting implements Serializable {
   private String name;
   private String value;
   private String label;
+
+  public Setting() {
+  }
+
+  public Setting(Long id, String name, String value, String label) {
+    this.id = id;
+    this.name = name;
+    this.value = value;
+    this.label = label;
+  }
   
   @XmlTransient
   public String getStringId() {

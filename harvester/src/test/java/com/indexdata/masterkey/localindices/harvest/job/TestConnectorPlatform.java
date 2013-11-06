@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Setting;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -26,11 +27,12 @@ import java.util.Date;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://connect-test.indexdata.com:80/connector";
+  String repoUrl = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/";
   // String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
-  String indexdataBlogConnector = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/idblog.6.cf";
-  String acceConnectorWithAuth    = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.7.cf";
-  String acceConnectorWithOutAuth = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/aace_harvester.8.cf";
+  String indexdataBlogConnector = "idblog.6.cf";
+  String acceConnectorWithAuth    = "aace_harvester.7.cf";
+  String acceConnectorWithOutAuth = "aace_harvester.8.cf";
   String solrUrl = "http://localhost:8585/solr/";
   SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   SolrServer solrServer = factory.create();
@@ -44,9 +46,10 @@ public class TestConnectorPlatform extends JobTester {
   private HarvestConnectorResource createResource(String connector, boolean inParallel, boolean overwrite) throws IOException {
     HarvestConnectorResource resource = new HarvestConnectorResource();
     resource.setId(1l);
-    resource.setUrl(cfServer);
+    resource.setConnectorEngineUrlSetting(new Setting(new Long(1),"", cfServer, ""));
+    resource.setConnectorRepoUrlSetting(new Setting(new Long(2),"", repoUrl, ""));
     resource.setInitData("{}");
-    resource.setConnectorUrl(connector);
+    resource.setConnector(connector);
     resource.setCurrentStatus("NEW");
     resource.setTransformation(createPzTransformation(inParallel));
     resource.setOverwrite(overwrite);
@@ -130,7 +133,7 @@ public class TestConnectorPlatform extends JobTester {
     HarvestStatus status = job.getStatus();
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
     StorageStatus firstStatus = recordStorage.getStatus();
-    resource.setConnectorUrl(acceConnectorWithOutAuth);
+    resource.setConnector(acceConnectorWithOutAuth);
     resource.setOverwrite(true);
     job = doHarvestJob(recordStorage, resource);
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);

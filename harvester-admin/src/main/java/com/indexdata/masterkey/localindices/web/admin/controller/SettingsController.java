@@ -42,4 +42,12 @@ public class SettingsController {
     return dao.retrieve(0, 100, "cf.engine.url.", false);
   }
   
+    /**
+   * Lists available connector repo URLs.
+   * @return 
+   */
+  public List<Setting> getConnectorRepos() {
+    return dao.retrieve(0, 100, "cf.repo.url.", false);
+  }
+  
 }

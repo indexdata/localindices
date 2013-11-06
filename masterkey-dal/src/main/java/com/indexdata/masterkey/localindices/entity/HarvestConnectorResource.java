@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.entity;
 
+import com.indexdata.utils.TextUtils;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -23,8 +24,8 @@ public class HarvestConnectorResource extends Harvestable {
   private String proxy;  	
   @Column(length = 4096)
   private String initData;
-  @Column(length = 4096)
-  private String connectorUrl;
+  @Column(length = 4096,name = "CONNECTORURL")
+  private String connector;
   @ManyToOne(optional = true)
   private Setting connectorEngineUrlSetting;
   @ManyToOne(optional = true)
@@ -35,20 +36,17 @@ public class HarvestConnectorResource extends Harvestable {
   private Date untilDate;
   private String resumptionToken;
   private String isPersistence;
-  @Column(length = 4096)
-  private String url;
   private Long sleep;
-
-  public String getConnectorUrl() {
-    return connectorUrl;
-  }
-
-  public void setConnectorUrl(String connectorUrl) {
-    this.connectorUrl = connectorUrl;
-  }
-
-  //for now
   
+  public String getConnectorUrl() {
+    if (connectorRepoUrlSetting == null) return null;
+    return TextUtils.joinPath(connectorRepoUrlSetting.getValue(), connector);
+  }
+  
+  public String getUrl() {
+    return connectorEngineUrlSetting == null ? null : connectorEngineUrlSetting.getValue();
+  }
+
   public Setting getConnectorEngineUrlSetting() {
     return connectorEngineUrlSetting;
   }
@@ -64,9 +62,6 @@ public class HarvestConnectorResource extends Harvestable {
   public void setConnectorRepoUrlSetting(Setting connectorRepoUrlSetting) {
     this.connectorRepoUrlSetting = connectorRepoUrlSetting;
   }
-  
-  // end
-  
 
   public Date getFromDate() {
     return fromDate;
@@ -109,14 +104,6 @@ public class HarvestConnectorResource extends Harvestable {
     this.initData = initData;
   }
 
-  public void setUrl(String url) {
-   this.url = url;
-  } 
-
-  public String getUrl() {
-    return url;
-  }
-
   public String getUsername() {
     return username;
   }
@@ -147,6 +134,15 @@ public class HarvestConnectorResource extends Harvestable {
 
   public void setSleep(Long sleep) {
     this.sleep = sleep;
+  }
+
+  public String getConnector() {
+    //in casee the input is full url we split it
+    return connector == null ? null : connector.replaceFirst(".*[/]", "");
+  }
+
+  public void setConnector(String connector) {
+    this.connector = connector;
   }
 
   public void reset() {
