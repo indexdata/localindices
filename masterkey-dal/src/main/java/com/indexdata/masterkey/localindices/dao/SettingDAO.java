@@ -13,4 +13,5 @@ import java.io.InputStream;
  * @author jakub
  */
 public interface SettingDAO extends BasicCommonDAO<Setting> {
+  public int getCount(String prefix);
 }

@@ -19,6 +19,10 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 /**
  *
  * @author jakub
@@ -110,11 +114,22 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
   }
 
   @Override
+  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
+    return retrieveWithPrefix(start, max, sortKey);
+  }
+  
+  @Override
   public List<Setting> retrieve(int start, int max) {
+    return retrieveWithPrefix(start, max, null);
+  }
+  
+  private List<Setting> retrieveWithPrefix(int start, int max, String prefix) {
     try {
       ResourceConnector<SettingsConverter> connector =
         new ResourceConnector<SettingsConverter>(
-        new URL(serviceBaseURL),
+        new URL(prefix == null 
+        ? serviceBaseURL
+        : joinPath(serviceBaseURL, "?prefix="+URLEncoder.encode(prefix, "UTF-8"))),
         "com.indexdata.masterkey.localindices.entity"
         + ":com.indexdata.masterkey.localindices.web.service.converter");
       SettingsConverter hc = connector.get();
@@ -129,6 +144,17 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
   }
 
+  private String pushParams(String url, String... params) throws UnsupportedEncodingException {
+    StringBuilder uB = new StringBuilder(url);
+    String sep = url.indexOf("?") == -1 ? "?" : "";
+    for (String kOrV : params) {
+      if (kOrV == null) continue;
+      uB.append(sep).append(URLEncoder.encode(kOrV, "UTF-8"));
+      sep = sep.equals("=") ? "&" : "=";
+    }
+    return uB.toString();
+  }
+  
   @Override
   public int getCount() {
     String url = serviceBaseURL + "?start=0&max=0";
@@ -144,12 +170,23 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
       logger.log(Level.DEBUG, male);
       return 0;
     }
-
   }
-
+    
   @Override
-  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieve(start, max);
+  public int getCount(String prefix) {
+    try {
+      String url = serviceBaseURL + "?start=0&max=0&prefix=" + URLEncoder.encode(prefix, "UTF-8");
+      ResourceConnector<SettingsConverter> connector =
+        new ResourceConnector<SettingsConverter>(
+        new URL(url),
+        "com.indexdata.masterkey.localindices.entity"
+        + ":com.indexdata.masterkey.localindices.web.service.converter");
+      SettingsConverter hc = connector.get();
+      return hc.getCount();
+    } catch (Exception male) {
+      logger.log(Level.DEBUG, male);
+      return 0;
+    }
   }
 
 }

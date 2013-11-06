@@ -53,16 +53,19 @@ public class SettingsResource {
   @GET
   @Produces("application/xml")
   public SettingsConverter get(
-
   @QueryParam("start") @DefaultValue("0") int start,
-
-  @QueryParam("max") @DefaultValue("100") int max) {
+  @QueryParam("max") @DefaultValue("100") int max,
+  @QueryParam("prefix") String prefix) {
     List<Setting> entities;
-    if (max <= 0)
+    if (max <= 0) {
       entities = new ArrayList<Setting>();
-    else
-      entities = dao.retrieve(start, max);
-    return new SettingsConverter(entities, context.getAbsolutePath(), start, max, dao.getCount());
+    } else {
+      entities = prefix == null 
+        ? dao.retrieve(start, max) 
+        : dao.retrieve(start, max, prefix, false);
+    }
+    int count = prefix == null ? dao.getCount() : dao.getCount(prefix);
+    return new SettingsConverter(entities, context.getAbsolutePath(), start, max, count);
   }
 
   /**

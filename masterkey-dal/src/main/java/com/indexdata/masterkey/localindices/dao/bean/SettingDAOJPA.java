@@ -112,17 +112,39 @@ public class SettingDAOJPA implements SettingDAO {
       em.close();
     }
   }
-
-  @SuppressWarnings("unchecked")
+  
+  /**
+   * Terrible misuse of the API -- sortKey is used for filtering.
+   * @param start
+   * @param max
+   * @param sortKey filter down returned settings to those where value begins with the given string
+   * @param asc unused
+   * @return 
+   */
+  @Override
+  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
+    return retrieveWithPrefix(start, max, sortKey);
+  }
+  
   @Override
   public List<Setting> retrieve(int start, int max) {
+    return retrieveWithPrefix(start, max, null);
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<Setting> retrieveWithPrefix(int start, int max, String prefix) {
     EntityManager em = getEntityManager();
     EntityTransaction tx = em.getTransaction();
     List<Setting> entities = null;
     try {
       tx.begin();
-      Query q = em.createQuery(
-        "select object(o) from Setting as o order by o.name");
+      Query q;
+      if (prefix == null) {
+        q = em.createQuery("select object(o) from Setting as o order by o.name");
+      } else {
+        q = em.createQuery("select object(o) from Setting as o where o.name like CONCAT(:prefix, '%') order by o.name");
+        q.setParameter("prefix", prefix);
+      }
       q.setMaxResults(max);
       q.setFirstResult(start);
       entities = q.getResultList();
@@ -141,16 +163,26 @@ public class SettingDAOJPA implements SettingDAO {
   }
   
   @Override
-  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieve(start, max);
-  }
-
-  @Override
   public int getCount() {
     EntityManager em = getEntityManager();
     try {
       int count = ((Long) em.createQuery("select count(o) from Setting as o").
         getSingleResult()).intValue();
+      return count;
+    } finally {
+      em.close();
+    }
+  }
+  
+
+  @Override
+  public int getCount(String prefix) {
+    EntityManager em = getEntityManager();
+    try {
+      int count = ((Long) 
+        em.createQuery("select count(o) from Setting as o where o.name like CONCAT(:prefix, '%')")
+          .setParameter("prefix", prefix)
+          .getSingleResult()).intValue();
       return count;
     } finally {
       em.close();
