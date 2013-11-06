@@ -39,7 +39,7 @@ public class SettingsController {
    * @return 
    */
   public List<Setting> getConnectorEngines() {
-    return dao.retrieve(0, 100, "connector.", false);
+    return dao.retrieve(0, 100, "cf.engine.url.", false);
   }
   
 }

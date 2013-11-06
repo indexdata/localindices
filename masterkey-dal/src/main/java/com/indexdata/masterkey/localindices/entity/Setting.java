@@ -28,6 +28,7 @@ public class Setting implements Serializable {
   protected Long id;
   private String name;
   private String value;
+  private String label;
   
   @XmlTransient
   public String getStringId() {
@@ -57,6 +58,14 @@ public class Setting implements Serializable {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
   }
 
   @Override
