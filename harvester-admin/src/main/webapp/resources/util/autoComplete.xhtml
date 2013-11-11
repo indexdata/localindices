@@ -18,7 +18,7 @@
       <h:inputText id="input" value="#{cc.attrs.value}" 
          valueChangeListener="#{autocompleteListener.valueChanged}"
          onkeyup="indexdata.autocomplete.updateCompletionItems(this, event)"
-         onblur="indexdata.autocomplete.corejsf.inputLostFocus(this)"
+         onblur="indexdata.autocomplete.inputLostFocus(this)"
          autocomplete="off"/>
           
       <h:selectOneListbox id="listbox" style="display: none;"
