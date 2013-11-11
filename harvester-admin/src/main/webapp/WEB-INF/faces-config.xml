@@ -244,5 +244,5 @@
             <from-outcome>cancel</from-outcome>
             <to-view-id>/transformations/list.xhtml</to-view-id>
         </navigation-case>
-    </navigation-rule>
+    </navigation-rule> 
 </faces-config>
