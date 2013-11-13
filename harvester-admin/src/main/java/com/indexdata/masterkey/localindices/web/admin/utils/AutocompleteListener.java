@@ -11,30 +11,41 @@ import javax.faces.component.UISelectItems;
 import javax.faces.component.UISelectOne;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
 
 @ManagedBean(name="autocompleteListener")
 public class AutocompleteListener implements Serializable {
-   private static String COMPLETION_ITEMS_ATTR = "corejsf.completionItems";
+   private static String COMPLETION_ENTRIES_ATTR = "indexdata.completionEntries";
 
+   /**
+    * Event raised when input box changes value.
+    * @param e 
+    */
    public void valueChanged(ValueChangeEvent e) {
-      UIInput input = (UIInput)e.getSource();
+      UIInput input = (UIInput) e.getSource();
       UISelectOne listbox = (UISelectOne)input.findComponent("listbox");
-
       if (listbox != null) {
-         UISelectItems items = (UISelectItems)listbox.getChildren().get(0);
-         Map<String, Object> attrs = listbox.getAttributes();
-         List<String> newItems = getNewItems((String)input.getValue(),
-            getCompletionItems(listbox, items, attrs));
-
-         items.setValue(newItems.toArray());
-         setListboxStyle(newItems.size(), attrs);
+         String query = (String) input.getValue();
+         Map<String, Object> listAttrs = listbox.getAttributes();
+         if (query.isEmpty()) {
+          setListboxStyle(0, listAttrs);
+         } else {
+          UISelectItems listItems = (UISelectItems) listbox.getChildren().get(0);
+          List<SelectItem> entries = getEntries(listbox, listItems, listAttrs);
+          List<SelectItem> newEntries = filterEntries(query, entries);
+          listItems.setValue(newEntries);
+          setListboxStyle(newEntries.size(), listAttrs);
+         }
       }
    }
 
+   /**
+    * Event raised when item is selected in the drop-down list.
+    * @param e 
+    */
    public void completionItemSelected(ValueChangeEvent e) {
-     UISelectOne listbox = (UISelectOne)e.getSource();
-     UIInput input = (UIInput)listbox.findComponent("input");
-
+     UISelectOne listbox = (UISelectOne) e.getSource();
+     UIInput input = (UIInput) listbox.findComponent("input");
      if(input != null) {
         input.setValue(listbox.getValue());
      }
@@ -42,41 +53,44 @@ public class AutocompleteListener implements Serializable {
      attrs.put("style", "display: none");
    }
 
-   private List<String> getNewItems(String inputValue, String[] completionItems) {
-      List<String> newItems = new ArrayList<String>();
-
-      for (String item : completionItems) {
-         String s = item.substring(0, inputValue.length());
-         if (s.equalsIgnoreCase(inputValue))
-           newItems.add(item);
+   /**
+    * Filter auto-complete entries with the new keyword.
+    * @param query
+    * @param completionEntries
+    * @return 
+    */
+   private List<SelectItem> filterEntries(String query, 
+     List<SelectItem> completionEntries) {
+      List<SelectItem> newEntries = new ArrayList<SelectItem>();
+      String lquery = query.toLowerCase();
+      for (SelectItem item : completionEntries) {
+        String lvalue = item.getLabel().toLowerCase();
+         if (lvalue.contains(lquery))
+           newEntries.add(item);
       }
-
-      return newItems;
+      return newEntries;
    }
 
-   private void setListboxStyle(int rows, Map<String, Object> attrs) {
+   private void setListboxStyle(int rows, Map<String, Object> listAttrs) {
       if (rows > 0) {
          Map<String, String> reqParams = FacesContext.getCurrentInstance()
             .getExternalContext().getRequestParameterMap();
-
-         attrs.put("style", "display: inline; position: absolute; left: "
-             + reqParams.get("x") + "px;" + " top: " + reqParams.get("y") + "px");
-         
+         listAttrs.put("style", "display: inline; position: absolute; left: "
+             + reqParams.get("x") + "px;" + " top: " + reqParams.get("y") + "px");        
          // avoid only one row (selection of single row is not a change event)
-         attrs.put("size", rows == 1 ? 2 : rows); 
+         listAttrs.put("size", rows == 1 ? 2 : rows); 
+      } else {
+         listAttrs.put("style", "display: none;");
       }
-      else
-         attrs.put("style", "display: none;");
    }
 
-   private String[] getCompletionItems(UISelectOne listbox,
+   private List<SelectItem> getEntries(UISelectOne listbox,
       UISelectItems items, Map<String, Object> attrs) {
-         String[] completionItems = (String[])attrs.get(COMPLETION_ITEMS_ATTR);
-
-         if (completionItems == null) {
-            completionItems = (String[])items.getValue();
-            attrs.put(COMPLETION_ITEMS_ATTR, completionItems);
+         List<SelectItem> completionEntries = (List<SelectItem>) attrs.get(COMPLETION_ENTRIES_ATTR);
+         if (completionEntries == null) {
+            completionEntries = (List<SelectItem>) items.getValue();
+            attrs.put(COMPLETION_ENTRIES_ATTR, completionEntries);
          }
-      return completionItems;
+      return completionEntries;
    }
 }
