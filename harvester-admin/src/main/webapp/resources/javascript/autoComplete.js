@@ -45,6 +45,12 @@ if (!indexdata.autocomplete) {
       //enter or escape hides drop-down
       if (event.keyCode == 13 || event.keyCode == 27)
         indexdata.autocomplete.listboxLostFocus(listbox);
+      //prevent form submit on enter
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        return false;
+      }
+      return true;
     },
             
     //called in input box blur
