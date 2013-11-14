@@ -50,20 +50,21 @@
 <head/>
 <body>
 <cc:interface>
-  <cc:attribute name="ignore" required="false" type="java.lang.String"/>
+    <cc:attribute name="interval" required="true" type="java.lang.Integer"/>
+    <cc:attribute name="timeout" required="false" type="java.lang.Integer"/>
+    <cc:attribute name="execute" required="false" type="java.lang.String"/>
+    <cc:attribute name="render" required="false" type="java.lang.String"/>
 </cc:interface>
 <cc:implementation>
-    <h:outputScript name="jsf.js" library="javax.faces" target="head"/>
-    <h:outputScript name="ajaxloader.js" library="ajaxloader" target="head" />
+    <span id="#{cc.clientId}">
+        <h:outputScript name="jsf.js" library="javax.faces" target="head"/>
+        <h:outputScript name="indexdata/poll.js" target="head" />
+    </span>
     <script type="text/javascript">
         /* <![CDATA[ */
-        if (!window.ajaxloader) {
-          var ajaxloader = {};
-        }
-        ajaxloader.ignore = "#{cc.attrs.ignore}";
+        jsf.ajax.addOnError(indexdata.poll.init("#{cc.clientId}","#{cc.attrs.interval}", "#{cc.attrs.timeout}", "#{cc.attrs.execute}", "#{cc.attrs.render}"));
         /* ]]> */
     </script>
-    <h:outputStylesheet name="ajaxloader.css" library="ajaxloader" />
 </cc:implementation>
 </body>
 </html>

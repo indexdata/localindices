@@ -1,4 +1,4 @@
-if (!indexdata)
+if (!window.indexdata)
   var indexdata = {};
 if (!indexdata.autocomplete) {
   indexdata.autocomplete = {

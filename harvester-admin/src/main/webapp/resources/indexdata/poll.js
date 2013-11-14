@@ -35,16 +35,16 @@
  */
 
 
-if (!window.jsfdemo) {
-    var jsfdemo = {};
+if (!window.indexdata) {
+    var indexdata = {};
 }
 
-if (!jsfdemo.poll) {
-    jsfdemo.poll = {};
+if (!indexdata.poll) {
+    indexdata.poll = {};
 }
 
-if (!jsfdemo.poll.init) {
-    jsfdemo.poll.init = function init(id, inc, to, exe, rend) {
+if (!indexdata.poll.init) {
+    indexdata.poll.init = function init(id, inc, to, exe, rend) {
         var componentID = id;
         var increment = inc;
         var timeout = to;

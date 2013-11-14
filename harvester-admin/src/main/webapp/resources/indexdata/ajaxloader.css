@@ -5,7 +5,7 @@
   opacity: 0.2; /* also -moz-opacity, etc. */
   z-index: 9999;
   display: none; /* intial value*/
-  background-image: url("#{resource['ajaxloader/ajaxloader.gif']}");
+  background-image: url("#{resource['indexdata/ajaxloader.gif']}");
   background-repeat: no-repeat;
   background-position: center center;
   background-attachment: fixed;
