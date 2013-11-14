@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:util="http://java.sun.com/jsf/composite/util">
   <body>
     <ui:composition>
 
@@ -12,7 +13,7 @@
       <h:panelGrid columns="2">
         <h:outputText value="CF Engine:" styleClass="required" />
         <h:panelGroup>
-          <h:selectOneMenu value="#{resourceController.resource.connectorEngineUrlSetting}" 
+          <h:selectOneMenu id="engineUrl" value="#{resourceController.resource.connectorEngineUrlSetting}" 
                            converter="settingsConverter"
                            requiredMessage="Please select a Connector Engine!"
                            required="true">
@@ -22,20 +23,24 @@
         </h:panelGroup>
         <h:outputText value="CF Repository:" styleClass="required" />
         <h:panelGroup>
-          <h:selectOneMenu value="#{resourceController.resource.connectorRepoUrlSetting}" 
+          <h:selectOneMenu id="repoUrl" 
+                           value="#{resourceController.resource.connectorRepoUrlSetting}" 
                            converter="settingsConverter"
                            requiredMessage="Please select a Connector Repository!"
-                           required="true">
-            <f:selectItems value="#{settings.connectorRepos}" var="s" itemValue="#{s}" itemLabel="#{s.label}" />
+                           required="true"
+                           valueChangeListener="#{repoController.repoUrlChanged}">
+            <f:selectItems value="#{settings.connectorRepos}" var="s" 
+                           itemValue="#{s}" itemLabel="#{s.label}" />
+            <f:ajax />
           </h:selectOneMenu>
-          <h:message for="connectorUrl" style="color: red;"/>
+          <h:message for="repoUrl" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="Connector Name (filename):"  styleClass="required"/>
+        <h:outputText value="Connector (type for suggestion):"  styleClass="required"/>
         <h:panelGroup>
-        <h:inputText id="connectorUrl" value="#{resourceController.resource.connector}" 
-                     size="50" styleClass="requiredInput"
-                     required="true" requiredMessage="Please provide the Connector filename!"/>
-          <h:message for="connectorUrl" style="color: red;"/>
+          <util:autoComplete id="connector" value="#{resourceController.resource.connector}"
+                             completionItems="#{repoController.connectors}"
+                             required="true" requiredMessage="Please provide the Connector filename!"/>
+          <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>
         <h:inputText  value="#{resourceController.resource.username}" size="20" styleClass="optionalInput" />

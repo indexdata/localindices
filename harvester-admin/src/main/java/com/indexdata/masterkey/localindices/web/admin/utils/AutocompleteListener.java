@@ -12,10 +12,12 @@ import javax.faces.component.UISelectOne;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
+import org.apache.log4j.Logger;
 
 @ManagedBean(name="autocompleteListener")
 public class AutocompleteListener implements Serializable {
    private static String COMPLETION_ENTRIES_ATTR = "indexdata.completionEntries";
+   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
 
    /**
     * Event raised when input box changes value.

@@ -11,6 +11,7 @@ import com.indexdata.masterkey.localindices.dao.SettingDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Setting;
 import java.util.List;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
 import org.apache.log4j.Level;
@@ -21,6 +22,7 @@ import org.apache.log4j.Logger;
  * @author jakub
  */
 @ManagedBean(name="settings")
+@SessionScoped
 public class SettingsController {
   Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   SettingDAO dao;

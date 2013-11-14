@@ -5,6 +5,8 @@
  */
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Setting;
 import com.indexdata.utils.XmlUtils;
 import java.io.IOException;
 import java.net.URI;
@@ -21,33 +23,87 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import static com.indexdata.utils.TextUtils.joinPath;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.event.ValueChangeEvent;
 
 /**
  *
  * @author jakub
  */
 @ManagedBean(name="repoController")
+@ViewScoped
 public class RepoController {
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
-  private final static String repoUrl = "https://idtest:idtest3636@cfrepo-test.indexdata.com/repo.pl/idtest?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
+  private final static String repoFilterQuery = "?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
   
-  private String connector;
+  @ManagedProperty("#{resourceController}")
+  private ResourceController resourceController;
 
-  public String getConnector() {
-    return connector;
+  //JSF bug -- injection does not work without a setter
+  public void setResourceController(ResourceController resourceController) {
+    this.resourceController = resourceController;
+  }
+  
+  @ManagedProperty("#{settings}")
+  private SettingsController settingsController;
+
+  //JSF bug -- injection does not work without a setter
+  public void setSettingsController(SettingsController settingsController) {
+    this.settingsController = settingsController;
+  }
+  
+  
+  private String repoUrl; //= "https://idtest:idtest3636@cfrepo-test.indexdata.com/repo.pl/idtest";
+  
+  private Document cachedRepoResponse;
+  
+  /**
+   * Called when user changes the repoUrl setting.
+   * @param e 
+   */
+  public void repoUrlChanged(ValueChangeEvent e) {
+     Setting repoUrlSet = (Setting) e.getNewValue();
+     repoUrl = repoUrlSet.getValue();
+     logger.info("Repo url setting changed to "+repoUrl);
+     //cache it right away
+     cachedRepoResponse = performRequest(joinPath(getRepoUrl(), repoFilterQuery));
+  }
+  
+  public String getRepoUrl() {
+    if (repoUrl == null) {
+      //try retrieving from the bean
+      if (resourceController.getResource() instanceof HarvestConnectorResource) {
+         Setting repoUrlSetting = ((HarvestConnectorResource) 
+           resourceController.getResource()).getConnectorRepoUrlSetting();
+        if (repoUrlSetting != null) {
+          repoUrl = repoUrlSetting.getValue();
+          logger.info("Retrieved repo url setting from resource controller - "+repoUrl);
+        } else { //get the first setting available
+          repoUrl = settingsController.getConnectorRepos().get(0).getValue();
+          logger.info("Retrieved repo url setting from settings controller - "+repoUrl);
+        }
+      }
+      cachedRepoResponse = null;
+    }
+    return repoUrl;
   }
 
-  public void setConnector(String connector) {
-    this.connector = connector;
+  public void setRepoUrl(String repoUrl) {
+    this.repoUrl = repoUrl;
+    cachedRepoResponse = null;
   }
-
+  
   public List<SelectItem> getConnectors() {
-    Document resp = performRequest(repoUrl);
+    if (cachedRepoResponse == null) {
+      cachedRepoResponse = performRequest(joinPath(getRepoUrl(), repoFilterQuery));
+    }
     //get each connector name
-    NodeList connectorNodes = resp.getElementsByTagName("connector");
+    NodeList connectorNodes = cachedRepoResponse.getElementsByTagName("connector");
     ArrayList<SelectItem> connectors = new ArrayList<SelectItem>(connectorNodes.getLength());
     for (int i=0; i<connectorNodes.getLength(); i++) {
       Element connectorNode = (Element) connectorNodes.item(i);
