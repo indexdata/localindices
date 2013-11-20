@@ -61,6 +61,7 @@ public class SearchablesConverter extends Records {
                 // Ensure unique zurl
             	
             	layer.setZurl(modifySolrUrl(solrStorage.getSearchUrl()) + "#" + entity.getId());
+            	layer.setUdb("solr-" + entity.getId());
             	layer.setExtraArgs("fq=database:" + entity.getId());
             	// TODO make configurable
             	// but it can be overridden in Torus admin
