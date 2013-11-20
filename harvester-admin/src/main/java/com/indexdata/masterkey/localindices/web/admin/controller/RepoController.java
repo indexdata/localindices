@@ -27,6 +27,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.Serializable;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.event.ValueChangeEvent;
@@ -61,6 +62,38 @@ public class RepoController {
   private String repoUrl; //= "https://idtest:idtest3636@cfrepo-test.indexdata.com/repo.pl/idtest";
   
   private Document cachedRepoResponse;
+  
+  public static class ConnectorItem implements Serializable {
+    private String fileName;
+    private String displayName;
+
+    public ConnectorItem(String fileName, String displayName) {
+      this.fileName = fileName;
+      this.displayName = displayName;
+    }
+    
+    public String getFileName() {
+      return fileName;
+    }
+
+    public void setFileName(String fileName) {
+      this.fileName = fileName;
+    }
+
+    public String getDisplayName() {
+      return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+      this.displayName = displayName;
+    }
+
+    @Override
+    public String toString() {
+      return fileName;
+    }
+    
+  }
   
   /**
    * Called when user changes the repoUrl setting.
@@ -114,7 +147,7 @@ public class RepoController {
         .getElementsByTagName("title").item(0)).getTextContent();
       String name = ((Element) connectorNode
         .getElementsByTagName("filename").item(0)).getTextContent();
-      connectors.add(new SelectItem(name, title + " ["+name+"]"));      
+      connectors.add(new SelectItem(new ConnectorItem(name, title), title + " ["+name+"]"));      
     }
     return connectors;
   }

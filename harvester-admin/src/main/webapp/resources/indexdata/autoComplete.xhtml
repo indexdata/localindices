@@ -9,7 +9,9 @@
       <composite:attribute name="value" required="true"/>
       <composite:attribute name="completionItems" required="true"/>        
       <composite:attribute name="required" required="false"/>        
-      <composite:attribute name="requiredMessage" required="false"/>        
+      <composite:attribute name="requiredMessage" required="false"/>
+      <composite:attribute name="completionItemConverter" 
+                           required="false" />
     </composite:interface> 
 
     <composite:implementation>
@@ -29,7 +31,7 @@
          valueChangeListener="#{autocompleteListener.completionItemSelected}"
          onkeypress="return indexdata.autocomplete.selectionChange(this, event);"
          onblur="indexdata.autocomplete.listboxLostFocus(this)">
-        
+          <f:converter converterId="#{cc.attrs.completionItemConverter}"/>
           <f:selectItems value="#{cc.attrs.completionItems}"/>
           <f:ajax render="input"/>
           

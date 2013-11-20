@@ -39,7 +39,9 @@
         <h:panelGroup>
           <id:autoComplete id="connector" value="#{resourceController.resource.connector}"
                              completionItems="#{repoController.connectors}"
-                             required="true" requiredMessage="Please provide the Connector filename!"/>
+                             completionItemConverter="objectConverter"
+                             required="true" 
+                             requiredMessage="Please provide the Connector filename!"/>
           <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>

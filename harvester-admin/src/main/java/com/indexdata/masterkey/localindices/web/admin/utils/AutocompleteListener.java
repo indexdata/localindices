@@ -49,6 +49,7 @@ public class AutocompleteListener implements Serializable {
      UISelectOne listbox = (UISelectOne) e.getSource();
      UIInput input = (UIInput) listbox.findComponent("input");
      if(input != null) {
+       logger.debug("Type of value from the listbox "+listbox.getValue().getClass().getCanonicalName());
         input.setValue(listbox.getValue());
      }
      Map<String, Object> attrs = listbox.getAttributes();
