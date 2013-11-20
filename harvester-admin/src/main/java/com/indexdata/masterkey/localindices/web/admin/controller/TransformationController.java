@@ -476,13 +476,9 @@ public class TransformationController {
     this.currentStepAssociation = stepAssociation;
   }
 
-  @SuppressWarnings("unchecked")
   public List<SelectItem> getTransformationItems() {
     List<SelectItem> list = new LinkedList<SelectItem>();
-    if (resources == null) {
-      /* TODO We need all (enabled) storages. Not just a window */
-      getTransformations();
-    }
+    List<TransformationBrief> resources = dao.retrieveBriefs(0, dao.getCount()); 
     list.add(new SelectItem("", "<Select Transformation>"));
     if (resources != null)
       for (TransformationBrief transformation : (List<TransformationBrief>) resources) {
