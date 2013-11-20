@@ -288,10 +288,7 @@ public class StorageController {
 
   public List<SelectItem> getStorageItems() {
     List<SelectItem> list = new LinkedList<SelectItem>();
-    if (storages == null) {
-      /* TODO We need all (enabled) storages. Not just a window */
-      getStorages();
-    }
+    List<StorageBrief> storages = dao.retrieveBriefs(0, dao.getCount());
     list.add(new SelectItem("", "<Select Storage>"));
     if (storages != null)
       for (StorageBrief storage : (List<StorageBrief>) storages) {
