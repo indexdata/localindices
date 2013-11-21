@@ -5,7 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.web.admin.utils;
 
-import com.indexdata.masterkey.localindices.web.admin.controller.RepoController.ConnectorItem;
+import com.indexdata.masterkey.localindices.web.admin.controller.ConnectorItem;
 import com.indexdata.masterkey.localindices.web.admin.utils.select.SelectItemsBaseConverter;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;

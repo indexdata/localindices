@@ -21,7 +21,8 @@
 				<h:message for="resourceName" style="color: red;" />
 			</h:panelGroup>
 			<h:outputText value="Service Provider:" />
-			<h:inputText value="#{resourceController.resource.serviceProvider}"
+                        <h:inputText id="serviceProvider" 
+                                     value="#{resourceController.resource.serviceProvider}"
 				size="30" />
 			<h:outputText value="Content Description:" />
 			<h:inputTextarea cols="60" rows="3"
@@ -30,7 +31,7 @@
 			<h:inputTextarea cols="60" rows="3"
 				value="#{resourceController.resource.technicalNotes}" />
 			<h:outputText value="Contact notes:" />
-			<h:inputTextarea cols="60" rows="3"
+			<h:inputTextarea id="contactNotes" cols="60" rows="3"
 				value="#{resourceController.resource.contactNotes}" />
 			<h:outputText value="Harvest schedule:" />
 			<h:panelGrid columns="7">
