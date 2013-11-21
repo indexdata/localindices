@@ -27,6 +27,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.Serializable;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.event.ValueChangeEvent;
@@ -37,7 +38,7 @@ import javax.faces.event.ValueChangeEvent;
  */
 @ManagedBean(name="repoController")
 @ViewScoped
-public class RepoController {
+public class RepoController implements Serializable {
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private final static String repoFilterQuery = "?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
   
@@ -114,7 +115,10 @@ public class RepoController {
         .getElementsByTagName("title").item(0)).getTextContent();
       String name = ((Element) connectorNode
         .getElementsByTagName("filename").item(0)).getTextContent();
-      connectors.add(new SelectItem(name, title + " ["+name+"]"));      
+      String author = ((Element) connectorNode
+        .getElementsByTagName("author").item(0)).getTextContent();
+      connectors.add(new SelectItem(new ConnectorItem(name, title, null, author),
+        title + " ["+name+"]"));      
     }
     return connectors;
   }

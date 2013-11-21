@@ -39,7 +39,11 @@
         <h:panelGroup>
           <id:autoComplete id="connector" value="#{resourceController.resource.connector}"
                              completionItems="#{repoController.connectors}"
-                             required="true" requiredMessage="Please provide the Connector filename!"/>
+                             completionItemConverter="objectConverter"
+                             itemSelectedListenerType="com.indexdata.masterkey.localindices.web.admin.controller.ConnectorItemSelectedListener"
+                             required="true" 
+                             requiredMessage="Please provide the Connector filename!"
+                             render=":jobForm:resourceName :jobForm:contactNotes"/>
           <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>

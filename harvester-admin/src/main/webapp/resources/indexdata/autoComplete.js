@@ -4,7 +4,7 @@ if (!indexdata.autocomplete) {
   indexdata.autocomplete = {
     
     errorHandler: function(data) {
-      alert("Error occurred during Ajax call: " + data.description);
+      throw new Error("Error occurred during Ajax call: " + data.description);
     },
             
     //called on input box value change
