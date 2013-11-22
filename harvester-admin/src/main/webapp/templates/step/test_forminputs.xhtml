@@ -1,26 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"   
-      xmlns:ui="http://java.sun.com/jsf/facelets"
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core">
+<body>
 
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
-  <body>
-    <ui:composition>
-      <div id="XSLeditStep" style="display:inline">
-        <h:panelGrid columns="1">
-          <!-- enable the display when the test feature is implemented
-          <h:outputText value="Test data:" />
-          <h:inputTextarea rows="30" cols="100" value="#{stepController.current.testData}" />
-          <h:outputText value="Expected Output:" />
-          <h:inputTextarea  rows="30" cols="100" value="#{stepController.current.testOutput}" />
-          <h:commandButton value="Test" action="#{stepController.test}">
-            <f:param name="id" value="#{item.id}" />
-          </h:commandButton>
-          -->
-        </h:panelGrid>
-      </div>  
-    </ui:composition>
-  </body>
+    <script>
+        function hideShowElement(elementName) {
+            element = document.getElementById(elementName);
+            if (element) {
+                if (element.style.display == 'inline')
+                    element.style.display = 'none';
+                 else
+                    element.style.display = 'inline';
+            }
+        }
+    </script>
+	<ui:composition>
+		<div id="XSLEditStepTest" style="display: inline">
+			<h:panelGrid columns="1">
+				<a onclick="hideShowElement('test'); return false;">Test</a>
+			</h:panelGrid>
+			<div id="test" style="display: inline">
+				<h:panelGrid columns="1">
+                    <h:panelGrid>
+    					<h:inputTextarea id="testData"  rows="30" cols="100"
+	   					value="#{stepController.current.testData}" />
+                       <h:message for="testData" style="color: red;" />
+                    </h:panelGrid>
+					<h:commandButton id="Run"  value="Run" action="#{stepController.test}">
+						  <f:param name="id" value="#{item.id}" />
+                    </h:commandButton>
+					<h:outputText value="Output:" />
+					<h:inputTextarea rows="30" cols="100"
+						value="#{stepController.current.testOutput}" />
+				</h:panelGrid>
+			</div>
+		</div>
+	</ui:composition>
+</body>
 </html>
