@@ -4,13 +4,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
 
-      xmlns:h="http://java.sun.com/jsf/html">
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
   <body>
     <ui:composition>
       <div id="XSLeditStep" style="display:inline">
         <h:panelGrid columns="1">
           <h:outputText value="Transformation/Configuration:" />
-          <h:inputTextarea value="#{stepController.current.script}" rows="30" cols="100" />
+          <h:panelGrid>
+              <h:inputTextarea id="script" value="#{stepController.current.script}" rows="30" cols="100" />
+              <h:message for="script" style="color: red;"/>
+          </h:panelGrid>
+          <h:commandButton value="Check" action="#{stepController.check}">
+            <f:param name="id" value="#{item.id}" />
+          </h:commandButton>
         </h:panelGrid>
       </div>  
     </ui:composition>
