@@ -30,6 +30,7 @@ public class ConnectorItemSelectedListener implements ValueChangeListener {
     HarvestConnectorResource hcr = (HarvestConnectorResource) rc.getResource();
     hcr.setName(ci.getDisplayName());
     hcr.setContactNotes(ci.getAuthor());
+    hcr.setTechnicalNotes(ci.getNote());
   }
   
 }

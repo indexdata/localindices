@@ -16,13 +16,15 @@ public class ConnectorItem implements Serializable {
   private String displayName;
   private String serviceProvider;
   private String author;
+  private String note;
 
   public ConnectorItem(String fileName, String displayName,
-    String serviceProvider, String author) {
+    String serviceProvider, String author, String note) {
     this.fileName = fileName;
     this.displayName = displayName;
     this.serviceProvider = serviceProvider;
     this.author = author;
+    this.note = note;
   }
 
   public String getFileName() {
@@ -56,7 +58,14 @@ public class ConnectorItem implements Serializable {
   public void setAuthor(String author) {
     this.author = author;
   }
-  
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
+  }
 
   @Override
   public String toString() {
