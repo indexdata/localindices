@@ -155,8 +155,19 @@ public class StepController {
   }
 
   
+  public String prepareStep() {
+    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("entityClass");
+    if (className == null) {
+      logger.log(Level.INFO, "prepareStep: defaulting to entity class CustomTransformationStep");
+      className = "CustomTransformationStep";
+    }
+    else 
+      logger.log(Level.INFO, "prepareStep: entity class " + className);
+    return prepareStepCustom(className, null);
+  }
+
   @SuppressWarnings("rawtypes")
-  public String prepareStep(String name, String customClass) {
+  public String prepareStepCustom(String name, String customClass) {
     try {
       Class stepClass = Class.forName("com.indexdata.masterkey.localindices.entity." +  name);
       current = (TransformationStep) stepClass.newInstance();
@@ -183,17 +194,6 @@ public class StepController {
     }
   }
 
-  public String prepareStep() {
-    String className = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("entityClass");
-    if (className == null) {
-      logger.log(Level.INFO, "prepareStep: defaulting to entity class CustomTransformationStep");
-      className = "CustomTransformationStep";
-    }
-    else 
-      logger.log(Level.INFO, "prepareStep: entity class " + className);
-    return prepareStep(className, null);
-  }
-
   public String prepareSplitStep() {
     // TODO create SplitStep
     current = new SplitStep();
@@ -202,7 +202,7 @@ public class StepController {
   }
 
   public String prepareCustomStep() {
-    return prepareStep("CustomTransformationStep", null);
+    return prepareStepCustom("CustomTransformationStep", null);
   }
 
   public String prepareXsltStep() {
