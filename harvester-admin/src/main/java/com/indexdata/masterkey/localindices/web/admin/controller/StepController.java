@@ -6,18 +6,26 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
+import java.io.CharArrayReader;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -30,10 +38,11 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
-import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.SplitStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
+import com.indexdata.xml.factory.XmlFactory;
 
 /**
  * The controller for the Admin interface for Transformations, implements all
@@ -43,6 +52,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
  */
 public class StepController {
   private Logger logger = Logger.getLogger(getClass());
+  SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
   // Transformation
   private TransformationStepDAO dao;
   private TransformationStepAssociationDAO associationDao;
@@ -231,10 +241,38 @@ public class StepController {
     return list();
   }
 
+  public String check() {
+    prePersist();
+    StreamSource template = new StreamSource(new CharArrayReader(current.getScript().toCharArray()));
+    try {
+      Templates templates =  stf.newTemplates(template); 
+      @SuppressWarnings("unused")
+      Transformer transformer = templates.newTransformer();
+    } catch (Exception e) {
+      FacesContext.getCurrentInstance().addMessage("stepForm:script", new FacesMessage(e.getMessage(), e.getCause().getMessage()));
+      e.printStackTrace();
+    }
+    dao.update(current);
+    postDePersist();
+    return "edit_xslt_step";
+  }
+
   public String test() {
     prePersist();
-    dao.create(current);
-    return "test_step";
+    StreamSource template = new StreamSource(new CharArrayReader(current.getScript().toCharArray()));
+    StringWriter writer = new StringWriter();
+    try {
+      Templates templates =  stf.newTemplates(template); 
+      Transformer transformer = templates.newTransformer();
+      transformer.transform(new StreamSource(new CharArrayReader(current.getTestData().toCharArray())), new StreamResult(writer));
+      current.setTestOutput(writer.toString());
+    } catch (Exception e) {
+      FacesContext.getCurrentInstance().addMessage("stepForm:testData", new FacesMessage(e.getMessage(), e.getCause().getMessage()));
+      //current.setTestOutput("Failed to run test");
+      e.printStackTrace();
+    }
+    dao.update(current);
+    return "edit_xslt_step";
   }
 
   /* update resource */
