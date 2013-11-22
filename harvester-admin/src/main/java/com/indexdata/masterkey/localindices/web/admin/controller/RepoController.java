@@ -117,7 +117,16 @@ public class RepoController implements Serializable {
         .getElementsByTagName("filename").item(0)).getTextContent();
       String author = ((Element) connectorNode
         .getElementsByTagName("author").item(0)).getTextContent();
-      connectors.add(new SelectItem(new ConnectorItem(name, title, null, author),
+      NodeList spnl = connectorNode.getElementsByTagName("serviceprovider");
+      String serviceProvider = spnl.getLength() > 0 
+        ? ((Element) spnl.item(0)).getTextContent()
+        : null;
+      NodeList notenl = connectorNode.getElementsByTagName("serviceprovider");
+      String note = notenl.getLength() > 0 
+        ? ((Element) notenl.item(0)).getTextContent()
+        : null;
+      connectors.add(new SelectItem(
+        new ConnectorItem(name, title, serviceProvider, author, note),
         title + " ["+name+"]"));      
     }
     return connectors;
