@@ -11,7 +11,7 @@
       <ui:param name="title" value="Add XSL Step" rendered="#{stepController.mode == 'add'}" />
       <ui:param name="title" value="Edit XSL Step" rendered="#{stepController.mode == 'edit'}"/>
       <ui:define name="content">
-        <h:form>
+        <h:form id="stepForm">
           <ui:include src="/templates/step/generic_forminputs.xhtml" />
           <ui:include src="/templates/step/xslt_forminputs.xhtml" />
           <ui:include src="/templates/step/test_forminputs.xhtml" />
