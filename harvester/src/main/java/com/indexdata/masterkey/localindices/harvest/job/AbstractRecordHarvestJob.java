@@ -159,7 +159,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     Sender sender = SenderFactory.getSender();
     String status = getStatus().toString();
     Harvestable harvestable = getHarvestable();
-    if (checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) {
+    if (harvestable.getMailLevel() != null && checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) {
       Notification msg = new SimpleNotification(status, 
   		harvestable.getName() + "(" + harvestable.getId() + "): "  + subject, message);
       try {
