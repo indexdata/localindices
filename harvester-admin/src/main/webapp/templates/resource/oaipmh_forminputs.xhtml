@@ -45,9 +45,14 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
 
         <h:outputText value="Request Retry count:" styleClass="optionalInput" />
-        <h:inputText  value="#{resourceController.resource.retryCount}" styleClass="optionalInput"/>
-        <h:outputText value="Delay before retry (seconds):" styleClass="optionalInput" />
-        <h:inputText  value="#{resourceController.resource.retryWait}" styleClass="optionalInput"/>
+        <h:inputText  value="#{resourceController.resource.retryCount}" styleClass="optionalInput">
+            <f:validateLongRange minimum="0" maximum="10" />
+        </h:inputText>
+        <h:outputText value="Delay before retry (seconds):" styleClass="optionalInput"/>
+        <h:inputText  value="#{resourceController.resource.retryWait}" styleClass="optionalInput">
+            <f:validateLongRange minimum="0" maximum="1000" />
+        </h:inputText>
+            
         
       </h:panelGrid>
 
