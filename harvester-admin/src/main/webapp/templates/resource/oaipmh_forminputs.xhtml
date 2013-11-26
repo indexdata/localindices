@@ -37,11 +37,18 @@
           <f:convertDateTime pattern="yyyy-MM-dd" />
         </h:inputText>
         <h:outputText value="Resumption token: (overrrides date)"/>
-        <h:inputText value="#{resourceController.resource.resumptionToken}"/>
+        <h:inputText  value="#{resourceController.resource.resumptionToken}"/>
+
         <h:outputText value="Clear resumption token on connection errors:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.clearRtOnError}"/>
         <h:outputText value="Keep partial harvests:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
+
+        <h:outputText value="Request Retry count:" styleClass="optionalInput" />
+        <h:inputText  value="#{resourceController.resource.retryCount}" styleClass="optionalInput"/>
+        <h:outputText value="Delay before retry (seconds):" styleClass="optionalInput" />
+        <h:inputText  value="#{resourceController.resource.retryWait}" styleClass="optionalInput"/>
+        
       </h:panelGrid>
 
     </ui:composition>
