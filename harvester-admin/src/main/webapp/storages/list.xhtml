@@ -12,6 +12,13 @@
       <ui:define name="content">
         <h:form>
           <h:outputText value="Add new storage: "/>
+          <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}">
+                <f:param name="type" value="SolrRecordStorage"/>
+          </h:commandLink>
+          <h:commandLink styleClass="navigation"  value="ZooKeeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}">
+                <f:param name="type" value="ZooKeeperSolrRecordStorage"/>
+          </h:commandLink>
+                          
           <h:commandLink styleClass="navigation"  value="Solr" action="#{storageController.prepareSolrStorageToAdd}" />                
           <!-- 
                           <h:outputText value=", "/>
