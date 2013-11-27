@@ -62,6 +62,9 @@ public class JobInstance {
     } else {
       cronLine = new CronLine(hable.getScheduleString());
     }
+    if (storage == null) {
+	throw new IllegalArgumentException("No storage given for the harvest job (" + hable.getId() + " - " + hable.getName());
+    }
     if (hable instanceof OaiPmhResource) {
       if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
 	Calendar cal = Calendar.getInstance();
@@ -74,18 +77,16 @@ public class JobInstance {
       if (storage instanceof RecordStorage) {
 	harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
 	harvestJob.setStorage((RecordStorage) storage);
-      } else {
-	harvestJob = new OAIHarvestJob((OaiPmhResource) hable, proxy);
-	harvestJob.setStorage(storage);
-      }
+      } 
+      else 
+	throw new IllegalArgumentException("Invalid storage type for harvest job (" + hable.getId() + " - " + hable.getName() +  ": " + storage.getClass().getCanonicalName());
     } else if (hable instanceof XmlBulkResource) {
       if (storage instanceof RecordStorage) {
 	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy);
 	harvestJob.setStorage((RecordStorage) storage);
-      } else {
-	harvestJob = new BulkHarvestJob((XmlBulkResource) hable, proxy);
-	harvestJob.setStorage(storage);
-      }
+      } 
+      else 
+	throw new IllegalArgumentException("Invalid storage type for harvest job (" + hable.getId() + " - " + hable.getName() +  ": " + storage.getClass().getCanonicalName());
 
     } else if (hable instanceof WebCrawlResource) {
       harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
@@ -96,13 +97,10 @@ public class JobInstance {
 	Constructor<?> constructor = Class.forName("com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob").getConstructor(hable.getClass(), Proxy.class);
 	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy);
       } catch (Exception e) {
-	logger.error("failed to use reflection", e);
+	logger.error("Failed to use reflection", e);
 	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy);
 	e.printStackTrace();
       }
-      //Car.class.getConstructor(String.class).newInstance("Lightning McQueen");
-      //harvestJob.setResouce(resouce);
-      //harvestJob.setProxy();
       harvestJob.setStorage(storage);
     } else {
       throw new IllegalArgumentException("Cannot create instance of the harvester.");
