@@ -2,6 +2,8 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+
 public abstract class StorageProxy implements HarvestStorage {
   HarvestStorage storage;
 
@@ -41,5 +43,10 @@ public abstract class StorageProxy implements HarvestStorage {
   @Override
   public boolean getOverwriteMode() {
     return storage.getOverwriteMode();
+  }
+  
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    storage.setHarvestable(harvestable);
   }
 }
