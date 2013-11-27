@@ -178,4 +178,12 @@ public abstract class Storage implements Serializable, Cloneable {
    * 
    * public Set<Harvestable> getHarvestables() { return harvestables; }
    */
+
+  public String getCustomClass() {
+    return customClass;
+  }
+
+  public void setCustomClass(String customClass) {
+    this.customClass = customClass;
+  }
 }
