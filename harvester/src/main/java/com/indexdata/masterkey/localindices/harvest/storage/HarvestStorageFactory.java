@@ -27,9 +27,35 @@ public class HarvestStorageFactory {
     HarvestStorage harvestStorage = null;
     Storage entity = (Storage) harvestable.getStorage();
     /* TODO Extend to create other types */
-    if (entity instanceof com.indexdata.masterkey.localindices.entity.SolrStorageEntity) {
-      SolrStorage storage = new BulkSolrRecordStorage(entity.getIndexingUrl(), harvestable);
-      storage.setStorageId(entity.getId().toString());
+    if (entity.getCustomClass() != null) {
+	try {
+	  Class<?> storage = Class.forName(entity.getCustomClass());
+	  Object object = storage.newInstance();
+	  
+	  if (object instanceof HarvestStorage) {
+	    RecordStorage recordStorage = (RecordStorage) object;
+	    recordStorage.setHarvestable(harvestable);
+	    return recordStorage;
+	  }
+	} catch (ClassNotFoundException e) {
+	  e.printStackTrace();
+	  throw new RuntimeException("Class not found: " +  entity.getCustomClass());
+	} catch (InstantiationException e) {
+	  e.printStackTrace();
+	  throw new RuntimeException("Failed to create instance: " +  entity.getCustomClass());
+	} catch (IllegalAccessException e) {
+	  e.printStackTrace();
+	  throw new RuntimeException("Illegal access: " +  entity.getCustomClass());
+	}
+    }
+    else if (entity instanceof com.indexdata.masterkey.localindices.entity.ZkSolrStorageEntity) {
+      SolrStorage storage = new ZooKeeperSolrRecordStorage();
+      storage.setHarvestable(harvestable);
+      return storage;
+    }
+    else if (entity instanceof com.indexdata.masterkey.localindices.entity.SolrStorageEntity) {
+      SolrStorage storage = new BulkSolrRecordStorage();
+      storage.setHarvestable(harvestable);
       return storage;
     }
     else if (entity instanceof FileStorageEntity) {
@@ -38,24 +64,7 @@ public class HarvestStorageFactory {
       return storage;
     }
     else {
-      if (entity.getIdAsString() != null) {
-	try {
-	  Class<?> storage = Class.forName(entity.getIdAsString());
-	  Object object = storage.newInstance();
-	  if (object instanceof HarvestStorage) {
-	    return (HarvestStorage) object;
-	  }
-	} catch (ClassNotFoundException e) {
-	  e.printStackTrace();
-	} catch (InstantiationException e) {
-	  // TODO Auto-generated catch block
-	  e.printStackTrace();
-	} catch (IllegalAccessException e) {
-	  // TODO Auto-generated catch block
-	  e.printStackTrace();
-	}	
       }
-    }
     return harvestStorage;
   }
 
