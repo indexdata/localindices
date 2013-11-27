@@ -6,12 +6,18 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 
-public class ZooKeeperSolrRecordStorage extends SolrRecordStorage {
+public class ZooKeeperSolrRecordStorage extends BulkSolrRecordStorage {
 
-  public ZooKeeperSolrRecordStorage(String url, Harvestable harvestable) {
+  public ZooKeeperSolrRecordStorage() {
+  }
+
+  public ZooKeeperSolrRecordStorage(Harvestable harvestable) {
     super(harvestable);
   }
 
+  public ZooKeeperSolrRecordStorage(String url, Harvestable harvestable) {
+    super(url, harvestable);
+  }
   
   public void init() {
     try {
@@ -19,6 +25,12 @@ public class ZooKeeperSolrRecordStorage extends SolrRecordStorage {
       if (harvestable != null) {
         storage = harvestable.getStorage();
       }
+      if (storage == null) {
+	throw new RuntimeException("Fail to init Storage " + this.getClass().getCanonicalName() 
+	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
+      }
+      setStorageId(storage.getId().toString());
+      url = storage.getUrl();
       logger = new FileStorageJobLogger(this.getClass(), storage);
       CloudSolrServer server = new CloudSolrServer(url);
       server.setZkClientTimeout(100000); // socket read timeout

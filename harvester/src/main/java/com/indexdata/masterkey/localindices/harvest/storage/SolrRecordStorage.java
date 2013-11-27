@@ -45,6 +45,13 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   @SuppressWarnings("unused")
   private SolrServerFactory factory;
+  
+  public SolrRecordStorage() {
+  }
+  
+  public SolrRecordStorage(Harvestable harvestable) {
+    super(harvestable);
+  }
 
   public SolrRecordStorage(String url, Harvestable harvestable) {
     super(url, harvestable);

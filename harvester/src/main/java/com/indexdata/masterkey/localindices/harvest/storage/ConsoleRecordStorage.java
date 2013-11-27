@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class ConsoleRecordStorage implements RecordStorage {
@@ -117,5 +118,11 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public DatabaseContenthandler getContentHandler() {
     return new Pz2SolrRecordContentHandler(this, database);
+  }
+
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    // TODO Auto-generated method stub
+    
   }
 }

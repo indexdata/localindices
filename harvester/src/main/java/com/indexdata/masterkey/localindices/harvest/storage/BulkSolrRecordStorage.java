@@ -19,6 +19,13 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   List<String> deleteIds = new LinkedList<String>();
   Integer limit = 1000; 
 
+  public BulkSolrRecordStorage() {
+  }
+
+  public BulkSolrRecordStorage(Harvestable harvestable) {
+    super(harvestable);
+  }
+
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
   }
