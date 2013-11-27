@@ -22,6 +22,11 @@
         <h:outputText value="Enabled:"/>
         <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
         <!-- List box of Transformations pipeline-->
+        <h:outputText value="Custom Storage Class (optional):" styleClass="optionalInput" style="display: none;" />
+        <h:panelGroup style="display: none;">
+          <h:inputText id="storageClass" value="#{storageController.storage.customClass}" size="50" styleClass="optionalInput" />
+          <h:message   for="storageClass" style="color: red;"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>
