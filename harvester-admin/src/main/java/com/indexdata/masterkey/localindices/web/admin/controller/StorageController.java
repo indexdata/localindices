@@ -121,6 +121,10 @@ public class StorageController {
   /* add new resource */
   public String prepareSolrStorageToAdd() {
     storage = new SolrStorageEntity();
+    String customClass = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("customClass");
+    if (customClass != null) {
+      storage.setCustomClass(customClass);
+    }
     return "new_solrstorage";
   }
 
