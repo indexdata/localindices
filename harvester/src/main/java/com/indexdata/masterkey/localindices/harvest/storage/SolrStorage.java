@@ -56,9 +56,11 @@ public class SolrStorage implements HarvestStorage {
   protected SolrStorageStatus storageStatus;
   String databaseField = "database:";
   
+  public SolrStorage() {
+  }
+
   public SolrStorage(Harvestable harvestable) {
-    this.harvestable = harvestable;
-    init();
+    setHarvestable(harvestable);
   }
 
   public SolrStorage(String solrUrl, Harvestable harvestable) {
@@ -85,6 +87,12 @@ public class SolrStorage implements HarvestStorage {
       if (harvestable != null) {
         storage = harvestable.getStorage();
       }
+      if (storage == null) {
+	throw new RuntimeException("Fail to init Storage " + this.getClass().getCanonicalName() 
+	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
+      }
+      setStorageId(storage.getId().toString());
+      url = storage.getUrl();
       logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
@@ -186,5 +194,11 @@ public class SolrStorage implements HarvestStorage {
   public StorageStatus getStatus() {
     
     return storageStatus;
+  }
+
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    this.harvestable = harvestable;
+    init();
   }
 }

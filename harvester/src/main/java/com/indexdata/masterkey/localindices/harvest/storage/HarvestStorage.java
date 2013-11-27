@@ -9,6 +9,8 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+
 /**
  * Harvest storage API.
  * 
@@ -64,4 +66,7 @@ public interface HarvestStorage {
    * @return the output stream for writing to it
    */
   public OutputStream getOutputStream();
+  
+  public void setHarvestable(Harvestable harvestable);
+  
 }

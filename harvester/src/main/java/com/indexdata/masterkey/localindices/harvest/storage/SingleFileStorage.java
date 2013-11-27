@@ -67,4 +67,10 @@ public class SingleFileStorage implements HarvestStorage {
     return false;
   }
 
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    // TODO Auto-generated method stub
+    
+  }
+
 }

@@ -9,6 +9,8 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+
 /**
  * Simple console storage that prints out the harvested data.
  * 
@@ -46,6 +48,11 @@ public class ConsoleStorage implements HarvestStorage {
 
   public boolean getOverwriteMode() {
     return overwriteMode;
+  }
+
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    // TODO Auto-generated method stub
   }
 
 }

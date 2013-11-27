@@ -207,4 +207,9 @@ public class MultiFileStorage implements HarvestStorage {
     return overwriteMode;
   }
 
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    // TODO Auto-generated method stub
+  }
+
 } // MultiFileStorage
