@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@XmlRootElement(name = "solrStorage")
+@XmlRootElement(name = "zkSolrStorage")
 public class ZkSolrStorageEntity extends Storage implements Serializable {
 
   private static final long serialVersionUID = -5840585258242340150L;
