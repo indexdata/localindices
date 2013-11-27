@@ -36,7 +36,7 @@
             <div id="pager">
               <h:panelGroup id="pagerPanel">
               <h:outputText
-                value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" />
+                value="Item #{resourceController.firstItem + 1}..#{resourceController.lastItem} of #{resourceController.itemCount}" rendered="#{resourceController.itemCount > 0}" />
               &nbsp;
               <h:commandLink
                              action="#{resourceController.prev}"
