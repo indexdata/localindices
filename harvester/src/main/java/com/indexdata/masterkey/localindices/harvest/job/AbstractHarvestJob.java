@@ -106,7 +106,8 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   @Override
   public abstract void run();
 
-  protected abstract Harvestable getHarvestable();
+  @Override
+  public abstract Harvestable getHarvestable();
 
   public Thread getJobThread() {
     return jobThread;

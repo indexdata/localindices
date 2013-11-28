@@ -8,6 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.OutputStream;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 
 /**
@@ -37,6 +38,13 @@ public interface HarvestJob extends Runnable {
    * @return current storage
    */
   HarvestStorage getStorage();
+
+  /**
+   * Returns the information about the job 
+   * 
+   * @return database entity for the Job
+   */
+  Harvestable getHarvestable();
 
   /**
    * Inform the harvesting job the the files harvest were received.

@@ -396,7 +396,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 

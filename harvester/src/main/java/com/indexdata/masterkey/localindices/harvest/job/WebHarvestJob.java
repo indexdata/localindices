@@ -397,7 +397,7 @@ public class WebHarvestJob extends AbstractHarvestJob implements WebHarvestJobIn
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 } // class WebHarvestJob
