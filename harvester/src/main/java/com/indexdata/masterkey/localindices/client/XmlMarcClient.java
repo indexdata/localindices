@@ -29,9 +29,11 @@ import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
+import com.indexdata.masterkey.localindices.harvest.storage.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
+import com.indexdata.masterkey.localindices.util.TextUtils;
 import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
 
@@ -74,7 +76,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	  return handleJumpPage(conn);
 	}
 	else {
-	  ReadStore readStore = lookupCompresssionType(conn);
+	  ReadStore readStore = lookupCompresssionType(conn, url);
 	  readStore.readAndStore();
 	}
       } else if (responseCode == 304) {//not-modified
@@ -195,7 +197,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
-  private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException {
+  private ReadStore lookupCompresssionType(HttpURLConnection conn, URL url) throws IOException {
     String contentType = conn.getContentType();
     // InputStream after possible Content-Encoding decoded.
     InputStream inputStreamDecoded = handleContentEncoding(conn);
@@ -214,6 +216,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
       streamIterator = new ZipStreamIterator(zipInput);
       inputStreamDecoded = zipInput;
     }
+    //cache responses to filesystem
+    inputStreamDecoded = new CachingInputStream(inputStreamDecoded, "/var/cache/harvester/"+TextUtils.basename(url.toString()));
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
     // Expected type overrides content type
     if (xmlBulkResource.getExpectedSchema() != null)

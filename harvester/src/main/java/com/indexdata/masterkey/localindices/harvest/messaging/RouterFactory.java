@@ -62,7 +62,7 @@ public class RouterFactory {
 	return router;
     } catch (TransformerConfigurationException te) {
 	logger.error("Error creating template for step: " + step.getName()
-	    + ". Message: " + te.getMessage());
+	    + ". Message: " + te.getMessageAndLocation());
 	throw te;
     }
   }  
