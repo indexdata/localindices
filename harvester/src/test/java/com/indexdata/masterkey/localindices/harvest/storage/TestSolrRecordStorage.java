@@ -37,7 +37,7 @@ public class TestSolrRecordStorage extends TestCase {
     CloudSolrServer server = new CloudSolrServer(zkSolrUrl);
     server.setZkClientTimeout(100000); // socket read timeout
     server.setZkConnectTimeout(100000);
-    //server.setDefaultCollection("Collection1");
+    server.setDefaultCollection("collection1");
     server.connect();
     ZkStateReader stateReader = server.getZkStateReader();
     assertTrue("No StateReader received", stateReader != null);
