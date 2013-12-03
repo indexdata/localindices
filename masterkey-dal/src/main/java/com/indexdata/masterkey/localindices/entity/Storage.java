@@ -47,6 +47,7 @@ public abstract class Storage implements Serializable, Cloneable {
   protected String url;
   @Column(length = 1000)
   protected String customClass;
+  protected Integer bulkSize; 
 
   /*
    * @OneToMany(mappedBy="storage") // try @XmlTransient private
@@ -168,6 +169,16 @@ public abstract class Storage implements Serializable, Cloneable {
 
   public String getUrl() {
     return url;
+  }
+
+  public void setBulkSize(Integer size) {
+    // TODO add to database
+    if (size != null) 
+      bulkSize = size;
+  }
+
+  public Integer getBulkSize() {
+    return new Integer(1000);
   }
 
   @Transient
