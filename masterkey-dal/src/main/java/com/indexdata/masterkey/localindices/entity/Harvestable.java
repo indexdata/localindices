@@ -93,6 +93,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private Integer retryCount = 2;
   @Column(nullable=false)
   private Integer retryWait = 60; //SECS
+  @Column(nullable=true)
+  private Integer recordLimit = null; 
+
 
   private String logLevel  = "INFO"; 
   private String mailLevel = "WARN"; 
@@ -382,4 +385,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setMailAddress(String mailAddresses) {
     this.mailAddress = mailAddresses;
   }
+
+  public void setRecordLimit(Integer limit) {
+    recordLimit = limit;
+  }
+
+  public Integer getRecordLimit() {
+    return recordLimit;
+  }
+
 }
