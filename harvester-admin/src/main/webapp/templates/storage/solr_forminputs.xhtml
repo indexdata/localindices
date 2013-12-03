@@ -9,7 +9,7 @@
     <ui:composition>
       <h5>SOLR specific information: </h5>
       <h:panelGrid columns="2">
-        <h:outputText value="Basic SOLR Server URL:"/>
+        <h:outputText value="Server URL:"/>
         <h:panelGroup>
           <h:inputText id="solrUrl" value="#{storageController.storage.url}" size="100"
              required="true" requiredMessage="Please provide SOLR URL!"/>
@@ -18,6 +18,10 @@
         <!-- 
                 <h:inputText value="#{storageController.storage.transformation}"/>
         -->
+        <h:panelGroup>
+          <h:inputText id="bulkSize" value="#{storageController.storage.bulkSize}" size="20"/>
+          <h:message for="bulkSize" style="color: red;"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>
