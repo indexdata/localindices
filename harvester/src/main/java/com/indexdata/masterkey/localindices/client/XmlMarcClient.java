@@ -36,6 +36,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.masterkey.localindices.util.TextUtils;
 import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
+import java.io.File;
+import java.io.FileInputStream;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private XmlBulkResource xmlBulkResource;
@@ -76,7 +78,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	  return handleJumpPage(conn);
 	}
 	else {
-	  ReadStore readStore = lookupCompresssionType(conn, url);
+	  ReadStore readStore = prepareReadStore(conn.getInputStream(), 
+            getContentLength(conn), conn.getContentType(), conn.getContentEncoding(), 
+            "/var/cache/harvester/"+xmlBulkResource.getId()
+            +"/"+(new Date().getTime())+".data");
 	  readStore.readAndStore();
 	}
       } else if (responseCode == 304) {//not-modified
@@ -105,6 +110,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	throw ex;
     }
     return 0;
+  }
+  
+  public int download(File file) throws Exception {
+      ReadStore readStore = prepareReadStore(new FileInputStream(file), 
+        -1, null, null, null);
+      readStore.readAndStore();
+      return 0;
   }
 
   private long getContentLength(HttpURLConnection conn) {
@@ -197,31 +209,36 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
-  private ReadStore lookupCompresssionType(HttpURLConnection conn, URL url) throws IOException {
-    String contentType = conn.getContentType();
+  private ReadStore prepareReadStore(InputStream isRaw, long contentLength, 
+    String contentType, String contentEncoding, String cacheFile) throws IOException {
     // InputStream after possible Content-Encoding decoded.
-    InputStream inputStreamDecoded = handleContentEncoding(conn);
+    InputStream isDec = handleContentEncoding(isRaw, contentEncoding);
     StreamIterator streamIterator = new StreamIterator(); 
-    long contentLength = getContentLength(conn);
     // Content is being decoded. Not the real length
-    if (inputStreamDecoded != conn.getInputStream())
-      contentLength = -1;
+    if (isDec != isRaw)
+      contentLength = -1; 
+    // handle content type
     if ("application/x-gzip".equals(contentType))
-      inputStreamDecoded = new GZIPInputStream(inputStreamDecoded);
+      isDec = new GZIPInputStream(isDec);
     else if ("application/zip".equals(contentType)) {
-      ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded) {
-	public void close() throws IOException{
+      ZipInputStream zipInput = new ZipInputStream(isDec) {
+        @Override
+	public void close() throws IOException {
+          //zip contains multile entries, don't close the stream at this point
 	}
       };
       streamIterator = new ZipStreamIterator(zipInput);
-      inputStreamDecoded = zipInput;
+      isDec = zipInput;
     }
     //cache responses to filesystem
-    inputStreamDecoded = new CachingInputStream(inputStreamDecoded, "/var/cache/harvester/"+TextUtils.basename(url.toString()));
+    if (cacheFile != null) {
+      isDec = new CachingInputStream(isDec, cacheFile);
+    }
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
     // Expected type overrides content type
     if (xmlBulkResource.getExpectedSchema() != null)
        mimeCharset =  new MimeTypeCharSet(xmlBulkResource.getExpectedSchema());
+    
     if (mimeCharset.isMimeType("application/marc") ||
 	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader ("  
@@ -230,7 +247,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	      " Override by resource mime-type: " + xmlBulkResource.getExpectedSchema() 
 	      : "Content-type: " + contentType));
       
-      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded, streamIterator);
+      MarcReadStore readStore = new MarcReadStore(isDec, streamIterator);
       String encoding = mimeCharset.getCharset();
       if (encoding != null) 
 	readStore.setEncoding(encoding);
@@ -239,17 +256,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
     
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
-    return new InputStreamReadStore(inputStreamDecoded, contentLength, streamIterator);
+    return new InputStreamReadStore(isDec, contentLength, streamIterator);
   }
 
-  private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
+  private InputStream handleContentEncoding(InputStream is, String contentEncoding) throws IOException 
   {
-    String contentEncoding = conn.getContentEncoding();
     if ("gzip".equals(contentEncoding))
-      return new GZIPInputStream(conn.getInputStream());
+      return new GZIPInputStream(is);
     if ("deflate".equalsIgnoreCase(contentEncoding))
-      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
-    return conn.getInputStream();
+      return new InflaterInputStream(is, new Inflater(true));
+    return is;
   }
 
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
@@ -335,7 +351,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private int handleJumpPage(HttpURLConnection conn) throws Exception 
   {
-    HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
+    HTMLPage jp = new HTMLPage(handleContentEncoding(conn.getInputStream(), 
+      conn.getContentEncoding()), conn.getURL());
     int results = 0;
     for (URL link : jp.getLinks()) {
       results += download(link);
