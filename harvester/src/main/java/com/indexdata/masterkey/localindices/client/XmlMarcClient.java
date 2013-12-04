@@ -15,7 +15,6 @@ import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.apache.log4j.Logger;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
@@ -23,44 +22,53 @@ import org.marc4j.MarcXmlWriter;
 import org.marc4j.TurboMarcXmlWriter;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
-import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.Proxy;
+
+import static com.indexdata.utils.TextUtils.joinPath;
 
 public class XmlMarcClient extends AbstractHarvestClient {
-  private XmlBulkResource xmlBulkResource;
-  private boolean allowErrors = false;
-  private boolean useCondReq = false;
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private BulkRecordHarvestJob job;
   private Date lastRequested;
   private int splitAt = 1;
  
-  public XmlMarcClient(BulkRecordHarvestJob job, boolean allowErrors, boolean useCondReq, 
-    Date lastRequested) {
-    super(null, null, null);
-    this.job = job;
-    this.allowErrors = allowErrors;
-    this.useCondReq = useCondReq;
+  public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,  
+    Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
+    super(resource, job, proxy, logger, dc);
     this.lastRequested = lastRequested;
   }
- 
+
+  @Override
+  public BulkRecordHarvestJob getJob() {
+    return (BulkRecordHarvestJob) job;
+  }
+
+  @Override
+  public XmlBulkResource getResource() {
+    return (XmlBulkResource) resource; 
+  }
+  
   @Override
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
     try {
       HttpURLConnection conn = createConnection(url);
       conn.setRequestMethod("GET");
-      if (useCondReq && (lastRequested != null)) {
+      if (getResource().getAllowCondReq() && (lastRequested != null)) {
         String lastModified = 
           DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
         logger.info("Conditional request If-Modified-Since: "+lastModified);
@@ -74,7 +82,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	  return handleJumpPage(conn);
 	}
 	else {
-	  ReadStore readStore = lookupCompresssionType(conn);
+	  ReadStore readStore = prepareReadStore(conn.getInputStream(), 
+            getContentLength(conn), conn.getContentType(), conn.getContentEncoding(), 
+             joinPath(diskCache.getJobPath(), diskCache.proposeName()));
 	  readStore.readAndStore();
 	}
       } else if (responseCode == 304) {//not-modified
@@ -82,7 +92,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
           lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
         return 0;
       } else {
-	if (allowErrors) {
+	if (getResource().getAllowErrors()) {
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
 	}
@@ -95,7 +105,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     } catch (Exception ex) {
       if (job.isKillSent())
 	  throw ex; 
-	if (allowErrors) {
+	if (getResource().getAllowErrors()) {
 	  logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
@@ -103,6 +113,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	throw ex;
     }
     return 0;
+  }
+  
+  public int download(File file) throws Exception {
+      ReadStore readStore = prepareReadStore(new FileInputStream(file), 
+        -1, null, null, null);
+      readStore.readAndStore();
+      return 0;
   }
 
   private long getContentLength(HttpURLConnection conn) {
@@ -195,38 +212,45 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
-  private ReadStore lookupCompresssionType(HttpURLConnection conn) throws IOException {
-    String contentType = conn.getContentType();
+  private ReadStore prepareReadStore(InputStream isRaw, long contentLength, 
+    String contentType, String contentEncoding, String cacheFile) throws IOException {
     // InputStream after possible Content-Encoding decoded.
-    InputStream inputStreamDecoded = handleContentEncoding(conn);
+    InputStream isDec = handleContentEncoding(isRaw, contentEncoding);
     StreamIterator streamIterator = new StreamIterator(); 
-    long contentLength = getContentLength(conn);
     // Content is being decoded. Not the real length
-    if (inputStreamDecoded != conn.getInputStream())
-      contentLength = -1;
+    if (isDec != isRaw)
+      contentLength = -1; 
+    // handle content type
     if ("application/x-gzip".equals(contentType))
-      inputStreamDecoded = new GZIPInputStream(inputStreamDecoded);
+      isDec = new GZIPInputStream(isDec);
     else if ("application/zip".equals(contentType)) {
-      ZipInputStream zipInput = new ZipInputStream(inputStreamDecoded) {
-	public void close() throws IOException{
+      ZipInputStream zipInput = new ZipInputStream(isDec) {
+        @Override
+	public void close() throws IOException {
+          //zip contains multile entries, don't close the stream at this point
 	}
       };
       streamIterator = new ZipStreamIterator(zipInput);
-      inputStreamDecoded = zipInput;
+      isDec = zipInput;
+    }
+    //cache responses to filesystem
+    if (cacheFile != null) {
+      isDec = new CachingInputStream(isDec, cacheFile);
     }
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
     // Expected type overrides content type
-    if (xmlBulkResource.getExpectedSchema() != null)
-       mimeCharset =  new MimeTypeCharSet(xmlBulkResource.getExpectedSchema());
+    if (getResource().getExpectedSchema() != null)
+       mimeCharset =  new MimeTypeCharSet(getResource().getExpectedSchema());
+    
     if (mimeCharset.isMimeType("application/marc") ||
 	mimeCharset.isMimeType("application/tmarc")) {
       logger.info("Setting up Binary MARC reader ("  
 	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
-	  + (xmlBulkResource.getExpectedSchema() != null ? 
-	      " Override by resource mime-type: " + xmlBulkResource.getExpectedSchema() 
+	  + (getResource().getExpectedSchema() != null ? 
+	      " Override by resource mime-type: " + getResource().getExpectedSchema() 
 	      : "Content-type: " + contentType));
       
-      MarcReadStore readStore = new MarcReadStore(inputStreamDecoded, streamIterator);
+      MarcReadStore readStore = new MarcReadStore(isDec, streamIterator);
       String encoding = mimeCharset.getCharset();
       if (encoding != null) 
 	readStore.setEncoding(encoding);
@@ -235,23 +259,22 @@ public class XmlMarcClient extends AbstractHarvestClient {
     
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
-    return new InputStreamReadStore(inputStreamDecoded, contentLength, streamIterator);
+    return new InputStreamReadStore(isDec, contentLength, streamIterator);
   }
 
-  private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
+  private InputStream handleContentEncoding(InputStream is, String contentEncoding) throws IOException 
   {
-    String contentEncoding = conn.getContentEncoding();
     if ("gzip".equals(contentEncoding))
-      return new GZIPInputStream(conn.getInputStream());
+      return new GZIPInputStream(is);
     if ("deflate".equalsIgnoreCase(contentEncoding))
-      return new InflaterInputStream(conn.getInputStream(), new Inflater(true));
-    return conn.getInputStream();
+      return new InflaterInputStream(is, new Inflater(true));
+    return is;
   }
 
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
     long index = 0;
     MarcWriter writer;
-    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(xmlBulkResource.getOutputSchema());
+    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(getResource().getOutputSchema());
     boolean isTurboMarc = false;
     if (mimetypeCharset.isMimeType("application/tmarc")) {
     	isTurboMarc = true;
@@ -302,7 +325,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void store(InputStream is, long contentLength) throws Exception {
     RecordStorage storage = job.getStorage();
     SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage, job.getLogger()), 
-		job.getNumber(xmlBulkResource.getSplitAt(), splitAt));
+		getJob().getNumber(getResource().getSplitAt(), splitAt));
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
     xmlSplitter.processDataFromInputStream(is);
   }
@@ -331,7 +354,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private int handleJumpPage(HttpURLConnection conn) throws Exception 
   {
-    HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
+    HTMLPage jp = new HTMLPage(handleContentEncoding(conn.getInputStream(), 
+      conn.getContentEncoding()), conn.getURL());
     int results = 0;
     for (URL link : jp.getLinks()) {
       results += download(link);
@@ -376,27 +400,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
       else
 	logger.info(message + copied + " bytes");
-    }
-  }
-
-  public void setHarvestJob(RecordHarvestJob parent) {
-    if (parent instanceof BulkRecordHarvestJob)
-      job = (BulkRecordHarvestJob) parent;
-    else 
-      	throw new RuntimeException("Invalid usage of XmlMarcClient: Requires BulkRecordHarvestJob. Used by " 
-      	    + parent.getClass().getSimpleName());
-  }
-
-  public void setHarvestable(Harvestable newResource) {
-    super.resource = newResource; 
-    if (newResource instanceof XmlBulkResource) {
-      xmlBulkResource = (XmlBulkResource) newResource;
-    } else {
-      String errorMsg = new String("XmlMarcClient configured with wrong harvestable type: " + newResource.getClass().getCanonicalName()); 
-      if (logger != null)
-      	logger.fatal(errorMsg);
-      else
-    	Logger.getLogger("").fatal(errorMsg);
     }
   }
 

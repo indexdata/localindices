@@ -15,8 +15,10 @@ import org.apache.log4j.Level;
 import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -80,11 +82,17 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
+      DiskCache dc = new DiskCache(resource.getId());
       if (resource.getOverwrite()) {
         getStorage().purge(false);
+        if (!resource.isDiskRun()) dc.purge();
       }
       setStatus(HarvestStatus.RUNNING);
-      downloadList(resource.getUrl().split(" "));
+      if (!resource.isDiskRun())
+        downloadList(resource.getUrl().split(" "), false, dc);
+      else {
+        downloadList(dc.list(), true, dc);
+      }
       String subject = "Completed.";
       String msg = "";
       if (getStatus() == HarvestStatus.RUNNING)
@@ -125,24 +133,26 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logError(subject, e.getMessage());
       mailMessage(subject, message);
     } finally {
+      resource.setDiskRun(false);
       getStorage().shutdown();
       logger.close();
     }
   }
 
-  private void downloadList(String[] urls) throws Exception {
+  private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
     Date lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestFinished();
-    XmlMarcClient client = new XmlMarcClient(this, resource.getAllowErrors(), resource.getAllowCondReq(), lastDate);
-    client.setHarvestJob(this);
-    client.setProxy(proxy);
-    client.setLogger(logger);
-    client.setHarvestable(resource);
-    for (String url : urls) {
+    XmlMarcClient client = new XmlMarcClient(resource, this, proxy, logger, dc, lastDate);
+    for (String item : list) {
       try {
-        int noErrors = client.download(new URL(url));
+        int noErrors = 0;
+        if (!diskRun)
+          noErrors = client.download(new URL(item));
+        else
+          noErrors = client.download(new File(item));
         if (noErrors > 0) {
           setStatus(HarvestStatus.WARN, client.getErrors());
         }
+        
       } catch (Exception e) {
 	if (isKillSent()) {
 	  logger.info("Job killed. Stopping.");
@@ -152,7 +162,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
           if (errors == null) {
             errors = "Failed to harvest: ";
           }
-          errors += url + ": " + e.getMessage();
+          errors += item + ": " + e.getMessage();
           setStatus(HarvestStatus.WARN, errors);
         } else {
           throw e;
