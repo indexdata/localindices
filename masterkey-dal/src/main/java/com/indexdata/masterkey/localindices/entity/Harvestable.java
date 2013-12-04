@@ -96,7 +96,9 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   private String logLevel  = "INFO"; 
   private String mailLevel = "WARN"; 
-  private String mailAddress = null; 
+  private String mailAddress = null;
+  private boolean diskRun = false;
+  private boolean cacheEnabled = false;
 
   public String getDescription() {
     return description;
@@ -382,4 +384,22 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setMailAddress(String mailAddresses) {
     this.mailAddress = mailAddresses;
   }
+
+  public boolean isDiskRun() {
+    return diskRun;
+  }
+
+  public void setDiskRun(boolean diskRun) {
+    this.diskRun = diskRun;
+  }
+
+  public boolean isCacheEnabled() {
+    return cacheEnabled;
+  }
+
+  public void setCacheEnabled(boolean cacheEnabled) {
+    this.cacheEnabled = cacheEnabled;
+  }
+  
+  
 }

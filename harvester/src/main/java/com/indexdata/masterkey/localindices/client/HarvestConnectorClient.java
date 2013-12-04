@@ -35,19 +35,25 @@ import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
 
 public class HarvestConnectorClient extends AbstractHarvestClient {
-  private HarvestConnectorResource connectorResource;
   private String sessionId;
-  private RecordHarvestJob job; 
-  RecordStorage storage; 
   List <Object> linkTokens = new LinkedList<Object>();
   List <String> errors = new ArrayList<String>();
   HttpURLConnectionFactory connectionFactory;
+
+  @Override
+  public HarvestConnectorResource getResource() {
+    return (HarvestConnectorResource) resource;
+  }
 
   public List<String> getErrors() {
     return errors;
@@ -167,7 +173,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     @Override
     final public void onInit() throws Exception {
       createSession();
-      uploadConnector(connectorResource.getConnectorUrl());
+      uploadConnector(getResource().getConnectorUrl());
       init();
     }
 
@@ -188,17 +194,12 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       return "harvest";
     }
     
-  } 
-
-  public void setHarvestJob(RecordHarvestJob parent) {
-    job = parent;
-    logger = job.getLogger();
   }
   
-  public HarvestConnectorClient(HarvestConnectorResource resource, Proxy proxy) {
-    super(resource, proxy, null); 
-    this.connectorResource = resource; 
-    this.proxy = proxy;
+  public HarvestConnectorClient(HarvestConnectorResource resource, 
+    ConnectorHarvestJob job,
+    Proxy proxy, StorageJobLogger logger, DiskCache diskCache) {
+    super(resource, job, proxy, logger, diskCache); 
   }
 
   ContainerFactory containerFactory = new ContainerFactory() {
@@ -217,21 +218,20 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   @Override
   public int download(URL url) throws Exception 
   {
-    storage = job.getStorage();
-    logger.log(Level.INFO, "Starting - " + connectorResource);
+    logger.log(Level.INFO, "Starting - " + getResource());
     createSession();
-    uploadConnector(connectorResource.getConnectorUrl());
+    uploadConnector(getResource().getConnectorUrl());
     init();
-    new HarvestInvoker(connectorResource.getRetryCount()) {
+    new HarvestInvoker(getResource().getRetryCount()) {
       @Override
       public void onPerform() throws Exception {
-        harvest(connectorResource.getResumptionToken(), connectorResource.getFromDate(),
-          connectorResource.getUntilDate());
+        harvest(getResource().getResumptionToken(), getResource().getFromDate(),
+          getResource().getUntilDate());
       }
     }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
       final Object linkToken = linkTokens.remove(0);
-      RetryInvoker invoker = new HarvestInvoker(connectorResource.getRetryCount()) {
+      RetryInvoker invoker = new HarvestInvoker(getResource().getRetryCount()) {
         @Override
         public void onPerform() throws Exception {
           pause();
@@ -240,7 +240,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       };
       boolean success = invoker.invoke();
       if (!success) {
-        if (connectorResource.getAllowErrors()) {
+        if (getResource().getAllowErrors()) {
           errors.add("link token '"+linkToken+"' failed with '"
             +invoker.finalException.getMessage()+"'");
           if (invoker.finalException instanceof Unrecoverable) {
@@ -256,7 +256,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
     }
     else {
-      logger.log(Level.INFO, "Finished - " + connectorResource);
+      logger.log(Level.INFO, "Finished - " + getResource());
     }
     return 0;
 }
@@ -295,7 +295,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
 
   private void init() throws Exception {
     HttpURLConnection conn = createConnection("run_task_opt/init", null);
-    String initData = connectorResource.getInitData();
+    String initData = getResource().getInitData();
     JSONParser parser = new JSONParser();
     JSONObject jsonObj = new JSONObject();
     try {
@@ -305,9 +305,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       logger.error("Failed to parse init data");
       throw new Exception("Failed to parse init data", pe);
     }
-    addField(jsonObj, "username", connectorResource.getUsername());
-    addField(jsonObj, "password", connectorResource.getPassword());
-    addField(jsonObj, "proxy",    connectorResource.getProxy());
+    addField(jsonObj, "username", getResource().getUsername());
+    addField(jsonObj, "password", getResource().getPassword());
+    addField(jsonObj, "proxy",    getResource().getProxy());
     writeJSON(jsonObj, conn);
     executeConnection(conn);
   }
@@ -326,7 +326,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   }
 
   private HttpURLConnection createConnection(String task, String params) throws Exception {
-    String urlString = connectorResource.getUrl() + 
+    String urlString = getResource().getUrl() + 
       (sessionId != null ? "/" + sessionId : "") + 
       (task != null ? "/" + task : "") +
       (params != null ? "?" + params : "");
@@ -432,12 +432,12 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
 	 * Id take precedence over url */ 
 	if ("id".equals(key) || ("url".equals(key) && pzRecord.getId() == null)) {
 	  String firstValue = (String) collection.iterator().next();
-	  pzRecord.setId(connectorResource.getId().toString() + "-" + firstValue);
+	  pzRecord.setId(getResource().getId().toString() + "-" + firstValue);
 	}
       }
     }
-    pzRecord.setDatabase(connectorResource.getId().toString());
-    storage.add(pzRecord);
+    pzRecord.setDatabase(getResource().getId().toString());
+    job.getStorage().add(pzRecord);
   }
 
 
@@ -473,20 +473,20 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       //parse and remember starttoken
       Object startTokenItem = json.get("start");
       if (startTokenItem instanceof String) {
-        connectorResource.setResumptionToken("{\"start\": \""+(String) startTokenItem+"\"}");
+        getResource().setResumptionToken("{\"start\": \""+(String) startTokenItem+"\"}");
       } else if (startTokenItem instanceof List) {
-        connectorResource.setResumptionToken("{\"start\": "+JSONArray.toJSONString((List)startTokenItem)+"}");
+        getResource().setResumptionToken("{\"start\": "+JSONArray.toJSONString((List)startTokenItem)+"}");
       } else if (startTokenItem instanceof Map) {
-        connectorResource.setResumptionToken("{\"start\": "+JSONObject.toJSONString((Map)startTokenItem)+"}");
+        getResource().setResumptionToken("{\"start\": "+JSONObject.toJSONString((Map)startTokenItem)+"}");
       }
     }
   }
 
   private void pause() throws InterruptedException {
-    Long sleep = connectorResource.getSleep();
+    Long sleep = getResource().getSleep();
     if (sleep != null) {
       logger.debug("Sleeping " + sleep + " before next request...");
-      Thread.sleep(connectorResource.getSleep());
+      Thread.sleep(getResource().getSleep());
     }
   }
 

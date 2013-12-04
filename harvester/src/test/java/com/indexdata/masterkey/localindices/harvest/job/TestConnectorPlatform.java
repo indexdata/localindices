@@ -22,6 +22,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import java.net.Proxy;
 
 import java.util.Date;
 
@@ -144,7 +145,8 @@ public class TestConnectorPlatform extends JobTester {
 
   @SuppressWarnings("unused")
   private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, Date startDate, Date endDate) throws ParseException {
-    HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
+    HarvestConnectorClient client = new HarvestConnectorClient(resource, null,
+      Proxy.NO_PROXY, null, null);
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
 

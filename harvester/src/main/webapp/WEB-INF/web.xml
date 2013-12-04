@@ -11,6 +11,9 @@
   <listener>
     <listener-class>com.indexdata.masterkey.localindices.notification.SenderFactory</listener-class>
   </listener>
+  <listener>
+    <listener-class>com.indexdata.masterkey.localindices.harvest.cache.CacheSetupListener</listener-class>
+  </listener>
   <context-param>
     <param-name>persistence-unit-name</param-name>
     <param-value>${persistence.unit.name}</param-value>

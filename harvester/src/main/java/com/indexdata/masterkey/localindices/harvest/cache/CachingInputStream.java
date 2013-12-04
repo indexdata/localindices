@@ -3,7 +3,7 @@
  * All rights reserved.
  * See the file LICENSE for details.
  */
-package com.indexdata.masterkey.localindices.harvest.storage;
+package com.indexdata.masterkey.localindices.harvest.cache;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
