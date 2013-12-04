@@ -49,11 +49,11 @@ public class TestWebRecordHarvestJob extends TestCase {
     return resource;
   }
   
-  public void TestMarc21TransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
+  public void testMarc21TransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
     testSAXTransformation("resources/marcxml.xml", "resources/marc21.xsl");
   }
 
-  public void TestTurboMarcTransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
+  public void testTurboMarcTransformationSAX() throws ParserConfigurationException, SAXException, TransformerException {
     testSAXTransformation("resources/tmarc.xml", "resources/tmarc.xsl");
   }
 

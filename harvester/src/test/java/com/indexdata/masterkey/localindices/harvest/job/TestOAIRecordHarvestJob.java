@@ -112,7 +112,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue("FromDate not correct " + fromDate, fromDate.equals(midDate));
     resource.setUntilDate(lastDate);
     job = doXDaysHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished" + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
@@ -164,7 +164,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 858, 0, 858); // Previous test 2011-11-31 until 2012-01-31 gave 675
+    checkStorageStatus(recordStorage.getStatus(), 860, 0, 860); // Previous test gave 858 
   }
 
   public void testClean10DaysOaiPmhJob_OaiMarc21() throws IOException, StatusNotImplemented {
@@ -260,11 +260,12 @@ public class TestOAIRecordHarvestJob extends JobTester {
   }
 
   protected RecordStorage createCustomStorage(Harvestable resource, String storageName, String url, boolean clear) throws IOException {
-    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(url, resource);
-    recordStorage.setWaitSearcher(true);
     SolrStorageEntity storageEntity = new SolrStorageEntity();
     storageEntity.setName(storageName);
     storageEntity.setId(resource.getId());
+    resource.setStorage(storageEntity);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(url, resource);
+    recordStorage.setWaitSearcher(true);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
     if (clear) {
       recordStorage.begin();

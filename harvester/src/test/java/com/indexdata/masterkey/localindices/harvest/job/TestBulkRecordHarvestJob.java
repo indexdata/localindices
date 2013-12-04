@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServer;
 
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
@@ -45,7 +46,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String solrUrl = "http://localhost:8585/solr/";
   String solrBadUrl = "http://localhost:8686/solrbad/";
   SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
-  SolrServer solrServer = factory.create();
+  //SolrServer solrServer = factory.create();
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema,
       String splitAt, String size, boolean overwrite) throws IOException {
@@ -109,7 +110,11 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private RecordStorage createStorage(boolean clear, XmlBulkResource resource) throws IOException,
       StatusNotImplemented {
-    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrServer, resource));
+    SolrStorageEntity storageEntity = new SolrStorageEntity(); 
+    storageEntity.setId(resource.getId());
+    storageEntity.setName(solrUrl);
+    resource.setStorage(storageEntity);
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(factory.create(), resource));
   }
 
   private class StorageCreator {
@@ -421,6 +426,10 @@ public class TestBulkRecordHarvestJob extends JobTester {
 	null, 1, 1, false);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(false));
+    SolrStorageEntity storageEntity = new SolrStorageEntity();
+    storageEntity.setName("Bad Storage");
+    storageEntity.setId(resource.getId());
+    resource.setStorage(storageEntity);
     RecordStorage recordStorage = initializeStorage(false, resource, new BulkSolrRecordStorage(
 	solrBadUrl, resource));
 
