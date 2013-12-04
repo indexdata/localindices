@@ -125,6 +125,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logError(subject, e.getMessage());
       mailMessage(subject, message);
     } finally {
+      getStorage().shutdown();
       logger.close();
     }
   }

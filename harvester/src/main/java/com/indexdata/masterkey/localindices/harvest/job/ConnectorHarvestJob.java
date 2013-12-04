@@ -99,6 +99,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       resource.setResumptionToken(startResumptionToken);
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
     }
+    finally {
+      getStorage().shutdown();
+      logger.close();
+    }
   }
 
   @SuppressWarnings("deprecation")
