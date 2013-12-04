@@ -101,4 +101,15 @@ public class SingleFileRecordStorage extends SingleFileStorage implements Record
     return new Pz2SolrRecordContentHandler(this, null);
   }
 
+  @Override
+  public void shutdown() {
+    try {
+      fos.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  
 }

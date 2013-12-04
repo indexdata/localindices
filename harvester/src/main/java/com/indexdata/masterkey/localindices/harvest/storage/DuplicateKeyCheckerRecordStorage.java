@@ -131,4 +131,9 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void shutdown() {
+    // TODO Auto-generated method stub
+  }
 }

@@ -80,7 +80,8 @@ public class SolrStorageStatus extends AbstractStorageStatus {
     return outstandingDeletes;
   }
 
-  void setTransactionState(TransactionState state) {
+  @Override
+  public void setTransactionState(TransactionState state) {
     if (state == TransactionState.Committed) {
       adds = outstandingAdds;
       deletes = outstandingDeletes;

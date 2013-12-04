@@ -10,6 +10,7 @@ public interface StorageStatus {
   }
   Long getTotalRecords();
   TransactionState getTransactionState();
+  void setTransactionState(TransactionState state);
   Long getOutstandingAdds();
   Long getOutstandingDeletes();
   Long getAdds();

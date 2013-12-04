@@ -30,4 +30,7 @@ public interface RecordStorage extends HarvestStorage {
   
   // SAX ContentHandler
   DatabaseContenthandler getContentHandler();
+  
+  // Some storages needs to close resources/shutdown connections. 
+  void shutdown(); 
 }

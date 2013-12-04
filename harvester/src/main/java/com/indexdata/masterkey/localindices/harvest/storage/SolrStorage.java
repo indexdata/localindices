@@ -53,7 +53,7 @@ public class SolrStorage implements HarvestStorage {
   protected Collection<SolrInputDocument> documentList = null;
   private boolean override = false;
   String storageId = "";  
-  protected SolrStorageStatus storageStatus;
+  protected StorageStatus storageStatus;
   String databaseField = "database:";
   
   public SolrStorage() {
@@ -92,7 +92,8 @@ public class SolrStorage implements HarvestStorage {
 	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
       }
       setStorageId(storage.getId().toString());
-      url = storage.getUrl();
+      if (storage.getUrl() != null)
+	url = storage.getUrl();
       logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);

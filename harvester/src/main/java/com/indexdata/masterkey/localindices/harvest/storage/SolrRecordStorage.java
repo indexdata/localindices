@@ -209,7 +209,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (updateResponse.getStatus() != 0)
 	logger.error("Add record (" + document + ") failed. Status: " + updateResponse.getStatus());
       else
-	storageStatus.incrementAdd(1);
+	((SolrStorageStatus) storageStatus).incrementAdd(1);
     } catch (SolrServerException e) {
       logger.error("SolrServer Exception on add: " + e.getMessage(), e);
       e.printStackTrace();
@@ -281,7 +281,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       if (updateResponse.getStatus() != 0)
 	logger.error("Delete record (" + ids + ") failed. Status: " + updateResponse.getStatus());
       else
-	storageStatus.incrementAdd(1);
+	((SolrStorageStatus) storageStatus).incrementDelete(1);
     } catch (SolrServerException e) {
       logger.error("SolrServer Exception  on delete: " + e.getMessage());
       e.printStackTrace();
@@ -336,6 +336,13 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   public void setWaitSearcher(boolean waitSearcher) {
     this.waitSearcher = waitSearcher;
+  }
+
+  @Override
+  public void shutdown() {
+    storageStatus =  new SimpleStorageStatus(storageStatus);
+    logger.info("SolrRecordStorage shutdown");
+    server.shutdown();
   }
 
 }
