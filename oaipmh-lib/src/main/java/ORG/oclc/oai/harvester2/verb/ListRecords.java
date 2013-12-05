@@ -41,7 +41,8 @@ public class ListRecords extends HarvesterVerb {
     /**
      * Mock object constructor (for unit testing purposes)
      */
-  String baseUrl; 
+    String baseUrl; 
+    
     public ListRecords() {
         super();
     }
