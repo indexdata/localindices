@@ -13,6 +13,8 @@
  */
 package ORG.oclc.oai.harvester2.verb;
 
+import ORG.oclc.oai.harvester2.data.IdentityInputStreamWrapper;
+import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +69,7 @@ import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 
 import com.indexdata.io.FailsafeXMLCharacterInputStream;
 import com.indexdata.utils.TextUtils;
+import java.io.UnsupportedEncodingException;
 
 /**
  * HarvesterVerb is the parent class for each of the OAI verbs.
@@ -82,6 +85,7 @@ public abstract class HarvesterVerb {
   private String requestURL;
   private Document doc = null;
   private String schemaLocation = null;
+  private InputStreamWrapper isw = new IdentityInputStreamWrapper();
   private static HashMap<Thread, DocumentBuilder> builderMap =
     new HashMap<Thread, DocumentBuilder>();
   public static Element namespaceElement = null;
@@ -294,6 +298,22 @@ public abstract class HarvesterVerb {
     logger = jobLogger;
     harvest(requestURL, proxy, encodingOverride);
   }
+  
+  /**
+   * Parse OAI-PMH response from the provided input stream.
+   * @param is
+   * @param encodingOverride
+   * @param contentLength
+   * @throws TransformerException
+   * @throws IOException
+   * @throws ParserConfigurationException
+   * @throws ResponseParsingException 
+   */
+  public void harvest(InputStream is, String encodingOverride, int contentLength) 
+    throws TransformerException, IOException, ParserConfigurationException, 
+    ResponseParsingException{
+    parseResponse(is, encodingOverride, contentLength);
+  }
 
   /**
    * Preforms the OAI request
@@ -404,16 +424,23 @@ public abstract class HarvesterVerb {
     }
 
     int contentLength = con.getContentLength();
+    //why aren't we looking at the Content-Type header to establish encoding?
+    parseResponse(in, encodingOverride, contentLength);
+  }
+  
+  private void parseResponse(InputStream in, String charset,
+    int contentLength) throws TransformerException, IOException,
+    ParserConfigurationException, UnsupportedEncodingException,
+    TransformerFactoryConfigurationError {
     InputSource data = new InputSource();
     BufferedInputStream bin;
-
-    if (encodingOverride == null || "".equals(encodingOverride)) {
+    if (charset == null || "".equals(charset)) {
       bin = new BufferedInputStream(new FailsafeXMLCharacterInputStream(in));
-      data.setByteStream(bin);
+      data.setByteStream(isw.wrap(bin));
     } else {
-      logger.log(Level.INFO, "Enforcing encoding override: '" + encodingOverride + "'");
+      logger.log(Level.INFO, "Enforcing charset: '" + charset + "'");
       bin = new BufferedInputStream(in);
-      Reader reader = new InputStreamReader(bin, encodingOverride);
+      Reader reader = new InputStreamReader(isw.wrap(bin), charset);
       data.setCharacterStream(reader);
     }
 
@@ -435,15 +462,15 @@ public abstract class HarvesterVerb {
         logResponse(bin, Level.TRACE);
       }
     } catch (SAXException saxe) {
-	String resp;
-	try {
-	  bin.reset();
-	  resp = TextUtils.readStream(bin);
-	} catch (IOException ioe) {
-	  resp = "<unreadable response>";
-	}
-	throw new ResponseParsingException("Cannot parse response: " + 
-        saxe.getMessage(), saxe, resp, requestURL);
+        String resp;
+        try {
+          bin.reset();
+          resp = TextUtils.readStream(bin);
+        } catch (IOException ioe) {
+          resp = "<unreadable response>";
+        }
+        throw new ResponseParsingException("Cannot parse response: " + 
+          saxe.getMessage(), saxe, resp, requestURL);
     } finally {
       bin.close();
     }
@@ -678,4 +705,13 @@ public abstract class HarvesterVerb {
   public void setHttpTimeout(int httpTimeout) {
     this.httpTimeout = httpTimeout;
   }
+
+  public InputStreamWrapper getInputStreamWrapper() {
+    return isw;
+  }
+
+  public void setInputStreamWrapper(InputStreamWrapper isw) {
+    this.isw = isw;
+  }
+  
 }

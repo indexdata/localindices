@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Proxy;
@@ -35,10 +36,20 @@ import ORG.oclc.oai.harvester2.verb.OaiPmhException;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import java.io.InputStream;
+
+import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -121,10 +132,13 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // we don't need to compare from/until dates, let the server fail it
     try {
       getStorage().setOverwriteMode(resource.getOverwrite());
-      
+      DiskCache dc = new DiskCache(resource.getId());
+      if (resource.getOverwrite()) {
+        if (!resource.isDiskRun()) dc.purge();
+      }
       harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
-	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage());
+	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage(), dc);
       if (HarvestStatus.RUNNING == getStatus()) {
 	// This shouldn't be possible 
 	logger.warn("Got RUNNING state at job end.");
@@ -235,7 +249,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   protected void harvest(String baseURL, String from, String until, String metadataPrefix,
-      String setSpec, String resumptionToken, RecordStorage storage) throws 
+      String setSpec, String resumptionToken, RecordStorage storage, final DiskCache dc) throws 
       	TransformerException, IOException, ParserConfigurationException
       {
 
@@ -243,12 +257,30 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     listRecords.setHttpRetries(resource.getRetryCount());
     listRecords.setHttpTimeout(resource.getTimeout() );
     listRecords.setHttpRetryWait(resource.getRetryWait());
-    
-    if (resumptionToken == null || "".equals(resumptionToken)) {
+    if (!resource.isDiskRun() && resource.isCacheEnabled()) {
+      listRecords.setInputStreamWrapper(new InputStreamWrapper() {
+        @Override
+        public InputStream wrap(InputStream is) throws IOException {
+          return new CachingInputStream(is, joinPath(dc.getJobPath(), dc.proposeName()));
+        }
+      });
+    }
+    Queue<String> cacheQ = null;
+    if (resource.isDiskRun()) {
+      logger.log(Level.INFO, "OAI harvest restarted from the disk cache.");
+      cacheQ = new LinkedList<String>(Arrays.asList(dc.list()));
+      String next = cacheQ.poll();
+      if (next != null) {
+        logger.info("Processing cached response at '"+next+"'.");
+        File nextF = new File(next);
+        listRecords.harvest(new FileInputStream(nextF), resource.getEncoding(), (int) nextF.length());
+      } else {
+        logger.warn("Job disk cache is empty.");
+      }
+    } else if (resumptionToken == null || "".equals(resumptionToken)) {
       logger.log(Level.INFO, "OAI-PMH harvesting in " + metadataPrefix + " format from: "  
 	  + formatDate(resource.getFromDate()) + " until: " + formatDate(resource.getUntilDate()) + ", date format used as shown.");
       listRecords.harvest(from, until, setSpec, metadataPrefix, proxy, resource.getEncoding());
-      
     } else {
       logger.log(Level.INFO, "OAI harvest restarted using Resumption Token " + resource.getResumptionToken() + ".");
       listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
@@ -310,7 +342,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  throw e;
 	}
       }
-      if (resumptionToken == null || resumptionToken.length() == 0) {
+      if (!resource.isDiskRun() && resumptionToken == null || resumptionToken.length() == 0) {
 	logger.log(Level.INFO, "" + count + " Records fetched. No resumptionToken received, harvest done.");
 	setStatus(HarvestStatus.OK);
 	break;
@@ -319,7 +351,21 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	resource.setResumptionToken(resumptionToken);
 	markForUpdate();
 	try {
-	  listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
+          if (resource.isDiskRun()) {
+            String next = cacheQ.poll();
+            if (next != null) {
+              logger.info("Processing cached response at '"+next+"'.");
+              File nextF = new File(next);
+              listRecords.harvest(new FileInputStream(nextF), 
+                resource.getEncoding(), (int) nextF.length());
+            } else {
+              logger.info("No more files to process in the cache.");
+              setStatus(HarvestStatus.OK);
+              break;
+            }
+          } else {
+            listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
+          }
 	} catch (ResponseParsingException hve) {
 	  String msg = "ListRecords (" + hve.getRequestURL() + ") failed. " + hve.getMessage();
 	  // dumping the response may cause IO Exception

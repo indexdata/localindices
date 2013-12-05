@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.net.Proxy;
 
 import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.BufferedInputStream;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -162,10 +163,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
     
     @Override
     public void readAndStore() throws Exception {
-      MarcStreamReader reader  = new MarcStreamReader(input, encoding);
-      reader.setBadIndicators(false);
-      while (iterator.hasNext()) {
-	store(reader, -1);      
+      try {
+        MarcStreamReader reader  = new MarcStreamReader(input, encoding);
+        reader.setBadIndicators(false);
+        while (iterator.hasNext()) {
+          store(reader, -1);      
+        }
+      } finally {
+        //failure to close the input stream will result in malformed cached data
+        //and leaking fds
+        input.close();
       }
     }
   }
@@ -184,9 +191,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }    
     @Override
     public void readAndStore() throws Exception {
-      
-      while (iterator.hasNext())
-	store(input, contentLength); 
+      try {
+        while (iterator.hasNext())
+          store(input, contentLength);
+      } finally {
+        input.close();
+      }
     }
   }
 
@@ -224,15 +234,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
     if ("application/x-gzip".equals(contentType))
       isDec = new GZIPInputStream(isDec);
     else if ("application/zip".equals(contentType)) {
-      ZipInputStream zipInput = new ZipInputStream(isDec) {
-        @Override
-	public void close() throws IOException {
-          //zip contains multile entries, don't close the stream at this point
-	}
-      };
+      ZipInputStream zipInput = new ZipInputStream(isDec);
       streamIterator = new ZipStreamIterator(zipInput);
       isDec = zipInput;
     }
+    //buffer reads
+    isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
     if (cacheFile != null) {
       isDec = new CachingInputStream(isDec, cacheFile);
