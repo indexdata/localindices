@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.net.Proxy;
 
 import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.BufferedInputStream;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -233,6 +234,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
       streamIterator = new ZipStreamIterator(zipInput);
       isDec = zipInput;
     }
+    //buffer reads
+    isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
     if (cacheFile != null) {
       isDec = new CachingInputStream(isDec, cacheFile);

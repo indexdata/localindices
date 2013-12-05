@@ -45,7 +45,6 @@ public class SchedulerUpDownListener implements ServletContextListener {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
   public void contextInitialized(ServletContextEvent servletContextEvent) {
-
     logger.log(Level.INFO, "Harvester context is being initialized...");
     ServletContext ctx = servletContextEvent.getServletContext();
     // load default, fallback settings

@@ -5,24 +5,26 @@
  */
 package com.indexdata.masterkey.localindices.harvest.cache;
 
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  *
  * @author jakub
  */
 public class CachingInputStream extends FilterInputStream {
-  private FileOutputStream fos;
+  private OutputStream os;
   private final boolean isWrite;
 
   public CachingInputStream(InputStream in, String fileName) throws FileNotFoundException {
     super(in);
-    fos = new FileOutputStream(fileName, false);
+    os = new BufferedOutputStream(new FileOutputStream(fileName, false));
     isWrite = true;
   }
   
@@ -34,31 +36,31 @@ public class CachingInputStream extends FilterInputStream {
   @Override
   public int read() throws IOException {
     int b = super.read();
-    if (isWrite && b != -1) fos.write(b);
+    if (isWrite && b != -1) os.write(b);
     return b;
   }
 
   @Override
   public int read(byte[] b) throws IOException {
     int len = super.read(b);
-    if (isWrite && len != -1) fos.write(b, 0, len);
+    if (isWrite && len != -1) os.write(b, 0, len);
     return len;
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     int l = super.read(b, off, len);
-    if (isWrite && l != -1) fos.write(b, off, l);
+    if (isWrite && l != -1) os.write(b, off, l);
     return l;
   }
 
   @Override
   public void close() throws IOException {
     super.close();
-    fos.close();
+    os.close();
   }
   
   public void closeCache() throws IOException {
-    if (fos != null) fos.close();
+    if (os != null) os.close();
   }
 }
