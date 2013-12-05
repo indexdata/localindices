@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -18,6 +19,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 public abstract class JobTester extends TestCase {
   
   public JobTester() {
+    File directory = new File("diskcache");
+    if (!directory.exists())
+      directory.mkdir();
     TestDiskCache.setDiskCacheBasePath("diskcache");
   }
 
