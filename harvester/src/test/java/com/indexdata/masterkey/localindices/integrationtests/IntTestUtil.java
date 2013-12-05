@@ -25,7 +25,8 @@ public class IntTestUtil {
   public final static String HOST = "localhost";
   //WS is trailing slash sensitive
   public final static String PATH = "harvester/";
-  public final static int PORT = Integer.parseInt(System.getProperty("jetty.port"));
+  public final static String PORT_STRING = System.getProperty("jetty.port");
+  public final static int PORT = Integer.parseInt((PORT_STRING == null ? "9090" : PORT_STRING));
   public final static String ROOT_URI = "http://"+HOST+":"+PORT+"/"+PATH;
   
   public static class TestException extends Exception {
