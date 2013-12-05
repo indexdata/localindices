@@ -2,8 +2,6 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
 
-import org.apache.solr.client.solrj.SolrServer;
-
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -438,7 +436,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.ERROR);
     String errorMessage = resource.getMessage();
     assertTrue("Wrong Error message: " + errorMessage,
-	"Commit failed: Server refused connection at: http://localhost:8686/solrbad"
+	"Solr Server Exception while adding records: Server refused connection at: http://localhost:8686/solrbad"
 	    .equals(errorMessage));
   }
 
