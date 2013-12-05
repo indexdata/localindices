@@ -1,5 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.IOException;
+
 import com.indexdata.masterkey.localindices.harvest.storage.DatabaseContenthandler;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorageProxy;
@@ -44,7 +46,7 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown() throws IOException {
     getTarget().shutdown();
   }
 

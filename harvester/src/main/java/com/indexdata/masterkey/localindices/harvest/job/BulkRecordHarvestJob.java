@@ -5,9 +5,11 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.File;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -18,8 +20,7 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import java.io.File;
-import java.util.Date;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
@@ -124,7 +125,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.ERROR, message);
       // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
-        getStorage().rollback();
+	if (e instanceof StorageException)
+	  logger.info("No attempt to rollback due to StorageException");
+	else
+	  getStorage().rollback();
       } catch (Exception ioe) {
 	message += "Roll-back failed: " + ioe.getMessage();  
         logger.error(message);
@@ -133,9 +137,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logError(subject, e.getMessage());
       mailMessage(subject, message);
     } finally {
-      resource.setDiskRun(false);
-      getStorage().shutdown();
-      logger.close();
+      shutdown();
     }
   }
 

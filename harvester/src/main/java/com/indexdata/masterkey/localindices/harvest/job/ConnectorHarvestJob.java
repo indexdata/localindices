@@ -100,8 +100,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
     }
     finally {
-      getStorage().shutdown();
-      logger.close();
+      shutdown();
     }
   }
 

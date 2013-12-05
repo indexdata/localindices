@@ -189,4 +189,14 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     getHarvestable().setMessage(message);
     logger.error(logSubject + ": " +  message);
   }
+  
+  protected void shutdown() {
+    getHarvestable().setDiskRun(false);
+    try {
+	getStorage().shutdown();
+    } catch (IOException ioe) {
+	logger.warn("Storage shutdown exception: " + ioe.getMessage());
+    }
+    logger.close();
+  }
 }

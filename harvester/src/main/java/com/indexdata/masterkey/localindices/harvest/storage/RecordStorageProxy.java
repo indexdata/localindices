@@ -102,7 +102,7 @@ public abstract class RecordStorageProxy implements RecordStorage {
   public abstract DatabaseContenthandler getContentHandler();
 
   @Override
-  public void shutdown() {
+  public void shutdown() throws IOException {
     storage.shutdown();
   }
 }

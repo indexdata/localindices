@@ -23,9 +23,15 @@ public class RecordStorageConsumer implements MessageConsumer {
   @Override
   public void accept(Node xmlNode) {
     Record record = new RecordDOMImpl(null, null, xmlNode);
-    recordStorage.add(record);
-    if (++added % 1000 == 0)
+    try {
+      recordStorage.add(record);
+      if (++added % 1000 == 0)
       	logger.info("Fetched " + added + " records.");
+    } catch (RuntimeException ioe) {
+      	String msg = "Failed to add record." + record;
+      	logger.info(msg);
+    	throw ioe;
+    }
   }
 
   @Override
