@@ -55,4 +55,12 @@ public class TextUtils {
     br.close();
     return sb.toString();
   }
+  
+  public static String basename(String path) {
+    if (path.endsWith("/")) {
+      path = path.substring(0, path.length()-1);
+    }
+    int idx = path.lastIndexOf('/');
+    return idx == -1 ? path : path.substring(idx+1);
+  }
 }

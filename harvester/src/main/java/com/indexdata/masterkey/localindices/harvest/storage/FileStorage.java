@@ -109,7 +109,6 @@ public class FileStorage implements RecordStorage {
   @Override
   public void databaseEnd() {
     logger.debug("Database ended: " + database);
-    
   }
 
   @Override
@@ -147,6 +146,17 @@ public class FileStorage implements RecordStorage {
   @Override
   public DatabaseContenthandler getContentHandler() {
     return new Pz2SolrRecordContentHandler(this, database);
+  }
+
+  @Override
+  public void shutdown() {
+    logger.debug("Closing Storage");
+    try {
+      out.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.debug("Exception while closing output: " + e.getMessage());
+    }
   }
 
 }

@@ -69,7 +69,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 	throw new RuntimeException("Error adding documents. HTTP error: " + response.getStatus());
       }
       else {
-	 storageStatus.incrementAdd(no_docs);
+	((SolrStorageStatus) storageStatus).incrementAdd(no_docs);
 	 docs = new LinkedList<SolrInputDocument>();
       }
     } catch (SolrException ste) {
@@ -99,7 +99,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       if (response.getStatus() != 0)
 	logger.error("Error deleting documents: " + response.getResponse());
       else
-	storageStatus.incrementDelete(no_docs);
+	((SolrStorageStatus) storageStatus).incrementDelete(no_docs);
       deleteIds = new LinkedList<String>();
     } catch (SolrServerException e) {
       // TODO Add to failed records queue

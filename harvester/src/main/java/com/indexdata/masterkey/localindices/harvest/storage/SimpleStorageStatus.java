@@ -21,6 +21,13 @@ public class SimpleStorageStatus extends AbstractStorageStatus {
     this.state = (committed ? TransactionState.Committed : TransactionState.InTransaction);
   }
 
+  public SimpleStorageStatus(StorageStatus status) {
+    this.adds = status.getAdds();
+    this.deletes = status.getDeletes();
+    this.total = status.getTotalRecords();
+    this.state = status.getTransactionState();
+  }
+
   @Override
   public Long getTotalRecords() {
     if (total == null)
@@ -59,5 +66,10 @@ public class SimpleStorageStatus extends AbstractStorageStatus {
   @Override
   public TransactionState getTransactionState() {
     return state;
+  }
+
+  @Override
+  public void setTransactionState(TransactionState state) {
+    this.state = state;
   }
 }

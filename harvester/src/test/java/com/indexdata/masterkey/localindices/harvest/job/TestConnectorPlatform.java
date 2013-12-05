@@ -22,6 +22,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import java.net.Proxy;
 
 import java.util.Date;
 
@@ -34,8 +35,8 @@ public class TestConnectorPlatform extends JobTester {
   String acceConnectorWithAuth    = "aace_harvester.7.cf";
   String acceConnectorWithOutAuth = "aace_harvester.8.cf";
   String solrUrl = "http://localhost:8585/solr/";
-  SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
-  SolrServer solrServer = factory.create();
+  //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
+  //SolrServer solrServer = factory.create();
 
   
   private Transformation createPzTransformation(boolean inParallel) throws IOException {
@@ -92,10 +93,12 @@ public class TestConnectorPlatform extends JobTester {
   }
 
   private RecordStorage createStorage(HarvestConnectorResource resource, boolean clean) throws IOException {
-    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrServer, resource);
     Storage storageEntity = new SolrStorageEntity();
     storageEntity.setId(1l);
     storageEntity.setUrl(solrUrl);
+    storageEntity.setName(solrUrl);
+    resource.setStorage(storageEntity);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setWaitSearcher(true);
     if (clean) {
       recordStorage.begin();
@@ -135,6 +138,7 @@ public class TestConnectorPlatform extends JobTester {
     StorageStatus firstStatus = recordStorage.getStatus();
     resource.setConnector(acceConnectorWithOutAuth);
     resource.setOverwrite(true);
+    recordStorage = createStorage(resource, true);
     job = doHarvestJob(recordStorage, resource);
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
     StorageStatus storageStatus = recordStorage.getStatus();
@@ -144,7 +148,8 @@ public class TestConnectorPlatform extends JobTester {
 
   @SuppressWarnings("unused")
   private JSONObject testCreateHarvestRequest(HarvestConnectorResource resource, String resumptiontoken, Date startDate, Date endDate) throws ParseException {
-    HarvestConnectorClient client = new HarvestConnectorClient(resource, null);
+    HarvestConnectorClient client = new HarvestConnectorClient(resource, null,
+      Proxy.NO_PROXY, null, null);
     return client.createHarvestRequest(resumptiontoken, startDate, endDate);
   }
 

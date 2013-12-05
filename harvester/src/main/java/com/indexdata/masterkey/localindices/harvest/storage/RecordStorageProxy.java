@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public abstract class RecordStorageProxy implements RecordStorage {
   RecordStorage storage;
@@ -89,5 +90,19 @@ public abstract class RecordStorageProxy implements RecordStorage {
   @Override
   public void setHarvestable(Harvestable harvestable) {
     storage.setHarvestable(harvestable);
+  }
+
+  @Override
+  public abstract void setLogger(StorageJobLogger logger);
+
+  @Override
+  public abstract StorageStatus getStatus() throws StatusNotImplemented;
+
+  @Override
+  public abstract DatabaseContenthandler getContentHandler();
+
+  @Override
+  public void shutdown() {
+    storage.shutdown();
   }
 }

@@ -31,7 +31,7 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
  * the Harvestable's properties excluding the STATUS, the status has to be
  * handled on the higher level.
  * 
- * @author jakub
+ * @author Jakub
  */
 public class OAIHarvestJob extends AbstractHarvestJob {
   private StorageJobLogger logger; 
@@ -92,6 +92,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
 
   @Override
   public void run() {
+    try {
     setStatus(HarvestStatus.RUNNING);
     this.resource.setMessage(null);
     // figure out harvesting period, even though we may end up using
@@ -146,6 +147,14 @@ public class OAIHarvestJob extends AbstractHarvestJob {
       } catch (IOException ioe) {
 	logger.log(Level.ERROR, "Storage rollback failed.");
       }
+    }
+    } catch (Exception e) {
+      logger.error("Uncaugth exception: " + e.getMessage());
+      e.printStackTrace();
+    }
+    finally {
+      //getStorage().close();
+      logger.close();
     }
   }
 
@@ -260,7 +269,7 @@ public class OAIHarvestJob extends AbstractHarvestJob {
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 }

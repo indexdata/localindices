@@ -128,7 +128,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     logger.log(Level.INFO, "Scheduler created, started and placed in the context.");
   }
 
-  public ServletContext getContext() {
+  public final static ServletContext getContext() {
     return null;
   };
 

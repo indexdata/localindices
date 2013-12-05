@@ -6,17 +6,24 @@ import java.net.Proxy;
 import java.net.URL;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class AbstractHarvestClient implements HarvestClient {
-
-  protected Harvestable resource;
-  protected Proxy proxy; 
-  protected StorageJobLogger logger; 
-  public AbstractHarvestClient(Harvestable resource, Proxy proxy, StorageJobLogger logger) {
+  protected final RecordHarvestJob job;
+  protected final Harvestable resource;
+  protected final Proxy proxy; 
+  protected final StorageJobLogger logger; 
+  protected final DiskCache diskCache;
+  
+  public AbstractHarvestClient(Harvestable resource, RecordHarvestJob job,
+    Proxy proxy, StorageJobLogger logger, DiskCache diskCache) {
+    this.resource = resource;
+    this.job = job;
     this.logger = logger;
     this.proxy = proxy;
-    this.resource = resource;
+    this.diskCache = diskCache;
   }
 
   
@@ -41,14 +48,21 @@ public class AbstractHarvestClient implements HarvestClient {
     return conn; 
   }
 
-
-  public void setProxy(Proxy newProxy) {
-    proxy = newProxy;
+  public RecordHarvestJob getJob() {
+    return job;
   }
 
-
-  public void setLogger(StorageJobLogger newLogger) {
-    logger = newLogger;
+  public Harvestable getResource() {
+    return resource;
   }
+
+  public Proxy getProxy() {
+    return proxy;
+  }
+
+  public StorageJobLogger getLogger() {
+    return logger;
+  }
+  
 
 }

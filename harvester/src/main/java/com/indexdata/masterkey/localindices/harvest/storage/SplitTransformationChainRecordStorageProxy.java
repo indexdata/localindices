@@ -68,6 +68,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
       // Close the output so the PipedInputStream will get the EOF.
       output.flush();
       output.close();
+      output = null;
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -75,6 +76,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     // has finished
     try {
       thread.join();
+      thread = null;
     } catch (InterruptedException e) {
       if (logger != null) 
 	logger.error("Interrupted before joined", e);
@@ -111,6 +113,23 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
 
   public void setClosed(boolean closed) {
     this.closed = closed;
+  }
+
+  @Override
+  public void shutdown() {
+      try {
+	if (output != null) {
+	  logger.error("Closing Storage before commit/rollback");
+	  output.flush();
+	  output.close();
+	}
+	if (thread != null)
+	  thread.join();
+      } catch (Exception e) {
+	logger.warn("Exception while closing: " + e.getMessage());
+	e.printStackTrace();
+      }
+    super.shutdown();
   }
 
 }

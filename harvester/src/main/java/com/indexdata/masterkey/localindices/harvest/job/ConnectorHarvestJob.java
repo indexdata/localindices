@@ -31,6 +31,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private Proxy proxy;
   private RecordStorage streamTransformationStorage;
   private Thread jobThread = null;
+  
   public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
@@ -70,8 +71,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       storage.databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
           storage.purge(false);
-      HarvestConnectorClient client = new HarvestConnectorClient(resource, proxy);
-      client.setHarvestJob(this);
+      HarvestConnectorClient client = new HarvestConnectorClient(resource, this, proxy, logger, null);
       // The client will build it's URLs 
       client.download(null);
       if (getStatus() == HarvestStatus.RUNNING)
@@ -99,6 +99,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       resource.setResumptionToken(startResumptionToken);
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
     }
+    finally {
+      getStorage().shutdown();
+      logger.close();
+    }
   }
 
   @SuppressWarnings("deprecation")
@@ -118,7 +122,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
  

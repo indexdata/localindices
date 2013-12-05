@@ -197,7 +197,7 @@ public class BulkHarvestJob extends AbstractHarvestJob  {
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 }

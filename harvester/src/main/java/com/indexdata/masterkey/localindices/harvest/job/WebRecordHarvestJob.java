@@ -450,7 +450,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 } // class WebHarvestJob

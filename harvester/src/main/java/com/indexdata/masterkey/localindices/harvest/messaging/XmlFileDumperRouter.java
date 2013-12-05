@@ -48,7 +48,7 @@ public class XmlFileDumperRouter implements MessageRouter {
   private String charname = "UTF-8";
   private Thread workerThread = null;
   private boolean running = true;
-  HarvestJob job;
+  RecordHarvestJob job;
   StorageJobLogger logger;
   CustomTransformationStep step; 
   OutputStream out = System.err; 
@@ -56,6 +56,7 @@ public class XmlFileDumperRouter implements MessageRouter {
   int count = 0; 
   String filename;
   public XmlFileDumperRouter(TransformationStep step, RecordHarvestJob job) {
+    this.job = job;
     logger = job.getLogger();
     if (step instanceof CustomTransformationStep) {
       this.step = (CustomTransformationStep) step;
@@ -96,6 +97,11 @@ public class XmlFileDumperRouter implements MessageRouter {
 	filename = map.get("file").toString();
 	File file = new File(filename);
 	boolean append = false;
+	if (map.get("append_id") != null)
+	  if ("true".equals(map.get("append_id"))) {
+	    filename = filename + job.getHarvestable().getId();
+	  }
+	out = new FileOutputStream(file, append);
 	if (map.get("append") != null)
 	  append = "true".equals(map.get("append"));
 	out = new FileOutputStream(file, append);
@@ -158,6 +164,7 @@ public class XmlFileDumperRouter implements MessageRouter {
 	transformer.transform(xmlSource, result);
 	if (out != null && (count++) % sampling == 0) {
 	  out.write(byteOutput.toString().getBytes());
+	  out.write("\n".getBytes());
 	  out.flush();
 	}
 	produce(record);

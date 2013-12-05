@@ -125,4 +125,9 @@ public class ConsoleRecordStorage implements RecordStorage {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void shutdown() {
+    message("Closing/shutdown ConsoleStorage");
+  }
 }

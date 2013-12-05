@@ -43,4 +43,9 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
     return getTarget().getContentHandler();
   }
 
+  @Override
+  public void shutdown() {
+    getTarget().shutdown();
+  }
+
 }

@@ -106,6 +106,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
+    try {
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
     resource.setMessage(null);
@@ -226,6 +227,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	resource.setResumptionToken(startResumptionToken);
       }
     }
+    } catch(Exception e) {
+      logger.error("Unhandled Exception: " + e.getMessage());
+    }
+    getStorage().shutdown();
     logger.close();
   }
 
@@ -396,7 +401,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   @Override
-  protected Harvestable getHarvestable() {
+  public Harvestable getHarvestable() {
     return resource;
   }
 
