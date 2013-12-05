@@ -179,7 +179,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
 	logger.log(Level.INFO, subject + msg);
 	mailMessage(subject, msg);
-      } catch (IOException e) {
+      } catch (Exception e) {
         String subject = "Storage commit failed: ";
         String errorMessage = e.getMessage();
 	logError(subject, errorMessage);
