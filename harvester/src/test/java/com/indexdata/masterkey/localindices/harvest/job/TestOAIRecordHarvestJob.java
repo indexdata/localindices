@@ -111,12 +111,14 @@ public class TestOAIRecordHarvestJob extends JobTester {
     Date fromDate = resource.getFromDate();
     assertTrue("FromDate not correct: " + fromDate, fromDate.equals(midDate));
     resource.setUntilDate(lastDate);
+    recordStorage = createStorage(resource, methodName + "(second)", true);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
     resource.setOverwrite(true);
+    recordStorage = createStorage(resource, methodName + "(third)", true);
     job = doXDaysHarvestJob(recordStorage, resource);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
     fromDate = resource.getFromDate();
