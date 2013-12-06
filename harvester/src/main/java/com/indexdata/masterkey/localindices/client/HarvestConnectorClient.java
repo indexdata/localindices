@@ -94,6 +94,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           logger.warn("Invoking task '"+toString()+"' failed with unretriable error, giving up task");
           finalException = ue;
           return false;
+        } catch (StopException e) {
+          logger.info("Received Stop Exception. Reason: " + e.getMessage());
+          return true; 
         } catch (Exception e) {
           boolean retry = tried <= maxRetries;
           logger.warn("Invoking task '"+toString()+"' failed, "
