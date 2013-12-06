@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.xml.transform.TransformerConfigurationException;
 
+import com.indexdata.masterkey.localindices.client.StopException;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
@@ -25,7 +26,9 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   private RecordHarvestJob job; 
   private List<TransformationStep> steps;
   private String databaseID;
-  private MessageRouter<Object>[] messageRouters; 
+  private MessageRouter<Object>[] messageRouters;
+  private int count = 0; 
+  private Integer limit = null; 
   
   
   public ThreadedTransformationRecordStorageProxy(RecordStorage storage, 
@@ -34,6 +37,7 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
     setTarget(storage);
     this.steps = steps;
     this.job = job;
+    limit = job.getHarvestable().getRecordLimit();
     this.logger = job.getLogger();
     setupRouters();
   }
@@ -112,6 +116,12 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
 	    super.delete(record.getId());
 	  else
 	    super.add(record);
+	  count++;
+	  if (limit != null && limit > 0 && count >= limit) {
+	    String msg = "Stop requested after " + limit + " records";
+	    logger.info(msg);
+	    throw new StopException(msg);
+	  }
 	}
 	else {
 	  logger.error("Unsupported message type: " + object.getClass());

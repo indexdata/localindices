@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.xml.transform.TransformerConfigurationException;
 
+import com.indexdata.masterkey.localindices.client.StopException;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
@@ -24,6 +25,8 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   private MessageProducer<Object> source;
   private MessageQueue<Object> result = new BlockingMessageQueue<Object>();
   private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
+  private int count = 0;
+  private Integer limit = null;
   
   public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
@@ -31,6 +34,9 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
     this.steps = steps;
     this.job = job;
     this.logger = job.getLogger();
+    if (job.getHarvestable().getRecordLimit() != null) {
+      limit = job.getHarvestable().getRecordLimit();
+    }
     setupRouters();
   }
 
@@ -38,6 +44,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
     source.put(record);
     if (!result.isEmpty()) {
 	Object obj = result.take();
+	count++;
 	if (obj instanceof Record)
 	  return (Record) obj;
 	else {
@@ -47,6 +54,13 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
     return null;
   }
     
+  private void testLimit() {
+    if (limit != null && limit > 0 && count >= limit) {
+      String msg = "Stop requested after " + limit + " records";
+      logger.info(msg);
+      throw new StopException(msg);
+    }
+  }
 
   @Override 
   public void add(Record record) {
@@ -61,6 +75,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
 	else {
 	  logger.warn("Record filtered out" + record);
 	}
+	testLimit();
 	break;
       } catch (InterruptedException e) {
 	e.printStackTrace();
