@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Proxy;
@@ -34,6 +35,7 @@ import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
 import ORG.oclc.oai.harvester2.verb.OaiPmhException;
 
+import com.indexdata.masterkey.localindices.client.StopException;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
@@ -42,13 +44,17 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+
 import java.io.InputStream;
+
 import static com.indexdata.utils.TextUtils.joinPath;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
@@ -151,6 +157,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       
       }
 */      
+    } catch (StopException e) {
+      logger.info("Stop requested. Reason: " + e.getMessage());
+      
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
@@ -345,6 +354,12 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	      getStorage().add(record);
 	  }
 	  resumptionToken = listRecords.getResumptionToken();
+	} catch (StopException e) {
+	  logger.info("Stop requested. Reason: " + e.getMessage());
+	  setStatus(HarvestStatus.OK, e.getMessage());
+	  if (dataStart)
+	    getStorage().databaseEnd();
+	  return; 
 	} catch (TransformerException e) {
 	  //e.printStackTrace();
 	  throw e;
