@@ -90,7 +90,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	  readStore.readAndStore();
 	}
       } else if (responseCode == 304) {//not-modified
-        logger.info("Content was not modified since '"+DateUtil.serialize(
+        logger.info("Content was not modified since '" + DateUtil.serialize(
           lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
         return 0;
       } else {
@@ -104,6 +104,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
       // TODO HACK HACK HACK
       Thread.sleep(2000);
       logger.info("Finished - " + url.toString());
+    } catch (StopException ex) {
+      logger.info("Stop requested. Reason: " + ex.getMessage());
+      return 0; 
     } catch (Exception ex) {
       if (job.isKillSent())
 	  throw ex; 
@@ -118,10 +121,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
   }
   
   public int download(File file) throws Exception {
-      ReadStore readStore = prepareReadStore(new FileInputStream(file), 
-        -1, null, null, null);
+    try {
+      ReadStore readStore = prepareReadStore(new FileInputStream(file), -1, null, null, null);
       readStore.readAndStore();
-      return 0;
+    } catch (StopException ex) {
+      logger.info("Stop requested. Reason: " + ex.getMessage());
+    }
+    return 0;
   }
 
   private long getContentLength(HttpURLConnection conn) {

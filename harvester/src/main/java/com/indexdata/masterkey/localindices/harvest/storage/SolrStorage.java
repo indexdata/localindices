@@ -56,6 +56,8 @@ public class SolrStorage implements HarvestStorage {
   String storageId = "";  
   protected StorageStatus storageStatus;
   String databaseField = "database:";
+  private boolean waitFlush = true;
+  private boolean waitSearcher = false;
   
   public SolrStorage() {
   }
@@ -133,7 +135,7 @@ public class SolrStorage implements HarvestStorage {
 	logger.debug("Document: " + context.getDocuments());
 	UpdateResponse response = server.add(context.getDocuments());
 	logger.info("UpdateResponse: " + response.getStatus() + " " + response.getResponse());
-	response = server.commit();
+	response = server.commit(waitFlush, waitSearcher);
         logger.info("CommitResponse: " + response.getStatus() + " " + response.getResponse());
 	storageStatus.setTransactionState(StorageStatus.TransactionState.Committed);
 
@@ -203,5 +205,21 @@ public class SolrStorage implements HarvestStorage {
   public void setHarvestable(Harvestable harvestable) {
     this.harvestable = harvestable;
     init();
+  }
+
+  public boolean isWaitFlush() {
+    return waitFlush;
+  }
+
+  public void setWaitFlush(boolean waitFlush) {
+    this.waitFlush = waitFlush;
+  }
+
+  public boolean isWaitSearcher() {
+    return waitSearcher;
+  }
+
+  public void setWaitSearcher(boolean waitSearcher) {
+    this.waitSearcher = waitSearcher;
   }
 }
