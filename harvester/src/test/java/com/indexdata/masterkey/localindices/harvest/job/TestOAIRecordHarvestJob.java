@@ -111,7 +111,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     Date fromDate = resource.getFromDate();
     assertTrue("FromDate not correct: " + fromDate, fromDate.equals(midDate));
     resource.setUntilDate(lastDate);
-    recordStorage = createStorage(resource, methodName + "(second)", true);
+    recordStorage = createStorage(resource, methodName + "(second)", false);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
@@ -248,7 +248,8 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue("No resumption token!", resource.getResumptionToken() != null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 200, 0, 200);
-    // Finish the job
+    // Finish the job using a new storage instance
+    recordStorage = createStorage(resource, methodName, false);
     job = new OAIRecordHarvestJob(resource, null);
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
