@@ -109,14 +109,16 @@ public class TestOAIRecordHarvestJob extends JobTester {
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
     Date fromDate = resource.getFromDate();
-    assertTrue("FromDate not correct " + fromDate, fromDate.equals(midDate));
+    assertTrue("FromDate not correct: " + fromDate, fromDate.equals(midDate));
     resource.setUntilDate(lastDate);
+    recordStorage = createStorage(resource, methodName + "(second)", true);
     job = doXDaysHarvestJob(recordStorage, resource);
-    assertTrue("Job not finished" + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
     resource.setOverwrite(true);
+    recordStorage = createStorage(resource, methodName + "(third)", true);
     job = doXDaysHarvestJob(recordStorage, resource);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
     fromDate = resource.getFromDate();
@@ -251,8 +253,8 @@ public class TestOAIRecordHarvestJob extends JobTester {
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();
-    assertTrue(resource.getResumptionToken() == null);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Resumption token not null", resource.getResumptionToken() == null);
+    assertTrue("Harvest job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     // TODO Make test return fix count. 
     checkStorageStatus(recordStorage.getStatus(), 166, 0, 366);
 

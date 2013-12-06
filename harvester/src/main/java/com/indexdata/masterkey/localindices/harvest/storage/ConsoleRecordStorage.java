@@ -127,7 +127,7 @@ public class ConsoleRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown() throws IOException{
     message("Closing/shutdown ConsoleStorage");
   }
 }

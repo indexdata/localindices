@@ -23,6 +23,10 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlRootElement(name = "setting")
 @XmlAccessorOrder(XmlAccessOrder.ALPHABETICAL)
 public class Setting implements Serializable {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -6196613367553940805L;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   protected Long id;

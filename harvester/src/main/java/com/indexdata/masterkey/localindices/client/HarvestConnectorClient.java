@@ -35,13 +35,10 @@ import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob;
-import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.XmlUtils;
 
 public class HarvestConnectorClient extends AbstractHarvestClient {

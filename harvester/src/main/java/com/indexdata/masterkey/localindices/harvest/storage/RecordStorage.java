@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
@@ -32,5 +33,5 @@ public interface RecordStorage extends HarvestStorage {
   DatabaseContenthandler getContentHandler();
   
   // Some storages needs to close resources/shutdown connections. 
-  void shutdown(); 
+  void shutdown() throws IOException; 
 }

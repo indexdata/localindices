@@ -43,13 +43,13 @@ import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import java.io.InputStream;
-
 import static com.indexdata.utils.TextUtils.joinPath;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -154,7 +154,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (OaiPmhException e) {
       if (!isKillSent()) {
 	setStatus(HarvestStatus.ERROR, e.getMessage());
-        //there's no way resumption token is valid if we get here
+        // there's no way resumption token is valid if we get here
         resource.setResumptionToken(null);
 	logOaiPmhException(e, e.getMessage());
         logger.debug("Stack trace:", e);
@@ -169,15 +169,23 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
           resource.setResumptionToken(null);
 	logger.log(Level.ERROR, e.getMessage());
 	logger.debug("Stack trace:", e);
+	return ;
       }
     } catch (Exception e) {
       if (isKillSent()) {
 	logger.log(Level.INFO, "Shutting down.");
       }
       else {
-	logger.log(Level.WARN, "Recieved exception while running: " + e.getClass() + " " + e.getMessage());
+	String msg  =  e.getMessage() + (e.getCause() != null ? ": " + e.getCause().getMessage() : "");
+	logger.log(Level.ERROR, "Recieved " +  e.getClass().getSimpleName() + ": " + msg);
 	logger.debug("Stack trace:", e);
-	setStatus(HarvestStatus.ERROR, e.getMessage());
+	setStatus(HarvestStatus.ERROR, e.getMessage() + (e.getCause() != null ? ": " + e.getCause().getMessage() : ""));
+        if (resource.getClearRtOnError())
+          resource.setResumptionToken(null);
+        if (e instanceof StorageException) {
+          logger.warn("StorageException: No attempt to commit/rollback changes");
+          return;
+        }
       }
     }
     // if there was no error we move the time marker
@@ -194,7 +202,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
 	logger.log(Level.INFO, subject + msg);
 	mailMessage(subject, msg);
-      } catch (IOException e) {
+      } catch (Exception e) {
         String subject = "Storage commit failed: ";
         String errorMessage = e.getMessage();
 	logError(subject, errorMessage);
@@ -233,7 +241,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (isError)
 	  logError(subject, msg);
 	mailMessage(subject, msg);
-      } catch (IOException ioe) {
+      } catch (Exception ioe) {
 	msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
 	logger.debug("Stack trace:", ioe);
 	logError(subject, msg);
@@ -243,9 +251,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     } catch(Exception e) {
       logger.error("Unhandled Exception: " + e.getMessage());
+    } finally {
+      shutdown();
     }
-    getStorage().shutdown();
-    logger.close();
   }
 
   protected void harvest(String baseURL, String from, String until, String metadataPrefix,

@@ -116,7 +116,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown() throws IOException {
       try {
 	if (output != null) {
 	  logger.error("Closing Storage before commit/rollback");

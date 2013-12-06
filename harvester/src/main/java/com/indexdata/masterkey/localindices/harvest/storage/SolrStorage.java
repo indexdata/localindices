@@ -27,7 +27,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+//import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -96,7 +97,8 @@ public class SolrStorage implements HarvestStorage {
 	url = storage.getUrl();
       logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
-      ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
+      // ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
+      HttpSolrServer server = new HttpSolrServer(url);
       server.setSoTimeout(100000); // socket read timeout
       server.setConnectionTimeout(10000);
       server.setParser(new XMLResponseParser());

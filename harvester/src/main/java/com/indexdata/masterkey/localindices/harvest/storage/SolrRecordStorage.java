@@ -264,13 +264,13 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 	  record.setDatabase(database);
 	}
 	if (list.size() > 1)
-	  throw new RuntimeException("Too many results for id (" + id + ") lookup.");
+	  throw new StorageException("Too many results for id (" + id + ") lookup.");
 	return null;
       } else
-	throw new RuntimeException("Status id (" + id + ") lookup. Status: " + response.getStatus());
+	throw new StorageException("Status id (" + id + ") lookup. Status: " + response.getStatus());
     } catch (SolrServerException e) {
       e.printStackTrace();
-      throw new RuntimeException("Solr Server Exception on lookup: " + e.getMessage(), e);
+      throw new StorageException("Solr Server Exception on lookup: " + e.getMessage(), e);
     }
   }
 

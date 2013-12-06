@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -12,9 +13,17 @@ import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.cache.TestDiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public abstract class JobTester extends TestCase {
+  
+  public JobTester() {
+    File directory = new File("diskcache");
+    if (!directory.exists())
+      directory.mkdir();
+    TestDiskCache.setDiskCacheBasePath("diskcache");
+  }
 
   protected Transformation createTransformationFromResources(String [] steps, boolean runParallel) throws IOException {
     Transformation transformation = new BasicTransformation();
@@ -61,7 +70,7 @@ public abstract class JobTester extends TestCase {
   }
 
   protected void checkStorageStatus(StorageStatus storageStatus, long add, long delete, long total) {
-    assertTrue(StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
+    assertTrue("Status not committed: " + storageStatus.getTransactionState(), StorageStatus.TransactionState.Committed == storageStatus.getTransactionState());
     long deletes = storageStatus.getDeletes();
     assertTrue("Deleted records failed. Expected " + delete + " got " + deletes, 
         	new Long(delete).equals(deletes));

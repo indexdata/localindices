@@ -1,15 +1,15 @@
 package com.indexdata.masterkey.localindices.entity;
 
-import com.indexdata.utils.TextUtils;
 import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.indexdata.utils.TextUtils;
 
 @Entity
 @XmlRootElement(name = "connector")
