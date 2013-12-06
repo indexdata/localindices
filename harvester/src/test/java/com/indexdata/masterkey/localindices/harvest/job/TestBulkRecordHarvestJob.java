@@ -43,7 +43,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   String solrUrl = "http://localhost:8585/solr/";
   String solrBadUrl = "http://localhost:8686/solrbad/";
-  SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
+  //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   //SolrServer solrServer = factory.create();
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema,
@@ -112,7 +112,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     storageEntity.setId(resource.getId());
     storageEntity.setName(solrUrl);
     resource.setStorage(storageEntity);
-    return initializeStorage(clear, resource, new BulkSolrRecordStorage(factory.create(), resource));
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
   }
 
   private class StorageCreator {
