@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-
 import javax.xml.stream.XMLStreamException;
-
 import junit.framework.TestCase;
-
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 public class TestSolrStorage extends TestCase {
   String solrUrl = "http://localhost:8585/solr/";
   Harvestable harvestable = new DummyXmlBulkResource(solrUrl);
@@ -20,7 +18,14 @@ public class TestSolrStorage extends TestCase {
   StorageJobLogger logger = new ConsoleStorageJobLogger(TestSolrStorage.class, harvestable);
   
   // Solr Storage
-  HarvestStorage storage = new SolrStorage(solrUrl, harvestable);
+  HarvestStorage storage = new SolrStorage(solrUrl, harvestable) {
+    
+    public void commit() throws IOException {
+      setWaitSearcher(true);
+      super.commit();
+    }
+    
+  };
   String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" 
       + "<add>" 
       + "  <doc>\n"
