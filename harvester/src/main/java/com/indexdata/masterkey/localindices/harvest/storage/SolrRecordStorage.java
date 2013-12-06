@@ -63,6 +63,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   @Override
   synchronized public void begin() throws IOException {
+    logger.info("Storage transaction begins...");
     super.begin();
     transactionId = new Date();
     formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -74,6 +75,7 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
 
   @Override
   synchronized public void commit() throws IOException {
+    logger.info("Storage transaction commits...");
     try {
       if (delayedPurge && isPurged) {
 	purgeByTransactionId(false);

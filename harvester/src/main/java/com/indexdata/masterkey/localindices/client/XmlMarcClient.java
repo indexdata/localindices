@@ -29,6 +29,7 @@ import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
@@ -191,11 +192,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }    
     @Override
     public void readAndStore() throws Exception {
+      NonClosableInputStream ncis = new NonClosableInputStream(input);
       try {
         while (iterator.hasNext())
-          store(input, contentLength);
+          store(ncis, contentLength);
       } finally {
-        input.close();
+        ncis.reallyClose();
       }
     }
   }

@@ -12,6 +12,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import org.apache.log4j.Logger;
 
 public class TestBulkRecordHarvestJob extends JobTester {
 
@@ -45,6 +46,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   String solrBadUrl = "http://localhost:8686/solrbad/";
   SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   //SolrServer solrServer = factory.create();
+  private final static Logger logger = Logger.getLogger("com.indexdata.masterkey");
 
   private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema,
       String splitAt, String size, boolean overwrite) throws IOException {
