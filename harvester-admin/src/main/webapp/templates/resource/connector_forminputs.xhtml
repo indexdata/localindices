@@ -21,6 +21,8 @@
           </h:selectOneMenu>
           <h:message for="engineUrl" style="color: red;"/>
         </h:panelGroup>
+        <h:outputText value="Engine parameters (optional)" styleClass="optionalInput"/>
+        <h:inputText  value="#{resourceController.resource.engineParameters}" size="20" styleClass="optionalInput" />
         <h:outputText value="CF Repository:" styleClass="required" />
         <h:panelGroup>
           <h:selectOneMenu id="repoUrl" 

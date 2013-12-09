@@ -726,7 +726,7 @@ public class ResourceController {
     this.currentId = currentId;
   }
 
-  String[] logLevels = {"DEBUG", "INFO", "WARN", "FATAL"};
+  String[] logLevels = {"DEBUG", "INFO", "WARN", "ERROR"};
   public List<SelectItem> getLogLevelItems() 
   {
     List<SelectItem> list = new LinkedList<SelectItem>();
