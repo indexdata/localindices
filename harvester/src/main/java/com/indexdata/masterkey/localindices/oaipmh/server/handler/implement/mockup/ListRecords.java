@@ -90,27 +90,31 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
 
     verifyParameters(request, requiredParameters); 
 
-    OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);
-    loadSetData(generator);
+    try {
+      OaiMetaDataGenerator generator = new OaiMetaDataGenerator(request);
+      loadSetData(generator);
     
-    StringBuffer xml = new StringBuffer()
-    		.append(getRequest(request))
-		.append(getElement(request));
-    // Handle errors, limits before generating response
-    delayResponse(generator);
-    forceServerError(generator);
-    checkStreamClose(generator);
-    generator.setRecordMode(recordMode);
+      StringBuffer xml = new StringBuffer()
+      	.append(getRequest(request))
+      	.append(getElement(request));
+      // Handle errors, limits before generating response
+      delayResponse(generator);
+      forceServerError(generator);
+      checkStreamClose(generator);
+      generator.setRecordMode(recordMode);
     
-    String resumptionToken = generator.generateRecords(xml);
-    if (resumptionToken != null) {
-      xml.append(resumptionTokenStart // + StringEscapeUtils.escapeXml(request.getBaseUrl() + "?verb=ListRecords&resumptionToken=" 
-	  	+ resumptionToken  // )
-	  	+ resumptionTokenEnd);
+      String resumptionToken = generator.generateRecords(xml);
+      if (resumptionToken != null) {
+	xml.append(resumptionTokenStart // + StringEscapeUtils.escapeXml(request.getBaseUrl() + "?verb=ListRecords&resumptionToken=" 
+	    + resumptionToken  // )
+	    + resumptionTokenEnd);
       
+      }
+      xml.append(getElementEnd(request));
+      return new MockupOaiPmhResponse(xml.toString());
+    } catch (RuntimeException re) {
+      return new MockupOaiPmhResponse(getRequest(request) + re.getMessage());
     }
-    xml.append(getElementEnd(request));
-    return new MockupOaiPmhResponse(xml.toString()); 
   }
 
   /* Not working at the Servlet end. Not sure how to force a servlet to close connection without writing an 
@@ -205,6 +209,7 @@ public class ListRecords extends CommonOaiPmhHandler implements ListRecordsHandl
 		  + request.getParameterValue("from") + " " 
 		  + request.getParameterValue("until") + " " 
 		  + request.getParameterValue("set") + " " 
+		  + request.getParameterValue("resumptionToken") + " " 
 		  + request.getParameterValue("metadataPrefix") + " >" 
 		  + request.getBaseUrl() 
 		  + "</request>\n"; 

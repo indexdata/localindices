@@ -26,7 +26,6 @@ import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.utils.CronLine;
 
 /**
@@ -49,7 +48,7 @@ public class JobInstance {
   public boolean seen; // for checking what has been deleted
   private boolean enabled = true;
 
-  public JobInstance(Harvestable hable, HarvestStorage storage, Proxy proxy, boolean enabled)
+  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled)
       throws IllegalArgumentException {
     this.enabled = enabled;
     // if cron line is not specified - default to today
@@ -60,9 +59,6 @@ public class JobInstance {
     } else {
       cronLine = new CronLine(hable.getScheduleString());
     }
-    if (storage == null) {
-	throw new IllegalArgumentException("No storage given for the harvest job (" + hable.getId() + " - " + hable.getName());
-    }
     if (hable instanceof OaiPmhResource) {
       if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
 	Calendar cal = Calendar.getInstance();
@@ -72,23 +68,11 @@ public class JobInstance {
 	logger.log(Level.WARN,
 	    "Job scheduled with lower than daily granularity. Schedule overridden to " + cronLine);
       }
-      if (storage instanceof RecordStorage) {
-	harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
-	harvestJob.setStorage((RecordStorage) storage);
-      } 
-      else 
-	throw new IllegalArgumentException("Invalid storage type for harvest job (" + hable.getId() + " - " + hable.getName() +  ": " + storage.getClass().getCanonicalName());
+      harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
     } else if (hable instanceof XmlBulkResource) {
-      if (storage instanceof RecordStorage) {
 	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy);
-	harvestJob.setStorage((RecordStorage) storage);
-      } 
-      else 
-	throw new IllegalArgumentException("Invalid storage type for harvest job (" + hable.getId() + " - " + hable.getName() +  ": " + storage.getClass().getCanonicalName());
-
     } else if (hable instanceof WebCrawlResource) {
       harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
-      harvestJob.setStorage(storage);
     } else if (hable instanceof HarvestConnectorResource) {
       // hable.getJobClass();
       try {
@@ -99,7 +83,6 @@ public class JobInstance {
 	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy);
 	e.printStackTrace();
       }
-      harvestJob.setStorage(storage);
     } else {
       throw new IllegalArgumentException("Cannot create instance of the harvester.");
     }

@@ -113,9 +113,12 @@ public class OaiMetaDataGenerator {
           count = Integer.parseInt(parameters[4]);
         } catch (Exception ex) {
           Logger.getLogger(this.getClass()).warn("Failed to parse count on resumption token: " + resumptionToken);
+          throw new RuntimeException("<error code=\"badResumptionToken\">Invalid resumption token '" + resumptionToken + "'</error>");
         }
       }
-      else throw new RuntimeException("Invalid resumption token '" + resumptionToken + "'");
+      else {
+	throw new RuntimeException("<error code=\"badResumptionToken\">Invalid resumption token '" + resumptionToken + "'</error>");
+      }
     }
   }
 
