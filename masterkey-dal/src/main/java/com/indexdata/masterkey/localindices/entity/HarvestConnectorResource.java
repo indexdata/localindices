@@ -40,7 +40,7 @@ public class HarvestConnectorResource extends Harvestable {
   
   public String getConnectorUrl() {
     if (connectorRepoUrlSetting == null) return null;
-    return TextUtils.joinPath(connectorRepoUrlSetting.getValue(), connector);
+    return TextUtils.joinPath(connectorRepoUrlSetting.getValue(), getConnector());
   }
   
   public String getUrl() {
