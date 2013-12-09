@@ -137,9 +137,9 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
    */
   public void purgeByTransactionId(boolean hasId) throws IOException {
     try {
-      if (database == null) {
-	logger.error("purge called before begin.");
-	// throw NotInTransaction
+      if (database == null || transactionId == null) {
+	logger.error("purge called without database configured or transaction id");
+	throw new IOException("No database configured or transaction id set");
       }
       String hasIdString = (hasId ? "" : "!");
       String query = databaseField + ":" + database + " AND " + hasIdString + transactionIdField  + ":" + transactionId.getTime();
