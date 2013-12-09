@@ -425,9 +425,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
       transformer.setOutputProperty("indent", "yes");
       StringWriter writer = new StringWriter();
-      Result xml = new StreamResult(System.out);
+      Result xml = new StreamResult(writer);
       transformer.transform(new DOMSource(e.getDocument()), xml);
-      logger.error("Failed to get " + string + " from OAI-PMH XML response: " + writer.toString());
+      logger.error("OAI-PMH error: " + string + " from OAI-PMH XML response:\n" + writer.toString());
     } catch (TransformerConfigurationException e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
       logger.debug("Stack trace: ", e);
