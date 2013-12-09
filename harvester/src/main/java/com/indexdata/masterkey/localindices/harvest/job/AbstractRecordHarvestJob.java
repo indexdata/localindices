@@ -95,14 +95,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     this.logger = logger;
   }
 
-  protected RecordStorage selectHarvestStorage(Harvestable harv) {
-    if (harv.getStorage() != null) {
-      return HarvestStorageFactory.getStorage(harv);
-    }
-    logger.error("Not Storage configuration for Harvestable: " + harv.getName());
-    return null;
-  }
-
   @Deprecated
   protected RecordStorage setupTransformation(RecordStorage storage) {
     Harvestable resource = getHarvestable(); 
