@@ -34,5 +34,4 @@ public class ServletOaiPmhRequest implements OaiPmhRequest {
   public String getParameter(String name) {
     return httpRequest.getParameter(name);
   }
-
 }
