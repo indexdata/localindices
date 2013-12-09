@@ -75,7 +75,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
-      setStorage(selectHarvestStorage(getHarvestable()));
       getStorage().setLogger(logger);
       
       // This is different from old behavior. All insert is now done in one commit.

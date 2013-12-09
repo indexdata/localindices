@@ -63,7 +63,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
-      setStorage(selectHarvestStorage(getHarvestable()));
       setStatus(HarvestStatus.RUNNING);
       RecordStorage storage = getStorage(); 
       storage.setOverwriteMode(resource.getOverwrite());

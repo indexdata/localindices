@@ -8,8 +8,10 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.Proxy;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -123,12 +125,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-    
+    boolean dataStart = false; 
     try {
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
     Integer recordLimit = resource.getRecordLimit();
-    setStorage(selectHarvestStorage(getHarvestable()));
     resource.setMessage(null);
     resource.setAmountHarvested(null);
     setStatus(HarvestStatus.RUNNING);
@@ -145,7 +146,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       if (resource.getOverwrite()) {
         if (!resource.isDiskRun()) dc.purge();
       }
-      harvest(resource.getUrl(), formatDate(resource.getFromDate()),
+      dataStart = harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
 	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage(), dc);
       if (HarvestStatus.RUNNING == getStatus()) {
@@ -205,7 +206,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	String subject = "OAI harvest finished."; 
 	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
-	commit();
+	if (dataStart)
+	  commit();
 	if (recordLimit == null || recordLimit <= 0) {
 	  resource.setFromDate(resource.getUntilDate());
 	  resource.setUntilDate(null);
@@ -232,7 +234,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       // We do not want to override a ERROR message, but should reset a killed/running status. 
       // Perhaps even leave killed, just be sure that we will start the job in this state. 
       String subject = "OAI harvest stopped premature. ";
-      String msg = ""; 
+      String msg = resource.getMessage(); 
       boolean isError = false;
       if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING)) {
 	msg = "Completed with status: " + getStatus().toString() + ". ";
@@ -243,19 +245,20 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	isError = true;
       }
       try {
-	if (resource.getKeepPartial()) {
-	  msg = msg + "Commiting up partial harvest as configured. ";
-	  logger.log(Level.INFO, subject + msg);
-	  commit();
-	} else {
-	  getStorage().rollback();
-	  resource.setResumptionToken(startResumptionToken);
-	  msg = msg + "Rolling back until "
-	      + (startResumptionToken != null ? " resumptionToken (at start): "
-		  + startResumptionToken : formatDate(resource.getFromDate()));
-	  logger.log(Level.INFO, msg);
-
-	}
+	  if (dataStart)
+	    if (resource.getKeepPartial()) {
+	      msg = msg + "Commiting up partial harvest as configured. ";
+	      logger.log(Level.INFO, subject + msg);
+	      commit();
+	    } else {
+	      getStorage().rollback();
+	      resource.setResumptionToken(startResumptionToken);
+	      msg = msg
+		  + "Rolling back until "
+		  + (startResumptionToken != null ? " resumptionToken (at start): "
+		      + startResumptionToken : formatDate(resource.getFromDate()));
+	      logger.log(Level.INFO, msg);
+	    }
 	if (isError)
 	  logError(subject, msg);
 	mailMessage(subject, msg);
@@ -274,7 +277,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  protected void harvest(String baseURL, String from, String until, String metadataPrefix,
+  protected boolean harvest(String baseURL, String from, String until, String metadataPrefix,
       String setSpec, String resumptionToken, RecordStorage storage, final DiskCache dc) throws 
       	TransformerException, IOException, ParserConfigurationException
       {
@@ -335,7 +338,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
 	  setStatus(HarvestStatus.WARN, "No Records matched");
 	  markForUpdate();
-	  return;
+	  return dataStart;
 	} 
 	else
 	  throw new OaiPmhException("OAI error " + errors[0].code + ": " + errors[0].message, listRecords.getDocument());
@@ -368,7 +371,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  setStatus(HarvestStatus.OK, e.getMessage());
 	  if (dataStart)
 	    getStorage().databaseEnd();
-	  return; 
+	  return dataStart; 
 	} catch (TransformerException e) {
 	  //e.printStackTrace();
 	  throw e;
@@ -414,22 +417,26 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     logger.info("Harvested " + totalCount + " records in total from " + baseURL); 
     if (dataStart)
       getStorage().databaseEnd();
+    return dataStart;
   }
 
   protected void logOaiPmhException(OaiPmhException e, String string) {
     try {
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
-      Result xml = new StreamResult();
+      transformer.setOutputProperty("indent", "yes");
+      StringWriter writer = new StringWriter();
+      Result xml = new StreamResult(System.out);
       transformer.transform(new DOMSource(e.getDocument()), xml);
-      logger.error("Failed to get " + string + " from OAI-PMH XML response: " + xml.toString());
+      logger.error("Failed to get " + string + " from OAI-PMH XML response: " + writer.toString());
     } catch (TransformerConfigurationException e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      //e1.printStackTrace();
+      logger.debug("Stack trace: ", e);
     } catch (TransformerFactoryConfigurationError e1) {
       logger.error("Failed to Transformer to serialize XML Document on error: " + e.getMessage());
-      //e1.printStackTrace();
+      logger.debug("Stack trace: ", e);
     } catch (TransformerException e1) {
       logger.error("Failed to serialize XML Document on error: " + e.getMessage());
+      logger.debug("Stack trace: ", e);
       //e1.printStackTrace();
     }
   }
