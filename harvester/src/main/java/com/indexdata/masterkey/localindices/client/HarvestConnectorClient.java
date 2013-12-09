@@ -39,13 +39,18 @@ import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
+import com.indexdata.utils.TextUtils;
 import com.indexdata.utils.XmlUtils;
+
+import static com.indexdata.utils.TextUtils.parseQueryString;
+import java.util.HashMap;
 
 public class HarvestConnectorClient extends AbstractHarvestClient {
   private String sessionId;
   List <Object> linkTokens = new LinkedList<Object>();
   List <String> errors = new ArrayList<String>();
   HttpURLConnectionFactory connectionFactory;
+  final private String engineParams;
 
   @Override
   public HarvestConnectorResource getResource() {
@@ -199,7 +204,36 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   public HarvestConnectorClient(HarvestConnectorResource resource, 
     ConnectorHarvestJob job,
     Proxy proxy, StorageJobLogger logger, DiskCache diskCache) {
-    super(resource, job, proxy, logger, diskCache); 
+    super(resource, job, proxy, logger, diskCache);
+    engineParams = processEngineParams(resource.getEngineParameters());
+  }
+  
+  private String processEngineParams(String queryString) {
+    Map<String, String> params = parseQueryStringSafe(queryString);
+    if (!params.containsKey("logmodule"))
+      params.put("logmodules", "runtime");
+    if (!params.containsKey("loglevel")) {
+      params.put("loglevel", "INFO");
+    }
+    try {
+      return TextUtils.serializeParams(params);
+    } catch (UnsupportedEncodingException ex) {
+      logger.info("Ignoring malformed custom engine params");
+      logger.debug("Cause", ex);
+      return "";
+    }
+  }
+  
+  private Map<String, String> parseQueryStringSafe(String queryString) {
+    if (queryString == null || queryString.isEmpty())
+      return new HashMap<String, String>(0);
+    try {
+      return parseQueryString(queryString);
+    } catch (UnsupportedEncodingException uee) {
+      logger.warn("Ignoring malformed custom engine params");
+      logger.debug("Cause:", uee);
+      return new HashMap<String, String>(0);
+    }
   }
 
   ContainerFactory containerFactory = new ContainerFactory() {
@@ -320,7 +354,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
 
   private void createSession() throws Exception {
     sessionId = null;
-    HttpURLConnection conn = createConnection(null, "logmodules=runtime&loglevel=INFO");
+    HttpURLConnection conn = createConnection(null, engineParams);
     executeConnection(conn);
     parseSessionResponse(conn.getInputStream(), conn.getContentLength());
   }
@@ -332,12 +366,12 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       (params != null ? "?" + params : "");
     URL url = new URL(urlString);
     logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
-
     HttpURLConnection conn = createConnection(url); 
     conn.setRequestMethod("POST");
     conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     return conn; 
   }
+  
   
   /**
    * HUC is very rigid to use -- 404s will throw FileNotFound when retrieving

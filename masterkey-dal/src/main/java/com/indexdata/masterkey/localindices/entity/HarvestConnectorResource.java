@@ -37,6 +37,7 @@ public class HarvestConnectorResource extends Harvestable {
   private String resumptionToken;
   private String isPersistence;
   private Long sleep;
+  private String engineParameters;
   
   public String getConnectorUrl() {
     if (connectorRepoUrlSetting == null) return null;
@@ -150,6 +151,14 @@ public class HarvestConnectorResource extends Harvestable {
     setFromDate(null);
     setUntilDate(null);
     setResumptionToken(null);
+  }
+
+  public String getEngineParameters() {
+    return engineParameters;
+  }
+
+  public void setEngineParameters(String engineParameters) {
+    this.engineParameters = engineParameters;
   }
 
 }
