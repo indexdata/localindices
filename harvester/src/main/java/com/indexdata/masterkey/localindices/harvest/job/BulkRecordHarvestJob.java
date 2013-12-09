@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Level;
-
 import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -77,7 +75,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
-
+      setStorage(selectHarvestStorage(getHarvestable()));
       getStorage().setLogger(logger);
       
       // This is different from old behavior. All insert is now done in one commit.
