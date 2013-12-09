@@ -5,13 +5,6 @@ f * Copyright (c) 1995-2008, Index Data
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +15,12 @@ import java.util.Properties;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 
 /**
  * JobScheduler schedules the job kept in the memory-based collection, keeps
@@ -78,8 +77,7 @@ public class JobScheduler {
       if (ji == null) {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
 	try {
-	  HarvestStorage storage = selectHarvestStorage(harv);
-	  ji = new JobInstance(harv, storage, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
+	  ji = new JobInstance(harv, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
 	  jobs.put(id, ji);
 	  logger.log(Level.INFO, "Scheduler for JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
 	  if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
@@ -108,14 +106,6 @@ public class JobScheduler {
 	it.remove();
       }
     }
-  }
-
-  private HarvestStorage selectHarvestStorage(Harvestable harv) {
-    if (harv.getStorage() != null) {
-      return HarvestStorageFactory.getStorage(harv);
-    }
-    logger.error("Not Storage configuration for Harvestable: " + harv.getName());
-    return null;
   }
 
   /**
