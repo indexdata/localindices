@@ -126,6 +126,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     try {
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
+    setStorage(selectHarvestStorage(getHarvestable()));
     resource.setMessage(null);
     resource.setAmountHarvested(null);
     setStatus(HarvestStatus.RUNNING);
