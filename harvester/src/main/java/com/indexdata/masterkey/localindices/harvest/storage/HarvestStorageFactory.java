@@ -23,8 +23,8 @@ public class HarvestStorageFactory {
    * @param harvestable
    * @return
    */
-  public static HarvestStorage getStorage(Harvestable harvestable) {
-    HarvestStorage harvestStorage = null;
+  public static RecordStorage getStorage(Harvestable harvestable) {
+    RecordStorage harvestStorage = null;
     Storage entity = (Storage) harvestable.getStorage();
     /* TODO Extend to create other types */
     if (entity.getCustomClass() != null) {
@@ -49,12 +49,12 @@ public class HarvestStorageFactory {
 	}
     }
     else if (entity instanceof com.indexdata.masterkey.localindices.entity.ZkSolrStorageEntity) {
-      SolrStorage storage = new ZooKeeperSolrRecordStorage();
+      SolrRecordStorage storage = new ZooKeeperSolrRecordStorage();
       storage.setHarvestable(harvestable);
       return storage;
     }
     else if (entity instanceof com.indexdata.masterkey.localindices.entity.SolrStorageEntity) {
-      SolrStorage storage = new BulkSolrRecordStorage();
+      SolrRecordStorage storage = new BulkSolrRecordStorage();
       storage.setHarvestable(harvestable);
       return storage;
     }
