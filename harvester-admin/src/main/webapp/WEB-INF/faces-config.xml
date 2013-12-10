@@ -89,6 +89,12 @@
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
+      <navigation-case>
+        <from-outcome>settings</from-outcome>
+        <to-view-id>/settings/list.xhtml</to-view-id>
+      </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
         <from-view-id>/jobs/list.xhtml</from-view-id>
         <navigation-case>
             <from-outcome>new_OaiPmhResource</from-outcome>

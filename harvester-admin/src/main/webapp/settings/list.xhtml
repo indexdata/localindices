@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"        
+      xmlns:f="http://java.sun.com/jsf/core">
+  <h:body>
+
+    <ui:composition template="/templates/master.xhtml">
+      <ui:param name="title" value="Settings" />
+      <ui:define name="content">
+        <!-- needed to bootsrap elements from the DB -->
+        <f:event type="preRenderView" listener="#{settings.initialize}"/>
+        <h:form>
+
+          <h:dataTable value="#{settings.settings}" var="s">
+
+            <h:column>
+              <!-- column header -->
+              <f:facet name="header">Setting ID</f:facet>
+              <!-- row record -->
+              <h:outputText value="#{s.id}" />
+            </h:column>
+
+            <h:column>
+              <f:facet name="header">Setting Name</f:facet>
+              <h:inputText value="#{s.name}" />
+            </h:column>
+
+            <h:column>
+              <f:facet name="header">Setting Label</f:facet>
+              <h:inputText value="#{s.label}" />
+            </h:column>
+
+            <h:column>
+              <f:facet name="header">Setting Value</f:facet>
+              <h:inputText value="#{s.value}"/>
+            </h:column>
+
+            <h:column>
+              <f:facet name="header">Action</f:facet>
+              <h:commandLink action="#{settings.save(s)}" >
+                <h:graphicImage alt="Save" height="16" url="/images/true.png" />
+              </h:commandLink>
+              <h:commandLink action="#{settings.delete(s)}" >
+                <h:graphicImage alt="Delete" height="16" url="/images/delete.png" />
+              </h:commandLink>
+            </h:column>
+
+          </h:dataTable>
+        </h:form>
+        <h:form>
+          <h3>New setting</h3>
+          <h:panelGrid>
+            <h:panelGroup>
+              <h:inputText value="#{settings.setting.name}" />
+              <h:inputText value="#{settings.setting.label}" />
+              <h:inputText value="#{settings.setting.value}" />
+              <h:commandLink action="#{settings.add()}" >
+                <h:graphicImage alt="Add" height="16" url="/images/add.png" />
+              </h:commandLink>
+            </h:panelGroup>          
+          </h:panelGrid>
+        </h:form>
+      </ui:define>
+    </ui:composition>
+  </h:body>
+</html>
