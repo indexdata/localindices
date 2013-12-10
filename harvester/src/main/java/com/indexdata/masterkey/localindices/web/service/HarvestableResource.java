@@ -24,10 +24,13 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
+import javax.ws.rs.POST;
+import javax.ws.rs.core.Response;
 
 /**
  * REST Web service (resource) that maps to a Harvestable entity.
@@ -111,6 +114,8 @@ public class HarvestableResource {
       try { 
 	purgeStorage(harvestable);
 	dao.delete(harvestable);
+        DiskCache dc = new DiskCache(id);
+        dc.purge();
 	return ;
       } catch (Exception e) {
 	logger.log(Level.ERROR, "Failed to delete records in storage " 
@@ -138,6 +143,25 @@ public class HarvestableResource {
       }
     }
     return "No harvestable to reset with id: " + id;
+  }
+  
+  @Path("cache/")
+  @DELETE
+  @Produces("text/plain")
+  public String resetCache() {
+    Harvestable harvestable = dao.retrieveById(id);
+    if (harvestable == null) {
+      throw new WebApplicationException(Response.Status.NOT_FOUND);
+    }
+    try { 
+      DiskCache dc = new DiskCache(id);
+      dc.purge();
+      return "OK"; 
+    } catch (Exception e) {
+      String error = "Failed to reset cache for job '"+id+"'";
+      logger.error(error, e);
+      return error;
+    }
   }
 
   /**
