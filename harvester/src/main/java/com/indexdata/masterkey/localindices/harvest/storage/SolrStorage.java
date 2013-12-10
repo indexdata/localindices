@@ -95,8 +95,8 @@ public class SolrStorage implements HarvestStorage {
 	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
       }
       setStorageId(storage.getId().toString());
-      if (storage.getUrl() != null)
-	url = storage.getUrl();
+      if (storage.getIndexingUrl() != null)
+	url = storage.getIndexingUrl();
       logger = new FileStorageJobLogger(SolrStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       // ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
