@@ -88,14 +88,24 @@
       <version>1.1.2</version>
     </dependency>
     <dependency>
+      <groupId>javax.el</groupId>
+      <artifactId>el-api</artifactId>
+      <version>2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.web</groupId>
+      <artifactId>el-impl</artifactId>
+      <version>2.2</version>
+    </dependency>
+    <dependency>
     	<groupId>com.sun.faces</groupId>
     	<artifactId>jsf-api</artifactId>
-    	<version>2.1.20</version>
+    	<version>2.1.26</version>
     </dependency>
     <dependency>
     	<groupId>com.sun.faces</groupId>
     	<artifactId>jsf-impl</artifactId>
-    	<version>2.1.20</version>
+    	<version>2.1.26</version>
     </dependency>
     <dependency>
     	<groupId>jstl</groupId>
@@ -138,7 +148,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>2.2</version>
-        <configuration>          <webXml>${project.build.directory}/web.xml</webXml>
+        <configuration>          
+          <webXml>${project.build.directory}/web.xml</webXml>
           <!-- include version and build number in the manifest file-->
           <archive>
             <addMavenDescriptor>true</addMavenDescriptor>
