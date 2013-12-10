@@ -61,8 +61,8 @@ install-stamp: build
 
 	# Harvester core
 	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
+	mkdir -p $(ENGINEROOT)/var/cache/harvester/
 	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
-	
 	mkdir -p $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 	cp README $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 
@@ -83,7 +83,6 @@ install-stamp: build
 	ln -s /usr/share/masterkey/harvester-admin/WEB-INF/web.xml $(ADMINROOT)/etc/masterkey/harvester-admin/web.xml
 
 	# Harvester plumbing for Tomcat 6 no longer includes files, just postinst
-	
 	# Harvester Admin plumbing for Tomcat 6 no longer includes files, 
 	# just postinst
 
