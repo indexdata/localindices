@@ -3,6 +3,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 public class TestSolrRecordStorage extends TestCase {
@@ -35,8 +36,17 @@ public class TestSolrRecordStorage extends TestCase {
     logger.debug("Connected to cluster with following live nodes: " + StringUtils.join(nodes.toArray(), ","));
   }
   */
-  public void testMissing()  
+  public void testMasterSlaveUrl()
   {
+    SolrStorageEntity entity = new SolrStorageEntity();
+    String master = "http://master/solr";
+    String slave = "http://slave/solr-slave";
+    entity.setUrl(master);
+    assertTrue("Master not correct", master.equals(entity.getIndexingUrl()));
+    assertTrue("Slave not correct", master.equals(entity.getSearchUrl()));
+    entity.setUrl(master + ";" + slave);
+    assertTrue("Master not correct", master.equals(entity.getIndexingUrl()));
+    assertTrue("Slave not correct", slave.equals(entity.getSearchUrl()));
   }
 }
 
