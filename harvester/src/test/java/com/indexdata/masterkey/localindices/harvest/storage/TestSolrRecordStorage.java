@@ -1,18 +1,5 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Set;
-
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.apache.solr.common.cloud.ClusterState;
-import org.apache.solr.common.cloud.ZkStateReader;
-
 import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
