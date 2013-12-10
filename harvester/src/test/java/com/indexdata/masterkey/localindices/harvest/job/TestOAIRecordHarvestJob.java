@@ -19,8 +19,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class TestOAIRecordHarvestJob extends JobTester {
 
-  //String resourceOaiDcUrl = "http://ir.ub.rug.nl/oai/";
-  String resourceOaiDcUrl = "http://harvester.indexdata.com/oaipmh";
+  //String resourceOaiDcUrl = "http://bigmac:8080/harvester/oaipmh";
+  String resourceOaiDcUrl = "http://harvester-dev.indexdata.com/oaipmh";
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
   String resourceOaiPubMed = "http://www.pubmedcentral.nih.gov/oai/oai.cgi";
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
@@ -59,6 +59,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
   private RecordHarvestJob doXDaysHarvestJob(RecordStorage recordStorage, OaiPmhResource resource)
           throws IOException {
     AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
+      
     job.setStorage(recordStorage);
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.run();
@@ -79,7 +80,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     // checkStorageStatus(recordStorage.getStatus(), 242, 0, 242);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished:" + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
     long deletes = status.getDeletes();
@@ -106,7 +107,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
     Date fromDate = resource.getFromDate();
     assertTrue("FromDate not correct: " + fromDate, fromDate.equals(midDate));
@@ -132,7 +133,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     logger.info("Logging " + methodName + ": " + resource.getId());
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
   }
 
@@ -142,7 +143,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     logger.info("Logging " + methodName + ": " + resource.getId());
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 73, 0, 73);
   }
 
@@ -165,7 +166,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
 
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), 860, 0, 860); // Previous test gave 858 
   }
 
@@ -176,7 +177,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     logger.info("Logging " + methodName + ": " + resource.getId());
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     //checkStorageStatus(recordStorage.getStatus(), 1020, 0, 1020);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
@@ -218,6 +219,18 @@ public class TestOAIRecordHarvestJob extends JobTester {
     System.out.println(resource.getMessage());
   }
 
+  public void testCleanFullOaiPmhJob_OaiDc_BadResumptionToken() throws IOException, StatusNotImplemented {
+    String methodName = getTestName();
+    OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", createUTCDate(2012, 6, 8), createUTCDate(2013, 6, 8), null, null);
+    resource.setResumptionToken("wrong_resumption_token");
+    RecordStorage recordStorage = createStorage(resource, methodName, true);
+    RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
+
+    assertTrue("Status is not ERROR but " + job.getStatus(), job.getStatus() == HarvestStatus.ERROR);
+    System.out.println(resource.getMessage());
+  }
+
+  
   public void testCleanResumptionOaiPmhJob_OaiDc() throws IOException, StatusNotImplemented {
     String methodName = getTestName();
     OaiPmhResource resource = createResource(resourceOaiDcUrl, "oai_dc", createUTCDate(2012, 6, 8), createUTCDate(2013, 6, 8), null, null);
@@ -272,6 +285,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
     if (clear) {
       recordStorage.begin();
+      recordStorage.setDatabase(resource.getId().toString());
       recordStorage.purge(true);
       recordStorage.commit();
     }

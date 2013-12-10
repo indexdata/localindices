@@ -27,7 +27,7 @@ public class HarvestStorageFactory {
     RecordStorage harvestStorage = null;
     Storage entity = (Storage) harvestable.getStorage();
     /* TODO Extend to create other types */
-    if (entity.getCustomClass() != null) {
+    if (entity.getCustomClass() != null && !"".equals(entity.getCustomClass())) {
 	try {
 	  Class<?> storage = Class.forName(entity.getCustomClass());
 	  Object object = storage.newInstance();

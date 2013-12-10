@@ -1,9 +1,10 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
+import java.net.Proxy;
+import java.util.Date;
 import java.util.Stack;
 
-import org.apache.solr.client.solrj.SolrServer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ContentHandler;
 import org.json.simple.parser.JSONParser;
@@ -16,15 +17,10 @@ import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.EmbeddedSolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-//import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
-import com.indexdata.masterkey.localindices.harvest.storage.SolrServerFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
-import java.net.Proxy;
-
-import java.util.Date;
+//import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
 
 public class TestConnectorPlatform extends JobTester {
   String cfServer = "http://connect-test.indexdata.com:80/connector";

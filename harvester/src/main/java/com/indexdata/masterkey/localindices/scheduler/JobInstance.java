@@ -26,6 +26,7 @@ import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.utils.CronLine;
 
 /**
@@ -107,8 +108,10 @@ public class JobInstance {
     if (harvestingThread == null || !harvestingThread.isAlive()) {
       harvestingThread = new Thread(harvestJob);
       harvestingThread.setName(harvestJob.getClass().getSimpleName() + "(" + harvestable.getId() + " " + harvestable.getName() +")");
-      if (harvestJob != null)
+      if (harvestJob != null) {
 	harvestJob.setJobThread(harvestingThread);
+      	harvestJob.setStorage(HarvestStorageFactory.getStorage(harvestable));
+      }
       harvestingThread.start();
       if (harvestable.getInitiallyHarvested() == null)
 	harvestable.setInitiallyHarvested(new Date());

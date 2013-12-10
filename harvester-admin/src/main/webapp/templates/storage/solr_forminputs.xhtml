@@ -18,8 +18,9 @@
         <!-- 
                 <h:inputText value="#{storageController.storage.transformation}"/>
         -->
-        <h:panelGroup>
-          <h:inputText id="bulkSize" value="#{storageController.storage.bulkSize}" size="20"/>
+        <h:outputText style="Display: None;" styleClass="optionalInput" value="Bulk size" />
+        <h:panelGroup style="Display: None;">
+          <h:inputText id="bulkSize" styleClass="optionalInput" value="#{storageController.storage.bulkSize}" size="20"/>
           <h:message for="bulkSize" style="color: red;"/>
         </h:panelGroup>
       </h:panelGrid>
