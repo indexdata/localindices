@@ -19,8 +19,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class TestOAIRecordHarvestJob extends JobTester {
 
-  String resourceOaiDcUrl = "http://bigmac:8080/harvester/oaipmh";
-  //String resourceOaiDcUrl = "http://harvester-dev.indexdata.com/oaipmh";
+  //String resourceOaiDcUrl = "http://bigmac:8080/harvester/oaipmh";
+  String resourceOaiDcUrl = "http://harvester-dev.indexdata.com/oaipmh";
   String resourceOaiDcIso8859_1 = "http://www.intechopen.com/oai/index.php";
   String resourceOaiPubMed = "http://www.pubmedcentral.nih.gov/oai/oai.cgi";
   String resourceOAI2MarcUrl = "http://www.diva-portal.org/dice/oai";
