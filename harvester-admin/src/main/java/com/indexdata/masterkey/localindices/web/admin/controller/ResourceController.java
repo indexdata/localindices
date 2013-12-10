@@ -425,6 +425,11 @@ public class ResourceController {
     return createResource();
   }
   
+  public String addAndRunFromCache() {
+    resource.setDiskRun(true);
+    return addRunResource();
+  }
+  
 
   /* update resource */
   public String prepareResourceToEdit() {
@@ -450,24 +455,37 @@ public class ResourceController {
   /* update resource */
   public String prepareResourceToRun() {
     resource = getResourceFromRequestParam();
+    if (resource == null) {
+      logger.error("No resource found in the request, ignoring action.");
+      return listResources();
+    }
     String action = getParameterFromRequestParam("action");
-    if (resource != null) { 
-      if (!resource.getCurrentStatus().equals("RUNNING")) {
-	if (action != null && !"run".equals(action))
-	  logger.warn("Got " + action + " on stopped harvester job (" + resource.getId() + "). Expected run.");
-	resource.setHarvestImmediately(true);
-	resource.setLastUpdated(new Date());
-	resource = dao.update(resource);
+    if (action == null) {
+      logger.error("Received 'null' action, ignoring");
+      return listResources();
+    }
+    if ("run".equals(action)) {
+      if (resource.getCurrentStatus().equals("RUNNING")) {
+        logger.warn("Trying to run already running resource, ignoring");
+        return listResources();
       }
-      else {
-	// Just edit the records should stop it 
-	resource.setLastUpdated(new Date());
-	resource = dao.update(resource);
-	if (action != null && !"stop".equals(action))
-	  logger.warn("Got " + action + " on already running harvester job (" + resource.getId() + "). Expected stop.");
+      resource.setLastUpdated(new Date());
+      resource.setHarvestImmediately(true);
+      dao.update(resource);
+    } else if ("run_cached".equals(action)) {
+      if (resource.getCurrentStatus().equals("RUNNING")) {
+        logger.warn("Trying to run already running resource, ignoring");
+        return listResources();
       }
+      resource.setLastUpdated(new Date());
+      resource.setHarvestImmediately(true);
+      resource.setDiskRun(true);
+      dao.update(resource);
+    } else if ("stop".equals(action)) {
+      resource.setLastUpdated(new Date());
+      dao.update(resource);
     } else {
-      logger.error("No resource found to start/stop");
+      logger.warn("Unknown action '"+action+"'");
     }
     return listResources();
   }
@@ -487,6 +505,11 @@ public class ResourceController {
   public String runResource() {
     resource.setHarvestImmediately(true);
     return updateResource();
+  }
+  
+  public String runFromCache() {
+    resource.setDiskRun(true);
+    return runResource();
   }
 
   /* list resources */
