@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import com.indexdata.masterkey.localindices.dao.DAOException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -24,6 +25,8 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.rest.client.ResourceConnector;
+import com.indexdata.utils.TextUtils;
+import java.io.FileNotFoundException;
 
 /**
  *
@@ -235,4 +238,21 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
           return null;
       }
   }
+
+  @Override
+  public void resetCache(long id) throws DAOException {
+    String resetUrl = TextUtils.joinPath(serviceBaseURL, Long.toString(id), "cache/");
+    try {
+      URL url = new URL(resetUrl);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod("DELETE");
+      int resp = conn.getResponseCode();
+    } catch (FileNotFoundException fnf) {
+      throw new DAOException("Job cache not found -- 404");
+    } catch (IOException ioe) {
+      throw new DAOException("Undefined error when removing the job cache");
+    }
+  }
+  
+  
 }

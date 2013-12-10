@@ -543,6 +543,16 @@ public class ResourceController {
     //resource = null;
     //return listResources();
   }
+  
+  public String resetCache() {
+    try {
+      dao.resetCache(resource.getId());
+    } catch (DAOException daoe) {
+      logger.error("Resetting cache failed", daoe);
+      return "failure";
+    }
+    return null;
+  }
 
   private void prePersist() {
     resource.setScheduleString(scheduleInputsToString());
