@@ -18,32 +18,26 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private static final int NO_RECORDS = 1002;
   // String resourceMarc0 = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
-  long records_in_marc = 1002;
-  String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
-  String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
-  String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
-  String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  // String resourceTurboMarc0 =
-  // "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
-
-  // String resourceMarcUTF8 =
-  // "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
+  private String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
+  private String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
+  private String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
+  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  // String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
+  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
 
   String resourceOaiPmh = "http://lui-dev.indexdata.com/oaipmh/Harvester_Full_1.xml";
 
-  // String resourceLoCMarc8gz =
-  // "http://lui-dev.indexdata.com/loc/part01.dat.gz";
-  String resourceOIAster = "http://maki.indexdata.com/marcdata/meta/oaister/harvester-index.html";
-  String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
-  String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
-  String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
-  String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
-  // String resourceMarcXmlZIPMulti =
-  // "http://maki.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
-  String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
-  String solrUrl = "http://localhost:8585/solr/";
-  String solrBadUrl = "http://localhost:8686/solrbad/";
+  // String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
+  //private String resourceOAIster = "http://lui-dev.indexdata.com/marcdata/meta/oaister/harvester-index.html";
+  private String resourceMarcGZ = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.gz";
+  private String resourceMarcZIP = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc.zip";
+  private String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
+  private String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
+  // String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
+  private String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
+  private String solrUrl = "http://localhost:8585/solr/";
+  private String solrBadUrl = "http://localhost:8686/solrbad/";
   //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   //SolrServer solrServer = factory.create();
   @SuppressWarnings("unused")
@@ -114,6 +108,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     SolrStorageEntity storageEntity = new SolrStorageEntity(); 
     storageEntity.setId(resource.getId());
     storageEntity.setName(solrUrl);
+    storageEntity.setUrl(solrUrl);
     resource.setStorage(storageEntity);
     return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
   }
@@ -334,17 +329,17 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, 1002);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2004);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2 * NO_RECORDS);
   }
 
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, 1002);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2004);
-    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, 3006);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, 3 * NO_RECORDS);
     /* Now restart and check that overwrite mode worked */
-    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, 1002);
+    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, NO_RECORDS);
 
   }
 
@@ -377,7 +372,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, 1002);
+    testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, NO_RECORDS);
   }
 
   public void testCleanMarc21ZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
@@ -456,27 +451,28 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.FINISHED);
   }
 
-  /*
-   * public void testCleanOAIsterSplit1000TurboMarc() throws IOException,
-   * StatusNotImplemented { XmlBulkResource resource =
-   * createResource(resourceMarcUTF8, "application/marc", "application/tmarc",
-   * 1, 1000); resource.setId(2l);
-   * resource.setTransformation(createTurboMarcTransformation());
-   * 
-   * RecordStorage recordStorage = createStorage(clean, resource);
-   * recordStorage.setLogger(new
-   * ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-   * RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-   * 
-   * StorageStatus storageStatus = recordStorage.getStatus();
-   * assertTrue(StorageStatus.TransactionState.Committed ==
-   * storageStatus.getTransactionState()); assertTrue("Deleted records failed "
-   * + storageStatus.getDeletes(), new
-   * Long(0).equals(storageStatus.getDeletes()));
-   * assertTrue("Add records failed " + storageStatus.getAdds(), new
-   * Long(100000).equals(storageStatus.getAdds())); assertTrue(job.getStatus()
-   * == HarvestStatus.FINISHED); }
-   * 
+  
+  public void testCleanOAIsterTurboMarcRecordLimit() throws IOException, StatusNotImplemented { 
+    Harvestable resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc",1, 1000, false); 
+    resource.setId(2l);
+    resource.setRecordLimit(10 * NO_RECORDS);
+    resource.setTransformation(createTurboMarcTransformation(false));
+
+    RecordStorage recordStorage = createStorage(true, resource);
+    recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    
+    StorageStatus storageStatus = recordStorage.getStatus();
+    assertTrue(StorageStatus.TransactionState.Committed ==
+	storageStatus.getTransactionState()); assertTrue("Deleted records failed "
+	    + storageStatus.getDeletes(), new
+	    Long(0).equals(storageStatus.getDeletes()));
+	assertTrue("Add records failed " + storageStatus.getAdds(), new
+	    Long(10 * NO_RECORDS).equals(storageStatus.getAdds())); assertTrue(job.getStatus()
+		== HarvestStatus.FINISHED); 
+  }
+   
+/* 
    * public void testCleanOAIsterGZipSplit1000TurboMarc() throws IOException,
    * StatusNotImplemented { XmlBulkResource resource =
    * createResource(resourceMarcUTF8, "application/marc", "application/tmarc",
