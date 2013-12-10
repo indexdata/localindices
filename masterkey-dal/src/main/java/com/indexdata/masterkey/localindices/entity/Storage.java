@@ -151,7 +151,7 @@ public abstract class Storage implements Serializable, Cloneable {
   public String getIndexingUrl() {
       int beginIndex = url.indexOf(";");
       if (beginIndex > 0)
-	  return url.substring(0, beginIndex-1);
+	  return url.substring(0, beginIndex);
     return url;
   }
 
