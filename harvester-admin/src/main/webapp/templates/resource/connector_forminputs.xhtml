@@ -48,6 +48,9 @@
                              render=":jobForm:resourceName :jobForm:contactNotes :jobForm:technicalNotes"/>
           <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
+        <h:outputText value="Overwrite with each run (non-incremental):" />
+        <h:selectBooleanCheckbox
+          value="#{resourceController.resource.overwrite}" />
         <h:outputText value="User Name:" styleClass="optionalInput"/>
         <h:inputText  value="#{resourceController.resource.username}" size="20" styleClass="optionalInput" />
         <h:outputText value="Password:" styleClass="optionalInput" />

@@ -161,6 +161,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           throw new Unrecoverable(ni2);
         }
       } catch (Exception e) { //everything but non-initialized
+        logger.warn("Running task failed.");
         onError();
         throw e;
       }

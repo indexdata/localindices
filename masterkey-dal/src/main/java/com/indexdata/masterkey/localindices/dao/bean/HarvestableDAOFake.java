@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
@@ -152,4 +153,10 @@ public class HarvestableDAOFake implements HarvestableDAO {
   public InputStream reset(long id) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
+
+  @Override
+  public void resetCache(long id) throws DAOException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+ 
 }

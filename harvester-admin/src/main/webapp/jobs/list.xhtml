@@ -141,7 +141,17 @@
                                rendered="#{!item.running}">
                   <f:ajax render=":jobForm:jobTable"/> 
                   <f:param name="resourceId" value="#{item.id}" />
+                  <f:param name="action" value="run" />
                   <h:graphicImage title="Run" alt="Run" height="16" url="/images/run.png" />
+                </h:commandLink>
+                <h:commandLink styleClass="action"
+                               action="#{resourceController.prepareResourceToRun}"
+                               rendered="#{!item.running}">
+                  <f:ajax render=":jobForm:jobTable"/> 
+                  <f:param name="resourceId" value="#{item.id}" />
+                  <f:param name="action" value="run_cached" />
+                  <h:graphicImage title="Run from cache (testing)" alt="Run from cache (testing)" 
+                                  height="16" url="/images/run_cached.png" />
                 </h:commandLink>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"

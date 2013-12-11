@@ -61,15 +61,9 @@
 			<h:outputText value="Harvest job enabled:" />
 			<h:selectBooleanCheckbox
 				value="#{resourceController.resource.enabled}" />
-			<h:outputText value="Overwrite:" />
-			<h:selectBooleanCheckbox
-				value="#{resourceController.resource.overwrite}" />
                         <h:outputText value="Cache on disk:" />
 			<h:selectBooleanCheckbox
 				value="#{resourceController.resource.cacheEnabled}" />
-                        <h:outputText value="Next run from cache:" />
-			<h:selectBooleanCheckbox
-                          value="#{resourceController.resource.diskRun}" />
 			<!-- List box of Transformations pipeline-->
 			<h:outputText value="Transformation Pipeline:" />
 			<h:selectOneMenu value="#{resourceController.transformation}">

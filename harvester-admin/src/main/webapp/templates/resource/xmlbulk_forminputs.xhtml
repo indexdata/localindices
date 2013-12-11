@@ -17,6 +17,9 @@
            required="true" requiredMessage="Please provide target URL(s)!"/>
           <h:message for="resourceUrls" style="color: red;"/>
         </h:panelGroup>
+        <h:outputText value="Overwrite with each run (non-incremental):" />
+        <h:selectBooleanCheckbox
+              value="#{resourceController.resource.overwrite}" />
         <h:outputText value="Split at depth (Zero disables splitting):"/>
         <h:inputText value="#{resourceController.resource.splitAt}"/>
         <h:outputText value="Split (number of records. Zero or Empty disables split):"/>

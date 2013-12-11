@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
+import com.indexdata.masterkey.localindices.dao.DAOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -232,5 +233,12 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public InputStream reset(long id) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+  @Override
+  public void resetCache(long id) throws DAOException {
+    throw new UnsupportedOperationException("DiskCache removal must be performed through the web service.");
+  }
+    
+    
 
 }
