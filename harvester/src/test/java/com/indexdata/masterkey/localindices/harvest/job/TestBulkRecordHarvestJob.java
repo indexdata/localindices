@@ -21,7 +21,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
   private String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
   private String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
-  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  // private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
   // String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
   String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
@@ -35,7 +35,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarcZIPMulti = "http://lui-dev.indexdata.com/zip/marc-multi.zip";
   private String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/zip/koha-marcxml-multi.zip";
   // String resourceMarcXmlZIPMulti = "http://lui-dev.indexdata.com/marcdata/archive.org/b3kat/b3kat_export_2011_teil21-25_new.zip";
-  private String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
+  // private String resourceTurboMarcZIPMulti = "http://lui-dev.indexdata.com/zip/koha-turbomarc-multi.zip";
   private String solrUrl = "http://localhost:8585/solr/";
   private String solrBadUrl = "http://localhost:8686/solrbad/";
   //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
@@ -110,7 +110,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     storageEntity.setName(solrUrl);
     storageEntity.setUrl(solrUrl);
     resource.setStorage(storageEntity);
-    return initializeStorage(clear, resource, new BulkSolrRecordStorage(solrUrl, resource));
+    return initializeStorage(clear, resource, new BulkSolrRecordStorage(resource));
   }
 
   private class StorageCreator {
@@ -124,7 +124,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     }
 
     RecordStorage createStorage(Harvestable resource) {
-      storage = new BulkSolrRecordStorage(solrUrl, resource);
+      storage = new BulkSolrRecordStorage(resource);
       return storage;
     }
 
@@ -147,7 +147,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     @Override
     RecordStorage createStorage(Harvestable resource) {
-      return new BulkSolrRecordStorage(url, resource);
+      return new BulkSolrRecordStorage(resource);
     }
   }
 
@@ -425,9 +425,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
     SolrStorageEntity storageEntity = new SolrStorageEntity();
     storageEntity.setName("Bad Storage");
     storageEntity.setId(resource.getId());
+    storageEntity.setUrl(solrBadUrl);
     resource.setStorage(storageEntity);
-    RecordStorage recordStorage = initializeStorage(false, resource, new BulkSolrRecordStorage(
-	solrBadUrl, resource));
+    RecordStorage recordStorage = initializeStorage(false, resource, new BulkSolrRecordStorage(resource));
 
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus jobStatus = job.getStatus();
