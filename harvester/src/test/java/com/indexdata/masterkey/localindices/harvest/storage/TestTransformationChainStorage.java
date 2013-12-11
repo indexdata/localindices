@@ -45,19 +45,19 @@ import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
+  // SOLR Server in container
+  String solrUrl = "http://localhost:8585/solr/";
   DummyXmlBulkResource harvestableXml = new DummyXmlBulkResource(
-      "http://lui-dev.indexdata.com/harvester/marc.xml");
+      "http://lui-dev.indexdata.com/harvester/marc.xml", solrUrl);
 
   String catalog_gz = "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.gz";
-  Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz);
+  Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz, solrUrl);
 
   String marcRecords = "http://lui.indexdata.com/ag/demo_org.mrc";
-  Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords);
+  Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords, solrUrl);
 
   String catalog_zip = // Not working from jenkins "http://www.gutenberg.org/cache/epub/feeds/catalog.rdf.zip";
                         "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.zip";
-  // SOLR Server in container
-  String solrUrl = "http://localhost:8585/solr/";
   SolrStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
   RecordStorage xmlBulkStorage = new BulkSolrRecordStorage(solrUrl, harvestableXml);
