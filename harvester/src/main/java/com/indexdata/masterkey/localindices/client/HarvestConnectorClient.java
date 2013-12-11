@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -104,7 +105,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           return true; 
         } catch (Exception e) {
           boolean retry = tried <= maxRetries;
-          logger.warn("Invoking task '"+toString()+"' failed, "
+          logger.warn("Invoking task '"+toString()+"' failed ('"+e.getMessage()+"'), "
             + (retry ? "retrying "+tried+" of "+maxRetries : "giving up task"));
           logger.debug("Task failure details: ", e);
           if (!retry) {
@@ -161,7 +162,8 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           throw new Unrecoverable(ni2);
         }
       } catch (Exception e) { //everything but non-initialized
-        logger.warn("Running task failed.");
+        logger.warn("Running task failed - " + e.getMessage());
+        logger.debug("Cause:", e);
         onError();
         throw e;
       }
@@ -189,9 +191,11 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     @Override
     final public void onError() {
       try {
-        logger.debug("Engine log for the failed invocation:\n" + getLog());
+        logger.info("Attempt at retrieving engine log for the failed invocation:");
+        logger.info(getLog());
       } catch (Exception le) {
-        logger.warn("Retrieving engine log failed with: " + le.getMessage());
+        logger.warn("Retrieving engine log failed.");
+        logger.debug("Cause:", le);
       }
     }
 
