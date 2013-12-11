@@ -454,8 +454,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   
   public void testCleanOAIsterTurboMarcRecordLimit() throws IOException, StatusNotImplemented { 
     Harvestable resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc",1, 1000, false); 
+    int recordLimit = 3 * NO_RECORDS;
     resource.setId(2l);
-    resource.setRecordLimit(10 * NO_RECORDS);
+    resource.setRecordLimit(recordLimit);
     resource.setTransformation(createTurboMarcTransformation(false));
 
     RecordStorage recordStorage = createStorage(true, resource);
@@ -468,7 +469,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 	    + storageStatus.getDeletes(), new
 	    Long(0).equals(storageStatus.getDeletes()));
 	assertTrue("Add records failed " + storageStatus.getAdds(), new
-	    Long(10 * NO_RECORDS).equals(storageStatus.getAdds())); assertTrue(job.getStatus()
+	    Long(recordLimit).equals(storageStatus.getAdds())); assertTrue(job.getStatus()
 		== HarvestStatus.FINISHED); 
   }
    
