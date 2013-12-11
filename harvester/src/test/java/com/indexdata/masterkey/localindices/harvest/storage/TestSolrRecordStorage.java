@@ -9,7 +9,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 public class TestSolrRecordStorage extends TestCase {
   String solrUrl = "http://localhost:8585/solr/";
   String zkSolrUrl = "opencontent-solr.index:9983";
-  Harvestable harvestable = new DummyXmlBulkResource(solrUrl);
+  Harvestable harvestable = new DummyXmlBulkResource("dummy", solrUrl);
   
   // Console Storage
   StorageJobLogger logger = new ConsoleStorageJobLogger(RecordStorage.class, harvestable);

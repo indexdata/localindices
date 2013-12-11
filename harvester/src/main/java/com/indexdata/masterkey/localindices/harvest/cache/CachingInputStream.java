@@ -6,7 +6,6 @@
 package com.indexdata.masterkey.localindices.harvest.cache;
 
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilterInputStream;

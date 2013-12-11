@@ -69,7 +69,8 @@ public class SolrStorage implements HarvestStorage {
   public SolrStorage(String solrUrl, Harvestable harvestable) {
     this.harvestable = harvestable;
     url = solrUrl;
-
+    if (harvestable.getStorage() != null)
+      	harvestable.getStorage().setUrl(solrUrl);
     init();
   }
 

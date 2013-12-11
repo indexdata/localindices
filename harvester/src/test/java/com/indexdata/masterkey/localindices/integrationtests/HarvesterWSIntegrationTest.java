@@ -9,15 +9,18 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
+import static org.junit.Assert.*;
 import static com.indexdata.masterkey.localindices.integrationtests.IntTestUtil.*;
 import static com.indexdata.utils.TextUtils.joinPath;
 import static com.indexdata.utils.XmlUtils.serialize;
+
 import org.w3c.dom.Document;
 
 import static java.lang.System.out;
+
 import javax.xml.transform.TransformerException;
 
 /**
@@ -27,6 +30,7 @@ import javax.xml.transform.TransformerException;
 @SuppressWarnings("unused")
 public class HarvesterWSIntegrationTest {
   
+  @Ignore
   @Test
   public void testListJobs() throws TestException, TransformerException {
     Document res = GET(joinPath(ROOT_URI, "records/searchables/"));

@@ -279,8 +279,9 @@ public class TestOAIRecordHarvestJob extends JobTester {
     SolrStorageEntity storageEntity = new SolrStorageEntity();
     storageEntity.setName(storageName);
     storageEntity.setId(resource.getId());
+    storageEntity.setUrl(url);
     resource.setStorage(storageEntity);
-    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(url, resource);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setWaitSearcher(true);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
     if (clear) {

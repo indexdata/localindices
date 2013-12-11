@@ -26,6 +26,13 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     super(harvestable);
   }
 
+  /**
+   * 
+   * @param solrUrl
+   * @param harvestable
+   * 
+   * Only for testing: Overrides the solrUrl given in the harverstable.storage 
+   */
   public BulkSolrRecordStorage(String solrUrl, Harvestable harvestable) {
     super(solrUrl, harvestable);
   }

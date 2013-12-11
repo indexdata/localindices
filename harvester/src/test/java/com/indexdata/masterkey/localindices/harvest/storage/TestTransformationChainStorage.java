@@ -37,6 +37,7 @@ import org.xml.sax.XMLReader;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.job.AbstractRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
@@ -45,25 +46,25 @@ import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
+  // SOLR Server in container
+  String solrUrl = "http://localhost:8585/solr/";
   DummyXmlBulkResource harvestableXml = new DummyXmlBulkResource(
-      "http://lui-dev.indexdata.com/harvester/marc.xml");
+      "http://lui-dev.indexdata.com/harvester/marc.xml", solrUrl);
 
   String catalog_gz = "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.gz";
-  Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz);
+  Harvestable harvestableGutenberg = new DummyXmlBulkResource(catalog_gz, solrUrl);
 
   String marcRecords = "http://lui.indexdata.com/ag/demo_org.mrc";
-  Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords);
+  Harvestable harvestableMarc = new DummyXmlBulkResource(marcRecords, solrUrl);
 
   String catalog_zip = // Not working from jenkins "http://www.gutenberg.org/cache/epub/feeds/catalog.rdf.zip";
                         "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.zip";
-  // SOLR Server in container
-  String solrUrl = "http://localhost:8585/solr/";
   SolrStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
-  RecordStorage xmlBulkStorage = new BulkSolrRecordStorage(solrUrl, harvestableXml);
+  RecordStorage xmlBulkStorage = new BulkSolrRecordStorage(harvestableXml);
   
-  RecordStorage bulkGutenbergStorage = new BulkSolrRecordStorage(solrUrl, harvestableGutenberg);
-  RecordStorage bulkMarcStorage = new BulkSolrRecordStorage(solrUrl, harvestableMarc);
+  RecordStorage bulkGutenbergStorage = new BulkSolrRecordStorage(harvestableGutenberg);
+  RecordStorage bulkMarcStorage = new BulkSolrRecordStorage(harvestableMarc);
   SAXParserFactory spf = XmlFactory.newSAXParserFactoryInstance();
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();
 
@@ -270,10 +271,16 @@ public class TestTransformationChainStorage extends TestCase {
     resource.setFromDate(fromDate);
     resource.setMetadataPrefix("oai_dc");
     resource.setUrl(resourceUrl);
+    resource.setId(1l);
     setName(resourceUrl);
     resource.setCurrentStatus("NEW");
+    SolrStorageEntity solrEntity = new SolrStorageEntity();
+    solrEntity.setId(resource.getId());
+    solrEntity.setName(solrUrl);
+    solrEntity.setUrl(solrUrl);
+    resource.setStorage(solrEntity);
     OAIHarvestJob job = new OAIHarvestJob(resource, null);
-    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(solrUrl, resource);
+    BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     XMLReader xmlFilter = createTransformChain(stylesheets);
     TransformationChainRecordStorageProxy storageProxy = new TransformationChainRecordStorageProxy(

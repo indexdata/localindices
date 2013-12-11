@@ -6,16 +6,21 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
+import static com.indexdata.utils.TextUtils.joinPath;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.Proxy;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.TimeZone;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -32,6 +37,7 @@ import org.apache.log4j.Level;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import ORG.oclc.oai.harvester2.data.InputStreamWrapper;
 import ORG.oclc.oai.harvester2.transport.ResponseParsingException;
 import ORG.oclc.oai.harvester2.verb.HarvesterVerb;
 import ORG.oclc.oai.harvester2.verb.ListRecords;
@@ -46,17 +52,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-
-import java.io.InputStream;
-
-import static com.indexdata.utils.TextUtils.joinPath;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
