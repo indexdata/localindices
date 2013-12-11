@@ -12,14 +12,13 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class TestSolrStorage extends TestCase {
   String solrUrl = "http://localhost:8585/solr/";
-  Harvestable harvestable = new DummyXmlBulkResource(solrUrl);
+  Harvestable harvestable = new DummyXmlBulkResource("dummy", solrUrl);
   
   // Console Storage
   StorageJobLogger logger = new ConsoleStorageJobLogger(TestSolrStorage.class, harvestable);
   
   // Solr Storage
   HarvestStorage storage = new SolrStorage(solrUrl, harvestable) {
-    
     public void commit() throws IOException {
       setWaitSearcher(true);
       super.commit();
