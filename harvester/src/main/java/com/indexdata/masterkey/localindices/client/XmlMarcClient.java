@@ -86,7 +86,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
 	else {
 	  ReadStore readStore = prepareReadStore(conn.getInputStream(), 
             getContentLength(conn), conn.getContentType(), conn.getContentEncoding(), 
-             joinPath(diskCache.getJobPath(), diskCache.proposeName()));
+             resource.isCacheEnabled()
+              ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
+              : null);
 	  readStore.readAndStore();
 	}
       } else if (responseCode == 304) {//not-modified
