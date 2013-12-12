@@ -138,8 +138,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     try {
       getStorage().setOverwriteMode(resource.getOverwrite());
       DiskCache dc = new DiskCache(resource.getId());
+      if (resource.isCacheEnabled()) {
+        dc.init();
+      }
       if (resource.getOverwrite()) {
-        if (!resource.isDiskRun()) dc.purge();
+        if (resource.isCacheEnabled() && !resource.isDiskRun()) dc.empty();
       }
       dataStart = harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
