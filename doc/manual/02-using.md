@@ -61,7 +61,7 @@ Check-boxes for:
 * _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". Leaving this box unchecked will
 make the job inactive.
 
-* _Overwrite_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run. Since OAI-PMH supports incremental updates, "overwrite" is not generally used with such jobs. If this feature is used with OAI-PMH processes, it is necessary to clear the "Harvest From" and "Resumption Token" fields, otherwise OAI-PMH jobs with "overwrite" selected will produce only a partial data set.
+* _Cache on disk_: if enabled, harvest data is kept in the filesystem cache and the job can be restarted from this cache without needing to go back to the server.
 
 Drop-downs for:
 
@@ -77,7 +77,23 @@ Drop-downs for:
 
 * _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
-The Reset button will reset a job back to the initial (newly created) stated, which means resetting any status fields and date fields. This will also delete any records in the associated storage. The Delete Job and Records button will as stated delete both the job and the harvested records in the associated storage.
+* _Connection/read timeout_: specify a non-default timeout value for obtaining and reading from an HTTP connection (socket). Values under 1 minute are not recommended.
+
+* _Job Log Level_: specify the logging level for the job with DEBUG being the most verbose. INFO is the recommended log level in most cases.
+
+* _Custom e-mails_: specify comma separated list of e-mail addresses that should receive notification on job completion.
+
+* _E-mail on job status_: specify job completion status that will trigger the e-mail notifications
+
+* _Record limit_: limit the harvest run to a specified number of records: useful for testing job settings and transformation pipelines.
+
+Buttons:
+
+* _Reset cache_: this button will clear the filesystem cache for this job
+
+* _Reset_: this button will reset a job back to the initial (newly created) state, which means resetting any status fields and date fields. This will also delete any records in the associated storage. 
+
+* _Delete Job and Records_: this button will completely remove both the job and the harvested records in the associated storage.
 
 
 #### Resource-specific Settings \
@@ -114,6 +130,8 @@ The XML/MARC specific settings look like this:
 
 * _URLs_: One or more space-separated URL for XML or MARC binary data. Jump or index pages (e.g. html pages with URLs) are supported as well.
 
+* _Overwrite with each run_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run.
+
 * _Split at depth_: For XML data. This should usually be set to 1 for XML feeds, if we want to harvest the record elements in the data structured like:
 
 ```
@@ -144,9 +162,12 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 
 ![Connector job settings.](./img/05-cfspecific.png)
 
-* _Connector Engine URL_: Enter here the URL pointing to the connector engine instance that will be used to execute the Connector harvesting job. The engine is either hosted by Index Data or installed locally on the customer site.
+* _Connector Engine_: select the Connector Engine instance that will be used to execute the Connector harvesting job. The default engine is hosted by Index Data but may be also installed locally on the customer site. Additional Connector Engines can be specified through the _Settings_ tab.
 
-* _Connector (repo) URL_: Enter here the URL to the harvesting connector specific to the harvested resource. If the URL points to a connector in the _Connector Repository_, make sure to provide repository authentication credentials in the URL like so: `http(s)://<repouser>:<repopass>@url.to.the.repo/connector.name.cf`.
+* _Connector Engine Parameters_: additional or custom values of Connector Engine session parameters used by this job. See [CFWS manpage](http://www.indexdata.com/connector-platform/enginedoc/cf_webservice.html) for more information. 
+
+* _Connector Repository_: select the connector repository where the Connectors are hosted and maintained. Usually, the Connector Repository is provided by Index Data and may require a login account. The account credentials are provided directly in the Connector Repository URL setting accessed from the _Settings_ tab and should have the form: `http(s)://<repouser>:<repopass>@url.to.the.repository`. 
+* _Connector_: Enter here the name of the harvesting connector specific to the harvested resource. This field provides suggestions by looking up the Repository so only a couple of initial characters or a part of the name is required.
 
 * _User Name_: User name required for access to a harvested resource that requires authentication.
 
