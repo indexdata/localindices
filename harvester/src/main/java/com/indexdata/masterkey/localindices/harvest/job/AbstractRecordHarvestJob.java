@@ -53,6 +53,8 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   
   @Override
   public void setStorage(RecordStorage storage) {
+    // Invalidate transformation storage proxy
+    this.transformationStorage = null;
     this.storage = storage;
   }
   
@@ -193,7 +195,9 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
 	getStorage().shutdown();
     } catch (IOException ioe) {
 	logger.warn("Storage shutdown exception: " + ioe.getMessage());
+    } finally {
+      transformationStorage = null;
+      logger.close();
     }
-    logger.close();
   }
 }

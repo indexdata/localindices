@@ -22,19 +22,22 @@ public class DiskCache {
   private final File jobPathDir;
   private final long jobId;
 
-  public DiskCache(long jobId) throws IOException {
+  public DiskCache(long jobId) {
     if (basePath == null)
       throw new IllegalStateException("cache basePath is null, make sure harvester is properly deployed");
     this.jobId = jobId;
     jobPath = TextUtils.joinPath(basePath, Long.toString(jobId));
     jobPathDir = new File(jobPath);
+      
+  }
+  
+  public void init() throws IOException {
     boolean created = jobPathDir.mkdir();
     if (!created) {
       //if already exists, we are OK
       if (!jobPathDir.isDirectory())
         throw new IOException("Cannot create cache dir at "+jobPathDir.getAbsolutePath());
-    }
-      
+    }    
   }
   
   public String getBasePath() {
@@ -58,8 +61,11 @@ public class DiskCache {
     return jobId;
   }
   
-  public String[] list() {
+  public String[] list() throws IOException {
     String[] list = jobPathDir.list();
+    if (list == null) {
+      throw new IOException("Cache directory does not exist at "+jobPathDir.getAbsolutePath());
+    }
     Arrays.sort(list);
     for (int i=0; i<list.length; i++) {
       list[i] = String.format("%s/%s", jobPathDir.getAbsolutePath(), list[i]);
@@ -67,10 +73,19 @@ public class DiskCache {
     return list;
   }
   
-  public void purge() throws IOException {
+  public void empty() throws IOException {
+    File[] files = jobPathDir.listFiles();
+    if (files == null) {
+      throw new IOException("Cache directory does not exist at "+jobPathDir.getAbsolutePath());
+    }
     for (File f : jobPathDir.listFiles()) {
       if (!f.delete()) throw new IOException("Cannot remove cache file at "+f.getAbsolutePath());
     }
+  }
+  
+  public void purge() throws IOException {
+    empty();
+    jobPathDir.delete();
   }
   
   public String proposeName() {
