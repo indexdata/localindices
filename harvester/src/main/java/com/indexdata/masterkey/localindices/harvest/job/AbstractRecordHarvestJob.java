@@ -191,6 +191,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   
   protected void shutdown() {
     getHarvestable().setDiskRun(false);
+    markForUpdate();
     try {
 	getStorage().shutdown();
     } catch (IOException ioe) {

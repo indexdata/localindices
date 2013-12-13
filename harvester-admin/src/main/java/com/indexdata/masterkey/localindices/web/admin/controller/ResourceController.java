@@ -471,6 +471,7 @@ public class ResourceController {
       }
       resource.setLastUpdated(new Date());
       resource.setHarvestImmediately(true);
+      resource.setDiskRun(false);
       dao.update(resource);
     } else if ("run_cached".equals(action)) {
       if (resource.getCurrentStatus().equals("RUNNING")) {
