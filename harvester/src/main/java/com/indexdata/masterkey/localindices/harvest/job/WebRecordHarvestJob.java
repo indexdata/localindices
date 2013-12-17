@@ -4,7 +4,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -14,6 +13,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Level;
 
 import com.indexdata.masterkey.localindices.crawl.CrawlQueue;
@@ -23,8 +23,6 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -87,6 +85,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
  *         sets, if possible
  */
 public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements WebHarvestJobInterface {
+  ByteArrayOutputStream os = new ByteArrayOutputStream();
 
   //private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   // private HarvestStorage storage;
@@ -115,18 +114,6 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     }
     setupTemplates(resource, steps);
     */
-  }
-
-  @Override
-  public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage) {
-      super.setStorage((RecordStorage) storage);
-    }
-    else {
-      setStatus(HarvestStatus.ERROR);
-      resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
-	  + ". Requires RecordStorage");
-    }
   }
 
   @Override
@@ -172,7 +159,6 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   }
 
   public synchronized void saveXmlFragment(String xml) throws IOException {
-    OutputStream os = getOutputStream();
     os.write(xml.getBytes());
     os.write("\n".getBytes());
   }
@@ -417,37 +403,6 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
       }
     }
   } // run()
-
-/*
-  public RecordStorage setupTransformation(RecordStorage storage) 
-  {
-    if (resource.getTransformation() == null || resource.getTransformation().getSteps().size() == 0)
-      logger.debug("No Transformation configured.");
-    // return getStorage();
-
-    XMLReader xmlReader;
-    try {
-      xmlReader = createTransformChain(false);
-      // TODO Add split 
-      return new TransformationChainRecordStorageProxy(storage, xmlReader,
-	  	new Pz2SolrRecordContentHandler(storage, resource.getId().toString()), logger);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      logger.error(e.getMessage());
-    }
-    return storage;
-  }
- */
-
-  OutputStream finalOutputStream = null; 
-  @SuppressWarnings("deprecation")
-  @Override
-  public synchronized OutputStream getOutputStream() {
-    if (finalOutputStream  == null) 
-      finalOutputStream = setupTransformation(getStorage()).getOutputStream();
-    return finalOutputStream;
-  }
 
   @Override
   public Harvestable getHarvestable() {

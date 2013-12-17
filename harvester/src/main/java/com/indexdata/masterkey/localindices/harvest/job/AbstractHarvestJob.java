@@ -8,7 +8,7 @@ package com.indexdata.masterkey.localindices.harvest.job;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import java.util.Date;
 
 /**
@@ -20,7 +20,7 @@ import java.util.Date;
 public abstract class AbstractHarvestJob implements HarvestJob {
 
   private boolean updated;
-  private HarvestStorage storage;
+  private RecordStorage storage;
   private HarvestStatus runStatus;
   private HarvestStatus jobStatus;
   private boolean die;
@@ -73,12 +73,12 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   }
 
   @Override
-  public void setStorage(HarvestStorage storage) {
+  public void setStorage(RecordStorage storage) {
     this.storage = storage;
   }
 
   @Override
-  public HarvestStorage getStorage() {
+  public RecordStorage getStorage() {
     return this.storage;
   }
 

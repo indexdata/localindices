@@ -7,7 +7,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -120,17 +119,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     }
     logger.warn("No Transformation Proxy configured.");
     return storage;
-  }
-
-  public OutputStream getOutputStream() 
-  {
-    // Currently, the client MUST only called getOutputStream once per XML it wants to parse and split
-    // So multiple XML files can be read by calling getOutputStream again, but also leave it open for a bad client 
-    // to misuse this call. This could be avoided by requiring the client to call close on stream between XML files, 
-    // intercept the close call and null transformationStorage, but reuse otherwise.
-    // Though, each thread needs it's own 
-
-    return setupTransformation(getStorage()).getOutputStream();
   }
 
   protected void commit() throws IOException {
