@@ -7,12 +7,18 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -32,7 +38,7 @@ import org.apache.log4j.Logger;
  * 
  * @author Heikki
  */
-public class MultiFileStorage implements HarvestStorage {
+public class MultiFileStorage implements RecordStorage {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   protected String basePath; // where the data is to be stored
   protected String incomingDir; // dir (under basePath) for this job
@@ -210,6 +216,66 @@ public class MultiFileStorage implements HarvestStorage {
   @Override
   public void setHarvestable(Harvestable harvestable) {
     // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void databaseStart(String database, Map<String, String> properties) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void databaseEnd() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void add(Map<String, Collection<Serializable>> keyValues) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void add(Record record) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public Record get(String id) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void delete(String id) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void shutdown() throws IOException {
+    // TODO Auto-generated method stub
+    
   }
 
 } // MultiFileStorage

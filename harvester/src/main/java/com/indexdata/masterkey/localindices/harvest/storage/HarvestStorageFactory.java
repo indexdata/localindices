@@ -31,12 +31,9 @@ public class HarvestStorageFactory {
 	try {
 	  Class<?> storage = Class.forName(entity.getCustomClass());
 	  Object object = storage.newInstance();
-	  
-	  if (object instanceof HarvestStorage) {
-	    RecordStorage recordStorage = (RecordStorage) object;
-	    recordStorage.setHarvestable(harvestable);
-	    return recordStorage;
-	  }
+	  RecordStorage recordStorage = (RecordStorage) object;
+	  recordStorage.setHarvestable(harvestable);
+	  return recordStorage;
 	} catch (ClassNotFoundException e) {
 	  e.printStackTrace();
 	  throw new RuntimeException("Class not found: " +  entity.getCustomClass());

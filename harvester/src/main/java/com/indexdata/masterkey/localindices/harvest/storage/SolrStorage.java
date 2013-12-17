@@ -19,7 +19,6 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -43,7 +42,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
  * method so it can be run on the command line.
  * 
  */
-public class SolrStorage implements HarvestStorage {
+public abstract class SolrStorage implements RecordStorage {
   public String POST_ENCODING = "UTF-8";
   public String VERSION_OF_THIS_TOOL = "1.2";
   protected String url = "http://localhost:8983/solr/";
@@ -184,12 +183,7 @@ public class SolrStorage implements HarvestStorage {
     return override;
   }
 
-  @Override
-  public OutputStream getOutputStream() {
-    return output;
-  }
-
-  public String getStorageId() {
+    public String getStorageId() {
     return storageId;
   }
 

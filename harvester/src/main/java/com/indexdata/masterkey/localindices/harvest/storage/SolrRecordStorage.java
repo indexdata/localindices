@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -11,7 +10,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
@@ -20,11 +22,12 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus.TransactionState;
-import org.apache.solr.client.solrj.SolrServer;
 
-public class SolrRecordStorage extends SolrStorage implements RecordStorage {
+public class SolrRecordStorage implements RecordStorage {
   Collection<String> deleteIds = new LinkedList<String>();
   private String idField = "id";
   protected String databaseField = "database";
@@ -42,6 +45,17 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   private String harvestDateShort; 
   private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   private SimpleDateFormat formatterShort = new SimpleDateFormat("yyyy-MM-dd");
+  public String POST_ENCODING = "UTF-8";
+  public String VERSION_OF_THIS_TOOL = "1.2";
+  protected String url = "http://localhost:8983/solr/";
+  protected SolrServer server;
+  protected Harvestable harvestable;
+  protected StorageJobLogger logger;
+  protected Collection<SolrInputDocument> documentList = null;
+  private boolean override = false;
+  String storageId = "";  
+  protected StorageStatus storageStatus;
+  private boolean waitFlush = true;
 
   @SuppressWarnings("unused")
   private SolrServerFactory factory;
@@ -50,21 +64,60 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
   }
   
   public SolrRecordStorage(Harvestable harvestable) {
-    super(harvestable);
+    setHarvestable(harvestable);
   }
 
-  public SolrRecordStorage(String url, Harvestable harvestable) {
-    super(url, harvestable);
+  public SolrRecordStorage(String solrUrl, Harvestable harvestable) {
+    this.harvestable = harvestable;
+    url = solrUrl;
+    if (harvestable.getStorage() != null)
+      	harvestable.getStorage().setUrl(solrUrl);
+    init();
+  }
+
+  public void init() {
+    try {
+      Storage storage = null;
+      if (harvestable != null) {
+        storage = harvestable.getStorage();
+      }
+      if (storage == null) {
+	throw new RuntimeException("Fail to init Storage " + this.getClass().getCanonicalName() 
+	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
+      }
+      setStorageId(storage.getId().toString());
+      if (storage.getIndexingUrl() != null)
+	url = storage.getIndexingUrl();
+      logger = new FileStorageJobLogger(SolrStorage.class, storage);
+      //server = new StreamingUpdateSolrServer(url, 1000, 10);
+      // ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
+      HttpSolrServer server = new HttpSolrServer(url);
+      server.setSoTimeout(100000); // socket read timeout
+      server.setConnectionTimeout(10000);
+      server.setParser(new XMLResponseParser());
+      this.server = server;
+      
+      storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+    } catch (Exception e) {
+      throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
+    }
   }
 
   public SolrRecordStorage(SolrServer server, Harvestable harvestable) {
-    super(server, harvestable);
+    this.harvestable = harvestable;
+    this.server = server; 
+    Storage storage = null;
+    if (harvestable != null) {
+      storage = harvestable.getStorage();
+    }
+    logger = new FileStorageJobLogger(SolrStorage.class, storage);
+    storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
   }
 
   @Override
   synchronized public void begin() throws IOException {
     logger.info("Storage transaction begins...");
-    super.begin();
+    documentList = new LinkedList<SolrInputDocument>();
     transactionId = new Date();
     formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     harvestDate =  formatter.format(transactionId);
@@ -149,11 +202,6 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
       logger.error("Failed to purge by id. Exception: " + e.getMessage());
       throw new IOException("Error purging database (" + database + ")", e);
     }
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    throw new RuntimeException("Not supporting OutputStream interface.");
   }
 
   @Override
@@ -345,6 +393,43 @@ public class SolrRecordStorage extends SolrStorage implements RecordStorage {
     storageStatus =  new SimpleStorageStatus(storageStatus);
     logger.info("SolrRecordStorage shutdown");
     server.shutdown();
+  }
+
+  @Override
+  public void setOverwriteMode(boolean mode) {
+    override = mode;
+  }
+
+  @Override
+  public boolean getOverwriteMode() {
+    return override;
+  }
+
+    public String getStorageId() {
+    return storageId;
+  }
+
+  public void setStorageId(String storageId) {
+    this.storageId = storageId;
+  }
+  
+  public StorageStatus getStatus() {
+    
+    return storageStatus;
+  }
+
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    this.harvestable = harvestable;
+    init();
+  }
+
+  public boolean isWaitFlush() {
+    return waitFlush;
+  }
+
+  public void setWaitFlush(boolean waitFlush) {
+    this.waitFlush = waitFlush;
   }
 
 }

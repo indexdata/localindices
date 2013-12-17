@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,11 +57,6 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   @Override
   public boolean getOverwriteMode() {
     return overrideMode;
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    return System.out;
   }
 
   @Override

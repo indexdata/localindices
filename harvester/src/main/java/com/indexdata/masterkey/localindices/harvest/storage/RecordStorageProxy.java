@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
@@ -48,12 +47,6 @@ public abstract class RecordStorageProxy implements RecordStorage {
   @Override
   public boolean getOverwriteMode() {
     return storage.getOverwriteMode();
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    return storage.getOutputStream();
-    //   return null;
   }
 
   @Override

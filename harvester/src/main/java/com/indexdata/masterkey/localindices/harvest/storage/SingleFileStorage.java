@@ -7,17 +7,22 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Simple, single file storage.
  * 
  * @author jakub
  */
-public class SingleFileStorage implements HarvestStorage {
+public class SingleFileStorage implements RecordStorage {
   private String outFileName;
   private OutputStream fos;
 
@@ -58,9 +63,23 @@ public class SingleFileStorage implements HarvestStorage {
     return outFileName;
   }
 
+  @Override
+  public void setHarvestable(Harvestable harvestable) {
+    // TODO Auto-generated method stub
+    
+  }
+
   public void setOverwriteMode(boolean mode) {
-    if (mode)
-      throw new UnsupportedOperationException("Overwritemode not supported");
+    if (mode) {
+      try {
+	begin();
+	purge(true);
+	commit();
+      } catch (IOException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+      }
+    }
   }
 
   public boolean getOverwriteMode() {
@@ -68,9 +87,64 @@ public class SingleFileStorage implements HarvestStorage {
   }
 
   @Override
-  public void setHarvestable(Harvestable harvestable) {
+  public void databaseStart(String database, Map<String, String> properties) {
+  }
+
+  @Override
+  public void databaseEnd() {
+  }
+
+  @Override
+  public void add(Map<String, Collection<Serializable>> keyValues) {
+  }
+
+  @Override
+  public void add(Record record) {
+    try {
+      fos.write(record.toString().getBytes());
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public Record get(String id) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void delete(String id) {
     // TODO Auto-generated method stub
     
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    return new Pz2SolrRecordContentHandler(this, null);
+  }
+
+  @Override
+  public void shutdown() {
+    try {
+      fos.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }
