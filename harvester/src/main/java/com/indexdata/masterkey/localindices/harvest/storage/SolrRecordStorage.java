@@ -88,7 +88,7 @@ public class SolrRecordStorage implements RecordStorage {
       setStorageId(storage.getId().toString());
       if (storage.getIndexingUrl() != null)
 	url = storage.getIndexingUrl();
-      logger = new FileStorageJobLogger(SolrStorage.class, storage);
+      logger = new FileStorageJobLogger(SolrRecordStorage.class, storage);
       //server = new StreamingUpdateSolrServer(url, 1000, 10);
       // ConcurrentUpdateSolrServer server = new ConcurrentUpdateSolrServer(url, 100, 10);
       HttpSolrServer server = new HttpSolrServer(url);
@@ -110,7 +110,7 @@ public class SolrRecordStorage implements RecordStorage {
     if (harvestable != null) {
       storage = harvestable.getStorage();
     }
-    logger = new FileStorageJobLogger(SolrStorage.class, storage);
+    logger = new FileStorageJobLogger(SolrRecordStorage.class, storage);
     storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
   }
 
