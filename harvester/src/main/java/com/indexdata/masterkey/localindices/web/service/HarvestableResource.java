@@ -25,11 +25,10 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
 
 /**
@@ -93,7 +92,7 @@ public class HarvestableResource {
 
   private void purgeStorage(Harvestable harvestable) throws IOException {
     if (harvestable.getStorage() != null) {
-      HarvestStorage storage = HarvestStorageFactory.getStorage(harvestable);
+      RecordStorage storage = HarvestStorageFactory.getStorage(harvestable);
       if (storage != null)
 	storage.purge(true);
       else 

@@ -113,9 +113,9 @@ public class CrawlThread implements Runnable {
 	if (!xml.isEmpty()) {
 	  try {
 	    setStatus(CRAWLTHREAD_SAVING);
-	    job.getOutputStream().write(xml.getBytes());
+	    //job.getStorage().add(xml.getBytes());
 	    setStatus(CRAWLTHREAD_PROCESSING);
-	  } catch (IOException ex) {
+	  } catch (Exception ex) {
 	    job.setError("I/O error writing data: " + ex.getMessage());
 	    job.kill();
 	    logger.log(Level.TRACE, xml);

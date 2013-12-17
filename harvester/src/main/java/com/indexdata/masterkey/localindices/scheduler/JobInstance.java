@@ -25,7 +25,7 @@ import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.utils.CronLine;
 
@@ -134,7 +134,7 @@ public class JobInstance {
   public void destroy() {
     harvestJob.kill();
     try {
-      HarvestStorage storage = harvestJob.getStorage(); 
+      RecordStorage storage = harvestJob.getStorage(); 
       storage.purge(true);
     } catch (IOException ex) {
       logger.log(Level.ERROR, "Destroy failed.");
