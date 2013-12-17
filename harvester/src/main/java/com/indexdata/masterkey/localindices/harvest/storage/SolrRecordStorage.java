@@ -97,7 +97,7 @@ public class SolrRecordStorage implements RecordStorage {
       server.setParser(new XMLResponseParser());
       this.server = server;
       
-      storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+      storageStatus = new SolrStorageStatus(server, databaseField + ":" + harvestable.getId());
     } catch (Exception e) {
       throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
     }
@@ -111,7 +111,7 @@ public class SolrRecordStorage implements RecordStorage {
       storage = harvestable.getStorage();
     }
     logger = new FileStorageJobLogger(SolrRecordStorage.class, storage);
-    storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+    storageStatus = new SolrStorageStatus(server, databaseField + ":" + harvestable.getId());
   }
 
   @Override
