@@ -37,10 +37,10 @@ public class HarvestableLog {
     }
   }
 
-  public static String getHarvestableLog(long jobId) throws FileNotFoundException, IOException 
-  {
-    String logName = getHarvesteableJobFilename(jobId); 
-    File logFile =  new File(logName);
+  // TODO return XML with infomation about number of pages.
+  public static String getHarvestableLog(long jobId, Long page) throws FileNotFoundException, IOException {
+    String logName = getHarvesteableJobFilename(jobId, page);
+    File logFile = new File(logName);
     if (logFile.exists() && logFile.isFile()) {
       BufferedReader r = new BufferedReader(new FileReader(logFile));
       StringBuilder sb = new StringBuilder(10240);
@@ -54,7 +54,15 @@ public class HarvestableLog {
     return "--- Warning: Log File " + logFile + " not found ---";
   }
 
-  public static String getHarvesteableJobFilename(long jobId) {
-    	return logDir + "job-" + jobId + ".log";
+  public static String getHarvesteableJobFilename(long jobId, Long page) {
+    return logDir + "job-" + jobId + ".log" + (page != null ? "." + page : "");
+  }
+
+  public static String getLogDir() {
+    return logDir;
+  }
+
+  public static void setLogDir(String logDir) {
+    HarvestableLog.logDir = logDir;
   }
 }
