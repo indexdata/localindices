@@ -247,6 +247,7 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("DELETE");
       int resp = conn.getResponseCode();
+      logger.log(Level.DEBUG, "DELETE " + resetUrl + " -- " + resp);
     } catch (FileNotFoundException fnf) {
       throw new DAOException("Job cache not found -- 404");
     } catch (IOException ioe) {
