@@ -89,10 +89,14 @@ public abstract class RecordStorageProxy implements RecordStorage {
   public abstract void setLogger(StorageJobLogger logger);
 
   @Override
-  public abstract StorageStatus getStatus() throws StatusNotImplemented;
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    return storage.getStatus();
+  }
 
   @Override
-  public abstract DatabaseContenthandler getContentHandler();
+  public DatabaseContenthandler getContentHandler() {
+    return storage.getContentHandler();
+  };
 
   @Override
   public void shutdown() throws IOException {

@@ -24,10 +24,12 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
+
 import javax.ws.rs.core.Response;
 
 /**

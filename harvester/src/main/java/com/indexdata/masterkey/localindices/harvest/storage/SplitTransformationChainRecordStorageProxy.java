@@ -95,7 +95,6 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
-    super.setLogger(logger);
   }
 
   public boolean isClosed() {
