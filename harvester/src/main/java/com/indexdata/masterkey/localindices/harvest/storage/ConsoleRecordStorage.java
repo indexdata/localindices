@@ -16,6 +16,7 @@ public class ConsoleRecordStorage implements RecordStorage {
   private int added;
   private int deleted; 
   boolean committed; 
+  Harvestable harvestable;
   
   private void message(Object msg) {
     System.out.println(msg);
@@ -116,8 +117,7 @@ public class ConsoleRecordStorage implements RecordStorage {
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
-    // TODO Auto-generated method stub
-    
+    this.harvestable = harvestable;
   }
 
   @Override

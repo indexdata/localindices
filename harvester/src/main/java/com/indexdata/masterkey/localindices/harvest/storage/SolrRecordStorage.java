@@ -414,7 +414,6 @@ public class SolrRecordStorage implements RecordStorage {
   }
   
   public StorageStatus getStatus() {
-    
     return storageStatus;
   }
 

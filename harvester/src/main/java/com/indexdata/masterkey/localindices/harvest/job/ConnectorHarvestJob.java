@@ -115,4 +115,5 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   public void setJobThread(Thread jobThread) {
     this.jobThread = jobThread;
   }
+
 }

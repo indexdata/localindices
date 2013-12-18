@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -47,6 +48,8 @@ public class MultiFileStorage implements RecordStorage {
   private String namePrefix; // file name prefix (in jobDir)
   private OutputStream fos; // the "file handle"
   private boolean overwriteMode = false; // default to appending, as before
+  @SuppressWarnings("unused")
+  private Harvestable harvestable;
 
   public MultiFileStorage(String storageDir, Harvestable harvestable) {
     basePath = storageDir;
@@ -215,7 +218,7 @@ public class MultiFileStorage implements RecordStorage {
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
-    // TODO Auto-generated method stub
+    this.harvestable = harvestable;
   }
 
   @Override
@@ -275,7 +278,6 @@ public class MultiFileStorage implements RecordStorage {
   @Override
   public void shutdown() throws IOException {
     // TODO Auto-generated method stub
-    
   }
 
 } // MultiFileStorage

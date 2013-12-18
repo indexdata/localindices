@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Level;
 
@@ -23,6 +22,7 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+
 
 /**
  * WebHarvestJob Crawls around web sites and stores full text, title, url, etc.
@@ -98,7 +98,7 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   private final int minNumWorkers = 5;
   private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
-
+  //private StringBuilderWriter writer = new StringBuilderWriter();
   public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
     this.resource = resource;
     this.proxy = proxy;
@@ -116,7 +116,6 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
     */
   }
 
-  @Override
   public WebRobotCache getRobotCache() {
     return robotCache;
 

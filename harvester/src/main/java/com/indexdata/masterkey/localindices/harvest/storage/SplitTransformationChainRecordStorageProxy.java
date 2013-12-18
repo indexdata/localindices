@@ -95,16 +95,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
-  }
-
-  @Override
-  public StorageStatus getStatus() throws StatusNotImplemented {
-    return storage.getStatus();
-  }
-
-  @Override
-  public DatabaseContenthandler getContentHandler() {
-    return storage.getContentHandler();
+    super.setLogger(logger);
   }
 
   public boolean isClosed() {

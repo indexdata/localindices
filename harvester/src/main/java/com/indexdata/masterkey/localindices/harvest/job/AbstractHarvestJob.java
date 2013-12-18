@@ -5,6 +5,8 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -17,7 +19,7 @@ import java.util.Date;
  *
  * @author jakub
  */
-public abstract class AbstractHarvestJob implements HarvestJob {
+public abstract class AbstractHarvestJob implements RecordHarvestJob {
 
   private boolean updated;
   private RecordStorage storage;

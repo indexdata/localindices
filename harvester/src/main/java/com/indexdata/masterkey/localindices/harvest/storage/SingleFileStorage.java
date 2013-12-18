@@ -55,10 +55,6 @@ public class SingleFileStorage implements RecordStorage {
     }
   }
 
-  public OutputStream getOutputStream() {
-    return fos;
-  }
-
   public String getOutFileName() {
     return outFileName;
   }

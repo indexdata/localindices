@@ -107,7 +107,6 @@ public class JobScheduler {
       }
     }
   }
-
   /**
    * Start, report status and error of the scheduled jobs.
    */

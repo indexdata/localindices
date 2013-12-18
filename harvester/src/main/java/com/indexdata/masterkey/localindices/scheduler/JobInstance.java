@@ -48,7 +48,6 @@ public class JobInstance {
   private String lastStatusMsg;
   public boolean seen; // for checking what has been deleted
   private boolean enabled = true;
-
   public JobInstance(Harvestable hable, Proxy proxy, boolean enabled)
       throws IllegalArgumentException {
     this.enabled = enabled;

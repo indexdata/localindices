@@ -123,7 +123,6 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   @Override
   public void setHarvestable(Harvestable harvestable) {
     // TODO Auto-generated method stub
-    
   }
 
   @Override
