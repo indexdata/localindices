@@ -156,9 +156,9 @@ public class HarvestableResource {
     if (harvestable != null) {
       try { 
 	// rc = JobScheduler.doCmd(harvestable, cmd);
-	return "OK " + cmd + " harvestable " + harvestable.getStorage().getId(); 
+	return "OK " + cmd + " harvestable " + harvestable.getId(); 
       } catch (Exception e) {
-	String error = "Failed to " + cmd + " harvestable " + harvestable.getStorage().getId() + ": " + e.getMessage();
+	String error = "Failed to " + cmd + " harvestable " + harvestable.getId() + ": " + e.getMessage();
 	logger.log(Level.ERROR, error, e);
 	return error;
       }
