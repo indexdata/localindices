@@ -14,6 +14,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriInfo;
@@ -27,6 +28,8 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.scheduler.JobScheduler;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import javax.ws.rs.POST;
@@ -144,7 +147,25 @@ public class HarvestableResource {
     }
     return "No harvestable to reset with id: " + id;
   }
-  
+
+  @Path("cmd/{cmd}")
+  @GET
+  @Produces("text/plain")
+  public String cmd(@PathParam("cmd") String cmd) {
+    Harvestable harvestable = dao.retrieveById(id);
+    if (harvestable != null) {
+      try { 
+	// rc = JobScheduler.doCmd(harvestable, cmd);
+	return "OK " + cmd + " harvestable " + harvestable.getStorage().getId(); 
+      } catch (Exception e) {
+	String error = "Failed to " + cmd + " harvestable " + harvestable.getStorage().getId() + ": " + e.getMessage();
+	logger.log(Level.ERROR, error, e);
+	return error;
+      }
+    }
+    return "No harvestable to " + cmd + " with id: " + id;
+  }
+
   @Path("cache/")
   @DELETE
   @Produces("text/plain")
@@ -172,8 +193,18 @@ public class HarvestableResource {
   @GET
   @Produces("text/plain")
   public String getHarvestableLog() {
+    return getHarvestableLog(null);
+  }
+    /**
+   * Entry point to the Harvestable log file.
+   * 
+   */
+  @Path("log/{page}/")
+  @GET
+  @Produces("text/plain")
+  public String getHarvestableLog(@PathParam("page") Long page) {
     try {
-      return HarvestableLog.getHarvestableLog(id);
+      return HarvestableLog.getHarvestableLog(id, page);
     } catch (FileNotFoundException fnf) {
       throw new WebApplicationException(fnf);
     } catch (IOException io) {
