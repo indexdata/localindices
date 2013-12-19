@@ -149,7 +149,7 @@ public class HarvestableResource {
   }
 
   @Path("cmd/{cmd}")
-  @GET
+  @POST
   @Produces("text/plain")
   public String cmd(@PathParam("cmd") String cmd) {
     Harvestable harvestable = dao.retrieveById(id);
