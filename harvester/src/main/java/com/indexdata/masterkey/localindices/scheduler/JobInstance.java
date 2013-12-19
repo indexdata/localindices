@@ -118,6 +118,7 @@ public class JobInstance {
       	harvestable.setStorage(storage);
       	RecordStorage recordStorage = HarvestStorageFactory.getStorage(storage);
       	recordStorage.setHarvestable(harvestable);
+      	harvestJob.setStorage(recordStorage);
 
       }
       harvestingThread.start();
