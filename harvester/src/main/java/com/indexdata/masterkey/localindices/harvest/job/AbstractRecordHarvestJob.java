@@ -10,10 +10,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.TransformerConfigurationException;
 
-import org.xml.sax.XMLReader;
+import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
@@ -23,14 +22,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationC
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
-import com.indexdata.masterkey.localindices.harvest.storage.TransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.TransformationRecordStorageProxy;
 import com.indexdata.masterkey.localindices.notification.Notification;
 import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
-import com.indexdata.xml.filter.SplitContentHandler;
 
 /**
  * Specifies the simplest common behavior of all HarvestJobs that otherwise
@@ -38,7 +35,7 @@ import com.indexdata.xml.filter.SplitContentHandler;
  * 
  * @author Dennis
  */
-public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implements RecordHarvestJob {
+public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
   protected StorageJobLogger logger;
   protected String error;
@@ -48,6 +45,11 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   RecordStorage  transformationStorage;
   protected int splitSize = 1;
   protected int splitDepth = 1;
+  private boolean updated;
+  private HarvestStatus runStatus;
+  private HarvestStatus jobStatus;
+  private boolean die;
+  private Thread jobThread;
 
   
   @Override
@@ -93,32 +95,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
-  }
-
-  @Deprecated
-  protected RecordStorage setupTransformation(RecordStorage storage) {
-    Harvestable resource = getHarvestable(); 
-    if (resource.getTransformation() != null && resource.getTransformation().getSteps().size() > 0) {
-      boolean split = (splitSize > 0 && splitDepth > 0);
-      try {
-	XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
-	if (split) {
-	  // TODO check if the existing one exists and is alive. 
-	  if (streamStorage == null || streamStorage.isClosed() == true) {
-	    SplitContentHandler splitHandler = new SplitContentHandler(new RecordStorageConsumer(getStorage(),logger), splitDepth, splitSize);
-	    xmlReader.setContentHandler(splitHandler);
-	    streamStorage = new SplitTransformationChainRecordStorageProxy(storage, xmlReader, this);
-	  }
-	  return streamStorage;
-	}
-	return new TransformationChainRecordStorageProxy(storage, xmlReader, this);
-
-      } catch (Exception e) {
-	logger.error(e.getMessage(),e);
-      }
-    }
-    logger.warn("No Transformation Proxy configured.");
-    return storage;
   }
 
   protected void commit() throws IOException {
@@ -189,4 +165,81 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       logger.close();
     }
   }
+
+  public void setStatus(HarvestStatus status) {
+    this.runStatus = status;
+    // Setting the finished flag must not be reflected in the job status.
+    // This is first set on notifyFinished
+    if (status != HarvestStatus.FINISHED) {
+      jobStatus = status;
+    }
+  }
+
+  /**
+   *
+   * @param Set the job ending status
+   * @param error An optional message to be displayed
+   */
+  @Override
+  public void setStatus(HarvestStatus status, String msg) {
+    setStatus(status);
+    getHarvestable().setMessage(msg);
+  }
+
+  protected void markForUpdate() {
+    updated = true;
+  }
+
+  public synchronized boolean isKillSent() {
+    return die;
+  }
+
+  @Override
+  public synchronized void kill() {
+    die = true;
+    if (jobThread != null) {
+      jobThread.interrupt();
+    } else {
+      Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown");
+    }
+    if (runStatus == HarvestStatus.RUNNING) {
+      runStatus = HarvestStatus.KILLED;
+    }
+  }
+
+  @Override
+  public final HarvestStatus getStatus() {
+    return runStatus;
+  }
+
+  @Override
+  public final synchronized void finishReceived() {
+    runStatus = jobStatus;
+    Harvestable harvestable = getHarvestable(); 
+    harvestable.setLastHarvestFinished(new Date());
+  }
+
+  @Override
+  public final boolean isUpdated() {
+    return updated;
+  }
+
+  @Override
+  public final void clearUpdated() {
+    updated = false;
+  }
+
+  public Thread getJobThread() {
+    return jobThread;
+  }
+
+  public void setJobThread(Thread thread) {
+    jobThread = thread;
+  }
+
+  @Override
+  public abstract void run();
+
+  @Override
+  public abstract Harvestable getHarvestable();
 }
