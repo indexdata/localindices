@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
@@ -33,6 +34,7 @@ public class JobScheduler {
 
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   private HarvestableDAO dao;
+  private StoragesDAOJPA storageDao; 
   private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
   private Map<String, Object> config;
   @SuppressWarnings("unused")
@@ -40,6 +42,8 @@ public class JobScheduler {
 
   public JobScheduler(Map<String, Object> config, Properties props) {
     dao = new HarvestablesDAOJPA();
+    storageDao = new StoragesDAOJPA();
+
     this.config = config;
     this.props = props;
   }
