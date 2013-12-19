@@ -119,8 +119,7 @@ public class JobInstance {
   }
 
   /**
-   * Tell the harvesting thread to stop, the harvesting thread should rollback
-   * the data harvested so far.
+   * Tell the harvesting thread to stop
    */
   public void stop() {
     harvestJob.kill();
