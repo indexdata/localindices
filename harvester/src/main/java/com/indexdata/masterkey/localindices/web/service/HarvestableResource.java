@@ -95,7 +95,8 @@ public class HarvestableResource {
 
   private void purgeStorage(Harvestable harvestable) throws IOException {
     if (harvestable.getStorage() != null) {
-      RecordStorage storage = HarvestStorageFactory.getStorage(harvestable);
+      RecordStorage storage = HarvestStorageFactory.getStorage(harvestable.getStorage());
+      storage.setHarvestable(harvestable);
       if (storage != null)
 	storage.purge(true);
       else 
