@@ -81,7 +81,7 @@ public class JobScheduler {
       if (ji == null) {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
 	try {
-	  ji = new JobInstance(harv, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
+	    ji = new JobInstance(harv, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled(), storageDao);
 	  jobs.put(id, ji);
 	  logger.log(Level.INFO, "Scheduler for JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
 	  if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
