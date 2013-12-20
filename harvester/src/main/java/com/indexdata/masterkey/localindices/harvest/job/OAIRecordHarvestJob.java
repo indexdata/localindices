@@ -201,22 +201,23 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     // if there was no error we move the time marker
     if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
       try {
-	String subject = "OAI harvest finished."; 
-	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
+	String subject = "OAI-PMH harvest finished. "; 
 	commit();
+	String msg = "Harvest finished with status " + getStatus() + ". ";
 	if (recordLimit == null || recordLimit <= 0) {
 	  resource.setFromDate(resource.getUntilDate());
 	  resource.setUntilDate(null);
 	  resource.setResumptionToken(null);
 	  if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
 	    setStatus(HarvestStatus.FINISHED);
-	  logger.log(Level.INFO, subject + msg);
+	  if (resource.getFromDate() != null)
+	      msg += "Next from: " + resource.getFromDate() + ". ";
 	}
 	else {
-	  msg = "OAI harvest finished with status " + getStatus() + ". Test run of " + resource.getRecordLimit() + ".";
+	  msg += "Test run of " + resource.getRecordLimit() + ".";
 	  resource.setResumptionToken(startResumptionToken);
 	}
-	  
+	logger.log(Level.INFO, subject + msg);
 	mailMessage(subject, msg);
       } catch (Exception e) {
         String subject = "Storage commit failed: ";
