@@ -120,7 +120,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-    boolean dataStart = false; 
     try {
     if (logger == null) 
       logger = new FileStorageJobLogger(this.getClass(), resource);
@@ -136,17 +135,17 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     // we don't need to compare from/until dates, let the server fail it
     try {
-      getStorage().setOverwriteMode(resource.getOverwrite());
       DiskCache dc = new DiskCache(resource.getId());
       if (resource.isCacheEnabled()) {
         dc.init();
       }
-      if (resource.getOverwrite()) {
-        if (resource.isCacheEnabled() && !resource.isDiskRun()) dc.empty();
-      }
-      dataStart = harvest(resource.getUrl(), formatDate(resource.getFromDate()),
+      getStorage().begin();
+      getStorage().databaseStart(resource.getId().toString(), null);
+      harvest(resource.getUrl(), formatDate(resource.getFromDate()),
 	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
-	  resource.getOaiSetName(), resource.getResumptionToken(), getStorage(), dc);
+	  resource.getOaiSetName(), resource.getResumptionToken(), dc);
+      getStorage().databaseEnd();
+
       if (HarvestStatus.RUNNING == getStatus()) {
 	// This shouldn't be possible 
 	logger.warn("Got RUNNING state at job end.");
@@ -204,8 +203,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
 	String subject = "OAI harvest finished."; 
 	String msg = "OAI harvest finished with status " + getStatus() + ". Next from: " + resource.getFromDate();
-	if (dataStart)
-	  commit();
+	commit();
 	if (recordLimit == null || recordLimit <= 0) {
 	  resource.setFromDate(resource.getUntilDate());
 	  resource.setUntilDate(null);
@@ -243,20 +241,21 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	isError = true;
       }
       try {
-	  if (dataStart)
-	    if (resource.getKeepPartial()) {
-	      msg = msg + "Commiting up partial harvest as configured. ";
-	      logger.log(Level.INFO, subject + msg);
-	      commit();
-	    } else {
-	      getStorage().rollback();
-	      resource.setResumptionToken(startResumptionToken);
-	      msg = msg
-		  + "Rolling back until "
-		  + (startResumptionToken != null ? " resumptionToken (at start): "
-		      + startResumptionToken : formatDate(resource.getFromDate()));
-	      logger.log(Level.INFO, msg);
-	    }
+	  if (resource.getKeepPartial()) {
+	    msg = msg + "Commiting up partial harvest as configured. ";
+	    logger.log(Level.INFO, subject + msg);
+	    commit();
+	    // Persist resumption token
+	    markForUpdate();
+	  } else {
+	    getStorage().rollback();
+	    resource.setResumptionToken(startResumptionToken);
+	    msg = msg
+		+ "Rolling back until "
+		+ (startResumptionToken != null ? " resumptionToken (at start): "
+		    + startResumptionToken : formatDate(resource.getFromDate()));
+	    logger.log(Level.INFO, msg);
+	  }
 	if (isError)
 	  logError(subject, msg);
 	mailMessage(subject, msg);
@@ -275,8 +274,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  protected boolean harvest(String baseURL, String from, String until, String metadataPrefix,
-      String setSpec, String resumptionToken, RecordStorage storage, final DiskCache dc) throws 
+  protected void harvest(String baseURL, String from, String until, String metadataPrefix,
+      String setSpec, String resumptionToken, final DiskCache dc) throws 
       	TransformerException, IOException, ParserConfigurationException
       {
 
@@ -313,7 +312,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       listRecords.harvest(resumptionToken, proxy, resource.getEncoding());
     }
 
-    boolean dataStart = false;
     int count = 0;
     while (!isKillSent()) {
       if (listRecords.getDocument() == null) {
@@ -336,18 +334,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  logger.log(Level.INFO, "noRecordsMatch experienced for non-initial harvest - ignoring");
 	  setStatus(HarvestStatus.WARN, "No Records matched");
 	  markForUpdate();
-	  return dataStart;
+	  return;
 	} 
 	else
 	  throw new OaiPmhException("OAI error " + errors[0].code + ": " + errors[0].message, listRecords.getDocument());
       } else {
-	if (!dataStart) {
-	  getStorage().begin();
-	  storage.databaseStart(resource.getId().toString(), null);
-	  if (storage.getOverwriteMode())
-	    storage.purge(false);
-	  dataStart = true;
-	}
 	NodeList list;
 	try {
 	  list = listRecords.getRecords();
@@ -367,9 +358,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	} catch (StopException e) {
 	  logger.info("Stop requested. Reason: " + e.getMessage());
 	  setStatus(HarvestStatus.OK, e.getMessage());
-	  if (dataStart)
 	    getStorage().databaseEnd();
-	  return dataStart; 
+	  return; 
 	} catch (TransformerException e) {
 	  //e.printStackTrace();
 	  throw e;
@@ -382,7 +372,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       } else {
 	logger.log(Level.INFO, "" + count + " Records fetched, next resumptionToken is " + resumptionToken);
 	resource.setResumptionToken(resumptionToken);
-	markForUpdate();
+	// markForUpdate();
 	try {
           if (resource.isDiskRun()) {
             String next = cacheQ.poll();
@@ -413,9 +403,6 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       }
     }
     logger.info("Harvested " + totalCount + " records in total from " + baseURL); 
-    if (dataStart)
-      getStorage().databaseEnd();
-    return dataStart;
   }
 
   protected void logOaiPmhException(OaiPmhException e, String string) {
