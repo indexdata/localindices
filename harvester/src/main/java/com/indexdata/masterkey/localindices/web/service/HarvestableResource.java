@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.web.service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +18,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Level;
@@ -28,11 +30,9 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.scheduler.JobScheduler;
+import com.indexdata.masterkey.localindices.scheduler.SchedulerThread;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
 
 /**
@@ -45,8 +45,12 @@ public class HarvestableResource {
   Logger logger = Logger.getLogger(this.getClass());    
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   private Long id;
-  private UriInfo context;
+  private UriInfo uriInfo;
 
+  /* Not working here. Only in HarvestablesResource, so this passes the value on in constructor  
+  @Context
+   */
+  ServletContext context;
   /** Creates a new instance of HarvestableResource */
   public HarvestableResource() {
   }
@@ -57,14 +61,33 @@ public class HarvestableResource {
    * 
    * @param id
    *          identifier for referenced the entity
-   * @param context
+   * @param uriInfo
    *          HttpContext inherited from the parent resource
    */
-  public HarvestableResource(Long id, UriInfo context) {
+  public HarvestableResource(Long id, UriInfo uriInfo) {
     this.id = id;
+    this.uriInfo = uriInfo;
+  }
+
+  /**
+   * Constructor used for instantiating an instance of the entity referenced by
+   * id.
+   * 
+   * @param id
+   *          identifier for referenced the entity
+   * @param uriInfo
+   *          HttpContext inherited from the parent resource
+   */
+  public HarvestableResource(Long id, UriInfo uriInfo, ServletContext context) {
+    this.id = id;
+    this.uriInfo = uriInfo;
     this.context = context;
   }
 
+  @Context
+  public void setServletContext(ServletContext context) {
+      this.context = context;
+  }
   /**
    * Get method for retrieving an instance of referenced Harvestable in XML
    * format.
@@ -74,7 +97,7 @@ public class HarvestableResource {
   @GET
   @Produces("application/xml")
   public HarvestableConverter get() {
-    return new HarvestableConverter(dao.retrieveById(id), context.getAbsolutePath());
+    return new HarvestableConverter(dao.retrieveById(id), uriInfo.getAbsolutePath());
   }
 
   /**
@@ -149,13 +172,14 @@ public class HarvestableResource {
   }
 
   @Path("cmd/{cmd}")
-  @POST
+  @PUT
   @Produces("text/plain")
   public String cmd(@PathParam("cmd") String cmd) {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
       try { 
-	// rc = JobScheduler.doCmd(harvestable, cmd);
+	SchedulerThread schedulerThread = (SchedulerThread) context.getAttribute("schedulerThread");
+	schedulerThread.doCmd(harvestable, cmd);
 	return "OK " + cmd + " harvestable " + harvestable.getId(); 
       } catch (Exception e) {
 	String error = "Failed to " + cmd + " harvestable " + harvestable.getId() + ": " + e.getMessage();
