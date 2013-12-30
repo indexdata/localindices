@@ -12,14 +12,17 @@ import com.indexdata.masterkey.localindices.web.service.converter.SettingConvert
 import com.indexdata.masterkey.localindices.web.service.converter.SettingsConverter;
 import com.indexdata.rest.client.ResourceConnectionException;
 import com.indexdata.rest.client.ResourceConnector;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import static com.indexdata.utils.TextUtils.joinPath;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -144,6 +147,7 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
   }
 
+  @SuppressWarnings("unused")
   private String pushParams(String url, String... params) throws UnsupportedEncodingException {
     StringBuilder uB = new StringBuilder(url);
     String sep = url.indexOf("?") == -1 ? "?" : "";
