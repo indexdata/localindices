@@ -8,6 +8,8 @@ package com.indexdata.masterkey.localindices.web.service;
 
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
+
+import javax.servlet.ServletContext;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -35,12 +37,17 @@ import javax.ws.rs.Produces;
 public class HarvestablesResource {
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   @Context
-  private UriInfo context;
-
+  private UriInfo uriInfo;
+  private ServletContext context; 
+  
   /** Creates a new instance of HarvestablesResource */
   public HarvestablesResource() {
   }
 
+  @Context
+  public void setServletContext(ServletContext context) {
+      this.context = context;
+  }
   /**
    * Constructor used for instantiating an instance of the Harvestables
    * resource.
@@ -49,7 +56,7 @@ public class HarvestablesResource {
    *          HttpContext inherited from the parent resource
    */
   public HarvestablesResource(UriInfo context) {
-    this.context = context;
+    this.uriInfo = context;
   }
 
   /**
@@ -79,7 +86,7 @@ public class HarvestablesResource {
       entities = new ArrayList<Harvestable>();
     else
       entities = dao.retrieve(start, max, sortKey, isAsc);
-    return new HarvestablesConverter(entities, context.getAbsolutePath(), start, max,
+    return new HarvestablesConverter(entities, uriInfo.getAbsolutePath(), start, max,
 	dao.getCount());
   }
 
@@ -98,7 +105,7 @@ public class HarvestablesResource {
     Harvestable entity = data.getEntity();
     entity.setCurrentStatus("NEW");
     dao.create(entity);
-    return Response.created(context.getAbsolutePath().resolve(entity.getId() + "/")).build();
+    return Response.created(uriInfo.getAbsolutePath().resolve(entity.getId() + "/")).build();
   }
 
   /**
@@ -110,6 +117,6 @@ public class HarvestablesResource {
    */
   @Path("{id}/")
   public HarvestableResource getHarvestableResource(@PathParam("id") Long id) {
-    return new HarvestableResource(id, context);
+    return new HarvestableResource(id, uriInfo, context);
   }
 }
