@@ -58,9 +58,10 @@ public abstract class AbstractHarvestJob implements HarvestJob {
   public synchronized void kill() {
     die = true;
     if (jobThread != null) {
-      jobThread.interrupt();
+      if (jobThread.isAlive())
+	jobThread.interrupt();
     } else {
-      Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown");
+      Logger.getLogger(this.getClass()).debug("No job thread to interrupt on kill. Not running.");
     }
     if (runStatus == HarvestStatus.RUNNING) {
       runStatus = HarvestStatus.KILLED;
