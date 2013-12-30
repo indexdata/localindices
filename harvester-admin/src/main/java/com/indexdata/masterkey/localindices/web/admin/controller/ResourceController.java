@@ -469,22 +469,15 @@ public class ResourceController {
         logger.warn("Trying to run already running resource, ignoring");
         return listResources();
       }
-      resource.setLastUpdated(new Date());
-      resource.setHarvestImmediately(true);
-      resource.setDiskRun(false);
-      dao.update(resource);
+      dao.command(resource, "run");
     } else if ("run_cached".equals(action)) {
       if (resource.getCurrentStatus().equals("RUNNING")) {
         logger.warn("Trying to run already running resource, ignoring");
         return listResources();
       }
-      resource.setLastUpdated(new Date());
-      resource.setHarvestImmediately(true);
-      resource.setDiskRun(true);
-      dao.update(resource);
+      dao.command(resource, "run_cached");
     } else if ("stop".equals(action)) {
-      resource.setLastUpdated(new Date());
-      dao.update(resource);
+      dao.command(resource, "stop");
     } else {
       logger.warn("Unknown action '"+action+"'");
     }
