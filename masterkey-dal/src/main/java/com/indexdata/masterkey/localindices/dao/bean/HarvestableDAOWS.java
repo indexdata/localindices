@@ -152,6 +152,27 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
         return harvestable;
     } // updateJob
 
+    /**
+     * update (PUT command) harvestable to the Web Service
+     * @param harvestable entity to be put
+     */
+    @Override
+    public Harvestable command(Harvestable harvestable, String command) {
+        try {
+            ResourceConnector<HarvestableConverter> harvestableConnector =
+                    new ResourceConnector<HarvestableConverter>(
+                    new URL(serviceBaseURL + harvestable.getId() + "/cmd/" + command),
+                    "com.indexdata.masterkey.localindices.entity" +
+                    ":com.indexdata.masterkey.localindices.web.service.converter");
+            HarvestableConverter hc = new HarvestableConverter();
+            hc.setEntity(harvestable);
+            harvestableConnector.put(hc);
+        } catch (Exception male) {
+            logger.log(Level.DEBUG, male);
+        }
+        return harvestable;
+    } // Job command
+
 
 
     @Override

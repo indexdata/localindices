@@ -11,6 +11,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -156,7 +157,13 @@ public class HarvestableDAOFake implements HarvestableDAO {
 
   @Override
   public void resetCache(long id) throws DAOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("Not supported yet."); 
+  }
+
+  @Override
+  public Harvestable command(Harvestable entity, String cmd) {
+    logger.info("Execute " + cmd + " on " + entity);
+    return entity;
   }
  
 }
