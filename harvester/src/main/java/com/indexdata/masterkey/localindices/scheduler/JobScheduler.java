@@ -75,22 +75,7 @@ public class JobScheduler {
       // no corresponding job in the list, create new one
       if (ji == null) {
 	Harvestable harv = dao.retrieveFromBrief(hbrief);
-	try {
-	  ji = new JobInstance(harv, (Proxy) config.get("harvester.http.proxy"), hbrief.isEnabled());
-	  jobs.put(id, ji);
-	  logger.log(Level.INFO, "Scheduler for JOB#" + ji.getHarvestable().getId() + " created. Job Status: " + ji.getStatus());
-	  if (HarvestStatus.valueOf(hbrief.getCurrentStatus()).equals(HarvestStatus.RUNNING)) {
-	    ji.start();	
-	    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " started due to persistent state of RUNNING");
-	  }
-	  else if (!hbrief.isEnabled()) {
-	    logger.log(Level.INFO, "Scheduling of JOB#" + ji.getHarvestable().getId() + " is disabled.");
-	  }	
-	} catch (IllegalArgumentException e) {
-	  logger.log(Level.ERROR, "Cannot update the current job list with " + harv.getId());
-	  logger.log(Level.DEBUG, e);
-	  continue;
-	}
+	ji = startJob(harv);
       }
       ji.seen = true;
     }
@@ -159,6 +144,28 @@ public class JobScheduler {
 	dao.update(ji.getHarvestable());
     }
   }
+  
+  public int doCmd(Harvestable harvestable, String cmd) {
+    if (cmd.equals("stop")) {
+      Long id = harvestable.getId();
+      JobInstance ji = jobs.get(id); 
+      if (ji != null) {
+	  ji.stop();
+      }
+      else 
+	logger.warn("Nothing to stop. Job " + id  + " is not running");
+    }
+    if (cmd.equals("run")) {
+      Long id = harvestable.getId();
+      JobInstance ji = jobs.get(id); 
+      if (ji != null) {
+	  ji.start();
+      }
+      else 
+	logger.warn("Nothing to run. Job " + id  + " is not running");
+    }
+    return 0; 
+  }
 
   /**
    * Return a collection of status and config information on the scheduled jobs.
@@ -203,6 +210,26 @@ public class JobScheduler {
    */
   public void stopJob(Long jobId) {
     JobInstance ji = jobs.get(jobId);
-    ji.stop();
+    if (ji != null) {
+      ji.stop();
+      jobs.remove(ji);
+    }
+  }
+  
+  public JobInstance startJob(Harvestable harvestable) {
+    Long id = harvestable.getId();
+    try {
+      JobInstance ji = new JobInstance(harvestable, 
+	  	(Proxy) config.get("harvester.http.proxy"),
+	  	harvestable.getEnabled());
+      jobs.put(id, ji);
+      ji.start();
+      logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " started.");
+      return ji;
+    } catch (IllegalArgumentException e) {
+      logger.log(Level.ERROR, "Cannot update the current job list with " + harvestable.getId());
+      logger.log(Level.DEBUG, e);
+    }
+    return null;
   }
 }
