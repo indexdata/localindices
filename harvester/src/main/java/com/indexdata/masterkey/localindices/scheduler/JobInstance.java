@@ -112,6 +112,7 @@ public class JobInstance {
 	harvestJob.setJobThread(harvestingThread);
       	harvestJob.setStorage(HarvestStorageFactory.getStorage(harvestable));
       }
+      harvestable.setCurrentStatus("RUNNING");
       harvestingThread.start();
       if (harvestable.getInitiallyHarvested() == null)
 	harvestable.setInitiallyHarvested(new Date());
