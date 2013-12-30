@@ -5,13 +5,13 @@
  */
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.masterkey.localindices.entity.Setting;
 import java.net.URI;
-import java.net.URISyntaxException;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
-import static com.indexdata.utils.TextUtils.joinPath;
+
+import com.indexdata.masterkey.localindices.entity.Setting;
 
 /**
  *
