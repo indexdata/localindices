@@ -13,6 +13,8 @@ import java.util.Properties;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+
 /**
  * The scheduler thread runs the actuall JobScheduler. It controls the sleep
  * timeout and waits for kill signals. The instantiated object is placed in the
@@ -35,7 +37,7 @@ public class SchedulerThread implements Runnable {
     
     while (keepRunning()) {
       try {
-	Thread.sleep(1000);
+	Thread.sleep(3000);
 	//logger.log(Level.TRACE, "Checking and updating current job list..");
 	scheduler.checkJobs();
 	scheduler.updateJobs();
@@ -68,5 +70,9 @@ public class SchedulerThread implements Runnable {
 
   private synchronized boolean keepRunning() {
     return keepRunning;
+  }
+  
+  public synchronized int doCmd(Harvestable harvestable, String cmd) {
+    return scheduler.doCmd(harvestable, cmd);
   }
 }
