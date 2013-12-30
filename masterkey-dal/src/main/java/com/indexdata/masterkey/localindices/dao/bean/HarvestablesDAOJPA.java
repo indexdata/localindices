@@ -129,6 +129,31 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }    
 
     @Override
+    public Harvestable command(Harvestable updHarvestable, String command) {
+
+      // 
+      EntityManager em = getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        Harvestable harvestable = null;
+        try {
+            tx.begin();
+            harvestable = em.merge(updHarvestable);
+            tx.commit();
+        } catch (Exception ex) {
+            logger.log(Level.DEBUG, ex);
+            try {
+                tx.rollback();
+            } catch (Exception e) {
+                logger.log(Level.DEBUG, e);
+            }
+        } finally {
+            em.close();
+        }
+        return harvestable;    
+    }    
+
+    
+    @Override
     public void delete(Harvestable harvestable) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
