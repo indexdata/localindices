@@ -246,6 +246,19 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
     return retrieveBriefs(start, max, null, true);
   }
   
+  public InputStream commandGet(long id, String command) {
+      String logURL = serviceBaseURL + id + "/" + "reset/";
+      try {
+          URL url = new URL(logURL);
+          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+          conn.setRequestMethod("GET");
+          return conn.getInputStream();
+      } catch (IOException ioe) {
+          logger.log(Level.DEBUG, ioe);
+          return null;
+      }
+  }
+
   @Override
   public InputStream reset(long id) {
       String logURL = serviceBaseURL + id + "/" + "reset/";
@@ -260,6 +273,7 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
       }
   }
 
+  
   @Override
   public void resetCache(long id) throws DAOException {
     String resetUrl = TextUtils.joinPath(serviceBaseURL, Long.toString(id), "cache/");
