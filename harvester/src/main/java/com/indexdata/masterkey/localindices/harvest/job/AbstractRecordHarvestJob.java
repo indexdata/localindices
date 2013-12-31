@@ -201,4 +201,8 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
       logger.close();
     }
   }
+  
+  public String toString() {
+    return getClass().getSimpleName() + "(" + getHarvestable() + ")";
+  }
 }
