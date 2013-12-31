@@ -279,7 +279,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   @Override
   public String toString() {
-    return this.getClass().getCanonicalName() + "[id=" + id + "]";
+    return "" + id + "-" + getName() + "";
   }
 
   @Override
