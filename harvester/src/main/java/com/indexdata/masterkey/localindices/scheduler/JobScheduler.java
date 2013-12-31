@@ -20,6 +20,7 @@ import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 
 /**
@@ -29,7 +30,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
  * 
  * @author jakub
  */
-public class JobScheduler {
+public class JobScheduler implements JobNotifications {
 
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   private HarvestableDAO dao;
@@ -115,7 +116,8 @@ public class JobScheduler {
 	  ji.start();
 	}
 	break;
-      case SHUTDOWN:        // Status set on Servlet container shutdown, so the time can be way overdue
+      case SHUTDOWN:        
+	// Status set on Servlet container shutdown, so the time can be way overdue
 	if (ji.isEnabled()) // It could have disabled in the database. 
 	  ji.start();
 	break;
@@ -162,7 +164,7 @@ public class JobScheduler {
 	  ji.start();
       }
       else 
-	logger.warn("Nothing to run. Job " + id  + " is not running");
+	logger.warn("Nothing to run. Job " + id  + " is not present");
     }
     return 0; 
   }
@@ -195,6 +197,7 @@ public class JobScheduler {
       if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
 	ji.getHarvestable().setCurrentStatus("" + HarvestStatus.SHUTDOWN);
 	dao.update(ji.getHarvestable());
+	ji.stop();
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
 	    		     + " status updated to " + ji.getHarvestable().getCurrentStatus() 
 	    		     + " (Job Instance status: " + ji.getStatus() + ")");
@@ -202,7 +205,7 @@ public class JobScheduler {
       ji.stop();
     }
   }
-
+  
   /**
    * Stop the job with given id.
    * 
@@ -231,5 +234,39 @@ public class JobScheduler {
       logger.log(Level.DEBUG, e);
     }
     return null;
+  }
+
+  protected JobInstance validate(RecordHarvestJob job) {
+    Harvestable harvestable = job.getHarvestable();
+    Long id = job.getHarvestable().getId();
+    JobInstance ji = jobs.get(id);
+    if (ji == null) {
+      logger.warn("finsish: Job missing: " + job);
+      return ji;
+    }
+    if (harvestable != ji.getHarvestable())
+      logger.error("Different harvestables: " + harvestable + "!=" + job.getHarvestable());
+    return ji;
+  }
+
+  @Override
+  public void finished(RecordHarvestJob job) {
+    JobInstance ji = validate(job);
+    logger.log(Level.INFO, "JOB(" + ji.getHarvestable() + ") has finished. Persisting state...");
+    dao.update(job.getHarvestable());
+    jobs.remove(ji.getHarvestable().getId());
+  }
+
+  @Override
+  public void aborted(RecordHarvestJob job) {
+    JobInstance ji = validate(job);
+    logger.log(Level.INFO, "JOB(" + ji.getHarvestable() + ") has aborted.");
+    // Do not persist or persist abort status?  
+    jobs.remove(ji.getHarvestable().getId());
+  }
+
+  @Override
+  public void persist(RecordHarvestJob job) {
+    dao.update(job.getHarvestable());
   }
 }
