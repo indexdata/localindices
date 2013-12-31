@@ -138,7 +138,6 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     storage.commit();
     Harvestable resource = getHarvestable();
     resource.setLastHarvestFinished(new Date());
-    markForUpdate();
     try {
       StorageStatus storageStatus = storage.getStatus();  
       if (storageStatus != null) {
@@ -152,6 +151,7 @@ public abstract class AbstractRecordHarvestJob extends AbstractHarvestJob implem
     catch (StatusNotImplemented exception) {
       logger.warn("Failed to get Storage Status.");
     }
+    markForUpdate();
   }
 
   protected void mailMessage(String subject, String message) {
