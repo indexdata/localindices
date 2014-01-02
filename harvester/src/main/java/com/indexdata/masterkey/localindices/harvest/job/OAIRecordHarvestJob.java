@@ -358,8 +358,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	  resumptionToken = listRecords.getResumptionToken();
 	} catch (StopException e) {
 	  logger.info("Stop requested. Reason: " + e.getMessage());
-	  setStatus(HarvestStatus.OK, e.getMessage());
-	    getStorage().databaseEnd();
+	  setStatus(HarvestStatus.OK, e.getMessage()); getStorage().databaseEnd();
+	  resource.setResumptionToken(resumptionToken);
 	  return; 
 	} catch (TransformerException e) {
 	  //e.printStackTrace();
