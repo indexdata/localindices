@@ -5,14 +5,18 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import javax.xml.transform.TransformerException;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
+import org.w3c.dom.Node;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
@@ -238,19 +242,15 @@ public class TestOAIRecordHarvestJob extends JobTester {
     boolean purge = true;
     RecordStorage recordStorage = createStorage(resource, methodName, purge);
     AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
-      int index = 1;
+      int index = 0;
 
-      @Override
-      public synchronized boolean isKillSent() {
-        if (index % 3 == 0) {
+      protected RecordDOMImpl createRecord(Node node) throws TransformerException {
+	RecordDOMImpl record = super.createRecord(node);
+	index++;
+        if (index > 250) {
           kill();
         }
-        return super.isKillSent();
-      }
-      
-      protected void markForUpdate() { 
-	index++;
-	super.markForUpdate();
+        return record;
       }
     };
     
@@ -260,7 +260,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     
     assertTrue("No resumption token!", resource.getResumptionToken() != null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 200, 0, 200);
+    checkStorageStatus(recordStorage.getStatus(), 250, 0, 250);
     // Finish the job using a new storage instance
     recordStorage = createStorage(resource, methodName, false);
     job = new OAIRecordHarvestJob(resource, null);
