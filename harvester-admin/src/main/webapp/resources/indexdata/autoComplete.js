@@ -7,6 +7,10 @@ if (!indexdata.autocomplete) {
       throw new Error("Error occurred during Ajax call: " + data.description);
     },
             
+    markLBFocused: function (listbox) {
+      listbox.focused = true;
+    },
+            
     //called on input box value change
     updateCompletionItems: function(input, event) {
       //focus list-box on arrow-down
