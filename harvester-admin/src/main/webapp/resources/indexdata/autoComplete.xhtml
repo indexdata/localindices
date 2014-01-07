@@ -38,7 +38,7 @@
           <f:converter converterId="#{cc.attrs.completionItemConverter}"/>
           <f:selectItems value="#{cc.attrs.completionItems}"/>
           <f:ajax render="input #{cc.attrs.render}"/>
-          <f:valueChangeListener type="com.indexdata.masterkey.localindices.web.admin.controller.ConnectorItemSelectedListener" />
+          <f:valueChangeListener type="#{cc.attrs.itemSelectedListenerType}" />
       </h:selectOneListbox>
-    </composite:implementation>    
+    </composite:implementation>
 </ui:composition>
