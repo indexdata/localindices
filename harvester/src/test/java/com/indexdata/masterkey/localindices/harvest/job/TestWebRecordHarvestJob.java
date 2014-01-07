@@ -97,7 +97,7 @@ public class TestWebRecordHarvestJob extends TestCase {
   @SuppressWarnings("unused")
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, WebCrawlResource resource)
       throws IOException {
-    WebRecordHarvestJob job = new WebRecordHarvestJob(resource, null);
+    WebRecordHarvestJob job = new WebRecordHarvestJob(resource, null, new DummyJobNotifications());
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();

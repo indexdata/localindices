@@ -62,7 +62,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
 
   private RecordHarvestJob doXDaysHarvestJob(RecordStorage recordStorage, OaiPmhResource resource)
           throws IOException {
-    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
+    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null, new DummyJobNotifications());
       
     job.setStorage(recordStorage);
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
@@ -241,7 +241,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     resource.setAllowErrors(true);
     boolean purge = true;
     RecordStorage recordStorage = createStorage(resource, methodName, purge);
-    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
+    AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null, new DummyJobNotifications()) {
       int index = 0;
 
       protected RecordDOMImpl createRecord(Node node) throws TransformerException {
@@ -263,7 +263,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     checkStorageStatus(recordStorage.getStatus(), 250, 0, 250);
     // Finish the job using a new storage instance
     recordStorage = createStorage(resource, methodName, false);
-    job = new OAIRecordHarvestJob(resource, null);
+    job = new OAIRecordHarvestJob(resource, null, new DummyJobNotifications());
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();

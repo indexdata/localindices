@@ -67,7 +67,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, Harvestable resource)
       throws IOException {
-    AbstractRecordHarvestJob job = new BulkRecordHarvestJob((XmlBulkResource) resource, null);
+    AbstractRecordHarvestJob job = new BulkRecordHarvestJob((XmlBulkResource) resource, null, new DummyJobNotifications());
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
     job.run();

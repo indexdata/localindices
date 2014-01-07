@@ -80,7 +80,7 @@ public class TestConnectorPlatform extends JobTester {
 */
   private RecordHarvestJob doHarvestJob(RecordStorage recordStorage,
       HarvestConnectorResource resource) throws IOException {
-    AbstractRecordHarvestJob job = new ConnectorHarvestJob(resource, null);
+    AbstractRecordHarvestJob job = new ConnectorHarvestJob(resource, null, new DummyJobNotifications());
     resource.setName(resource.getConnectorUrl());
     job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
     job.setStorage(recordStorage);
