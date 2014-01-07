@@ -5,7 +5,6 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import org.apache.log4j.Level;
 import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
@@ -29,7 +27,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private List<URL> urls = new ArrayList<URL>();
   private HarvestConnectorResource resource;
   private Proxy proxy;
-  private RecordStorage streamTransformationStorage;
   private Thread jobThread = null;
   
   public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
@@ -38,11 +35,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     this.resource.setMessage(null);
     logger = new FileStorageJobLogger(this.getClass(), resource);
-  }
-
-  public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage) 
-      super.setStorage((RecordStorage) storage); 
   }
 
   public String getMessage() {
@@ -104,22 +96,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  @SuppressWarnings("deprecation")
-  protected RecordStorage setupTransformation(RecordStorage storage) {
-    splitSize = 1;
-    splitDepth =  1;
-    return super.setupTransformation(storage);
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    logger.debug("Using deprecated stream interface");
-    streamTransformationStorage = setupTransformation(getStorage());
-    //if (streamStorage.isClosed)))
-    	
-    return streamTransformationStorage.getOutputStream();
-  }
-
   @Override
   public Harvestable getHarvestable() {
     return resource;
@@ -132,4 +108,5 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   public void setJobThread(Thread jobThread) {
     this.jobThread = jobThread;
   }
+
 }

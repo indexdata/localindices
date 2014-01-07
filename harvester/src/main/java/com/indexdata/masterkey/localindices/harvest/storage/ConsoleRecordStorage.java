@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
@@ -17,6 +16,7 @@ public class ConsoleRecordStorage implements RecordStorage {
   private int added;
   private int deleted; 
   boolean committed; 
+  Harvestable harvestable;
   
   private void message(Object msg) {
     System.out.println(msg);
@@ -62,11 +62,6 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public boolean getOverwriteMode() {
     return overrideMode;
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    return System.out;
   }
 
   @Override
@@ -122,8 +117,7 @@ public class ConsoleRecordStorage implements RecordStorage {
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
-    // TODO Auto-generated method stub
-    
+    this.harvestable = harvestable;
   }
 
   @Override

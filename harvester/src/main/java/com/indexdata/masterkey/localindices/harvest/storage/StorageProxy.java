@@ -4,14 +4,14 @@ import java.io.IOException;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 
-public abstract class StorageProxy implements HarvestStorage {
-  HarvestStorage storage;
+public abstract class StorageProxy implements RecordStorage {
+  RecordStorage storage;
 
-  public void setTarget(HarvestStorage storage) {
+  public void setTarget(RecordStorage storage) {
     this.storage = storage;
   }
 
-  public HarvestStorage getTarget() {
+  public RecordStorage getTarget() {
     return storage;
   }
 

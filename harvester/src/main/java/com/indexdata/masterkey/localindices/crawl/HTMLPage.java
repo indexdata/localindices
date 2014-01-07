@@ -12,11 +12,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -362,40 +367,35 @@ public class HTMLPage {
     content = sb.toString();
   } // read
 
-  private String xmlTag(String tag, String data) {
-    String clean = data.replaceAll("&", "&amp;"); // DIRTY - use proper XML
-						  // tools
-    clean = clean.replaceAll("<", "&lt;");
-    clean = clean.replaceAll(">", "&gt;");
-    clean = clean.replaceAll("\\s+", " ");
-    clean = clean.replaceAll("\000", " ");
-    clean = clean.replaceAll("\\p{Cntrl}", " ");
-    return "<pz:metadata type=\"" + tag + "\">" + clean + "</pz:metadata>";
+  private void addKeyValue(Map<String, Collection<Serializable>> map, String key, String value) {
+    Collection<Serializable> collection = map.get(key);
+    if (collection == null) { 
+      collection = new LinkedList<Serializable>();
+      map.put(key, collection);
+    }
+    collection.add(value);
   }
-
-  /** Convert the page into XML suitable for indexing with zebra */
-  public String toPazpar2Metadata() {
-    // FIXME - Use proper XML tools to do this, to avoid problems with
-    // bad entities, character sets, etc.
-    String xml = "<pz:record>\n"
-	+ " xmlns=\"http://www.indexdata.com/pazpar2/1.0\" "
-	+ " xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\" " + ">\n";
-    xml += xmlTag("title", title)  + "\n";
+  
+  /** Convert the page into a map of key - values */
+  public Map<String, Collection<Serializable>> toPazpar2Metadata() {
+    HashMap<String, Collection<Serializable>> map = new HashMap<String, Collection<Serializable>>();
+    
+    addKeyValue(map, "title", title);
+    
     if (description != null)
-      xml += xmlTag("description", description) + "\n";
+      addKeyValue(map, "description", description);
     if (keywords != null) {
       for (String keyword : keywords.split(",")) {
-	xml += xmlTag("subject", keyword)  + "\n";
+	addKeyValue(map, "subject", keyword);
       }
     }
     if (author != null) {
-      xml += xmlTag("author", author)  + "\n";
+      addKeyValue(map,"author", author);
     }
-    xml += xmlTag("electronic-url", url.toString()) + "\n";
-    // For Solr
-    xml += xmlTag("id", url.toString())  + "\n";
-    xml += xmlTag("fulltext", plainText)  + "\n";
-    xml += "</pz:record>\n";
-    return xml;
+    addKeyValue(map,"electronic-url", url.toString());
+    // For Solr, Sould be added automatic
+    addKeyValue(map, "id", url.toString());
+    addKeyValue(map, "fulltext", plainText);
+    return map;
   } // makeXml
 }
