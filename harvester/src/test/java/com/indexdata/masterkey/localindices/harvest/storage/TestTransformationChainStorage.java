@@ -36,6 +36,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.job.DummyJobNotifications;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
@@ -200,7 +201,7 @@ public class TestTransformationChainStorage extends TestCase {
     solrEntity.setName(solrUrl);
     solrEntity.setUrl(solrUrl);
     resource.setStorage(solrEntity);
-    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
+    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null, new DummyJobNotifications());
     BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     XMLReader xmlFilter = createTransformChain(stylesheets);
