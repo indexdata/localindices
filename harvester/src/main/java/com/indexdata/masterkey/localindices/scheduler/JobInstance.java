@@ -52,7 +52,7 @@ public class JobInstance {
   public boolean seen; // for checking what has been deleted
   private boolean enabled = true;
 
-  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled, StorageDAO dao)
+  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled, JobScheduler scheduler, StorageDAO dao)
       throws IllegalArgumentException {
     this.enabled = enabled;
     storageDao = dao;
@@ -73,19 +73,19 @@ public class JobInstance {
 	logger.log(Level.WARN,
 	    "Job scheduled with lower than daily granularity. Schedule overridden to " + cronLine);
       }
-      harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy);
+      harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy, scheduler);
     } else if (hable instanceof XmlBulkResource) {
-	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy);
+	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy, scheduler);
     } else if (hable instanceof WebCrawlResource) {
-      harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
+      harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy, scheduler);
     } else if (hable instanceof HarvestConnectorResource) {
       // hable.getJobClass();
       try {
-	Constructor<?> constructor = Class.forName("com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob").getConstructor(hable.getClass(), Proxy.class);
-	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy);
+	Constructor<?> constructor = Class.forName("com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob").getConstructor(hable.getClass(), Proxy.class, JobNotifications.class);
+	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy, scheduler);
       } catch (Exception e) {
 	logger.error("Failed to use reflection", e);
-	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy);
+	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy, scheduler);
 	e.printStackTrace();
       }
     } else {
@@ -157,6 +157,7 @@ public class JobInstance {
    * sleep.
    */
   public void notifyFinish() {
+    // Why should it call back to the harvestJob? The job knows that it has finished.
     harvestJob.finishReceived();
     // TODO Not sure this is a good idea. There are too many ways for a job to finish 
     // that we should let the job decide self.    

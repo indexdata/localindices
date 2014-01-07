@@ -112,9 +112,8 @@ public class JobScheduler implements JobNotifications {
 	break;
       case ERROR:
       case WARN:
-      case NEW: // ask if time to run
+      case NEW:
       case OK:
-	// should check harvested until?
 	if (ji.timeToRun()) {
 	  ji.start();
 	}
@@ -227,7 +226,7 @@ public class JobScheduler implements JobNotifications {
     try {
       JobInstance ji = new JobInstance(harvestable, 
 	  	(Proxy) config.get("harvester.http.proxy"),
-	  	harvestable.getEnabled(), storageDao);
+	  	harvestable.getEnabled(), this, storageDao);
       jobs.put(id, ji);
       ji.start();
       logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " started.");
@@ -255,9 +254,13 @@ public class JobScheduler implements JobNotifications {
   @Override
   public void finished(RecordHarvestJob job) {
     JobInstance ji = validate(job);
-    logger.log(Level.INFO, "JOB(" + ji.getHarvestable() + ") has finished. Persisting state...");
-    dao.update(job.getHarvestable());
-    jobs.remove(ji.getHarvestable().getId());
+    if (ji != null) {
+      ji.notifyFinish();
+    }
+    Harvestable harvestable = job.getHarvestable();
+    jobs.remove(harvestable.getId());
+    logger.log(Level.INFO, "JOB(" + harvestable + ") has finished. Persisting state...");
+    dao.update(harvestable);
   }
 
   @Override
