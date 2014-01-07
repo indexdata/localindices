@@ -16,6 +16,7 @@ import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.scheduler.JobNotifications;
 
 /**
  * This class handles a Harvest Connector Job
@@ -29,7 +30,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private Proxy proxy;
   private Thread jobThread = null;
   
-  public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
+  public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy, JobNotifications notify) {
+    super(notify);
     this.proxy = proxy;
     this.resource = resource;
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));

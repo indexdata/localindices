@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Level;
 
@@ -22,6 +23,7 @@ import com.indexdata.masterkey.localindices.crawl.SiteRequest;
 import com.indexdata.masterkey.localindices.crawl.WebRobotCache;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
+import com.indexdata.masterkey.localindices.scheduler.JobNotifications;
 
 
 /**
@@ -99,7 +101,8 @@ public class WebRecordHarvestJob extends AbstractRecordHarvestJob implements Web
   private final int maxNumWorkers = 10;
   private Vector<CrawlThread> workers = new Vector<CrawlThread>(maxNumWorkers);
   //private StringBuilderWriter writer = new StringBuilderWriter();
-  public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy) {
+  public WebRecordHarvestJob(WebCrawlResource resource, Proxy proxy, JobNotifications notify) {
+    super(notify);
     this.resource = resource;
     this.proxy = proxy;
     robotCache = new WebRobotCache(proxy);

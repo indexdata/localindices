@@ -49,8 +49,8 @@ import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
+import com.indexdata.masterkey.localindices.scheduler.JobNotifications;
 
 /**
  * This class is an implementation of the OAI-PMH protocol and may be used by
@@ -92,7 +92,8 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
   }
 
-  public OAIRecordHarvestJob(OaiPmhResource resource, Proxy proxy) {
+  public OAIRecordHarvestJob(OaiPmhResource resource, Proxy proxy, JobNotifications notify) {
+    super(notify);
     if (resource.getUrl() == null) {
       throw new IllegalArgumentException("baseURL parameter cannot be null");
     }

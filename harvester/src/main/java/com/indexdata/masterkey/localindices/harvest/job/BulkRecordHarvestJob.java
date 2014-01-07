@@ -17,6 +17,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
+import com.indexdata.masterkey.localindices.scheduler.JobNotifications;
 
 /**
  * This class handles HTTP download of file(s), and bulk transformation
@@ -35,7 +36,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private HarvestStatus initialStatus;
   
 
-  public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
+  public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy, JobNotifications notify) {
+    super(notify);
     this.proxy = proxy;
     this.resource = resource;
     splitDepth = getNumber(resource.getSplitAt(), splitDepth);
