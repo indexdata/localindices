@@ -169,6 +169,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
+    emulateJobScheduler(resource, job);
   }
 
   private void purgeStorage(RecordStorage recordStorage) throws IOException, StatusNotImplemented {
@@ -217,6 +218,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(clean, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
@@ -246,11 +248,11 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setTransformation(createMarc21Transformation(inParallel));
 
     RecordStorage recordStorage = createStorage(clean, resource);
-
+    
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
   }
 
   private void testCleanGZippedMarc21SplitByNumber(boolean inParallel, int number,
@@ -285,6 +287,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
@@ -355,8 +358,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    job.finishReceived();
-    assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.FINISHED.name())); 
+    emulateJobScheduler(resource, job);
   }
 
   private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
@@ -371,6 +373,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     checkStorageStatus(recordStorage.getStatus(), added, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
   }
 
   public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {

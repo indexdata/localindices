@@ -128,22 +128,7 @@ public class JobScheduler implements JobNotifications {
       case KILLED: // zombie thread
 	break;
       }
-      // TODO change the whole thing into an observer pattern
-      boolean needsUpdate = false;
-      if (ji.statusChanged()) {
-	logger.log(Level.INFO,
-	    "JOB#" + ji.getHarvestable().getId() + " status updated to " + ji.getStatus());
-	ji.getHarvestable().setCurrentStatus(ji.getStatus().name());
-	needsUpdate = true;
-      }
-      if (ji.statusMsgChanged()) {
-	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-	    + " - status message updated - " + ji.getHarvestable().getMessage());
-	needsUpdate = true;
-      }
-      if (ji.shallPersist()) {
-	needsUpdate = true;
-      }
+      boolean needsUpdate = checkUpdate(ji);
       if (needsUpdate)
 	dao.update(ji.getHarvestable());
     }
@@ -169,6 +154,26 @@ public class JobScheduler implements JobNotifications {
 	logger.warn("Nothing to run. Job " + id  + " is not present");
     }
     return 0; 
+  }
+
+  protected boolean checkUpdate(JobInstance ji) {
+    // TODO change the whole thing into an observer pattern
+    boolean needsUpdate = false;
+    if (ji.statusChanged()) {
+    logger.log(Level.INFO,
+        "JOB#" + ji.getHarvestable().getId() + " status updated to " + ji.getStatus());
+    ji.getHarvestable().setCurrentStatus(ji.getStatus().name());
+    needsUpdate = true;
+    }
+    if (ji.statusMsgChanged()) {
+    logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
+        + " - status message updated - " + ji.getHarvestable().getMessage());
+    needsUpdate = true;
+    }
+    if (ji.shallPersist()) {
+    needsUpdate = true;
+    }
+    return needsUpdate;
   }
 
   /**
