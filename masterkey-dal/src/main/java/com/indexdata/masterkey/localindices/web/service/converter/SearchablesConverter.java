@@ -54,6 +54,7 @@ public class SearchablesConverter extends Records {
             layer.setLayerName("final");
             layer.setName(entity.getName());
             layer.setServiceProvider(entity.getServiceProvider());
+            layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
             Storage storage = entity.getStorage();
             
             if (storage instanceof SolrStorageEntity) {

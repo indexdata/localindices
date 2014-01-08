@@ -102,6 +102,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private String mailAddress = null;
   private boolean diskRun = false;
   private boolean cacheEnabled = false;
+  @Column(nullable=false)
+  private boolean openAccess = false;
 
   public String getDescription() {
     return description;
@@ -410,6 +412,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setCacheEnabled(boolean cacheEnabled) {
     this.cacheEnabled = cacheEnabled;
+  }
+
+  public boolean isOpenAccess() {
+    return openAccess;
+  }
+
+  public void setOpenAccess(boolean openAccess) {
+    this.openAccess = openAccess;
   }
   
 }
