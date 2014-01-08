@@ -17,3 +17,5 @@ deb-src
 solr.log
 install-stamp
 /data/
+logs/
+solr/collection1/data/
