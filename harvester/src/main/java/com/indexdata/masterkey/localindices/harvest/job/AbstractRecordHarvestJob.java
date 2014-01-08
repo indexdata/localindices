@@ -160,7 +160,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   
   protected void shutdown() {
     // TODO Clean up. 
-    getHarvestable().setCurrentStatus(getStatus().name());
+    getHarvestable().setCurrentStatus(jobStatus.name());
     getHarvestable().setDiskRun(false);
     markForUpdate();
     notify.persist(this);
@@ -185,6 +185,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     // This is first set on notifyFinished
     if (status != HarvestStatus.FINISHED) {
       jobStatus = status;
+      getHarvestable().setCurrentStatus(status.name());
     }
   }
 
@@ -196,7 +197,6 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   @Override
   public void setStatus(HarvestStatus status, String msg) {
     setStatus(status);
-    getHarvestable().setCurrentStatus(status.name());
     getHarvestable().setMessage(msg);
   }
 
