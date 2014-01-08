@@ -319,7 +319,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
-
+    assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.FINISHED.name())); 
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
@@ -355,6 +355,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    job.finishReceived();
+    assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.FINISHED.name())); 
   }
 
   private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
