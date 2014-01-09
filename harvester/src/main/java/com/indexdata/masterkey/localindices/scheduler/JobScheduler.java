@@ -34,7 +34,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 public class JobScheduler implements JobNotifications {
 
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
-  private HarvestableDAO dao;
+  private HarvestableDAO harvestableDao;
   private StoragesDAOJPA storageDao; 
   private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
   private Map<String, Object> config;
@@ -42,7 +42,7 @@ public class JobScheduler implements JobNotifications {
   private Properties props;
 
   public JobScheduler(Map<String, Object> config, Properties props) {
-    dao = new HarvestablesDAOJPA();
+    harvestableDao = new HarvestablesDAOJPA();
     storageDao = new StoragesDAOJPA();
 
     this.config = config;
@@ -53,7 +53,7 @@ public class JobScheduler implements JobNotifications {
    * Update the current job list to reflect updates in the persistent storage.
    */
   public void updateJobs() {
-    Collection<HarvestableBrief> hbriefs = dao.retrieveBriefs(0, dao.getCount());
+    Collection<HarvestableBrief> hbriefs = harvestableDao.retrieveBriefs(0, harvestableDao.getCount());
     if (hbriefs == null) {
       logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
       return;
@@ -79,7 +79,7 @@ public class JobScheduler implements JobNotifications {
       }
       // no corresponding job in the list, create new one
       if (ji == null) {
-	Harvestable harv = dao.retrieveFromBrief(hbrief);
+	Harvestable harv = harvestableDao.retrieveFromBrief(hbrief);
 	ji = startJob(harv);
       }
       ji.seen = true;
@@ -107,7 +107,7 @@ public class JobScheduler implements JobNotifications {
 	ji.notifyFinish();
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
 	    + " has finished. Persisting state...");
-	dao.update(ji.getHarvestable());
+	harvestableDao.update(ji.getHarvestable());
 	// persist from and until
 	break;
       case ERROR:
@@ -130,7 +130,7 @@ public class JobScheduler implements JobNotifications {
       }
       boolean needsUpdate = checkUpdate(ji);
       if (needsUpdate)
-	dao.update(ji.getHarvestable());
+	harvestableDao.update(ji.getHarvestable());
     }
   }
   
@@ -203,7 +203,7 @@ public class JobScheduler implements JobNotifications {
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " status: " + ji.getStatus());
       if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
 	ji.getHarvestable().setCurrentStatus("" + HarvestStatus.SHUTDOWN);
-	dao.update(ji.getHarvestable());
+	harvestableDao.update(ji.getHarvestable());
 	ji.stop();
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
 	    		     + " status updated to " + ji.getHarvestable().getCurrentStatus() 
@@ -265,7 +265,7 @@ public class JobScheduler implements JobNotifications {
     Harvestable harvestable = job.getHarvestable();
     jobs.remove(harvestable.getId());
     logger.log(Level.INFO, "JOB(" + harvestable + ") has finished. Persisting state...");
-    dao.update(harvestable);
+    harvestableDao.update(harvestable);
   }
 
   @Override
@@ -278,6 +278,22 @@ public class JobScheduler implements JobNotifications {
 
   @Override
   public void persist(RecordHarvestJob job) {
-    dao.update(job.getHarvestable());
+    harvestableDao.update(job.getHarvestable());
+  }
+
+  public HarvestableDAO getHarvestableDao() {
+    return harvestableDao;
+  }
+
+  public void setHarvestableDao(HarvestableDAO harvestableDao) {
+    this.harvestableDao = harvestableDao;
+  }
+
+  public StoragesDAOJPA getStorageDao() {
+    return storageDao;
+  }
+
+  public void setStorageDao(StoragesDAOJPA storageDao) {
+    this.storageDao = storageDao;
   }
 }
