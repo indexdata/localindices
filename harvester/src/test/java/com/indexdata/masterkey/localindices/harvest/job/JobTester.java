@@ -10,6 +10,7 @@ import junit.framework.TestCase;
 
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -80,6 +81,13 @@ public abstract class JobTester extends TestCase {
     long totalFound = storageStatus.getTotalRecords();
     assertTrue("Total records failed. Expected " + total + " got " + totalFound, 
         	new Long(total).equals(totalFound));
+  }
+
+  protected void emulateJobScheduler(Harvestable resource, RecordHarvestJob job) {
+    // Emulate job schedule finish and persist
+    job.finishReceived();
+    resource.setCurrentStatus(job.getStatus().name());
+    assertTrue("Status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals("OK"));
   }
 
 }

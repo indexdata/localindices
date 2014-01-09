@@ -137,6 +137,7 @@ public class TestConnectorPlatform extends JobTester {
     recordStorage = createStorage(resource, true);
     job = doHarvestJob(recordStorage, resource);
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
+    emulateJobScheduler(resource, job);
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue("Result differs from first run", firstStatus.equals(storageStatus));
   }

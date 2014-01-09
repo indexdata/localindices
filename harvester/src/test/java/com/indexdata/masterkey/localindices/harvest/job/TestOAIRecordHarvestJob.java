@@ -85,6 +85,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     // checkStorageStatus(recordStorage.getStatus(), 242, 0, 242);
     assertTrue("Job not finished:" + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
     long deletes = status.getDeletes();
@@ -119,6 +120,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     recordStorage = createStorage(resource, methodName + "(second)", false);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
@@ -138,6 +140,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
   }
 
@@ -148,6 +151,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 73, 0, 73);
   }
 
@@ -182,6 +186,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     //checkStorageStatus(recordStorage.getStatus(), 1020, 0, 1020);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
@@ -269,6 +274,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     job.run();
     assertTrue("Resumption token not null", resource.getResumptionToken() == null);
     assertTrue("Harvest job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     // TODO Make test return fix count. 
     checkStorageStatus(recordStorage.getStatus(), 166, 0, 366);
 
