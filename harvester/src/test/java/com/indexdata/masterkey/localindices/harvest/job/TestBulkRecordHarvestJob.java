@@ -322,7 +322,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(clear, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
-    assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.FINISHED.name())); 
+    assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.OK.name())); 
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
