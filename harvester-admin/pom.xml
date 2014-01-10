@@ -178,5 +178,11 @@
         <deployType>development</deployType>
       </properties>
     </profile>
+    <profile>
+      <id>local</id>
+      <properties>
+        <deployType>local</deployType>
+      </properties>
+    </profile>
   </profiles>
 </project>
