@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.Stack;
 
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
@@ -50,6 +52,9 @@ import com.indexdata.xml.factory.XmlFactory;
  * 
  * @author Dennis
  */
+
+@ManagedBean(name="stepController")
+@SessionScoped
 public class StepController {
   private Logger logger = Logger.getLogger(getClass());
   SAXTransformerFactory stf = (SAXTransformerFactory) XmlFactory.newTransformerInstance();

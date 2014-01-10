@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
@@ -36,6 +38,8 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
  * 
  * @author Dennis
  */
+@ManagedBean(name="storageController")
+@SessionScoped
 public class StorageController {
   private Logger logger = Logger.getLogger(getClass());
   // Storage

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Stack;
 
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
@@ -54,6 +56,8 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
  * @author jakub
  * @author Dennis
  */
+@ManagedBean(name="resourceController")
+@SessionScoped
 public class ResourceController {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private HarvestableDAO dao;
