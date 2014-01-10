@@ -20,11 +20,11 @@
   </context-param>
   <context-param>
     <param-name>USER_CONFIG_PATH</param-name>
-    <param-value>/etc/masterkey/harvester/harvester.properties</param-value>
+    <param-value>${harvester.etc}/harvester.properties</param-value>
   </context-param>
   <context-param>
     <param-name>HARVESTER_LOG_DIRECTORY</param-name>
-    <param-value>/var/log/masterkey/harvester/harvester.log</param-value>
+    <param-value>${harvester.logs}/harvester.log</param-value>
   </context-param>
   <servlet>
     <servlet-name>SchedulerStatusServlet</servlet-name>
