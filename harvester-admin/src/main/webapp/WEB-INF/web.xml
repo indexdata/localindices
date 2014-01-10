@@ -8,12 +8,11 @@
   </listener>
   <context-param>
     <param-name>persistence-unit-name</param-name>
-    <param-value>localindicesPU</param-value>
+    <param-value>${harvester.persistence.unit}</param-value>
   </context-param>
   <context-param>
     <param-name>com.indexdata.masterkey.localindices.HarvestableDAO</param-name>
     <param-value>HarvestableDAOWS</param-value>
-    <!-- <param-value>HarvestableDAOJPA</param-value> -->
   </context-param>
   <context-param>
     <param-name>com.indexdata.masterkey.localindices.HarvestableDAO.WS_BASE_URL</param-name>
@@ -137,7 +136,10 @@
     <auth-constraint />
   </security-constraint>
   <!-- DB access stuff -->
-  <!-- only with JTA TX and injected EM <persistence-context-ref> <description>Persistence 
-  context for the web services</description> <persistence-context-ref-name>persistence/localindicesPU</persistence-context-ref-name> 
-  <persistence-unit-name>localindicesPU</persistence-unit-name> </persistence-context-ref> -->
+  <!-- only with JTA TX and injected EM 
+  <persistence-context-ref> 
+    <description>Persistence context for the web services</description> 
+     <persistence-context-ref-name>persistence/localindicesPU</persistence-context-ref-name> 
+     <persistence-unit-name>localindicesPU</persistence-unit-name> 
+  </persistence-context-ref> -->
 </web-app>
