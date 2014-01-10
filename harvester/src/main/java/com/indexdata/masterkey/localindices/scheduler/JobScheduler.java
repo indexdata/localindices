@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
+import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
@@ -35,7 +36,7 @@ public class JobScheduler implements JobNotifications {
 
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
   private HarvestableDAO harvestableDao;
-  private StoragesDAOJPA storageDao; 
+  private StorageDAO storageDao; 
   private Map<Long, JobInstance> jobs = new HashMap<Long, JobInstance>();
   private Map<String, Object> config;
   @SuppressWarnings("unused")
@@ -71,16 +72,15 @@ public class JobScheduler implements JobNotifications {
 	if (!ji.getHarvestable().getLastUpdated().equals(hbrief.getLastUpdated())) {
 	  logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " parameters changed (LU "
 	      + hbrief.getLastUpdated() + "), stopping thread and destroying job");
-	  // stop and signal to create new one
-	  ji.stop();
-	  jobs.remove(id);
-	  ji = null;
+	  // Remove the job now should ensure that we don't override the updated job  
+  	  jobs.remove(ji.getHarvestable().getId());
+  	  ji.stop();
 	}
       }
       // no corresponding job in the list, create new one
       if (ji == null) {
 	Harvestable harv = harvestableDao.retrieveFromBrief(hbrief);
-	ji = startJob(harv);
+	ji = addJob(harv);
       }
       ji.seen = true;
     }
@@ -101,36 +101,12 @@ public class JobScheduler implements JobNotifications {
    */
   public void checkJobs() {
     for (JobInstance ji : jobs.values()) {
-      switch (ji.getStatus()) {
-      case FINISHED: // update the lastHarvestStarted (and harvestedUntil)
-	// and send received signal
-	ji.notifyFinish();
-	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId()
-	    + " has finished. Persisting state...");
-	harvestableDao.update(ji.getHarvestable());
-	// persist from and until
-	break;
-      case ERROR:
-      case WARN:
-      case NEW:
-      case OK:
-	if (ji.timeToRun()) {
+	if (!ji.isRunning() && ji.timeToRun()) {
 	  ji.start();
 	}
-	break;
-      case SHUTDOWN:        
-	// Status set on Servlet container shutdown, so the time can be way overdue
-	if (ji.isEnabled()) // It could have disabled in the database. 
-	  ji.start();
-	break;
-      case RUNNING: // do nothing (update progress bar?)
-	break;
-      case KILLED: // zombie thread
-	break;
-      }
-      boolean needsUpdate = checkUpdate(ji);
-      if (needsUpdate)
-	harvestableDao.update(ji.getHarvestable());
+	boolean needsUpdate = checkUpdate(ji);
+	if (needsUpdate)
+	  harvestableDao.update(ji.getHarvestable());
     }
   }
   
@@ -161,8 +137,8 @@ public class JobScheduler implements JobNotifications {
     boolean needsUpdate = false;
     if (ji.statusChanged()) {
     logger.log(Level.INFO,
-        "JOB#" + ji.getHarvestable().getId() + " status updated to " + ji.getStatus());
-    ji.getHarvestable().setCurrentStatus(ji.getStatus().name());
+        "JOB#" + ji.getHarvestable().getId() + " status updated to " + ji.getJobStatus());
+    ji.getHarvestable().setCurrentStatus(ji.getJobStatus().name());
     needsUpdate = true;
     }
     if (ji.statusMsgChanged()) {
@@ -186,7 +162,7 @@ public class JobScheduler implements JobNotifications {
     for (JobInstance ji : jobs.values()) {
       JobInfo jInfo = new JobInfo();
       jInfo.setHarvestable(ji.getHarvestable());
-      jInfo.setStatus(ji.getStatus());
+      jInfo.setStatus(ji.getJobStatus());
       jInfo.setError(ji.getHarvestable().getMessage());
       jInfo.setHarvestPeriod("");
       jInfoList.add(jInfo);
@@ -200,14 +176,14 @@ public class JobScheduler implements JobNotifications {
   public void stopAllJobs() {
     logger.log(Level.INFO, "StopAllJobs");
     for (JobInstance ji : jobs.values()) {
-	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " status: " + ji.getStatus());
-      if (ji.getStatus().equals(HarvestStatus.RUNNING)) {
+	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " status: " + ji.getJobStatus());
+      if (ji.getJobStatus().equals(HarvestStatus.RUNNING)) {
 	ji.getHarvestable().setCurrentStatus("" + HarvestStatus.SHUTDOWN);
 	harvestableDao.update(ji.getHarvestable());
 	ji.stop();
 	logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() 
 	    		     + " status updated to " + ji.getHarvestable().getCurrentStatus() 
-	    		     + " (Job Instance status: " + ji.getStatus() + ")");
+	    		     + " (Job Instance status: " + ji.getJobStatus() + ")");
       }
       ji.stop();
     }
@@ -226,7 +202,7 @@ public class JobScheduler implements JobNotifications {
     }
   }
   
-  public JobInstance startJob(Harvestable harvestable) {
+  public JobInstance addJob(Harvestable harvestable) {
     Long id = harvestable.getId();
     try {
       JobInstance ji = new JobInstance(harvestable, 
@@ -251,8 +227,10 @@ public class JobScheduler implements JobNotifications {
       logger.warn("finsish: Job missing: " + job);
       return ji;
     }
-    if (harvestable != ji.getHarvestable())
+    if (harvestable != ji.getHarvestable()) {
       logger.error("Different harvestables: " + harvestable + "!=" + job.getHarvestable());
+      // Return null to ensure we don't override. 
+    }
     return ji;
   }
 
@@ -289,11 +267,11 @@ public class JobScheduler implements JobNotifications {
     this.harvestableDao = harvestableDao;
   }
 
-  public StoragesDAOJPA getStorageDao() {
+  public StorageDAO getStorageDao() {
     return storageDao;
   }
 
-  public void setStorageDao(StoragesDAOJPA storageDao) {
+  public void setStorageDao(StorageDAO storageDao) {
     this.storageDao = storageDao;
   }
 }

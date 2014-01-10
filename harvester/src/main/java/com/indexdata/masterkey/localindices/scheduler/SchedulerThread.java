@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 
 /**
- * The scheduler thread runs the actuall JobScheduler. It controls the sleep
+ * The scheduler thread runs the actual JobScheduler. It controls the sleep
  * timeout and waits for kill signals. The instantiated object is placed in the
  * appplication context and can be retrieved across the application.
  * 
@@ -37,7 +37,7 @@ public class SchedulerThread implements Runnable {
     
     while (keepRunning()) {
       try {
-	Thread.sleep(3000);
+	Thread.sleep(10000);
 	//logger.log(Level.TRACE, "Checking and updating current job list..");
 	scheduler.checkJobs();
 	scheduler.updateJobs();
@@ -74,5 +74,13 @@ public class SchedulerThread implements Runnable {
   
   public synchronized int doCmd(Harvestable harvestable, String cmd) {
     return scheduler.doCmd(harvestable, cmd);
+  }
+
+  public JobScheduler getScheduler() {
+    return scheduler;
+  }
+
+  public void setScheduler(JobScheduler scheduler) {
+    this.scheduler = scheduler;
   }
 }

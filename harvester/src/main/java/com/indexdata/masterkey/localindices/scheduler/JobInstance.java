@@ -230,10 +230,15 @@ public class JobInstance {
    * 
    * @return harvesting status
    */
-  public HarvestStatus getStatus() {
+  public HarvestStatus getJobStatus() {
     return harvestJob.getStatus();
   }
 
+  public boolean isRunning() {
+    return harvestingThread.isAlive();
+  }
+
+  
   public boolean shallPersist() {
     if (harvestJob.isUpdated()) {
       harvestJob.clearUpdated();
