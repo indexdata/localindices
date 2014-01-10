@@ -8,22 +8,8 @@
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
             <property name="eclipselink.cache.shared.default" value="true"/>
-            <property name="eclipselink .cache.type.default" value="Soft"/>
-            <property name="eclipselink.cache.size.default" value="1000"/>
-
-            <!--
-              direct non-DataSource connection is possible but is generally
-              not safe
-            -->
-            <!--
-              <property name="toplink.jdbc.driver" 
-                value="com.mysql.jdbc.Driver"/>
-              <property name="toplink.jdbc.url" 
-                value="jdbc:mysql://localhost:3306/DBNAME?autoReconnect=true"/>
-              <property name="toplink.jdbc.user" value=""/>
-              <property name="toplink.jdbc.password" value=""/>
-              <property name="toplink.logging.level" value="FINE"/>
-              -->
+            <property name="eclipselink .cache.type.default"  value="Soft"/>
+            <property name="eclipselink.cache.size.default"   value="1000"/>
         </properties>
     </persistence-unit>
     <!-- development/testing persistence unit -->
@@ -39,22 +25,9 @@
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
             <property name="eclipselink.cache.shared.default" value="true"/>
-            <property name="eclipselink .cache.type.default" value="Soft"/>
-            <property name="eclipselink.cache.size.default" value="1000"/>
-            <property name="eclipselink.target-database" value="Auto"/>
-            <!--
-              direct non-DataSource connection is possible but is generally
-              not safe
-            -->
-            <!--
-              <property name="toplink.jdbc.driver" 
-                value="com.mysql.jdbc.Driver"/>
-              <property name="toplink.jdbc.url" 
-                value="jdbc:mysql://localhost:3306/DBNAME?autoReconnect=true"/>
-              <property name="toplink.jdbc.user" value=""/>
-              <property name="toplink.jdbc.password" value=""/>
-              <property name="toplink.logging.level" value="FINE"/>
-              -->
+            <property name="eclipselink .cache.type.default"  value="Soft"/>
+            <property name="eclipselink.cache.size.default"   value="1000"/>
+            <property name="eclipselink.target-database"      value="Auto"/>
         </properties>
     </persistence-unit>
 </persistence>
