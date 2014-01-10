@@ -17,11 +17,14 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   private String identify = "";
   Layout layout = new PatternLayout("%d %-5p [%t] %m\n");
   Appender logAppender  = null;   
+  
+  String logDirectory = "/var/log/masterkey/harvester";
 
   public StorageJobLogger(Class<? extends Object> loggerClass, Storage resource) {
     String logId = "storage-" + (resource != null ? resource.getId() : "null");
     logger = Logger.getLogger(logId);
-    String logFilename = "/var/log/masterkey/harvester/" + logId  + ".log";
+
+    String logFilename = logDirectory + "/" + logId  + ".log";
     setupAppender(loggerClass,logFilename, "storage");
     /* 
     Appender appender = Logger.getRootLogger().getAppender("LOGFILE");
