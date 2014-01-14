@@ -52,7 +52,7 @@ public class JobInstance {
   public boolean seen; // for checking what has been deleted
   private boolean enabled = true;
 
-  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled, JobScheduler scheduler, StorageDAO dao)
+  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled, JobNotifications notifications, StorageDAO dao)
       throws IllegalArgumentException {
     this.enabled = enabled;
     storageDao = dao;
@@ -73,19 +73,19 @@ public class JobInstance {
 	logger.log(Level.WARN,
 	    "Job scheduled with lower than daily granularity. Schedule overridden to " + cronLine);
       }
-      harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy, scheduler);
+      harvestJob = new OAIRecordHarvestJob((OaiPmhResource) hable, proxy, notifications);
     } else if (hable instanceof XmlBulkResource) {
-	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy, scheduler);
+	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy, notifications);
     } else if (hable instanceof WebCrawlResource) {
-      harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy, scheduler);
+      harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy, notifications);
     } else if (hable instanceof HarvestConnectorResource) {
       // hable.getJobClass();
       try {
 	Constructor<?> constructor = Class.forName("com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob").getConstructor(hable.getClass(), Proxy.class, JobNotifications.class);
-	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy, scheduler);
+	harvestJob = (HarvestJob) constructor.newInstance(hable, proxy, notifications);
       } catch (Exception e) {
 	logger.error("Failed to use reflection", e);
-	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy, scheduler);
+	harvestJob = new ConnectorHarvestJob((HarvestConnectorResource) hable, proxy, notifications);
 	e.printStackTrace();
       }
     } else {
