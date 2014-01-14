@@ -41,15 +41,17 @@ public class JobScheduler implements JobNotifications {
   private Map<String, Object> config;
   @SuppressWarnings("unused")
   private Properties props;
-
+  private JobNotifications notifications;
+  
   public JobScheduler(Map<String, Object> config, Properties props) {
     harvestableDao = new HarvestablesDAOJPA();
     storageDao = new StoragesDAOJPA();
 
     this.config = config;
     this.props = props;
+    notifications = this;
   }
-
+  
   /**
    * Update the current job list to reflect updates in the persistent storage.
    */
@@ -207,7 +209,7 @@ public class JobScheduler implements JobNotifications {
     try {
       JobInstance ji = new JobInstance(harvestable, 
 	  	(Proxy) config.get("harvester.http.proxy"),
-	  	harvestable.getEnabled(), this, storageDao);
+	  	harvestable.getEnabled(), notifications, storageDao);
       jobs.put(id, ji);
       ji.start();
       logger.log(Level.INFO, "JOB#" + ji.getHarvestable().getId() + " started.");
@@ -273,5 +275,9 @@ public class JobScheduler implements JobNotifications {
 
   public void setStorageDao(StorageDAO storageDao) {
     this.storageDao = storageDao;
+  }
+
+  public void setNotifications(JobNotifications notifications) {
+    this.notifications = notifications;
   }
 }
