@@ -1,8 +1,15 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.apache.log4j.Logger;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
@@ -14,7 +21,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.SolrRecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
-public class TestBulkRecordHarvestJob extends JobTester {
+@RunWith(Parameterized.class)
+public class TestBulkRecordHarvestJob extends AbstractJobTest {
 
   private static final int NO_RECORDS = 1002;
   // String resourceMarc0 = "http://lui-dev.indexdata.com/ag/demo-part-00.mrc";
@@ -42,36 +50,25 @@ public class TestBulkRecordHarvestJob extends JobTester {
   //SolrServer solrServer = factory.create();
   @SuppressWarnings("unused")
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey");
-
-  private XmlBulkResource createResource(String url, String expectedSchema, String outputSchema,
-      String splitAt, String size, boolean overwrite) throws IOException {
-    XmlBulkResource resource = new XmlBulkResource(url);
-    resource.setName(url + " " + (expectedSchema != null ? expectedSchema + " " : "") + splitAt
-	+ " " + size);
-    resource.setSplitAt(splitAt);
-    resource.setSplitSize(size);
-    resource.setExpectedSchema(expectedSchema);
-    resource.setOutputSchema(outputSchema);
-    resource.setEnabled(true);
-    resource.setId(1l);
-    resource.setCurrentStatus("NEW");
-    resource.setOverwrite(overwrite);
-    return resource;
+  private JobTester jobTester; 
+  
+  @SuppressWarnings("rawtypes")
+  @Parameters
+  public static Collection jobTesters()  {
+    return Arrays.asList(new Object[][] {
+	{ new SimpleJobTester()}
+//	,{ new SchedulerJobTester() }
+    });
+  }
+   
+  public TestBulkRecordHarvestJob(JobTester jobTester) {
+    this.jobTester = jobTester;
   }
 
   private Harvestable createResource(String url, String expectedSchema, String outputSchema,
       int splitAt, int size, boolean overwrite) throws IOException {
-    return createResource(url, expectedSchema, outputSchema, String.valueOf(splitAt),
+    return createBulkXmlResource(url, expectedSchema, outputSchema, String.valueOf(splitAt),
 	String.valueOf(size), overwrite);
-  }
-
-  private RecordHarvestJob doHarvestJob(RecordStorage recordStorage, Harvestable resource)
-      throws IOException {
-    AbstractRecordHarvestJob job = new BulkRecordHarvestJob((XmlBulkResource) resource, null, new DummyJobNotifications());
-    job.setLogger(new ConsoleStorageJobLogger(job.getClass(), resource));
-    job.setStorage(recordStorage);
-    job.run();
-    return job;
   }
 
   private Transformation createMarc21Transformation(boolean inParallel) throws IOException {
@@ -166,7 +163,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setTransformation(createMarc21Transformation(inParallel));
 
     RecordStorage recordStorage = createStorage(clear, resource);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
     emulateJobScheduler(resource, job);
@@ -186,18 +183,22 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testMarc21SplitByNumber(inParallel, number, true, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanMarc21NoSplitSerial() throws IOException, StatusNotImplemented {
     testCleanMarc21SplitByNumber(false, 0);
   }
 
+  @Test
   public void testCleanMarc21NoSplitParallel() throws IOException, StatusNotImplemented {
     testCleanMarc21SplitByNumber(true, 0);
   }
 
+  @Test
   public void testCleanMarc21Split1Serial() throws IOException, StatusNotImplemented {
     testCleanMarc21SplitByNumber(false, 1);
   }
 
+  @Test
   public void testCleanMarc21Split1Parallel() throws IOException, StatusNotImplemented {
     testCleanMarc21SplitByNumber(true, 1);
   }
@@ -216,20 +217,23 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
     RecordStorage recordStorage = createStorage(clean, resource);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
+  @Test
   public void testCleanTurboMarcNoSplitSerial() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(false, 0, true, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanTurboMarcSplit1Parallel() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(true, 1, true, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanTurboMarcSplit100() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(false, 100, true, true, NO_RECORDS);
   }
@@ -249,7 +253,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordStorage recordStorage = createStorage(clean, resource);
     
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
@@ -260,18 +264,22 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testGZippedMarc21SplitByNumber(inParallel, number, true, overwrite, NO_RECORDS);
   }
 
+  @Test
   public void testCleanGZippedMarc21NoSplit() throws IOException, StatusNotImplemented {
     testCleanGZippedMarc21SplitByNumber(false, 1, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanGZippedMarc21Split1() throws IOException, StatusNotImplemented {
     testCleanGZippedMarc21SplitByNumber(false, 1, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanGZippedMarc21Split100() throws IOException, StatusNotImplemented {
     testCleanGZippedMarc21SplitByNumber(false, 100, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanGZippedMarc21Split1000() throws IOException, StatusNotImplemented {
     testCleanGZippedMarc21SplitByNumber(false, 1000, true, NO_RECORDS);
   }
@@ -285,7 +293,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordStorage recordStorage = createStorage(clear, resource);
 
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
@@ -296,18 +304,22 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testGZippedTurboMarcSplitByNumber(inParallel, number, true, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanGZippedTurboMarcNoSplit() throws IOException, StatusNotImplemented {
     testCleanGZippedTurboMarcSplitByNumber(false, 0);
   }
 
+  @Test
   public void testCleanGZippedTurboMarcSplit1() throws IOException, StatusNotImplemented {
     testCleanGZippedTurboMarcSplitByNumber(false, 1);
   }
 
+  @Test
   public void testCleanGZippedTurboMarcSplit100() throws IOException, StatusNotImplemented {
     testCleanGZippedTurboMarcSplitByNumber(false, 100);
   }
 
+  @Test
   public void testCleanGZippedTurboMarcSplit1000() throws IOException, StatusNotImplemented {
     testCleanGZippedTurboMarcSplitByNumber(false, 1000);
   }
@@ -320,7 +332,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setTransformation(createTurboMarcTransformation(inParallel));
 
     RecordStorage recordStorage = createStorage(clear, resource);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     assertTrue("resource status wrong: " + resource.getCurrentStatus(), resource.getCurrentStatus().equals(HarvestStatus.OK.name())); 
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
@@ -331,11 +343,13 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, 2004);
   }
 
+  @Test
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
     testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2 * NO_RECORDS);
   }
 
+  @Test
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
@@ -354,7 +368,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordStorage recordStorage = createStorage(clean, resource);
 
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
 
     checkStorageStatus(recordStorage.getStatus(), total_expected, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
@@ -369,21 +383,24 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordStorage recordStorage = createStorage(clean, resource);
 
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
 
     checkStorageStatus(recordStorage.getStatus(), added, 0, total_expected);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
   }
 
+  @Test
   public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
     testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, NO_RECORDS);
   }
 
+  @Test
   public void testCleanMarc21ZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
     testZippedMarc21SplitByNumber(resourceMarcZIPMulti, false, true, true, 1000);
   }
 
+  @Test
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
     testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, false, true, true, 10020, 10007);
   }
@@ -414,7 +431,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
       resource.setTransformation(createMarc21Transformation(inParallel));
       RecordStorage recordStorage = storageCreator.createStorage(clean, resource);
 
-      RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+      RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
 
       assertTrue(job.getStatus() == HarvestStatus.FINISHED);
       expectedStorageStatus.equals(recordStorage.getStatus());
@@ -434,7 +451,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setStorage(storageEntity);
     RecordStorage recordStorage = initializeStorage(false, resource, new BulkSolrRecordStorage(resource));
 
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     HarvestStatus jobStatus = job.getStatus();
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.ERROR);
     String errorMessage = resource.getMessage();
@@ -445,13 +462,13 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   public void testBadSplitAt() throws IOException, StatusNotImplemented {
 
-    XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
+    XmlBulkResource resource = createBulkXmlResource(resourceMarc0, "application/marc;charset=MARC8",
 	null, "", "", false);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(false));
     RecordStorage recordStorage = createStorage(true, resource);
     
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     HarvestStatus jobStatus = job.getStatus();
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.FINISHED);
   }
@@ -466,7 +483,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
     RecordStorage recordStorage = createStorage(true, resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    RecordHarvestJob job = jobTester.doHarvestJob(recordStorage, resource);
     
     StorageStatus storageStatus = recordStorage.getStatus();
     assertTrue(StorageStatus.TransactionState.Committed ==
