@@ -22,7 +22,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 //import com.indexdata.masterkey.localindices.harvest.storage.SimpleStorageStatus;
 
-public class TestConnectorPlatform extends JobTester {
+public class TestConnectorPlatform extends AbstractJobTest {
   String cfServer = "http://connect-test.indexdata.com:80/connector";
   String repoUrl = "http://idtest:idtest36@cfrepo.indexdata.com/repo.pl/idtest/";
   // String cfServer = "http://satay.index:9000/connector";
