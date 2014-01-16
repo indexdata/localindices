@@ -2,6 +2,7 @@
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <!-- Testing configuration upgrade -->
   <!-- If JPA is used directly comment out the following -->
   <listener>
     <listener-class>com.indexdata.utils.persistence.RequestScopedPersister</listener-class>
@@ -122,10 +123,12 @@
       <param-value>.*javax.faces.resource.*</param-value>
     </init-param>
   </filter>
+<!--
   <filter-mapping>
     <filter-name>AuthenticationCheckFilter</filter-name>
     <url-pattern>*.xhtml</url-pattern>
   </filter-mapping>
+-->
   <!-- this is to limit all direct access to jsps -->
   <security-constraint>
     <display-name>jsp-constraint</display-name>
