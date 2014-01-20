@@ -50,7 +50,7 @@ public class SearchablesConverter extends Records {
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
-            layer.setId(entity.getId().toString());
+            layer.setId(uri + "#" + entity.getId());
             layer.setLayerName("final");
             layer.setName(entity.getName());
             layer.setServiceProvider(entity.getServiceProvider());
@@ -59,9 +59,7 @@ public class SearchablesConverter extends Records {
             
             if (storage instanceof SolrStorageEntity) {
             	Storage solrStorage = (Storage) storage;
-                // Ensure unique zurl
-            	
-            	layer.setZurl(modifySolrUrl(solrStorage.getSearchUrl()) + "#" + entity.getId());
+            	layer.setZurl(modifySolrUrl(solrStorage.getSearchUrl()));
             	layer.setUdb("solr-" + entity.getId());
             	layer.setExtraArgs("fq=database:" + entity.getId());
             	// TODO make configurable
@@ -104,21 +102,11 @@ public class SearchablesConverter extends Records {
     }
 
     final String http = "http://";
-    final String select = "select";
-    final String slash = "/"; 
     private String modifySolrUrl(String url) {
       String zurl = url;
       // Pazpar2 does not handled zurls with http://
       if (zurl.startsWith(http)) 
     	  zurl = zurl.substring(http.length());
-// This should be handled by pazpar2
-      /* 
-      if (!zurl.endsWith(select)) {
-	if (!zurl.endsWith(slash)) 
-	  zurl = zurl.concat(slash);
-	zurl.concat(select);
-      }
-      */
       return zurl;
     }
 }
