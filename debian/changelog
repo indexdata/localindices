@@ -1,3 +1,9 @@
+masterkey-harvester (2.5.4-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Tue, 21 Jan 2014 15:40:32 +0100
+
 masterkey-harvester (2.5.3-1indexdata) unstable; urgency=low
 
   * Upstream
