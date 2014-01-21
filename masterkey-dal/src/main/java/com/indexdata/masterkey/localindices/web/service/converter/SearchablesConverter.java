@@ -59,7 +59,7 @@ public class SearchablesConverter extends Records {
             
             if (storage instanceof SolrStorageEntity) {
             	Storage solrStorage = (Storage) storage;
-            	layer.setZurl(appendQuery(solrStorage.getSearchUrl(), "fq=database:" + entity.getId()));
+            	layer.setZurl(appendQuery(appendSelect(solrStorage.getSearchUrl()), "fq=database:" + entity.getId()));
             	//layer.setExtraArgs();
             	layer.setUdb("solr" + entity.getId());
             	// TODO make configurable
@@ -99,6 +99,14 @@ public class SearchablesConverter extends Records {
         }
         super.setRecords(records);
         super.setUri(uri);
+    }
+
+    private String appendSelect(String searchUrl) {
+      // TODO Check for already having select in the solr url ?
+
+      if (searchUrl.endsWith("/")) 
+	return searchUrl + "select";
+      return searchUrl + "/select";
     }
 
     private String appendQuery(String searchUrl, String string) {
