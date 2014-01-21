@@ -7,6 +7,7 @@
 package com.indexdata.masterkey.localindices.web.service.converter;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +51,9 @@ public class SearchablesConverter extends Records {
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
-            layer.setId(uri + "#" + entity.getId());
+            // TODO extend to include uri both URL path and file path safe, as it will end up in a path of a url 
+            // and file name
+            layer.setId("" + entity.getId());
             layer.setLayerName("final");
             layer.setName(entity.getName());
             layer.setServiceProvider(entity.getServiceProvider());
