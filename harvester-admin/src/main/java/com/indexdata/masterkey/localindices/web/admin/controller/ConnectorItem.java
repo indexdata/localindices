@@ -12,6 +12,10 @@ import java.io.Serializable;
  * @author jakub
  */
 public class ConnectorItem implements Serializable {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 825576410087178114L;
   private String fileName;
   private String displayName;
   private String serviceProvider;

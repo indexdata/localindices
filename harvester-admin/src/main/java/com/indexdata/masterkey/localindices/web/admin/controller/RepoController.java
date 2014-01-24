@@ -39,6 +39,10 @@ import javax.faces.event.ValueChangeEvent;
 @ManagedBean(name="repoController")
 @ViewScoped
 public class RepoController implements Serializable {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2959742931617525262L;
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private final static String repoFilterQuery = "?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
   
