@@ -65,7 +65,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-dal</artifactId>
-      <version>${pom.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <!--
