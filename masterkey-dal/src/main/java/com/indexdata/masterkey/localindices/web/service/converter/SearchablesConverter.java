@@ -58,7 +58,16 @@ public class SearchablesConverter extends Records {
             layer.setLayerName("final");
             layer.setName(entity.getName());
             layer.setServiceProvider(entity.getServiceProvider());
-            layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
+            if (entity.isOpenAccess()) {
+              layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
+          	List<Object> elements = layer.getOtherElements();
+          	if (elements == null) {
+          	  elements = new LinkedList<Object>();
+          	  layer.setOtherElements(elements);
+          	}
+            	JAXBElement element = new JAXBElement(new QName("categories"), String.class, "id_openaccess");
+		elements.add(element);
+            }
             //XmlUtils.appendTextNode(parent, tagName, text)
             Storage storage = entity.getStorage();
             if (storage instanceof SolrStorageEntity) {
