@@ -29,18 +29,18 @@
                            value="#{resourceController.resource.connectorRepoUrlSetting}" 
                            converter="settingsConverter"
                            requiredMessage="Please select a Connector Repository!"
-                           required="true"
-                           valueChangeListener="#{repoController.repoUrlChanged}">
+                           required="true">
             <f:selectItems value="#{settings.connectorRepos}" var="s" 
                            itemValue="#{s}" itemLabel="#{s.label}" />
-            <f:ajax />
+            <f:ajax render="connector:listbox"/>
           </h:selectOneMenu>
           <h:message for="repoUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Connector (type for suggestion):"  styleClass="required"/>
         <h:panelGroup>
           <id:autoComplete id="connector" value="#{resourceController.resource.connector}"
-                             completionItems="#{repoController.connectors}"
+                             itemsSource="#{connectorItemsSource.itemsSource}"
+                             completionItems="#{connectorItemsSource.completionItems}"
                              completionItemConverter="objectConverter"
                              itemSelectedListenerType="#{connectorItemSelectedListener}"
                              required="true" 

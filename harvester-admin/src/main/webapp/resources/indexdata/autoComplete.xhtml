@@ -7,19 +7,21 @@
     <!-- INTERFACE --> 
     <composite:interface>
       <composite:attribute name="value" required="true"/>
-      <composite:attribute name="completionItems" required="true"/>        
-      <composite:attribute name="required" required="false"/>        
-      <composite:attribute name="requiredMessage" required="false"/>
-      <composite:attribute name="completionItemConverter" 
-                           required="false" />
+      <composite:attribute name="itemsSource=" required="true" />
+      <composite:attribute name="completionItems" required="true"/> 
+      <composite:attribute name="completionItemConverter" required="false" />
       <composite:attribute name="itemSelectedListenerType" required="true"/>
       <composite:attribute name="render" required="false"/>
+      <composite:attribute name="required" required="false"/>
+      <composite:attribute name="requiredMessage" required="false"/>
     </composite:interface> 
 
     <composite:implementation>
         
       <h:outputScript library="indexdata" 
          name="autoComplete.js" target="head"/>
+      
+      <h:inputHidden id="itemsSource" value="#{cc.attrs.itemsSource}" />
       
       <h:inputText id="input" value="#{cc.attrs.value}" 
          valueChangeListener="#{autocompleteListener.valueChanged}"
@@ -36,7 +38,7 @@
          onfocus="indexdata.autocomplete.markLBFocused(this);"
          onmouseup="indexdata.autocomplete.listboxLostFocus(this)">
           <f:converter converterId="#{cc.attrs.completionItemConverter}"/>
-          <f:selectItems value="#{cc.attrs.completionItems}"/>
+          <f:selectItems binding="#{cc.attrs.completionItems}"/>
           <f:ajax render="input #{cc.attrs.render}"/>
           <f:valueChangeListener binding="#{cc.attrs.itemSelectedListenerType}" />
       </h:selectOneListbox>
