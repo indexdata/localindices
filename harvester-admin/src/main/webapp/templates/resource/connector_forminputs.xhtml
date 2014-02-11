@@ -24,15 +24,18 @@
         <h:outputText value="Engine parameters (optional)" styleClass="optionalInput"/>
         <h:inputText  value="#{resourceController.resource.engineParameters}" size="20" styleClass="optionalInput" />
         <h:outputText value="CF Repository:" styleClass="required" />
+        
+        
         <h:panelGroup>
           <h:selectOneMenu id="repoUrl" 
                            value="#{resourceController.resource.connectorRepoUrlSetting}" 
                            converter="settingsConverter"
                            requiredMessage="Please select a Connector Repository!"
-                           required="true">
+                           required="true"
+                           valueChangeListener="#{repoController.repoUrlChanged}">
             <f:selectItems value="#{settings.connectorRepos}" var="s" 
                            itemValue="#{s}" itemLabel="#{s.label}" />
-            <f:ajax render="connector:listbox"/>
+            <f:ajax />
           </h:selectOneMenu>
           <h:message for="repoUrl" style="color: red;"/>
         </h:panelGroup>
