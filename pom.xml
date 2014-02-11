@@ -107,7 +107,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-common</artifactId>
-      <version>0.1.21</version>
+      <version>0.1.23-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <repositories>
