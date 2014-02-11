@@ -6,7 +6,6 @@
 package com.indexdata.masterkey.localindices.dao;
 
 import com.indexdata.masterkey.localindices.entity.Setting;
-import java.io.InputStream;
 
 /**
  *

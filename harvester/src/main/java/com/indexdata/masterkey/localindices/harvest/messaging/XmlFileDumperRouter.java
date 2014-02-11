@@ -29,7 +29,6 @@ import org.xml.sax.InputSource;
 import com.indexdata.masterkey.localindices.entity.CustomTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.harvest.job.ErrorMessage;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;

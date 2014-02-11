@@ -83,6 +83,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       storage.databaseEnd();
       commit();
       setStatus(HarvestStatus.FINISHED);
+      mailMessage("Harvest Job completed: ", "Successfully");
     } catch (Exception e) {
       if (isKillSent()) {
 	if (resource.getAllowErrors()) 
@@ -98,6 +99,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       setStatus(HarvestStatus.ERROR, error);
       resource.setResumptionToken(startResumptionToken);
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
+      mailMessage("Harvest Job failed: ", error);
     }
     finally {
       shutdown();
