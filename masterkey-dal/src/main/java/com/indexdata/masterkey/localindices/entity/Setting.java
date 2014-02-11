@@ -85,7 +85,7 @@ public class Setting implements Serializable {
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Setting)) return false;
-    return ((Setting) other).id == this.id;
+    return (((Setting) other).id).compareTo(this.id) == 0;
   }
 
   @Override
