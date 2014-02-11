@@ -15,6 +15,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
+
 import org.apache.log4j.Logger;
 
 /**
@@ -37,18 +38,23 @@ public class AutocompleteListener implements Serializable {
   public void valueChanged(ValueChangeEvent e) {    
     UIInput input = (UIInput) e.getSource();
     UISelectOne listbox = (UISelectOne) input.findComponent("listbox");
-    if (listbox != null) {
+    UIInput itemsSourceInput = (UIInput) input.findComponent("itemsSource");
+    String sourceId = itemsSourceInput.getValue().toString();
+    if (listbox != null && itemsSourceInput != null) {
       String query = (String) input.getValue();
       Map<String, Object> listAttrs = listbox.getAttributes();
       if (query.isEmpty()) {
         setListboxStyle(0, listAttrs);
       } else {
         UISelectItems listItems = (UISelectItems) listbox.getChildren().get(0);
-        List<SelectItem> entries = completionItemsSources.get(listbox.getClientId()).getSelectItems();
+        List<SelectItem> entries = completionItemsSources.get(sourceId).getSelectItems();
         List<SelectItem> newEntries = filterEntries(query, entries);
+        logger.debug("Filtered to " + (newEntries == null ? "null" : newEntries.size() + " entries"));
         listItems.setValue(newEntries);
         setListboxStyle(newEntries.size(), listAttrs);
       }
+    } else {
+      logger.error("Failed to find list box or hidden items source input field in page.");
     }
   }
 
@@ -109,22 +115,10 @@ public class AutocompleteListener implements Serializable {
   }
 
   /**
-   * When a new select items source is set, the input box is cleared and the list box hidden.
    * 
    * @param itemsSource
    */
   public void setCompletionItemsSource(CompletionItemsSource itemsSource) {
-    logger.debug("Set completion items source");
-    UIInput input = (UIInput) itemsSource.getCompletionItems().findComponent("input");
-    UISelectOne listbox = (UISelectOne) itemsSource.getCompletionItems().findComponent("listbox");
-    if (input != null && listbox != null) {
-      input.setValue("");
-      this.completionItemsSources.put(listbox.getClientId(), itemsSource);
-      Map<String, Object> listAttrs = listbox.getAttributes();
-      setListboxStyle(0, listAttrs);
-    } else {
-      logger.error("No input box or no list box found");
-    }
+    this.completionItemsSources.put(itemsSource.getSourceId(), itemsSource);
   }
-  
 }

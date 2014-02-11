@@ -43,7 +43,7 @@
         <h:panelGroup>
           <id:autoComplete id="connector" value="#{resourceController.resource.connector}"
                              itemsSource="#{connectorItemsSource.itemsSource}"
-                             completionItems="#{connectorItemsSource.completionItems}"
+                             completionItems="#{connectorItemsSource.selectItems}"
                              completionItemConverter="objectConverter"
                              itemSelectedListenerType="#{connectorItemSelectedListener}"
                              required="true" 

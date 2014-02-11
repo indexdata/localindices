@@ -3,7 +3,6 @@ package com.indexdata.masterkey.localindices.web.admin.utils;
 import java.util.List;
 
 import javax.faces.bean.ManagedProperty;
-import javax.faces.component.UISelectItems;
 import javax.faces.model.SelectItem;
 
 import org.apache.log4j.Logger;
@@ -11,8 +10,13 @@ import org.apache.log4j.Logger;
 public abstract class CompletionItemsSource {
 
   private Logger logger = Logger.getLogger(CompletionItemsSource.class);
-  protected UISelectItems uiSelectItems = null;
   
+  /**
+   * The autocomplete composite will invoke this method to retrieve
+   * completion items for its select list. 
+   * 
+   * @return
+   */
   public abstract List<SelectItem> getSelectItems();
 
   @ManagedProperty("#{autocompleteListener}")
@@ -23,7 +27,7 @@ public abstract class CompletionItemsSource {
    * @param listener The AutocompleteListener
    */
   public void setAutocompleteListener(AutocompleteListener listener) {
-    autocompleteListener = listener;    
+    autocompleteListener = listener;
   }
 
   /**
@@ -34,24 +38,6 @@ public abstract class CompletionItemsSource {
   public void setCompletionItemsSource() {
     autocompleteListener.setCompletionItemsSource(this);
   }
-  
-  /**
-   * The completion items control should be bound to the autocomplete composite by
-   * a parameter to the composite from the client XHTML page like:
-   * <br/><br/>
-   * <pre>
-   *   &lt;id:autoComplete 
-   *        id="mylist"
-   *        ...
-   *        completionItems="#{myItemsSource.completionItems}"
-   *        ...
-   *   /&gt;
-   * </pre>
-   * 
-   * @param items  The Select list items
-   */
-  public void setCompletionItems(UISelectItems items) { uiSelectItems = items; }
-  public UISelectItems getCompletionItems() { return uiSelectItems; }
   
   /**
    * This method should be referenced as a parameter to the
@@ -69,13 +55,9 @@ public abstract class CompletionItemsSource {
    * @return
    */
   public String getItemsSource () {
-    logger.debug("setting items source on auto complete listener");
+    logger.debug("setting items source on auto complete listener ("+getSourceId()+")");
     setCompletionItemsSource();
-    return "";
-  }
-  
-  public void setUiSelectItemsValue() {
-    uiSelectItems.setValue(getSelectItems());
+    return getSourceId();
   }
 
   /**
@@ -84,10 +66,19 @@ public abstract class CompletionItemsSource {
    * request for a list items. 
    */
   public void resetCompletionItemsList() {
-    setCompletionItemsSource();
-    setUiSelectItemsValue();
+    setCompletionItemsSource();    
   }
   
+  /**
+   * The autocomplete component finds a particular source in the UI 
+   * by its sourceId (needed in case of multiple autocomplete widgets 
+   * in same page).
+   * 
+   * @return
+   */
+  public String getSourceId() {
+    return this.getClass().getName();
+  }
   
 
 }
