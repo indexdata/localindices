@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 1995-2013, Index Datassss
+ * Copyright (c) 1995-2013, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.masterkey.localindices.entity.Setting;
 import java.net.URI;
-import java.net.URISyntaxException;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
-import static com.indexdata.utils.TextUtils.joinPath;
+
+import com.indexdata.masterkey.localindices.entity.Setting;
 
 /**
  *
