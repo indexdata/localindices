@@ -17,12 +17,12 @@
     </composite:interface> 
 
     <composite:implementation>
-        
+
       <h:outputScript library="indexdata" 
          name="autoComplete.js" target="head"/>
-      
+
       <h:inputHidden id="itemsSource" value="#{cc.attrs.itemsSource}" />
-            
+
       <h:inputText id="input" value="#{cc.attrs.value}" 
          valueChangeListener="#{autocompleteListener.valueChanged}"
          onkeyup="indexdata.autocomplete.updateCompletionItems(this, event)"
@@ -30,7 +30,7 @@
          autocomplete="off"
          required="#{cc.attrs.required}"
          requiredMessage="#{cc.attrs.requiredMessage}" />
-          
+
       <h:selectOneListbox id="listbox" style="display: none;"
          valueChangeListener="#{autocompleteListener.completionItemSelected}"
          onkeypress="return indexdata.autocomplete.selectionChange(this, event);"

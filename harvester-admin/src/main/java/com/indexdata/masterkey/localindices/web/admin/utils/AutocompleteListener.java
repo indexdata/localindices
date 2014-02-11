@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIInput;
 import javax.faces.component.UISelectItems;
 import javax.faces.component.UISelectOne;
@@ -15,19 +15,18 @@ import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
-
 import org.apache.log4j.Logger;
 
 /**
  */
 @ManagedBean(name = "autocompleteListener")
-@SessionScoped
+@ViewScoped
 public class AutocompleteListener implements Serializable {
 
   private static final long serialVersionUID = -5218720495530743082L;
   private final static Logger logger = Logger.getLogger(AutocompleteListener.class);
   
-  // Map of list items sources by list-box client IDs 
+  // Map of list items sources by source ID (currently class names)
   private Map<String,CompletionItemsSource> completionItemsSources = new HashMap<String,CompletionItemsSource>();
 
   /**
@@ -64,7 +63,6 @@ public class AutocompleteListener implements Serializable {
    * @param e
    */
   public void completionItemSelected(ValueChangeEvent e) {
-    logger.debug("Completion Item Selected");
     UISelectOne listbox = (UISelectOne) e.getSource();
     UIInput input = (UIInput) listbox.findComponent("input");
     if (input != null) {
@@ -72,7 +70,6 @@ public class AutocompleteListener implements Serializable {
     }
     Map<String, Object> attrs = listbox.getAttributes();
     attrs.put("style", "display: none");
-    logger.debug("List box display set to none");
   }
 
   /**
@@ -106,11 +103,9 @@ public class AutocompleteListener implements Serializable {
       listAttrs.put("style", "display: inline; position: absolute; left: " + reqParams.get("x") 
           + "px;" + " top: " + reqParams.get("y") + "px");
       // avoid only one row (selection of single row is not a change event)
-      listAttrs.put("size", rows == 1 ? 2 : rows);
-      logger.debug("Set listbox style, displayed");
+      listAttrs.put("size", rows == 1 ? 2 : rows);      
     } else {
       listAttrs.put("style", "display: none;");
-      logger.debug("Set listbox style, no display");
     }
   }
 

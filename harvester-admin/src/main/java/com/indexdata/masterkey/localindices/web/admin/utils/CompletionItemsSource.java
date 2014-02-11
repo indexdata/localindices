@@ -60,14 +60,6 @@ public abstract class CompletionItemsSource {
     return getSourceId();
   }
 
-  /**
-   * This method should be invoked whenever changing the source of 
-   * completion items, like when performing a new HTTP or database 
-   * request for a list items. 
-   */
-  public void resetCompletionItemsList() {
-    setCompletionItemsSource();    
-  }
   
   /**
    * The autocomplete component finds a particular source in the UI 
