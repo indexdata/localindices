@@ -6,13 +6,10 @@
 
 package com.indexdata.masterkey.localindices.dao;
 
+import javax.servlet.ServletContext;
+
 import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
 import com.indexdata.masterkey.localindices.dao.bean.SettingDAOWS;
-import com.indexdata.masterkey.localindices.dao.bean.StorageDAOFake;
-import com.indexdata.masterkey.localindices.dao.bean.StorageDAOWS;
-import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
-
-import javax.servlet.ServletContext;
 
 /**
  * Creates the the StorageDAO object based on the current context.
