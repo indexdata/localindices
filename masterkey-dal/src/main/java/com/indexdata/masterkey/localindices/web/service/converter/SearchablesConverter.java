@@ -9,9 +9,12 @@ package com.indexdata.masterkey.localindices.web.service.converter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.namespace.QName;
 
 import org.apache.log4j.Logger;
 
@@ -42,6 +45,7 @@ public class SearchablesConverter extends Records {
      * @param entities associated entities
      * @param uri associated uri
      */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public SearchablesConverter(Collection<Harvestable> entities, URI uri) {
         Collection<Record> records = new ArrayList<Record>();
         for (Harvestable entity : entities) {
@@ -56,8 +60,15 @@ public class SearchablesConverter extends Records {
             layer.setServiceProvider(entity.getServiceProvider());
             if (entity.isOpenAccess()) {
               layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
-              layer.addElement("categories", "id_openaccess");
+          	List<Object> elements = layer.getOtherElements();
+          	if (elements == null) {
+          	  elements = new LinkedList<Object>();
+          	  layer.setOtherElements(elements);
+          	}
+            	JAXBElement element = new JAXBElement(new QName("categories"), String.class, "id_openaccess");
+		elements.add(element);
             }
+            //XmlUtils.appendTextNode(parent, tagName, text)
             Storage storage = entity.getStorage();
             if (storage instanceof SolrStorageEntity) {
             	Storage solrStorage = (Storage) storage;
@@ -82,12 +93,14 @@ public class SearchablesConverter extends Records {
             	layer.setCclMapIsbn("1=isbn");
             	layer.setSRU("solr");
             	layer.setSruVersion("");
-            	// TODO use new method: 
-            	// layer.add/setElement(key, value);
-            	// ONLY for elements that is not defined with a method! 
+            	// Missing a dynamic method as: 
+            	//layer.addElement(key, value);
+            	// TODO Default Solr FACET MAP and LIMIT MAP
+            	//List<Object> elements = layer.getOtherElements();
             	/* Author example
-              	layer.setElement("facetmap_author", "author_exact");
-		layer.setElement("limitmap_author", "rpn: @attr 1=author_exact @attr 3=6 ");
+              	JAXBElement element = new JAXBElement(new QName("facetmap_author"), String.class, "author_exact");
+		elements.add(element);
+		element = new JAXBElement(new QName("limitmap_author"), String.class, "rpn: @attr 1=author_exact @attr 3=6 ");
             	*/
             	//elements.add()
             	// TODO These settings should be configurable for the Storage?
@@ -99,10 +112,20 @@ public class SearchablesConverter extends Records {
             	// zebra specific
                 layer.setElementSet("pz2snippet");
             }
-            if (entity.getOriginalUri() != null)
-              layer.setElement("originalUri", entity.getOriginalUri());
-            if (entity.getOriginalUri() != null)
-              layer.setElement("json", entity.getJson());
+            List<Object> elements = layer.getOtherElements();
+            if (elements == null) { 
+              elements = new LinkedList<Object>();
+            }
+            if (entity.getOriginalUri() != null) {
+              JAXBElement element = new JAXBElement(new QName("originalUri"), String.class, entity.getOriginalUri());
+              elements.add(element);
+            }
+            if (entity.getJson() != null) {
+              JAXBElement element = new JAXBElement(new QName("json"), String.class, entity.getJson());
+              elements.add(element);
+            }
+            if (elements.size() > 0)
+              layer.setOtherElements(elements);
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);
@@ -146,5 +169,4 @@ public class SearchablesConverter extends Records {
 	return searchUrl + "?" + string;
       return searchUrl + "&" + string;
     }
-
 }
