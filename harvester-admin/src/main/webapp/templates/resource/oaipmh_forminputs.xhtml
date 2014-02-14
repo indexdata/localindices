@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
 
@@ -13,11 +14,24 @@
         <h:outputText value="OAI Repository URL:"/>
         <h:panelGroup>
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
-                       required="true" requiredMessage="Please provide the repository URL!"/>
+                       required="true" requiredMessage="Please provide the repository URL!"
+                       valueChangeListener="#{oaiPmhListSetsItemsSource.resourceUrlChanged}">
+             <f:ajax/>
+          </h:inputText>
           <h:message for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="OAI Set Name:"/>
-        <h:inputText id="setName" value="#{resourceController.resource.oaiSetName}" size="50"/>
+        <h:outputText value="OAI Set Name (type for suggestions):"/>
+        <h:panelGroup>
+          <id:autoComplete id="listsets" value="#{resourceController.resource.oaiSetName}"
+                             itemsSource="#{oaiPmhListSetsItemsSource.itemsSource}"
+                             completionItems="#{oaiPmhListSetsItemsSource.selectItems}"
+                             completionItemConverter="objectConverter"
+                             itemSelectedListenerType="#{resourceSetSelectedListener}"
+                             required="true" 
+                             requiredMessage="Please provide the set name!"
+                             render=""/>
+          <h:message for="listsets:input" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Metadata Prefix: "/>
         <h:selectOneMenu value="#{resourceController.resource.metadataPrefix}">
           <f:selectItems value="#{resourceController.metadataPrefixes}" />
