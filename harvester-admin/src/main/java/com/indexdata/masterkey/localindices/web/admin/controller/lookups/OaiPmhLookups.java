@@ -3,8 +3,10 @@ package com.indexdata.masterkey.localindices.web.admin.controller.lookups;
 import java.io.IOException;
 import java.util.List;
 
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
@@ -16,7 +18,7 @@ import ORG.oclc.oai.harvester2.verb.ListMetadataFormats;
 import ORG.oclc.oai.harvester2.verb.ListSets;
 
 /**
- * Controller of lookups (sets, meta-data formats, identify)
+ * Controller of OAI-PMH lookups (sets, meta-data formats, identify)
  * 
  * @author Niels Erik
  *
@@ -115,7 +117,7 @@ public class OaiPmhLookups {
     }
   }
     
-  public List<Set> getSets() {
+  public List<Set> getSets() throws OaiPmhResourceException {
     logger.debug("Request to get sets from [" + oaiRepositoryUrl + "]");      
     if (oaiRepositoryUrl.length()>0 && sets.getSets().size()==0) {
       fetchSets();
@@ -123,7 +125,7 @@ public class OaiPmhLookups {
     return sets.getSets();
   }
   
-  private void fetchSets () {    
+  private void fetchSets () throws OaiPmhResourceException {    
     ListSets listSets = null;     
     if (oaiRepositoryUrl.length()>0) {
       logger.debug("Fetching sets from " + oaiRepositoryUrl);
@@ -131,9 +133,9 @@ public class OaiPmhLookups {
         listSets = new ListSets(oaiRepositoryUrl,null,null,logger);
         sets = (Sets) OaiPmhResponseParser.getParser().getDataObject(listSets).getOneElement("ListSets");
       } catch (ResponseParsingException e) {
-        e.printStackTrace();
+        throw new OaiPmhResourceException("Could not parse result from " + oaiRepositoryUrl,e);
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new OaiPmhResourceException("Could not fetch OAI-PMH response from " + oaiRepositoryUrl,e);
       } catch (ParserConfigurationException e) {
         e.printStackTrace();
       } catch (TransformerException e) {

@@ -59,6 +59,9 @@ public abstract class CompletionItemsSource {
     setCompletionItemsSource();
     return getSourceId();
   }
+  
+  public void setItemsSource(String itemsSource) {
+  }
 
   
   /**

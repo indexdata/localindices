@@ -16,9 +16,9 @@
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
                        required="true" requiredMessage="Please provide the repository URL!"
                        valueChangeListener="#{oaiPmhListSetsItemsSource.resourceUrlChanged}">
-             <f:ajax/>
+             <f:ajax render="resourceUrlMessage"/>
           </h:inputText>
-          <h:message for="resourceUrl" style="color: red;"/>
+          <h:message id="resourceUrlMessage" for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="OAI Set Name (type for suggestions):"/>
         <h:panelGroup>
