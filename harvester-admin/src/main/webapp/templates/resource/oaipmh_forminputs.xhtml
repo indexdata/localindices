@@ -15,8 +15,8 @@
         <h:panelGroup>
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
                        required="true" requiredMessage="Please provide the repository URL!"
-                       valueChangeListener="#{oaiPmhListSetsItemsSource.resourceUrlChanged}">
-             <f:ajax render="resourceUrlMessage"/>
+                       valueChangeListener="#{oaiPmhLookupsController.resourceUrlChanged}">
+             <f:ajax render="resourceUrlMessage metadataPrefixList"/>
           </h:inputText>
           <h:message id="resourceUrlMessage" for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
@@ -33,9 +33,13 @@
           <h:message for="listsets:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Metadata Prefix: "/>
-        <h:selectOneMenu value="#{resourceController.resource.metadataPrefix}">
-          <f:selectItems value="#{resourceController.metadataPrefixes}" />
-        </h:selectOneMenu>
+        <h:panelGroup>
+          <h:selectOneMenu id="metadataPrefixList" value="#{resourceController.resource.metadataPrefix}">
+            <f:selectItem itemValue="" itemLabel="Select prefix" />
+            <f:selectItems value="#{oaiPmhLookupsController.metadataFormatSelectItems}" />
+          </h:selectOneMenu>
+          <h:message for="metadataPrefixList" style="color: red;"/>
+        </h:panelGroup>
         <!--
         <h:outputText value="Metadata Schema URI: "/>
         <h:inputText value="#{resourceController.resource.schemaURI}"/>

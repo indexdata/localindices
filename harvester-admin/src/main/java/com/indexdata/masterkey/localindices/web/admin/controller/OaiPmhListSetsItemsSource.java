@@ -3,20 +3,15 @@ package com.indexdata.masterkey.localindices.web.admin.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.web.admin.controller.lookups.OaiPmhLookups;
-import com.indexdata.masterkey.localindices.web.admin.controller.lookups.OaiPmhResourceException;
-import com.indexdata.masterkey.localindices.web.admin.controller.lookups.Set;
+import com.indexdata.masterkey.localindices.web.admin.controller.lookups.OaiPmhLookupsController;
 import com.indexdata.masterkey.localindices.web.admin.utils.CompletionItemsSource;
 
 @ManagedBean(name = "oaiPmhListSetsItemsSource")
@@ -35,11 +30,11 @@ public class OaiPmhListSetsItemsSource extends CompletionItemsSource {
     this.resourceController = resourceController;
   }
   
-  @ManagedProperty("#{oaiPmhLookups}")
-  private OaiPmhLookups oaiPmhLookups;
+  @ManagedProperty("#{oaiPmhLookupsController}")
+  private OaiPmhLookupsController oaiPmhLookupsController;
 
-  public void setOaiPmhLookups(OaiPmhLookups oaiPmhLookups) {
-    this.oaiPmhLookups = oaiPmhLookups;
+  public void setOaiPmhLookupsController(OaiPmhLookupsController oaiPmhLookupsController) {
+    this.oaiPmhLookupsController = oaiPmhLookupsController;
   }
   
   public OaiPmhListSetsItemsSource() {}
@@ -54,49 +49,11 @@ public class OaiPmhListSetsItemsSource extends CompletionItemsSource {
     if (resourceUrl == null || !resourceUrl.equals(controllerUrl)) {
       resourceUrl = controllerUrl;
       if (resourceUrl != null) {
-        oaiPmhLookups.setOaiRepositoryUrl(resourceUrl);
-        selectItems = new ArrayList<SelectItem>();
-        
-        try {
-          List<Set> sets = oaiPmhLookups.getSets();
-          for (Set set : sets) {
-            selectItems.add(new SelectItem(set.getSetSpec(),set.getSetName()));
-          }
-        } catch (OaiPmhResourceException e) {
-          setMessage(null,"There was a problem with the resource at " + resourceUrl,e.getMessage());        }
+        oaiPmhLookupsController.setOaiRepositoryUrl(resourceUrl);
+        selectItems = oaiPmhLookupsController.getSetSelectItems();
       }
     }
     return selectItems;
-  }
-  
-  /**
-   * For early caching (before request for select items), 
-   * provided a change event is sent. Whatever resource URL is set on the
-   * controller takes precedence however, ref. getSelectItems().
-   * 
-   * @param e
-   */
-  public void resourceUrlChanged(ValueChangeEvent e) {
-    String newUrl = e.getNewValue().toString();
-    if (resourceUrl == null || !resourceUrl.equals(newUrl)) {
-      resourceUrl = newUrl;
-      oaiPmhLookups.setOaiRepositoryUrl(resourceUrl);
-      selectItems = new ArrayList<SelectItem>();
-      try {
-        List<Set> sets = oaiPmhLookups.getSets();
-        for (Set set : sets) {
-          selectItems.add(new SelectItem(set.getSetSpec(),set.getSetName()));
-        }
-      } catch (OaiPmhResourceException e1) {
-        setMessage(e.getComponent().getClientId(),e1.getMessage(),"Warnign: Failed to retrieve Set Names from the given repository URL");
-      }
-    }
-  }
-  
-  private void setMessage (String clientId, String summary, String detail) {
-    FacesContext context = FacesContext.getCurrentInstance();
-    context.addMessage(clientId, 
-        new FacesMessage(FacesMessage.SEVERITY_WARN,summary, detail));
   }
 
 }
