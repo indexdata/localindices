@@ -71,8 +71,14 @@ public class OaiPmhLookupsController implements Serializable {
         for (MetadataFormat metadataFormat : metadataFormats) {
           metadataFormatSelectItems.add(new SelectItem(metadataFormat.getMetadataPrefix(),metadataFormat.getMetadataPrefix()));
         }
-      } catch (OaiPmhResourceException e1) {
-        setMessage(e.getComponent().getClientId(),e1.getMessage(),"Warning: Failed to retrieve metadata formats from the given repository URL");
+      } catch (OaiPmhResourceException e2) {
+        setMessage(e.getComponent().getClientId(),e2.getMessage(),"Warning: Failed to retrieve metadata formats from the given repository URL");
+      }
+      identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
+      try {
+        identify = lookups.getIdentify(resourceUrl);
+      } catch (OaiPmhResourceException e3) {
+        setMessage(e.getComponent().getClientId(),e3.getMessage(),"Warning: Failed to retrieve an identify from the given repository URL");
       }
 
       
@@ -85,6 +91,10 @@ public class OaiPmhLookupsController implements Serializable {
   
   public List<SelectItem> getMetadataFormatSelectItems () {
     return metadataFormatSelectItems;
+  }
+  
+  public Identify getIdentify () {
+    return identify;
   }
 
   

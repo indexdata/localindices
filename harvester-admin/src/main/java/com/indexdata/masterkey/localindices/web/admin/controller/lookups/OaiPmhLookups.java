@@ -23,8 +23,8 @@ import ORG.oclc.oai.harvester2.verb.ListSets;
 public class OaiPmhLookups {
   private static Logger logger = Logger.getLogger(OaiPmhLookups.class);
 
-  public com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify getIdentify (String oaiRepositoryUrl) {
-    logger.debug("Request to get Identify");
+  public com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify getIdentify (String oaiRepositoryUrl)
+  throws OaiPmhResourceException {
     logger.debug("Fetching Identify from " + oaiRepositoryUrl);
     com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify identify = null;
     OaiPmhResponse response = null;
@@ -32,9 +32,9 @@ public class OaiPmhLookups {
     try {
       identifyVerb = new Identify(oaiRepositoryUrl,null,null,logger);
     } catch (ResponseParsingException e) {   
-      e.printStackTrace();
+      throw new OaiPmhResourceException("Could not parse result (identify) from " + oaiRepositoryUrl,e);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new OaiPmhResourceException("Could not fetch OAI-PMH response (identify) from " + oaiRepositoryUrl,e);
     } catch (ParserConfigurationException e) {
       e.printStackTrace();
     } catch (TransformerException e) {
@@ -55,9 +55,9 @@ public class OaiPmhLookups {
       listSets = new ListSets(oaiRepositoryUrl,null,null,logger);
       sets = (Sets) OaiPmhResponseParser.getParser().getDataObject(listSets).getOneElement("ListSets");
     } catch (ResponseParsingException e) {
-      throw new OaiPmhResourceException("Could not parse result from " + oaiRepositoryUrl,e);
+      throw new OaiPmhResourceException("Could not parse result (sets) from " + oaiRepositoryUrl,e);
     } catch (IOException e) {
-      throw new OaiPmhResourceException("Could not fetch OAI-PMH response from " + oaiRepositoryUrl,e);
+      throw new OaiPmhResourceException("Could not fetch OAI-PMH response (sets) from " + oaiRepositoryUrl,e);
     } catch (ParserConfigurationException e) {
       e.printStackTrace();
     } catch (TransformerException e) {
@@ -72,16 +72,15 @@ public class OaiPmhLookups {
   
   
   public List<MetadataFormat> getMetadataFormats(String oaiRepositoryUrl)  throws OaiPmhResourceException {
-    logger.debug("Request to get metadataFormats");
     MetadataFormats metadataFormats = null;
     logger.debug("Fetching metadata formats from " + oaiRepositoryUrl);
     ListMetadataFormats listMetadataFormats = null; 
     try {
       listMetadataFormats = new ListMetadataFormats(oaiRepositoryUrl,null,null,logger);
     } catch (ResponseParsingException e) {   
-      throw new OaiPmhResourceException("Could not parse result from " + oaiRepositoryUrl,e);
+      throw new OaiPmhResourceException("Could not parse result (metadata formats) from " + oaiRepositoryUrl,e);
     } catch (IOException e) {
-      throw new OaiPmhResourceException("Could not fetch OAI-PMH response from " + oaiRepositoryUrl,e);
+      throw new OaiPmhResourceException("Could not fetch OAI-PMH response (metadata formats) from " + oaiRepositoryUrl,e);
     } catch (ParserConfigurationException e) {
       e.printStackTrace();
     } catch (TransformerException e) {
