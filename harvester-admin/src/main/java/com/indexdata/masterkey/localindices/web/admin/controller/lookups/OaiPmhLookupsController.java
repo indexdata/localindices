@@ -37,10 +37,20 @@ public class OaiPmhLookupsController implements Serializable {
 
   public void setOaiRepositoryUrl (String oaiRepositoryUrl) {
     logger.debug("Setting OAI URL to " + oaiRepositoryUrl);
-    this.resourceUrl = oaiRepositoryUrl;
-    this.sets = new Sets();
-    this.metadataFormats = new MetadataFormats();
-    this.identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
+    if (resourceUrl == null || !resourceUrl.equals(oaiRepositoryUrl)) {
+      this.resourceUrl = oaiRepositoryUrl;
+      this.sets = new Sets();
+      this.metadataFormats = new MetadataFormats();
+      this.identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
+      try {
+        loadSetSelectItems();
+        loadMetadataFormats();
+        loadIdentify();
+      } catch (OaiPmhResourceException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
   }
 
   
@@ -53,36 +63,8 @@ public class OaiPmhLookupsController implements Serializable {
    */
   public void resourceUrlChanged(ValueChangeEvent e) {
     String newUrl = e.getNewValue().toString();
-    if (resourceUrl == null || !resourceUrl.equals(newUrl)) {
-      resourceUrl = newUrl;
-      setOaiRepositoryUrl(resourceUrl);
-      setSelectItems = new ArrayList<SelectItem>();
-      try {
-        List<Set> sets = lookups.getSets(resourceUrl);
-        for (Set set : sets) {
-          setSelectItems.add(new SelectItem(set.getSetSpec(),set.getSetName()));
-        }
-      } catch (OaiPmhResourceException e1) {
-        setMessage(e.getComponent().getClientId(),e1.getMessage(),"Warning: Failed to retrieve Set Names from the given repository URL");
-      }
-      metadataFormatSelectItems = new ArrayList<SelectItem>();
-      try {
-        List<MetadataFormat> metadataFormats = lookups.getMetadataFormats(resourceUrl);
-        for (MetadataFormat metadataFormat : metadataFormats) {
-          metadataFormatSelectItems.add(new SelectItem(metadataFormat.getMetadataPrefix(),metadataFormat.getMetadataPrefix()));
-        }
-      } catch (OaiPmhResourceException e2) {
-        setMessage(e.getComponent().getClientId(),e2.getMessage(),"Warning: Failed to retrieve metadata formats from the given repository URL");
-      }
-      identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
-      try {
-        identify = lookups.getIdentify(resourceUrl);
-      } catch (OaiPmhResourceException e3) {
-        setMessage(e.getComponent().getClientId(),e3.getMessage(),"Warning: Failed to retrieve an identify from the given repository URL");
-      }
-
-      
-    }
+    logger.debug("resourceUrl is ["+ resourceUrl+"], will be: ["+newUrl+"]");
+    setOaiRepositoryUrl(newUrl);
   }
   
   public List<SelectItem> getSetSelectItems () {
@@ -95,6 +77,27 @@ public class OaiPmhLookupsController implements Serializable {
   
   public Identify getIdentify () {
     return identify;
+  }
+  
+  private void loadSetSelectItems() throws OaiPmhResourceException {
+    setSelectItems = new ArrayList<SelectItem>();
+    List<Set> sets = lookups.getSets(resourceUrl);
+    for (Set set : sets) {
+      setSelectItems.add(new SelectItem(set.getSetSpec(),set.getSetName()));
+    }
+  }
+  
+  private void loadMetadataFormats() throws OaiPmhResourceException  {
+    metadataFormatSelectItems = new ArrayList<SelectItem>();
+    List<MetadataFormat> metadataFormats = lookups.getMetadataFormats(resourceUrl);
+    for (MetadataFormat metadataFormat : metadataFormats) {
+      metadataFormatSelectItems.add(new SelectItem(metadataFormat.getMetadataPrefix(),metadataFormat.getMetadataPrefix()));
+    }
+  }
+  
+  private void loadIdentify () throws OaiPmhResourceException {
+    identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
+    identify = lookups.getIdentify(resourceUrl);
   }
 
   
