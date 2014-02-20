@@ -1,9 +1,10 @@
 #!/bin/sh -e 
 
-if [ -h /etc/masterkey/harvester-admin/web.xml ] ; then 
-  echo "preinst: remove link /etc/masterkey/harvester-admin/web.xml" 
-  rm /etc/masterkey/harvester/web.xml
+ETC_DIR=/etc/masterkey/harvester-admin
+if [ -h "${ETC_DIR}/web.xml" ] ; then 
+  rm "${ETC_DIR}/web.xml" 
 fi
+
 
 dpkg-maintscript-helper mv_conffile \
                /usr/share/masterkey/harvester-admin/WEB-INF/web.xml /etc/masterkey/harvester-admin/web.xml 2.6.0-alpha4-1indexdata -- "$@"
