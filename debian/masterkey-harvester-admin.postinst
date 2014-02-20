@@ -14,9 +14,9 @@ case "$1" in
 
      # Manual link /etc/masterkey/harvester/ files into /usr/share/masterkey/
      # Using recommended <package>.links end in circular links
-     ln -sf  /etc/masterkey/harvester-admin/web.xml /usr/share/masterkey/harvester-admin/WEB-INF/
-     ln -sf  /etc/masterkey/harvester-admin/log4j.properties /usr/share/masterkey/harvester-admin/WEB-INF/classes/
-     ln -sf  /etc/masterkey/harvester-admin/prefixes.xml /usr/share/masterkey/harvester-admin/WEB-INF/classes/
+     ln -sf  /etc/masterkey/harvester-admin/web.xml             /usr/share/masterkey/harvester-admin/WEB-INF/
+     ln -sf  /etc/masterkey/harvester-admin/log4j.properties    /usr/share/masterkey/harvester-admin/WEB-INF/classes/
+     ln -sf  /etc/masterkey/harvester-admin/prefixes.properties /usr/share/masterkey/harvester-admin/WEB-INF/classes/
 
         ;;
 

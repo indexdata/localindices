@@ -13,9 +13,9 @@ dpkg-maintscript-helper mv_conffile \
               ${SHARE_DIR}/classes/log4j.properties ${ETC_DIR}/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
 
 # Manual unlink /etc/masterkey/harvester/ files into /usr/share/masterkey/
-# Using recommended <package>.links end in circular link
+# Using recommended <package>.links ends in cyclic link
 rm -f ${SHARE_DIR}/web.xml
-rm -f ${SHARE_DIR}/classes/prefixes.xml
+rm -f ${SHARE_DIR}/classes/prefixes.properties
 rm -f ${SHARE_DIR}/classes/log4j.properties
 
         ;;
