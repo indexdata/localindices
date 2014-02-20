@@ -1,0 +1,6 @@
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester-admin/WEB-INF/web.xml /etc/masterkey/harvester-admin/web.xml 2.6.0-alpha4 -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester-admin/WEB-INF/harvester.properties /etc/masterkey/harvester-admin/harvester.properties 2.6.0-alpha4 -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester-admin/WEB-INF/classes/log4j.properties /etc/masterkey/harvester-admin/log4j.properties 2.6.0-alpha4 -- "$@"

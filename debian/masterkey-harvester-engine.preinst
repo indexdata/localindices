@@ -1,0 +1,13 @@
+#!/bin/sh -e 
+
+if [ -h /etc/masterkey/harvester/web.xml ] ; then 
+  echo "preinst: remove link /etc/masterkey/harvester/web.xml" 
+  rm /etc/masterkey/harvester/web.xml
+fi
+
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/web.xml /etc/masterkey/harvester/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/classes/log4j.properties /etc/masterkey/harvester/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
