@@ -1,12 +1,12 @@
 #!/bin/sh -e 
 
-if [ -h /etc/masterkey/harvester/web.xml ] ; then 
-  echo "preinst: remove link /etc/masterkey/harvester/web.xml" 
-  rm /etc/masterkey/harvester/web.xml
+WEB_XML=/etc/masterkey/harvester/web.xml
+if [ -h "$WEB_XML" ] ; then 
+  rm $WEB_XML
 fi
 
 dpkg-maintscript-helper mv_conffile \
-               /usr/share/masterkey/harvester/WEB-INF/web.xml /etc/masterkey/harvester/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+               /usr/share/masterkey/harvester/WEB-INF/web.xml ${WEB_XML} 2.6.0-alpha4-1indexdata -- "$@"
 dpkg-maintscript-helper mv_conffile \
                /usr/share/masterkey/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties 2.6.0-alpha4-1indexdata -- "$@"
 dpkg-maintscript-helper mv_conffile \
