@@ -1,3 +1,0 @@
-/etc/masterkey/harvester/web.xml /usr/share/masterkey/harvester/WEB-INF/web.xml
-/etc/masterkey/harvester/harvester.properties /usr/share/masterkey/harvester/WEB-INF/harvester.properties 
-/etc/masterkey/harvester/log4j.properties /usr/share/masterkey/harvester/WEB-INF/classes/log4j.properties 
