@@ -3,43 +3,43 @@ Section: misc
 Priority: extra
 Maintainer: Index Data <info@indexdata.com>
 Build-Depends: debhelper (>= 5), openjdk-6-jdk, maven2, unzip
-Standards-Version: 3.8.0
+Standards-Version: 3.9.5
 Homepage: http://www.indexdata.dk/masterkey/harvester
 
 Package: masterkey-harvester-engine
 Architecture: all
-Depends:openjdk-6-jre-headless|openjdk-6-jre|openjdk-6-jdk
+Depends:openjdk-6-jre-headless|openjdk-6-jre|openjdk-6-jdk, ${misc:Depends}
 Description: Harvester Engine, part of the MasterKey suite 
  provides a OAI-PMH and XML bulk harvesting, transformations 
  using pipelines of XSL Transformations into indexes like Solr.
 
 Package: masterkey-harvester-engine-tomcat6
 Architecture: all
-Depends: tomcat6, masterkey-harvester-engine (= ${binary:Version}) 
+Depends: tomcat6, masterkey-harvester-engine (= ${binary:Version}), ${misc:Depends} 
 Description: Configuration of the Harvester for running under Tomcat 6
  Installs a Tomcat context into the Container.
 
 Package: masterkey-harvester-admin
 Architecture: all
-Depends:
+Depends: ${misc:Depends} 
 Description: Harvester Administration, part of the MasterKey suite
  User Interface to control the harvester. 
 
 Package: masterkey-harvester-admin-tomcat6
 Architecture: all
-Depends: tomcat6, masterkey-harvester-admin (= ${binary:Version})
+Depends: tomcat6, masterkey-harvester-admin (= ${binary:Version}), ${misc:Depends} 
 Description: Configuration of the Harvester Administration running under Tomcat 6
  Installs a Tomcat context ino the Container.
 
 Package: masterkey-harvester-utils
 Architecture: all
-Depends: masterkey-harvester-engine-tomcat6
+Depends: masterkey-harvester-engine-tomcat6, ${misc:Depends} 
 Description: Installation of extra files (stylesheets)
  Stylesheets used by the default convertions. 
 
 Package: masterkey-harvester-mysql
 Architecture: all
-Depends: mysql-server
+Depends: mysql-server, ${misc:Depends} 
 Description: Creating an initial harvester database with sample data (MySQL)
  Installs the default database with some test data.
 
