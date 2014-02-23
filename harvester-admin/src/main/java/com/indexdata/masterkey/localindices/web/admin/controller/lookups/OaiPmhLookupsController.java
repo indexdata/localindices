@@ -6,12 +6,16 @@ import java.util.List;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.web.admin.controller.ResourceController;
 
 @ManagedBean(name = "oaiPmhLookupsController")
 @ViewScoped
@@ -30,6 +34,18 @@ public class OaiPmhLookupsController implements Serializable {
    * 
    */
   private static final long serialVersionUID = 4673759604059297999L;
+  
+  @ManagedProperty("#{resourceController}")
+  public ResourceController resourceController;
+  
+  public void setResourceController(ResourceController resourceController) {
+    this.resourceController = resourceController;
+  }
+  
+  public ResourceController getResourceController () {
+    return this.resourceController;
+  }
+  
 
   public OaiPmhLookupsController() {
     // TODO Auto-generated constructor stub
@@ -46,6 +62,12 @@ public class OaiPmhLookupsController implements Serializable {
         loadSetSelectItems();
         loadMetadataFormats();
         loadIdentify();
+        OaiPmhResource resource = ((OaiPmhResource) resourceController.getResource());
+        if (resource.getDateFormat()!=null) {
+          setLongDate(resource.getDateFormat().length()>10);
+        } else {
+          getLongDate();
+        }
       } catch (OaiPmhResourceException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -98,6 +120,37 @@ public class OaiPmhLookupsController implements Serializable {
   private void loadIdentify () throws OaiPmhResourceException {
     identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
     identify = lookups.getIdentify(resourceUrl);
+  }
+  
+  public Boolean getLongDate () {
+    logger.debug("Getting long date");
+    OaiPmhResource resource = ((OaiPmhResource) resourceController.getResource());
+    if (resource.getDateFormat() == null) {
+      logger.debug("Getting long date: resource.getDateFormat() is null" );
+      logger.debug("identify.getGranularity() is " + identify.getGranularity());
+      if (identify.getGranularity().length() > 0) {
+        resource.setDateFormat(identify.getGranularity());
+        if (resource.getDateFormat().length()>10) {
+          resourceController.setLongDate(true);
+        } else {
+          resourceController.setLongDate(false);
+        }
+      }
+    } else {
+      logger.debug("Getting long date: resource.getDateformat() is " + resource.getDateFormat());
+    }
+    logger.debug("Getting long date: " + resourceController.getLongDate());
+    return resourceController.getLongDate();
+  }
+  
+  public void setLongDate(Boolean useLongDate) {
+    if (identify.getGranularity().length()<=10) {
+      logger.debug("Setting long date to false (not supported)");
+      resourceController.setLongDate(false);
+    } else {
+      logger.debug("Setting long date to " + useLongDate);
+      resourceController.setLongDate(useLongDate);
+    }
   }
 
   

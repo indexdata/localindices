@@ -16,7 +16,7 @@
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
                        required="true" requiredMessage="Please provide the repository URL!"
                        valueChangeListener="#{oaiPmhLookupsController.resourceUrlChanged}">
-             <f:ajax render="resourceUrlMessage metadataPrefixList"/>
+             <f:ajax render="resourceUrlMessage metadataPrefixList dateformat"/>
           </h:inputText>
           <h:message id="resourceUrlMessage" for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
@@ -45,7 +45,7 @@
         <h:inputText value="#{resourceController.resource.schemaURI}"/>
         -->
         <h:outputText value="Use long date format:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
+        <h:selectBooleanCheckbox id="dateformat" value="#{oaiPmhLookupsController.longDate}"/>
         <h:outputText value="Harvest from (yyyy-MM-dd):"/>
         <h:panelGroup>
             <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8">
