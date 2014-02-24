@@ -123,36 +123,41 @@ public class OaiPmhLookupsController implements Serializable {
   }
   
   public Boolean getLongDate () {
-    logger.debug("Getting long date");
-    OaiPmhResource resource = ((OaiPmhResource) resourceController.getResource());
-    if (resource.getDateFormat() == null) {
-      logger.debug("Getting long date: resource.getDateFormat() is null" );
-      logger.debug("identify.getGranularity() is " + identify.getGranularity());
-      if (identify.getGranularity().length() > 0) {
-        resource.setDateFormat(identify.getGranularity());
-        if (resource.getDateFormat().length()>10) {
-          resourceController.setLongDate(true);
-        } else {
-          resourceController.setLongDate(false);
-        }
-      }
-    } else {
-      logger.debug("Getting long date: resource.getDateformat() is " + resource.getDateFormat());
-    }
-    logger.debug("Getting long date: " + resourceController.getLongDate());
+    resolveDateFormat();
     return resourceController.getLongDate();
   }
   
+  /**
+   * Sets the date format according to users choice, except if user chooses
+   * a long date format for a resource that does not support it. 
+   * @param useLongDate
+   */
   public void setLongDate(Boolean useLongDate) {
     if (identify.getGranularity().length()<=10) {
-      logger.debug("Setting long date to false (not supported)");
+      logger.debug("Setting long date hard to false (because not supported)");
       resourceController.setLongDate(false);
     } else {
       logger.debug("Setting long date to " + useLongDate);
       resourceController.setLongDate(useLongDate);
     }
   }
-
+  
+  /** 
+   *  Returns current date format from the resource, but, if not defined for the
+   *  resource yet, defaults it from the Identify lookup.
+   */
+  public void resolveDateFormat () {
+    OaiPmhResource resource = ((OaiPmhResource) resourceController.getResource());
+    if (resource.getDateFormat() == null) {
+      if (identify.getGranularity().length()>10) {
+        resource.setDateFormat(ResourceController.LONG_DATE_FORMAT);
+        resourceController.setLongDate(true);
+      } else if (identify.getGranularity().length()>0) {
+        resource.setDateFormat(ResourceController.SHORT_DATE_FORMAT);
+        resourceController.setLongDate(false);
+      }
+    }
+  }
   
   private void setMessage (String clientId, String summary, String detail) {
     FacesContext context = FacesContext.getCurrentInstance();
