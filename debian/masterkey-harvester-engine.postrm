@@ -1,0 +1,31 @@
+#!/bin/sh -e
+
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/web.xml /etc/masterkey/harvester/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/classes/log4j.properties /etc/masterkey/harvester/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
+
+case "$1" in
+    purge|remove)
+
+# Manual unlink /etc/masterkey/harvester/ files into /usr/share/masterkey/
+# Using recommended <package>.links ends in circular links
+rm -f /usr/share/masterkey/harvester/WEB-INF/web.xml
+rm -f /usr/share/masterkey/harvester/WEB-INF/harvester.properties
+rm -f /usr/share/masterkey/harvester/WEB-INF/classes/log4j.properties
+
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+esac
+
+#DEBHELPER#
+
+exit 0
+

@@ -1,0 +1,33 @@
+#!/bin/sh -e
+
+case "$1" in
+    configure|upgrade)
+
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/web.xml /etc/masterkey/harvester/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               /usr/share/masterkey/harvester/WEB-INF/classes/log4j.properties /etc/masterkey/harvester/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
+
+# Manual link /etc/masterkey/harvester/ files into /usr/share/masterkey/
+# Using recommended <package>.links end in circular links
+ln -sf  /etc/masterkey/harvester/web.xml              /usr/share/masterkey/harvester/WEB-INF/
+ln -sf  /etc/masterkey/harvester/harvester.properties /usr/share/masterkey/harvester/WEB-INF/
+ln -sf  /etc/masterkey/harvester/log4j.properties     /usr/share/masterkey/harvester/WEB-INF/classes/
+
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#                                                                                                                                                    
+
+exit 0
+

@@ -1,4 +1,40 @@
-masterkey-harvester (2.6.0-alpha2-1indexdata) UNRELEASED; urgency=low
+masterkey-harvester (2.6.0-alpha8-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Thu, 20 Feb 2014 18:06:33 +0100
+
+masterkey-harvester (2.6.0-alpha7-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Thu, 20 Feb 2014 10:46:09 +0100
+
+masterkey-harvester (2.6.0-alpha6-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Thu, 20 Feb 2014 07:28:41 +0100
+
+masterkey-harvester (2.6.0-alpha5-1indexdata) unstable; urgency=medium
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 19 Feb 2014 15:02:35 +0100
+
+masterkey-harvester (2.6.0-alpha4-1indexdata) unstable; urgency=medium
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 05 Feb 2014 16:43:42 +0100
+
+masterkey-harvester (2.6.0-alpha3-1indexdata) unstable; urgency=low
+
+  * Upstream
+
+ -- Dennis Schafroth <dennis@indexdata.com>  Wed, 05 Feb 2014 15:48:43 +0100
+
+masterkey-harvester (2.6.0-alpha2-1indexdata) unstable; urgency=low
 
   * Upstream
 
