@@ -21,6 +21,7 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.torus.Layer;
 import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
+import com.indexdata.torus.layer.KeyValue;
 import com.indexdata.torus.layer.SearchableTypeLayer;
 
 
@@ -54,9 +55,10 @@ public class SearchablesConverter extends Records {
             layer.setLayerName("final");
             layer.setName(entity.getName());
             layer.setServiceProvider(entity.getServiceProvider());
+            
             if (entity.isOpenAccess()) {
               layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
-              layer.addElement("categories", "id_openaccess");
+              layer.getDynamicElements().add(new KeyValue("categories", "id_openaccess"));
             }
             Storage storage = entity.getStorage();
             if (storage instanceof SolrStorageEntity) {
@@ -100,9 +102,9 @@ public class SearchablesConverter extends Records {
                 layer.setElementSet("pz2snippet");
             }
             if (entity.getOriginalUri() != null)
-              layer.setElement("originalUri", entity.getOriginalUri());
-            if (entity.getOriginalUri() != null)
-              layer.setElement("json", entity.getJson());
+              layer.getDynamicElements().add(new KeyValue("originalUri", entity.getOriginalUri()));
+            if (entity.getJson() != null)
+              layer.getDynamicElements().add(new KeyValue("json", entity.getJson()));
             layers.add(layer);
             record.setLayers(layers);
             records.add(record);
