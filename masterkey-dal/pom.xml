@@ -220,9 +220,6 @@
     <pluginRepository>
       <id>id-maven-repo</id>
       <url>http://maven.indexdata.com</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
     </pluginRepository>
   </pluginRepositories>
 
