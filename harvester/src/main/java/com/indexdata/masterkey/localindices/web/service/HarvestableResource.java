@@ -112,15 +112,23 @@ public class HarvestableResource {
   public void delete() {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
-	purgeStorage(harvestable);
-	dao.delete(harvestable);
+      try {
+        purgeStorage(harvestable);
+      } catch (Exception e) {
+        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e); 
+      }
+      try {
+        dao.delete(harvestable);
+      } catch (Exception e) {
+        logger.log(Level.ERROR, "Failed to delete harvest job with ID " 
+            + id, e);
+      }
+      try {
         DiskCache dc = new DiskCache(id);
         dc.purge();
-	return ;
       } catch (Exception e) {
-	logger.log(Level.ERROR, "Failed to delete records in storage " 
-	    + harvestable.getStorage().getId(), e);
+        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID " 
+            + id, e);
       }
     }
     logger.log(Level.ERROR, "No harvestable with id " + id); 

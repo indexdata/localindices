@@ -7,11 +7,14 @@ BASE_LOG = /usr/log/$(BASEDIRECTORY)
 
 ENGINEPACKAGE = $(BASEPACKAGE)-engine
 ENGINEROOT = $(CURDIR)/debian/$(ENGINEPACKAGE)
+ENGINE_SHARE=$(ENGINEROOT)/usr/share/masterkey/harvester
+ENGINE_ETC=$(ENGINEROOT)/etc/masterkey/harvester
 ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
 
 ADMINPACKAGE = $(BASEPACKAGE)-admin
 ADMINROOT = $(CURDIR)/debian/$(ADMINPACKAGE)
-#ENGINEDOC = $(ENGINEROOT)/usr/share/doc/$(ENGINEPACKAGE)
+ADMIN_SHARE= $(ADMINROOT)/usr/share/masterkey/harvester-admin
+ADMIN_ETC= $(ADMINROOT)/etc/masterkey/harvester-admin
 
 TOMCAT6PACKAGE = $(ENGINEPACKAGE)-tomcat6
 TOMCAT6ROOT = $(CURDIR)/debian/$(TOMCAT6PACKAGE)
@@ -60,27 +63,29 @@ install-stamp: build
 	dh_clean -k
 
 	# Harvester core
-	mkdir -p $(ENGINEROOT)/usr/share/masterkey/harvester/
+	mkdir -p $(ENGINE_SHARE)
+	mkdir -p $(ENGINE_ETC)
 	mkdir -p $(ENGINEROOT)/var/cache/harvester/
-	unzip harvester/target/harvester.war -d $(ENGINEROOT)/usr/share/masterkey/harvester/
+	unzip harvester/target/harvester.war -d $(ENGINE_SHARE)/
+	mv    $(ENGINE_SHARE)/WEB-INF/web.xml $(ENGINE_ETC)/web.xml
+	mv    $(ENGINE_SHARE)/WEB-INF/classes/log4j.properties $(ENGINE_ETC)/
+	mv    $(ENGINE_SHARE)/WEB-INF/harvester.properties $(ENGINE_ETC)/
 	mkdir -p $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
 	cp README $(ENGINEROOT)/usr/share/doc/masterkey/harvester/
-
-	mkdir -p $(ENGINEROOT)/etc/masterkey/harvester
-	cp -p etc/harvester-context.xml $(ENGINEROOT)/etc/masterkey/harvester
-	cp -p debian/tomcat.policy $(ENGINEROOT)/etc/masterkey/harvester
+	cp -p etc/harvester-context.xml $(ENGINE_ETC)
+	cp -p debian/tomcat.policy $(ENGINE_ETC)
 	mkdir -p $(ENGINEROOT)/var/log/masterkey/harvester
-	ln -s /usr/share/masterkey/harvester/WEB-INF/web.xml $(ENGINEROOT)/etc/masterkey/harvester/web.xml
 
 	# Harvester Admin core
-	mkdir -p $(ADMINROOT)/usr/share/masterkey/harvester-admin
-	unzip harvester-admin/target/harvester-admin.war -d $(ADMINROOT)/usr/share/masterkey/harvester-admin/
-
-	mkdir -p $(ADMINROOT)/etc/masterkey/harvester-admin
-	cp -p etc/harvester-admin-context.xml $(ADMINROOT)/etc/masterkey/harvester-admin
-	cp -p debian/tomcat.policy $(ADMINROOT)/etc/masterkey/harvester-admin
+	mkdir -p $(ADMIN_SHARE)
+	mkdir -p $(ADMIN_ETC)
+	unzip harvester-admin/target/harvester-admin.war -d $(ADMIN_SHARE)/
+	mv    $(ADMIN_SHARE)/WEB-INF/web.xml $(ADMIN_ETC)/web.xml
+	mv    $(ADMIN_SHARE)/WEB-INF/classes/log4j.properties $(ADMIN_ETC)/log4j.properties
+	mv    $(ADMIN_SHARE)/WEB-INF/classes/prefixes.properties $(ADMIN_ETC)/prefixes.properties
+	cp -p etc/harvester-admin-context.xml $(ADMIN_ETC)/
+	cp -p debian/tomcat.policy $(ADMIN_ETC)/
 	mkdir -p $(ADMINROOT)/var/log/masterkey/harvester
-	ln -s /usr/share/masterkey/harvester-admin/WEB-INF/web.xml $(ADMINROOT)/etc/masterkey/harvester-admin/web.xml
 
 	# Harvester plumbing for Tomcat 6 no longer includes files, just postinst
 	# Harvester Admin plumbing for Tomcat 6 no longer includes files, 
@@ -102,6 +107,7 @@ binary: build install
 	dh_testroot
 	dh_installdocs
 	dh_installchangelogs
+	dh_link
 	dh_compress
 	dh_fixperms
 	dh_installdeb
