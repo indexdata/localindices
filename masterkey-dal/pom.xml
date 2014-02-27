@@ -17,7 +17,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -93,6 +92,8 @@
       <plugins>
         <!--This plugin's configuration is used to store Eclipse m2e settings 
         only. It has no influence on the Maven build itself. -->
+
+        <!-- Need to figure out how to run the Annotation plugin and resource copy  -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -100,18 +101,18 @@
           <configuration>
             <lifecycleMappingMetadata>
               <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>apt-maven-plugin</artifactId>
-                    <versionRange>[1.0-alpha-2,)</versionRange>
-                    <goals>
+                 <pluginExecution>
+                   <pluginExecutionFilter>
+                    <groupId>com.indexdata.annotations.processor</groupId>
+                    <artifactId>jaxb-index-generator</artifactId>
+                     <versionRange>[0.0.1-SNAPSHOT,)</versionRange>
+                     <goals>
                       <goal>process</goal>
                     </goals>
                   </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
+                   <action>
+                     <ignore />
+                   </action>
                 </pluginExecution>
                 <pluginExecution>
                   <pluginExecutionFilter>
@@ -215,4 +216,14 @@
       <version>2.5.0</version>
     </dependency>
   </dependencies>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>id-maven-repo</id>
+      <url>http://maven.indexdata.com</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
 </project>
