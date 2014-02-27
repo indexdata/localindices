@@ -29,7 +29,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.0.2</version>
+          <version>3.1</version>
           <inherited>true</inherited>
           <configuration>
             <source>1.6</source>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-common</artifactId>
-      <version>0.1.23</version>
+      <version>0.1.24-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <repositories>
@@ -119,6 +119,13 @@
     </repository>
   </repositories>
   <pluginRepositories>
+    <pluginRepository>
+      <id>id-maven-repo</id>
+      <url>http://maven.indexdata.com</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
   </pluginRepositories>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
