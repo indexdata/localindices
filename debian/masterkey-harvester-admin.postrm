@@ -1,0 +1,33 @@
+#!/bin/sh -e
+
+case "$1" in
+    purge|remove)
+
+SHARE_DIR=/usr/share/masterkey/harvester-admin/WEB-INF
+ETC_DIR=/etc/masterkey/harvester-admin
+
+dpkg-maintscript-helper mv_conffile ${SHARE_DIR}/web.xml ${ETC_DIR}/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+               ${SHARE_DIR}/harvester.properties ${ETC_DIR}/harvester.properties 2.6.0-alpha4-1indexdata -- "$@"
+dpkg-maintscript-helper mv_conffile \
+              ${SHARE_DIR}/classes/log4j.properties ${ETC_DIR}/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
+
+# Manual unlink /etc/masterkey/harvester/ files into /usr/share/masterkey/
+# Using recommended <package>.links ends in cyclic link
+rm -f ${SHARE_DIR}/web.xml
+rm -f ${SHARE_DIR}/classes/prefixes.properties
+rm -f ${SHARE_DIR}/classes/log4j.properties
+
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+esac
+
+#DEBHELPER#
+
+exit 0
+

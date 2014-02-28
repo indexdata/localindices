@@ -5,14 +5,18 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import javax.xml.transform.TransformerException;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.Before;
+import org.w3c.dom.Node;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.storage.BulkSolrRecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
@@ -81,6 +85,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     // checkStorageStatus(recordStorage.getStatus(), 242, 0, 242);
     assertTrue("Job not finished:" + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
     long deletes = status.getDeletes();
@@ -115,6 +120,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     recordStorage = createStorage(resource, methodName + "(second)", false);
     job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 30, 0, 61);
     resource.setFromDate(startDate);
     resource.setUntilDate(midDate);
@@ -134,6 +140,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 32, 0, 32);
   }
 
@@ -144,6 +151,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), 73, 0, 73);
   }
 
@@ -178,6 +186,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     RecordStorage recordStorage = createStorage(resource, methodName, true);
     RecordHarvestJob job = doXDaysHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     //checkStorageStatus(recordStorage.getStatus(), 1020, 0, 1020);
     StorageStatus status = recordStorage.getStatus();
     long adds = status.getAdds();
@@ -238,19 +247,15 @@ public class TestOAIRecordHarvestJob extends JobTester {
     boolean purge = true;
     RecordStorage recordStorage = createStorage(resource, methodName, purge);
     AbstractRecordHarvestJob job = new OAIRecordHarvestJob(resource, null) {
-      int index = 1;
+      int index = 0;
 
-      @Override
-      public synchronized boolean isKillSent() {
-        if (index % 3 == 0) {
+      protected RecordDOMImpl createRecord(Node node) throws TransformerException {
+	RecordDOMImpl record = super.createRecord(node);
+	index++;
+        if (index > 250) {
           kill();
         }
-        return super.isKillSent();
-      }
-      
-      protected void markForUpdate() { 
-	index++;
-	super.markForUpdate();
+        return record;
       }
     };
     
@@ -260,7 +265,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     
     assertTrue("No resumption token!", resource.getResumptionToken() != null);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
-    checkStorageStatus(recordStorage.getStatus(), 200, 0, 200);
+    checkStorageStatus(recordStorage.getStatus(), 250, 0, 250);
     // Finish the job using a new storage instance
     recordStorage = createStorage(resource, methodName, false);
     job = new OAIRecordHarvestJob(resource, null);
@@ -269,6 +274,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     job.run();
     assertTrue("Resumption token not null", resource.getResumptionToken() == null);
     assertTrue("Harvest job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
     // TODO Make test return fix count. 
     checkStorageStatus(recordStorage.getStatus(), 166, 0, 366);
 

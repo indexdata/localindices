@@ -1,4 +1,4 @@
-﻿\newpage
+\newpage
 
 # Using Harvester Admin #
 
@@ -38,7 +38,7 @@ The screen capture below shows the general settings applicable to all three type
 * _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These free-text fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
 * _Harvest schedule_: Use these fields to define a recurring time/interval at which the Harvester job should run. E.g for weekly runs specify a day of the week
-on which the harvest should be executed. 
+on which the harvest should be executed.
 
 <!-- 
     D: CAN WE REALLY ONLY SCHEDULE MONTHLY OR DAILY HARVESTS? THESE FIELDS CERTAINLY SUGGEST THAT, BUT I CAN SEE CUSTOMERS WANTING WEEKLY, BIWEEKLY, BIMONTHLY, ETC.
@@ -55,8 +55,6 @@ on which the harvest should be executed. 
 -->
 
 Check-boxes for:
-
-* _Harvest now_: Check to run the harvesting job immediately upon clicking Add/Save.
 
 * _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". Leaving this box unchecked will
 make the job inactive.
@@ -122,6 +120,10 @@ Depending on which resource type you choose, the following settings will apply.
 
 * _Keep partial harvests_: when checked, partial records harvested during a failed harvest run will be retained in storage.
 
+* _Request retry count_: specify how many times the harvester should retry failed harvest requests, 0 disables retrying entirely..
+
+* _Delay before retry_: delay for retrying failed requests. Only change when resource fails to work with the default values.
+
 ##### XML/MARC Bulk Specific Information: \
 
 The XML/MARC specific settings look like this:
@@ -138,14 +140,14 @@ The XML/MARC specific settings look like this:
     <root>
      <record/>
      <record/>
-     …
+     
     </root>
 ```
 * _Split (number of records)_: The Harvester tries to imply streaming parsing where possible, but many XSL Transformations will not support this. Attempting to transform millions of records will be too memory consuming, so breaking the resource into chunks of 1000 records seems to be a reasonable option. Enter into this field the number of records to be contained in each chunk. 
 
-* _MIME-type for compressed data_: The Harvester detects the type (XML vs MARC binary) from the MIME-type. A correctly configured web site will send a MIME-type of Application/marc if the file type is .mrc. If the MIME-type received is different than expected (because of a wrongly configured web site or wrong file type), the MIME-type might need to be overridden. The format of this field is:
+* _MIME-type for compressed data_: The Harvester detects the type (XML vs MARC binary) from the MIME-type. A correctly configured web site will send a MIME-type of Application/marc if the file type is .mrc. If the MIME-type received is different than expected (because of a wrongly configured web site or wrong file type), the MIME-type might need to be overridden. The format of this field is:
 ```
-    MIME-type [; optional character encoding]. 
+    MIME-type [; optional character encoding].
 ```
 The Harvester  supports gzipped data (and partly supports zipped data: only the first entry will be extracted), but the Harvester then needs to be configured for the format the compressed data contains (XML or MARC).
 
@@ -168,6 +170,8 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 
 * _Connector Repository_: select the connector repository where the Connectors are hosted and maintained. Usually, the Connector Repository is provided by Index Data and may require a login account. The account credentials are provided directly in the Connector Repository URL setting accessed from the _Settings_ tab and should have the form: `http(s)://<repouser>:<repopass>@url.to.the.repository`. 
 * _Connector_: Enter here the name of the harvesting connector specific to the harvested resource. This field provides suggestions by looking up the Repository so only a couple of initial characters or a part of the name is required.
+
+* _Overwrite with each run_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run.
 
 * _User Name_: User name required for access to a harvested resource that requires authentication.
 
@@ -232,7 +236,7 @@ A Transformation Pipeline consists of some descriptive information, plus an orde
 
 * _Description_: Optional description of the details of the transformation, such as "Converting from OAI-PMH(DC) to PZ".
 
-* _Enabled_: Check to enable the transformation pipeline. 
+* _Enabled_: Check to enable the transformation pipeline.
 
 After clicking _Save_ (first time), it will be possible to insert transformation steps into the pipeline: 
 
@@ -281,7 +285,7 @@ An XSL step consists of the following:
 
 The Output Format of the first Step is PZ but the second step expects MARCXML as Input. This succession of steps will not produce the expected outcome.
 
-* _Transformation (XSL)_: A valid XSL transformation script. Note that XSLT up to version 2 is supported. 
+* _Transformation (XSL)_: A valid XSL transformation script. Note that XSLT up to version 2 is supported.
 
 <!---
   Jakub: testing is disabled in the manual and the UI until it works

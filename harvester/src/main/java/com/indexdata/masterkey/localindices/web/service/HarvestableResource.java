@@ -12,11 +12,13 @@ import java.io.IOException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Level;
@@ -28,11 +30,8 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.scheduler.JobScheduler;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
-
-import javax.ws.rs.core.Response;
 
 /**
  * REST Web service (resource) that maps to a Harvestable entity.
@@ -114,15 +113,23 @@ public class HarvestableResource {
   public void delete() {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
-	purgeStorage(harvestable);
-	dao.delete(harvestable);
+      try {
+        purgeStorage(harvestable);
+      } catch (Exception e) {
+        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e); 
+      }
+      try {
+        dao.delete(harvestable);
+      } catch (Exception e) {
+        logger.log(Level.ERROR, "Failed to delete harvest job with ID " 
+            + id, e);
+      }
+      try {
         DiskCache dc = new DiskCache(id);
         dc.purge();
-	return ;
       } catch (Exception e) {
-	logger.log(Level.ERROR, "Failed to delete records in storage " 
-	    + harvestable.getStorage().getId(), e);
+        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID " 
+            + id, e);
       }
     }
     logger.log(Level.ERROR, "No harvestable with id " + id); 
@@ -149,7 +156,7 @@ public class HarvestableResource {
   }
 
   @Path("cmd/{cmd}")
-  @GET
+  @POST
   @Produces("text/plain")
   public String cmd(@PathParam("cmd") String cmd) {
     Harvestable harvestable = dao.retrieveById(id);

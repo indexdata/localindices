@@ -24,6 +24,9 @@
                         <h:inputText id="serviceProvider" 
                                      value="#{resourceController.resource.serviceProvider}"
 				size="30" />
+                        <h:outputText value="Open Access resource:" />
+			<h:selectBooleanCheckbox
+                          value="#{resourceController.resource.openAccess}" />
 			<h:outputText value="Content Description:" />
 			<h:inputTextarea cols="60" rows="3"
 				value="#{resourceController.resource.description}" />

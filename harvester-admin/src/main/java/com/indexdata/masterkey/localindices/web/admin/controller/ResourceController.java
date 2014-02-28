@@ -61,8 +61,8 @@ public class ResourceController {
   @SuppressWarnings("rawtypes")
   private DataModel model;
   private Boolean longDate;
-  private final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
-  private final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
+  public final static String SHORT_DATE_FORMAT = "yyyy-MM-dd";
+  public final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
   @SuppressWarnings("rawtypes")
   private List resources;
   private String jobLog;

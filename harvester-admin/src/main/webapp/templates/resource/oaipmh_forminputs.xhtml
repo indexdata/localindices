@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
 
@@ -13,21 +14,38 @@
         <h:outputText value="OAI Repository URL:"/>
         <h:panelGroup>
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
-                       required="true" requiredMessage="Please provide the repository URL!"/>
-          <h:message for="resourceUrl" style="color: red;"/>
+                       required="true" requiredMessage="Please provide the repository URL!"
+                       valueChangeListener="#{oaiPmhLookupsController.resourceUrlChanged}">
+             <f:ajax render="resourceUrlMessage metadataPrefixList dateformat"/>
+          </h:inputText>
+          <h:message id="resourceUrlMessage" for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="OAI Set Name:"/>
-        <h:inputText id="setName" value="#{resourceController.resource.oaiSetName}" size="50"/>
+        <h:outputText value="OAI Set Name (type for suggestions):"/>
+        <h:panelGroup>
+          <id:autoComplete id="listsets" value="#{resourceController.resource.oaiSetName}"
+                             itemsSource="#{oaiPmhListSetsItemsSource.itemsSource}"
+                             completionItems="#{oaiPmhListSetsItemsSource.selectItems}"
+                             completionItemConverter="objectConverter"
+                             itemSelectedListenerType="#{resourceSetSelectedListener}"
+                             required="true" 
+                             requiredMessage="Please provide the set name!"
+                             render=""/>
+          <h:message for="listsets:input" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Metadata Prefix: "/>
-        <h:selectOneMenu value="#{resourceController.resource.metadataPrefix}">
-          <f:selectItems value="#{resourceController.metadataPrefixes}" />
-        </h:selectOneMenu>
+        <h:panelGroup>
+          <h:selectOneMenu id="metadataPrefixList" value="#{resourceController.resource.metadataPrefix}">
+            <f:selectItem itemValue="" itemLabel="Select prefix" />
+            <f:selectItems value="#{oaiPmhLookupsController.metadataFormatSelectItems}" />
+          </h:selectOneMenu>
+          <h:message for="metadataPrefixList" style="color: red;"/>
+        </h:panelGroup>
         <!--
         <h:outputText value="Metadata Schema URI: "/>
         <h:inputText value="#{resourceController.resource.schemaURI}"/>
         -->
         <h:outputText value="Use long date format:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
+        <h:selectBooleanCheckbox id="dateformat" value="#{oaiPmhLookupsController.longDate}"/>
         <h:outputText value="Harvest from (yyyy-MM-dd):"/>
         <h:panelGroup>
             <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8">

@@ -1,64 +1,153 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
-  <responseDate>2009-11-03T18:29:05Z</responseDate>
-  <request from="2009-10-04T12:29:07Z" metadataPrefix="oai_dc" until="2009-11-03T12:29:04Z" verb="ListRecords">http://heinonline.org/cgi-bin/provider/oai_journals</request>
-  <ListRecords><record>
-<header><identifier>oai:heinonline.org:aallnl</identifier><datestamp>2009-11-03T18:29:08Z</datestamp><setSpec>uberjournals:titles</setSpec><setSpec>wshjournals:titles</setSpec><setSpec>usjournals:titles</setSpec><setSpec>journals:titles</setSpec><setSpec>aallar:titles</setSpec></header><metadata>
-<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-   <dc:title>American Association of Law Libraries Newsletter</dc:title>
-   <dc:identifier>http://heinonline.org/HOL/Index?index=aallar/aallnl</dc:identifier>
-   <dc:type>title</dc:type>
-   <dc:coverage>Vols. 1 27 (1970 1996) All Published; Superseded by AALL Spectrum</dc:coverage> 
-</oai_dc:dc>
-</metadata>
+<OAI-PMH 
+    xmlns="http://www.openarchives.org/OAI/2.0/" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<responseDate>2009-11-03T18:29:05Z</responseDate>
+	<request from="2009-10-04T12:29:07Z" metadataPrefix="oai_dc"
+		until="2009-11-03T12:29:04Z" verb="ListRecords">http://heinonline.org/cgi-bin/provider/oai_journals</request>
+	<ListRecords>
+		<record>
+			<header>
+				<identifier>oai:heinonline.org:aallnl</identifier>
+				<datestamp>2009-11-03T18:29:08Z</datestamp>
+				<setSpec>uberjournals:titles</setSpec>
+				<setSpec>wshjournals:titles</setSpec>
+				<setSpec>usjournals:titles</setSpec>
+				<setSpec>journals:titles</setSpec>
+				<setSpec>aallar:titles</setSpec>
+			</header>
+			<metadata>
+				<oai_dc:dc 
+				    xmlns:dc="http://purl.org/dc/elements/1.1/"
+					xmlns:dcterms="http://purl.org/dc/terms/" 
+					xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+					xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+					<dc:title>American Association of Law Libraries Newsletter
+					</dc:title>
+					<dc:identifier>http://heinonline.org/HOL/Index?index=aallar/aallnl
+					</dc:identifier>
+					<dc:type>title</dc:type>
+					<dc:coverage>Vols. 1 27 (1970 1996) All Published; Superseded by
+						AALL Spectrum</dc:coverage>
+				</oai_dc:dc>
+			</metadata>
 
-</record>
-<record>
-<header><identifier>oai:heinonline.org:aallpnl</identifier><datestamp>2009-11-03T18:29:08Z</datestamp><setSpec>uberjournals:titles</setSpec><setSpec>wshjournals:titles</setSpec><setSpec>usjournals:titles</setSpec><setSpec>journals:titles</setSpec><setSpec>aallar:titles</setSpec></header><metadata>
-<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-   <dc:title>American Association of Law Libraries President s Newsletter</dc:title>
-   <dc:identifier>http://heinonline.org/HOL/Index?index=aallar/aallpnl</dc:identifier>
-   <dc:type>title</dc:type>
-   <dc:coverage>1954 1969 All Published; Superseded by AALL Newsletter</dc:coverage> 
-</oai_dc:dc>
-</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:heinonline.org:aallpnl</identifier>
+				<datestamp>2009-11-03T18:29:08Z</datestamp>
+				<setSpec>uberjournals:titles</setSpec>
+				<setSpec>wshjournals:titles</setSpec>
+				<setSpec>usjournals:titles</setSpec>
+				<setSpec>journals:titles</setSpec>
+				<setSpec>aallar:titles</setSpec>
+			</header>
+			<metadata>
+				<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+					xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+					<dc:title>American Association of Law Libraries President s
+						Newsletter</dc:title>
+					<dc:identifier>http://heinonline.org/HOL/Index?index=aallar/aallpnl
+					</dc:identifier>
+					<dc:type>title</dc:type>
+					<dc:coverage>1954 1969 All Published; Superseded by AALL Newsletter
+					</dc:coverage>
+				</oai_dc:dc>
+			</metadata>
 
-</record>
-<record>
-<header><identifier>oai:heinonline.org:abaincob</identifier><datestamp>2009-11-03T18:29:08Z</datestamp><setSpec>uberjournals:titles</setSpec><setSpec>abajournals:titles</setSpec><setSpec>wshjournals:titles</setSpec><setSpec>journals:titles</setSpec></header><metadata>
-<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-   <dc:title>Section of International and Comparative Law Bulletin</dc:title>
-   <dc:identifier>http://heinonline.org/HOL/Index?index=journals/abaincob</dc:identifier>
-   <dc:type>title</dc:type>
-   <dc:coverage>Vols. 1 10 (1957 1966) All Published; Title Varies  Vol. 10 (1966) as International and Comparative Law Bulletin.</dc:coverage> 
-</oai_dc:dc>
-</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:heinonline.org:abaincob</identifier>
+				<datestamp>2009-11-03T18:29:08Z</datestamp>
+				<setSpec>uberjournals:titles</setSpec>
+				<setSpec>abajournals:titles</setSpec>
+				<setSpec>wshjournals:titles</setSpec>
+				<setSpec>journals:titles</setSpec>
+			</header>
+			<metadata>
+				<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+					xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+					<dc:title>Section of International and Comparative Law Bulletin
+					</dc:title>
+					<dc:identifier>http://heinonline.org/HOL/Index?index=journals/abaincob
+					</dc:identifier>
+					<dc:type>title</dc:type>
+					<dc:coverage>Vols. 1 10 (1957 1966) All Published; Title Varies
+						Vol. 10 (1966) as International and Comparative Law Bulletin.
+					</dc:coverage>
+				</oai_dc:dc>
+			</metadata>
 
-</record>
-<record>
-<header><identifier>oai:heinonline.org:abaj</identifier><datestamp>2009-11-03T18:29:08Z</datestamp><setSpec>uberjournals:titles</setSpec><setSpec>abajournals:titles</setSpec><setSpec>barjournals:titles</setSpec><setSpec>wshjournals:titles</setSpec><setSpec>usjournals:titles</setSpec><setSpec>pspremium:titles</setSpec><setSpec>journals:titles</setSpec><setSpec>ohiocmj:titles</setSpec><setSpec>psplus:titles</setSpec></header><metadata>
-<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-   <dc:title>ABA Journal</dc:title>
-   <dc:identifier>http://heinonline.org/HOL/Index?index=journals/abaj</dc:identifier>
-   <dc:identifier>urn:ISSN:0747 0088</dc:identifier>
-   <dc:type>title</dc:type>
-   <dc:coverage>Vols. 1 93 (1915 2007) Title Varies  Vols. 1 69 (1915 1983) as American Bar Association Journal</dc:coverage> 
-</oai_dc:dc>
-</metadata>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:heinonline.org:abaj</identifier>
+				<datestamp>2009-11-03T18:29:08Z</datestamp>
+				<setSpec>uberjournals:titles</setSpec>
+				<setSpec>abajournals:titles</setSpec>
+				<setSpec>barjournals:titles</setSpec>
+				<setSpec>wshjournals:titles</setSpec>
+				<setSpec>usjournals:titles</setSpec>
+				<setSpec>pspremium:titles</setSpec>
+				<setSpec>journals:titles</setSpec>
+				<setSpec>ohiocmj:titles</setSpec>
+				<setSpec>psplus:titles</setSpec>
+			</header>
+			<metadata>
+				<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+					xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+					<dc:title>ABA Journal</dc:title>
+					<dc:identifier>http://heinonline.org/HOL/Index?index=journals/abaj
+					</dc:identifier>
+					<dc:identifier>urn:ISSN:0747 0088</dc:identifier>
+					<dc:type>title</dc:type>
+					<dc:coverage>Vols. 1 93 (1915 2007) Title Varies Vols. 1 69 (1915
+						1983) as American Bar Association Journal</dc:coverage>
+				</oai_dc:dc>
+			</metadata>
 
-</record>
-<record>
-	<header><identifier>oai:heinonline.org:hein.aallar-aallnl0001.3</identifier><datestamp>2009-11-03T18:29:17Z</datestamp><setSpec>uberjournals:articles</setSpec><setSpec>wshjournals:articles</setSpec><setSpec>usjournals:articles</setSpec><setSpec>journals:articles</setSpec><setSpec>aallar:articles</setSpec></header><metadata>
-		<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-			<dc:title>Issue 2</dc:title>
-			<dc:creator/>
-			<dc:date>April 1970</dc:date>
-			<dc:identifier>http://heinonline.org/HOL/Page?handle=hein.aallar/aallnl0001&amp;id=41&amp;set_as_cursor=clear</dc:identifier>
-			<dc:type>notes</dc:type>
-			<dc:description>                     AMERICAN ASSOCIATION OF LAW LIBRARIES NEWSLETTER      Vol. 1 April 1970 No. 2       Contents     1970 Annual Meeting ................ ................. 3  Scholarship Winner ................ ................. 4  Institutes for Law Librarians ................... 4  Discussion with Publishers and Dealers ..... ....... 6  Statistics ................. ... ..................... 7  Tenure of Law Librarians ............. .............. 8  Letters to the Editor .......... ................ 11  Membership News .............. ................... 13  Late News ................ ...................... 16  Placement List ............... ................... 17  Positions Wanted ............. .................. 18  Committee Assignments and Association   Representatives for 1970   1971 ... ......... 19       William B. Stern, President   Los Angeles County Law Library   301 W. First Street   Los Angeles, California 90012     Mario P. Goderich, Editor   University of Miami   Law School Library   Coral Gables, Florida 33124       </dc:description>
-			<dcterms:bibliographicCitation>1 AALL Newsl. 1 (1970)</dcterms:bibliographicCitation>
-		</oai_dc:dc>
-	</metadata>
-</record>
-</ListRecords>
+		</record>
+		<record>
+			<header>
+				<identifier>oai:heinonline.org:hein.aallar-aallnl0001.3</identifier>
+				<datestamp>2009-11-03T18:29:17Z</datestamp>
+				<setSpec>uberjournals:articles</setSpec>
+				<setSpec>wshjournals:articles</setSpec>
+				<setSpec>usjournals:articles</setSpec>
+				<setSpec>journals:articles</setSpec>
+				<setSpec>aallar:articles</setSpec>
+			</header>
+			<metadata>
+				<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+					xmlns:dcterms="http://purl.org/dc/terms/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+					<dc:title>Issue 2</dc:title>
+					<dc:creator />
+					<dc:date>April 1970</dc:date>
+					<dc:identifier>http://heinonline.org/HOL/Page?handle=hein.aallar/aallnl0001&amp;id=41&amp;set_as_cursor=clear
+					</dc:identifier>
+					<dc:type>notes</dc:type>
+					<dc:description> AMERICAN ASSOCIATION OF LAW LIBRARIES NEWSLETTER
+						Vol. 1 April 1970 No. 2 Contents 1970 Annual Meeting
+						................ ................. 3 Scholarship Winner
+						................ ................. 4 Institutes for Law Librarians
+						................... 4 Discussion with Publishers and Dealers .....
+						....... 6 Statistics ................. ... ..................... 7
+						Tenure of Law Librarians ............. .............. 8 Letters to
+						the Editor .......... ................ 11 Membership News
+						.............. ................... 13 Late News ................
+						...................... 16 Placement List ...............
+						................... 17 Positions Wanted .............
+						.................. 18 Committee Assignments and Association
+						Representatives for 1970 1971 ... ......... 19 William B. Stern,
+						President Los Angeles County Law Library 301 W. First Street Los
+						Angeles, California 90012 Mario P. Goderich, Editor University of
+						Miami Law School Library Coral Gables, Florida 33124
+					</dc:description>
+				</oai_dc:dc>
+			</metadata>
+		</record>
+	</ListRecords>
 </OAI-PMH>

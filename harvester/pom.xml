@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>2.5.0-SNAPSHOT</version>
+    <version>2.6.0-alpha8</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>harvester</artifactId>
@@ -82,6 +81,7 @@
       <plugin><!-- web xml must be post processed -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+        <version>2.4</version>
         <configuration>
           <webXml>${project.build.directory}/web.xml</webXml>
           <archive>
@@ -415,12 +415,12 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-dal</artifactId>
-      <version>${pom.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>oaipmh-lib</artifactId>
-      <version>${pom.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

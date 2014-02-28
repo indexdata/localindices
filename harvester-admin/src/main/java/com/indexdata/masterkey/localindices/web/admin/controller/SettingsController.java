@@ -1,23 +1,25 @@
 /*
- * Copyright (c) 1995-2013, Index Datassss
+ * Copyright (c) 1995-2013, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
 package com.indexdata.masterkey.localindices.web.admin.controller;
+
+import java.util.List;
+
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+import javax.servlet.ServletContext;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.dao.SettingDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Setting;
-import java.util.List;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
-import javax.servlet.ServletContext;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  *

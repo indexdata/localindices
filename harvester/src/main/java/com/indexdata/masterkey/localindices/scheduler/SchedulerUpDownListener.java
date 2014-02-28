@@ -121,7 +121,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     ctx.setAttribute("harvester.config", config);
     ctx.setAttribute("harvester.properties", props);
     st = new SchedulerThread(config, props);
-    th = new Thread(st);
+    th = new Thread(st, "SchedulerThread");
     th.start();
     ctx.setAttribute("schedulerThread", st);
     logger.log(Level.INFO, "Scheduler created, started and placed in the context.");

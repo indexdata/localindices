@@ -5,17 +5,18 @@
  */
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import com.indexdata.masterkey.localindices.entity.Setting;
+import static com.indexdata.utils.TextUtils.joinPath;
+
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
-import static com.indexdata.utils.TextUtils.joinPath;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import com.indexdata.masterkey.localindices.entity.Setting;
 
 /**
  *

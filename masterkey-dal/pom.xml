@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>2.5.0-SNAPSHOT</version>
+    <version>2.6.0-alpha8</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>masterkey-dal</artifactId>
@@ -18,41 +17,46 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.0.2</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
-          <encoding>UTF-8</encoding>
+          <annotationProcessors>
+            <annotationProcessor>
+                com.indexdata.annotations.processor.JAXBIndexGenerator
+            </annotationProcessor>
+          </annotationProcessors>          
+        <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
         </configuration>
-      </plugin>
-      <plugin>
-        <!-- This is here to enable automatic jaxb.index generation for xml binded 
-        classess annotated with XmlElement -->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>apt-maven-plugin</artifactId>
-        <version>1.0-alpha-4</version>
-        <configuration>
-          <outputDirectory>${project.build.directory}/generated-sources/apt</outputDirectory>
-          <factory>net.sf.jelly.apt.freemarker.FreemarkerProcessorFactory</factory>
-          <fork>true</fork>
-          <options>
-            <value>template=${basedir}/src/main/freemarker/jaxb-index.fmt</value>
-          </options>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>process</goal>
-            </goals>
-          </execution>
-        </executions>
         <dependencies>
           <dependency>
-            <groupId>net.sf.apt-jelly</groupId>
-            <artifactId>apt-jelly-freemarker</artifactId>
-            <version>2.8</version>
+            <groupId>com.indexdata.annotations.processor</groupId>
+            <artifactId>jaxb-index-generator</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
           </dependency>
         </dependencies>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>target/generated-sources</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -88,6 +92,8 @@
       <plugins>
         <!--This plugin's configuration is used to store Eclipse m2e settings 
         only. It has no influence on the Maven build itself. -->
+
+        <!-- Need to figure out how to run the Annotation plugin and resource copy  -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -95,18 +101,18 @@
           <configuration>
             <lifecycleMappingMetadata>
               <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>apt-maven-plugin</artifactId>
-                    <versionRange>[1.0-alpha-2,)</versionRange>
-                    <goals>
+                 <pluginExecution>
+                   <pluginExecutionFilter>
+                    <groupId>com.indexdata.annotations.processor</groupId>
+                    <artifactId>jaxb-index-generator</artifactId>
+                     <versionRange>[0.0.1-SNAPSHOT,)</versionRange>
+                     <goals>
                       <goal>process</goal>
                     </goals>
                   </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
+                   <action>
+                     <ignore />
+                   </action>
                 </pluginExecution>
                 <pluginExecution>
                   <pluginExecutionFilter>
@@ -124,7 +130,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -210,4 +216,11 @@
       <version>2.5.0</version>
     </dependency>
   </dependencies>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>id-maven-repo</id>
+      <url>http://maven.indexdata.com</url>
+    </pluginRepository>
+  </pluginRepositories>
+
 </project>

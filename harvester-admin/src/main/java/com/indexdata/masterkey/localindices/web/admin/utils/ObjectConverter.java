@@ -5,11 +5,11 @@
  */
 package com.indexdata.masterkey.localindices.web.admin.utils;
 
-import com.indexdata.masterkey.localindices.web.admin.controller.ConnectorItem;
-import com.indexdata.masterkey.localindices.web.admin.utils.select.SelectItemsBaseConverter;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.FacesConverter;
+
+import com.indexdata.masterkey.localindices.web.admin.utils.select.SelectItemsBaseConverter;
 
 /**
  * Simple converter that uses overlaoded toString to serialize and compare instances
