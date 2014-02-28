@@ -6,10 +6,8 @@
 
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.OutputStream;
-
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
  * This interface a runnable harvest job controlled by the JobInstance
@@ -30,14 +28,14 @@ public interface HarvestJob extends Runnable {
    * @param storage
    *          for the harvest
    */
-  void setStorage(HarvestStorage storage);
+  void setStorage(RecordStorage storage);
 
   /**
    * Returns storage currently used for harvested data.
    * 
    * @return current storage
    */
-  HarvestStorage getStorage();
+  RecordStorage getStorage();
 
   /**
    * Returns the information about the job 
@@ -64,9 +62,7 @@ public interface HarvestJob extends Runnable {
 
   boolean isKillSent();
 
-  OutputStream getOutputStream();
-
-  void setJobThread(Thread thread);
+    void setJobThread(Thread thread);
   
   /**
    * Get latest harvest status.

@@ -3,10 +3,7 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
@@ -38,11 +35,8 @@ import org.xml.sax.XMLReader;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
-import com.indexdata.masterkey.localindices.harvest.job.AbstractRecordHarvestJob;
-import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.ConsoleStorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
-import com.indexdata.masterkey.localindices.harvest.job.OAIHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.xml.factory.XmlFactory;
 
 public class TestTransformationChainStorage extends TestCase {
@@ -59,7 +53,6 @@ public class TestTransformationChainStorage extends TestCase {
 
   String catalog_zip = // Not working from jenkins "http://www.gutenberg.org/cache/epub/feeds/catalog.rdf.zip";
                         "http://lui-dev.indexdata.com/gutenberg/catalog.rdf.zip";
-  SolrStorage solrStorage = new SolrStorage(solrUrl, harvestableXml);
   RecordStorage xmlRecordStorage = new SolrRecordStorage(solrUrl, harvestableXml);
   RecordStorage xmlBulkStorage = new BulkSolrRecordStorage(harvestableXml);
   
@@ -129,78 +122,6 @@ public class TestTransformationChainStorage extends TestCase {
       zipInput.close();
       assertTrue("Length is wrong: " + contentLength + "<= " + total, contentLength <= total);
     }
-  }
-
-  
-  public void testSimpleTransformationStorage() throws IOException,
-      TransformerConfigurationException, ParserConfigurationException, SAXException {
-    String[] stylesheets = { pz2solr_xsl };
-    XMLReader xmlReader = createTransformChain(stylesheets);
-    TransformationChainStorageProxy transformStorage = new TransformationChainStorageProxy(
-	solrStorage, xmlReader);
-    transformStorage.begin();
-    OutputStream output = transformStorage.getOutputStream();
-    Writer writer = new OutputStreamWriter(output);
-    writer.write(locPzXml);
-    writer.close();
-    transformStorage.commit();
-  }
-
-  public void testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage() throws IOException,
-      TransformerConfigurationException, ParserConfigurationException, SAXException {
-    String[] stylesheets = { oaidc_pmh_xsl, pz2solr_xsl };
-    System.out.println("testTransformationChain_OAI_PMH_DC_to_PZ_to_SolrStorage");
-    XMLReader xmlReader = createTransformChain(stylesheets);
-    HarvestStorage transformStorage = new TransformationChainStorageProxy(solrStorage, xmlReader);
-    transformStorage.begin();
-    OutputStream output = transformStorage.getOutputStream();
-    //String oai_pmh_oaidc = FileUtils.readFileToString(FileUtils.toFile(this.getClass().getResource("resources/oaipmh_dc.xml")));
-
-    Writer writer = new OutputStreamWriter(output);
-    //File dump = new File("oai_pmh_oaidc.xml");
-    //OutputStream out = new FileOutputStream(dump);
-    //out.write(oai_pmh_oaidc.getBytes());
-    //out.close();
-    writer.write(oai_pmh_oaidc);
-    writer.close();
-    transformStorage.commit();
-  }
-
-  public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage() throws IOException,
-      TransformerConfigurationException, ParserConfigurationException, SAXException {
-    String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl };
-    XMLReader xmlReader = createTransformChain(stylesheets);
-    System.out.println("testTransformationChain_OAI_PMH_MARC_to_PZ_to_SolrStorage");
-    TransformationChainStorageProxy transformStorage = new TransformationChainStorageProxy(
-	solrStorage, xmlReader);
-    transformStorage.begin();
-    OutputStream output = transformStorage.getOutputStream();
-    Writer writer = new OutputStreamWriter(output);
-    writer.write(oai_pmh_marcxml);
-    writer.close();
-    transformStorage.commit();
-  }
-  
-   public void testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage()
-      throws IOException, TransformerConfigurationException, ParserConfigurationException,
-      SAXException {
-    String[] stylesheets = { oai2marc_xsl, marc21_xsl, pz2solr_xsl };
-    System.out.println("testTransformationChain_OAI_PMH_MARC_to_PZ_to_BulkRecordSolrStorage");
-    harvestableXml.setId(1l);
-    
-    // harvestable.setTransformation(transformation)
-    XMLReader xmlReader = createTransformChain(stylesheets);
-    AbstractRecordHarvestJob job = new BulkRecordHarvestJob(harvestableXml, null);
-    job.setStatus(HarvestStatus.NEW);
-    xmlBulkStorage.setLogger(new ConsoleStorageJobLogger(xmlRecordStorage.getClass(), harvestableXml));
-    TransformationChainRecordStorageProxy transformStorage = new TransformationChainRecordStorageProxy(
-	xmlBulkStorage, xmlReader, job);
-    transformStorage.begin();
-    OutputStream output = transformStorage.getOutputStream();
-    Writer writer = new OutputStreamWriter(output);
-    writer.write(oai_pmh_marcxml);
-    writer.close();
-    transformStorage.commit();
   }
 
   public XMLReader createTransformChain(String[] stylesheets) throws ParserConfigurationException,
@@ -279,7 +200,7 @@ public class TestTransformationChainStorage extends TestCase {
     solrEntity.setName(solrUrl);
     solrEntity.setUrl(solrUrl);
     resource.setStorage(solrEntity);
-    OAIHarvestJob job = new OAIHarvestJob(resource, null);
+    OAIRecordHarvestJob job = new OAIRecordHarvestJob(resource, null);
     BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), resource));
     XMLReader xmlFilter = createTransformChain(stylesheets);
