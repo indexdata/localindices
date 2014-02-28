@@ -1,26 +1,20 @@
 package com.indexdata.masterkey.localindices.client;
 
-import static com.indexdata.utils.TextUtils.joinPath;
-
-import java.io.BufferedInputStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
@@ -29,18 +23,24 @@ import org.marc4j.TurboMarcXmlWriter;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
-import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.Proxy;
+
+import static com.indexdata.utils.TextUtils.joinPath;
+import java.io.BufferedInputStream;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -218,13 +218,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
   }
 
   class ZipStreamIterator extends StreamIterator {
-    ZipArchiveInputStream zip;
-    ArchiveEntry zipEntry = null;
-    public ZipStreamIterator(ZipArchiveInputStream input) {
+    ZipInputStream zip; 
+    public ZipStreamIterator(ZipInputStream input) {
       zip = input;
     }
     public boolean hasNext() throws IOException {
-      zipEntry = zip.getNextEntry();
+      ZipEntry zipEntry = zip.getNextEntry();
+      if (zipEntry != null) {
+  	@SuppressWarnings("unused")
+  	int method = zipEntry.getMethod();
+      }
       return zipEntry != null;
     }
   }
@@ -241,12 +244,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
     if ("application/x-gzip".equals(contentType))
       isDec = new GZIPInputStream(isDec);
     else if ("application/zip".equals(contentType)) {
-      ZipArchiveInputStream zipInput = new ZipArchiveInputStream(isDec);
-      //ZipInputStream zipInput = new ZipInputStream(isDec);
+      ZipInputStream zipInput = new ZipInputStream(isDec);
       streamIterator = new ZipStreamIterator(zipInput);
       isDec = zipInput;
     }
-      
     //buffer reads
     isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
