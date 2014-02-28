@@ -29,7 +29,7 @@ public class TestConnectorPlatform extends JobTester {
   String session = "{\"id\":3}";
   String indexdataBlogConnector = "idblog.6.cf";
   String acceConnectorWithAuth    = "aace_harvester.7.cf";
-  String acceConnectorWithOutAuth = "aace_harvester.8.cf";
+  String acceConnectorWithOutAuth = "aace_harvester.cf";
   String solrUrl = "http://localhost:8585/solr/";
   //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   //SolrServer solrServer = factory.create();
