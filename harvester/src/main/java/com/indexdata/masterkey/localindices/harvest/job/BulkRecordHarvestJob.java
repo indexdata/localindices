@@ -16,8 +16,6 @@ import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
@@ -168,17 +166,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
           throw e;
         }
       }
-    }
-  }
-
-  @Override
-  public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage) {
-      super.setStorage((RecordStorage) storage);
-    } else {
-      setStatus(HarvestStatus.ERROR);
-      resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
-              + ". Requires RecordStorage");
     }
   }
 

@@ -71,7 +71,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       try {
 	Record transformed = transformNode(recordDOM);
 	if (transformed != null)
-	  storage.add(transformed);
+	  getTarget().add(transformed);
 	else {
 	  logger.warn("Record filtered out" + record);
 	}
@@ -97,7 +97,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       try {
 	Record transformed = transformNode(recordDOM);
 	if (transformed != null)
-	  storage.delete(transformed.getId());
+	  getTarget().delete(transformed.getId());
 	else {
 	  logger.warn("Record filtered out. " + recordDOM);
 	}

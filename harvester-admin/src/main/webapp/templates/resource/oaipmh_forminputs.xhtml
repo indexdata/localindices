@@ -27,8 +27,8 @@
                              completionItems="#{oaiPmhListSetsItemsSource.selectItems}"
                              completionItemConverter="objectConverter"
                              itemSelectedListenerType="#{resourceSetSelectedListener}"
-                             required="true" 
-                             requiredMessage="Please provide the set name!"
+                             required="false" 
+                             requiredMessage=""
                              render=""/>
           <h:message for="listsets:input" style="color: red;"/>
         </h:panelGroup>

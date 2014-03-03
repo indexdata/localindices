@@ -14,9 +14,11 @@ import java.util.Date;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
@@ -25,7 +27,7 @@ import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.utils.CronLine;
 
@@ -46,12 +48,13 @@ public class JobInstance {
   private CronLine lastCronLine;
   private HarvestStatus lastHarvestStatus;
   private String lastStatusMsg;
+  private StorageDAO storageDao; 
   public boolean seen; // for checking what has been deleted
   private boolean enabled = true;
-
-  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled)
+  public JobInstance(Harvestable hable, Proxy proxy, boolean enabled, StorageDAO dao)
       throws IllegalArgumentException {
     this.enabled = enabled;
+    storageDao = dao;
     // if cron line is not specified - default to today
     if (hable.getScheduleString() == null || hable.getScheduleString().equals("")) {
       logger.log(Level.INFO, "No schedule specified for the job, will start instantly.");
@@ -110,7 +113,13 @@ public class JobInstance {
       harvestingThread.setName(harvestJob.getClass().getSimpleName() + "(" + harvestable.getId() + " " + harvestable.getName() +")");
       if (harvestJob != null) {
 	harvestJob.setJobThread(harvestingThread);
-      	harvestJob.setStorage(HarvestStorageFactory.getStorage(harvestable));
+      	// Refresh storage. The cascading in the persistence layer is currently not working
+	Storage storage = storageDao.retrieveById(harvestable.getStorage().getId());
+      	harvestable.setStorage(storage);
+      	RecordStorage recordStorage = HarvestStorageFactory.getStorage(storage);
+      	recordStorage.setHarvestable(harvestable);
+      	harvestJob.setStorage(recordStorage);
+
       }
       harvestingThread.start();
       if (harvestable.getInitiallyHarvested() == null)
@@ -120,8 +129,7 @@ public class JobInstance {
   }
 
   /**
-   * Tell the harvesting thread to stop, the harvesting thread should rollback
-   * the data harvested so far.
+   * Tell the harvesting thread to stop
    */
   public void stop() {
     harvestJob.kill();
@@ -134,7 +142,7 @@ public class JobInstance {
   public void destroy() {
     harvestJob.kill();
     try {
-      HarvestStorage storage = harvestJob.getStorage(); 
+      RecordStorage storage = harvestJob.getStorage(); 
       storage.purge(true);
     } catch (IOException ex) {
       logger.log(Level.ERROR, "Destroy failed.");

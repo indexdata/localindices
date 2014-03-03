@@ -47,6 +47,9 @@ public abstract class Storage implements Serializable, Cloneable {
   protected String url;
   @Column(length = 1000)
   protected String customClass;
+  private Integer timeout;
+  private Integer retryCount;
+  private Integer retryWait;
   protected Integer bulkSize; 
 
   /*
@@ -196,5 +199,29 @@ public abstract class Storage implements Serializable, Cloneable {
 
   public void setCustomClass(String customClass) {
     this.customClass = customClass;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer httpTimeout) {
+    this.timeout = httpTimeout;
+  }
+
+  public Integer getRetryCount() {
+    return retryCount;
+  }
+
+  public void setRetryCount(Integer retryCount) {
+    this.retryCount = retryCount;
+  }
+
+  public Integer getRetryWait() {
+    return retryWait;
+  }
+
+  public void setRetryWait(Integer retryWait) {
+    this.retryWait = retryWait;
   }
 }
