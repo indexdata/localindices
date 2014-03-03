@@ -69,13 +69,18 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       //if we have accumulated errors, warn
-      if (!client.getErrors().isEmpty()) {
-        setStatus(HarvestStatus.WARN, "Completed with problems, see logfile for details.");
-      }
       storage.databaseEnd();
       commit();
-      setStatus(HarvestStatus.FINISHED);
-      mailMessage("Harvest Job completed: ", "Successfully");
+      StringBuffer mailMesssage = new StringBuffer("Successfully");
+      if (!client.getErrors().isEmpty()) {
+	mailMesssage = new StringBuffer("Client Errors: \n");
+	setStatus(HarvestStatus.WARN, "Completed with problems, see logfile for details.");
+        for (String error : client.getErrors()) 
+          mailMesssage.append(error).append("\n");
+      }
+      else 
+	setStatus(HarvestStatus.FINISHED);
+      mailMessage("Harvest Job completed: ", mailMesssage.toString());
     } catch (Exception e) {
       if (isKillSent()) {
 	if (resource.getAllowErrors()) 
