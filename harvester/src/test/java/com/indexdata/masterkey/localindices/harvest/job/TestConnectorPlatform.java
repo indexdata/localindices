@@ -125,7 +125,7 @@ public class TestConnectorPlatform extends JobTester {
   }
 */
 
-  public void testConnectorHarvestJobACCE_overwrite() throws ParseException, IOException, StatusNotImplemented {
+  public void testConnectorHarvestJobAACE_overwrite() throws ParseException, IOException, StatusNotImplemented {
     HarvestConnectorResource resource = createResource(acceConnectorWithAuth, false, false);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
