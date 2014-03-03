@@ -10,7 +10,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
 
-  //private Logger logger = Logger.getLogger(getClass());
   private StorageJobLogger logger; 
   
   public NoCommitPurgeStorageProxy(RecordStorage storage) {
@@ -32,7 +31,6 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger; 
-    
   }
 
   @Override
@@ -49,5 +47,4 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   public void shutdown() throws IOException {
     getTarget().shutdown();
   }
-
 }

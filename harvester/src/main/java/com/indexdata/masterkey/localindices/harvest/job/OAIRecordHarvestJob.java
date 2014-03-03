@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.Proxy;
 import java.text.DateFormat;
@@ -48,7 +47,6 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -459,19 +457,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     return df.format(date);
   }
 
-  @Override
-  public void setStorage(HarvestStorage storage) {
-    if (!(storage instanceof RecordStorage))
-      throw new RuntimeException("Requires a RecordStorage");
-    setStorage((RecordStorage) storage);
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    throw new RuntimeException("No implemented!");
-  }
-
-  @Override
+   @Override
   public Harvestable getHarvestable() {
     return resource;
   }

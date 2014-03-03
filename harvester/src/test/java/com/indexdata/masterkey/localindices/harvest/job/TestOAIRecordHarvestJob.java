@@ -290,6 +290,7 @@ public class TestOAIRecordHarvestJob extends JobTester {
     BulkSolrRecordStorage recordStorage = new BulkSolrRecordStorage(resource);
     recordStorage.setWaitSearcher(true);
     recordStorage.setLogger(new ConsoleStorageJobLogger(recordStorage.getClass(), storageEntity));
+    recordStorage.setWaitSearcher(true);
     if (clear) {
       recordStorage.begin();
       recordStorage.setDatabase(resource.getId().toString());

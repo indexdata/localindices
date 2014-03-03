@@ -3,9 +3,14 @@
 package com.indexdata.masterkey.localindices.crawl;
 
 import com.indexdata.masterkey.localindices.harvest.job.WebHarvestJobInterface;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
+
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Collection;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.log4j.Level;
@@ -109,13 +114,13 @@ public class CrawlThread implements Runnable {
 	    que.add(pg, u);
 	  }
 	}
-	String xml = pi.toPazpar2Metadata();
+	Map<String, Collection<Serializable>> xml = pi.toPazpar2Metadata();
 	if (!xml.isEmpty()) {
-	  try {
+	  try {  
 	    setStatus(CRAWLTHREAD_SAVING);
-	    job.getOutputStream().write(xml.getBytes());
+	    job.getStorage().add(new RecordImpl(xml));
 	    setStatus(CRAWLTHREAD_PROCESSING);
-	  } catch (IOException ex) {
+	  } catch (Exception ex) {
 	    job.setError("I/O error writing data: " + ex.getMessage());
 	    job.kill();
 	    logger.log(Level.TRACE, xml);
