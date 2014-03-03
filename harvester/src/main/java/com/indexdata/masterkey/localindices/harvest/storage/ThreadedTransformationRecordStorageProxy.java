@@ -16,12 +16,12 @@ import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
 import com.indexdata.masterkey.localindices.harvest.messaging.StopMessage;
 
-public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy {
+public class ThreadedTransformationRecordStorageProxy extends AbstractTransformationRecordStorageProxy {
   private StorageJobLogger logger;
   //private Templates[] templates; 
   private MessageQueue<Object> source = new BlockingMessageQueue<Object>();
   private MessageQueue<Object> result;
-  private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
+  private MessageQueue<Object> errors = new BlockingMessageQueue<Object>();
   private Thread lastThread = null;
   private RecordHarvestJob job; 
   private List<TransformationStep> steps;
@@ -54,7 +54,7 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
       for (TransformationStep step: steps) {
 	router = factory.create(step);
 	messageRouters[index++] = router;
-        router.setError(error);
+        router.setError(errors);
         router.setInput(current);
         current = new BlockingMessageQueue();
         router.setOutput(current);
@@ -202,6 +202,14 @@ public class ThreadedTransformationRecordStorageProxy extends RecordStorageProxy
   @Override
   public DatabaseContenthandler getContentHandler() {
     return getTarget().getContentHandler();
+  }
+
+  public MessageQueue<Object> getErrors() {
+    return errors;
+  }
+
+  public void setErrors(MessageQueue<Object> errors) {
+    this.errors = errors;
   }
 
 }
