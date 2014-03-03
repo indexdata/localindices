@@ -17,8 +17,12 @@ import org.apache.log4j.Logger;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
+import com.indexdata.masterkey.localindices.harvest.storage.AbstractTransformationRecordStorageProxy;
+import com.indexdata.masterkey.localindices.harvest.storage.ErrorQueue;
+import com.indexdata.masterkey.localindices.harvest.storage.Record;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.SplitTransformationChainRecordStorageProxy;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import com.indexdata.masterkey.localindices.harvest.storage.ThreadedTransformationRecordStorageProxy;
@@ -35,14 +39,13 @@ import com.indexdata.masterkey.localindices.notification.SimpleNotification;
  * 
  * @author Dennis
  */
-public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
+public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   private RecordStorage storage;
   protected StorageJobLogger logger;
   protected String error;
   boolean debug = false; 
   boolean useParallel =  false;
-  SplitTransformationChainRecordStorageProxy  streamStorage;
-  RecordStorage  transformationStorage;
+  AbstractTransformationRecordStorageProxy transformationStorage;
   protected int splitSize = 1;
   protected int splitDepth = 1;
   private boolean updated;
@@ -122,9 +125,25 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     Sender sender = SenderFactory.getSender();
     String status = getStatus().toString();
     Harvestable harvestable = getHarvestable();
+    StringBuffer buffer = new StringBuffer(message);
     if (harvestable.getMailLevel() != null && checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) {
+      while (!transformationStorage.getErrors().isEmpty()) {
+	try {
+	  Object obj = transformationStorage.getErrors().take();
+	  if (obj instanceof Record) {
+	    buffer.append("Failed to convert: ").append(obj.toString()).append("\n");
+	  }
+	  if (obj instanceof String) {
+	    buffer.append("Error: " + (Record) obj);
+	  }
+	} catch (InterruptedException ie) {
+	    buffer.append("Failed to extract error message from Error Queue");
+	}
+      }
+      	
       Notification msg = new SimpleNotification(status, 
   		harvestable.getName() + "(" + harvestable.getId() + "): "  + subject, message);
+      
       try {
         if (sender != null) {
           String customRecievers = harvestable.getMailAddress();
