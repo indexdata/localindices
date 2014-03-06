@@ -80,7 +80,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       int responseCode = conn.getResponseCode();
       if (responseCode == 200) {
 	String contentType = conn.getContentType();
-	if ("text/html".equals(contentType)) {
+	if ("text/html".startsWith(contentType)) {
 	  return handleJumpPage(conn);
 	}
 	else {
