@@ -51,6 +51,8 @@ public class SearchablesConverter extends Records {
             Record record = new Record("searchable");
             List<Layer> layers = new ArrayList<Layer>();
             SearchableTypeLayer layer = new SearchableTypeLayer();
+            // TODO id must include url to be unique. In a file-system safe way, since the torus makes a filename out of it.  
+            // The later should be fixed in the torus.
             layer.setId(entity.getId().toString());
             layer.setLayerName("final");
             layer.setName(entity.getName());
@@ -63,13 +65,9 @@ public class SearchablesConverter extends Records {
             Storage storage = entity.getStorage();
             if (storage instanceof SolrStorageEntity) {
             	Storage solrStorage = (Storage) storage;
-            	// Ensure unique zurl
-            	// TODO FIX URL when all instances of pazpar2 (1.6.38) and metaproxy(?) has been upgraded to use yaz 5.0.12.
-            	// Holding back for now to be sure. 
-            	layer.setZurl(modifySolrUrl(solrStorage.getSearchUrl()) + "#" + entity.getId());
-		// layer.setZurl(appendQuery(appendSelect(solrStorage.getSearchUrl()), "fq=database:" + entity.getId()));
-            	// layer.setExtraArgs();
-            	layer.setExtraArgs("fq=database:" + entity.getId());
+		layer.setZurl(appendQuery(appendSelect(solrStorage.getSearchUrl()), "fq=database:" + entity.getId()));
+            	layer.setExtraArgs("defType=lucene");
+            	// TODO Just like id the udb should be unique across all (possible) harvesters.
             	layer.setUdb("solr-" + entity.getId());
             	// TODO make configurable
             	// but it can be overridden in Torus admin
@@ -117,6 +115,7 @@ public class SearchablesConverter extends Records {
     String select = "select";
     String slash = "/";
 
+    @SuppressWarnings("unused")
     private String modifySolrUrl(String url) {
       String zurl = url;
       // Yaz did not handled zurls with http://. 5.0.12 does
@@ -132,7 +131,6 @@ public class SearchablesConverter extends Records {
       return zurl;
     }
 
-    @SuppressWarnings("unused")
     private String appendSelect(String searchUrl) {
       // TODO Check for already having select in the solr url ?
 
@@ -141,7 +139,6 @@ public class SearchablesConverter extends Records {
       return searchUrl + "/select";
     }
 
-    @SuppressWarnings("unused")
     private String appendQuery(String searchUrl, String string) {
       // First query part?
       if (searchUrl.indexOf("?") == -1) 
