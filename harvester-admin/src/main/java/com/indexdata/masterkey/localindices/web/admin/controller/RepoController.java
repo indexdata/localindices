@@ -89,6 +89,7 @@ public class RepoController implements Serializable {
           repoUrl = repoUrlSetting.getValue();
           logger.info("Retrieved repo url setting from resource controller - "+repoUrl);
         } else { //get the first setting available
+          // TODO throws null pointer if none is configured
           repoUrl = settingsController.getConnectorRepos().get(0).getValue();
           logger.info("Retrieved repo url setting from settings controller - "+repoUrl);
         }
