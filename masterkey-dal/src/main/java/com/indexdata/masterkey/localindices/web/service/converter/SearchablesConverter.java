@@ -203,7 +203,7 @@ public class SearchablesConverter extends Records {
       }
     }
 
-    String[] settingPrefixes = { "searchables.settings", "solr.searchables." };
+    String[] settingPrefixes = { "searchables.settings.", "solr.searchables." };
     if (map.get("searchables.prefixes") != null)
       settingPrefixes = map.get("searchables.prefixes").toString().split(",");
     List<String> settingsPrefixes = new LinkedList<String>();
