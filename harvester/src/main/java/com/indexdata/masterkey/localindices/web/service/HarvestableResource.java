@@ -95,9 +95,10 @@ public class HarvestableResource {
   private void purgeStorage(Harvestable harvestable) throws IOException {
     if (harvestable.getStorage() != null) {
       RecordStorage storage = HarvestStorageFactory.getStorage(harvestable.getStorage());
-      storage.setHarvestable(harvestable);
-      if (storage != null)
+      if (storage != null) {
+	storage.setHarvestable(harvestable);
 	storage.purge(true);
+      }
       else 
 	logger.warn("No storage client. Unable to purge harvestable: " + id);
     }
