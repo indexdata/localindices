@@ -8,9 +8,12 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,10 +60,34 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable2.setScheduleString("* 1 * * *");
             hable2.setUrl("http://ir.ub.rug.nl/oai/");
             hable2.setMetadataPrefix("oai_dc");
-            hable.setEnabled(true);
-            
+            hable2.setEnabled(true);
             harvestables.put(hable2.getId(), hable2);
-            
+
+            XmlBulkResource hable3 = new XmlBulkResource();
+            hable3.setId(new Long(3));
+            hable3.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("04/04/2008"));
+            hable3.setName("University of Groningen");
+            hable3.setServiceProvider("University Digital Archive of the University of Groningen, The Netherlands");
+            hable3.setScheduleString("* 1 * * *");
+            hable3.setUrl("http://ir.ub.rug.nl/oai/");
+            hable3.setOpenAccess(true);
+            hable3.setEnabled(true);
+            hable3.setJson("{ \"searchables.settings\" : { \"cclmapau\" : \"CCL_JSON_OVERRIDE\", \"facetmap_author\" : \"FACETMAP_JSON_OVERRIDE\"} } ");
+            harvestables.put(hable3.getId(), hable3);
+
+        
+            HarvestConnectorResource hable4 = new HarvestConnectorResource();
+            hable4.setId(new Long(4));
+            hable4.setLastUpdated(new SimpleDateFormat("MM/dd/yy").parse("04/04/2008"));
+            hable4.setName("University of Groningen");
+            hable4.setServiceProvider("University Digital Archive of the University of Groningen, The Netherlands");
+            hable4.setScheduleString("* 1 * * *");
+            hable4.setRecordLimit(1000);
+            hable4.setJson("{ \"searchables.prefixes\" : \"searchable.harvestconnector\" }");
+            hable4.setOpenAccess(true);
+            hable4.setEnabled(true);
+            harvestables.put(hable4.getId(), hable4);
+
         } catch (ParseException pe) {
             logger.log(Level.DEBUG, pe);
         }
