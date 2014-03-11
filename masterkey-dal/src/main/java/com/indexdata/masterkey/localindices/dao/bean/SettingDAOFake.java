@@ -45,7 +45,7 @@ public class SettingDAOFake implements SettingDAO {
 	{ "solr.searchables.limitmap_subject", "Limitmap Subject", "rpn: @attr 1=subject_exact @attr 6=3" },
 	{ "solr.searchables.limitmap_medium",  "Limitmap Medium",  "rpn: @attr 1=medium_exact @attr 6=3" },
 	{ "solr.searchables.limitmap_date",    "Limitmap Date",    "rpn: @attr 1=date @attr 6=3" },
-	{ "job.1.searchables.limitmap_date",   "Limitmap Date",    "JOB.1 OVERRIDE" }
+	{ "job.2.searchables.limitmap_date",   "Limitmap Date",    "JOB.2 OVERRIDE" }
       };
     for (String[] values : settingsArray) {
       Setting setting = new Setting();
