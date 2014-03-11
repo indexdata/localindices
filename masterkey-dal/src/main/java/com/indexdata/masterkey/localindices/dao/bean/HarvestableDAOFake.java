@@ -83,7 +83,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
             hable4.setServiceProvider("University Digital Archive of the University of Groningen, The Netherlands");
             hable4.setScheduleString("* 1 * * *");
             hable4.setRecordLimit(1000);
-            hable4.setJson("{ \"searchables.prefixes\" : \"searchable.harvestconnector\" }");
+            hable4.setJson("{ \"searchables.prefixes\" : \"searchables.harvestconnector.,openaccess.searchables.\" }");
             hable4.setOpenAccess(true);
             hable4.setEnabled(true);
             harvestables.put(hable4.getId(), hable4);
