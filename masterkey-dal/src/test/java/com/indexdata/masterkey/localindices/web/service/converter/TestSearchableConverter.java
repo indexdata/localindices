@@ -29,7 +29,6 @@ public class TestSearchableConverter extends TestCase {
     SettingDAOFake settingDAO = new SettingDAOFake();
     SearchablesConverter searchables = new SearchablesConverter(dao.retrieve(0, dao.getCount()),
 	new URI("http://localhost/records/searchables"), settingDAO);
-    searchables.setDao(settingDAO);
 
     assertTrue(searchables.getRecords() != null);
     assertEquals(searchables.getRecords().size(), 3);
@@ -68,8 +67,8 @@ public class TestSearchableConverter extends TestCase {
 	    assertEquals(foundSetting.get(0).getValue(), keyValue.getValue());
 	}
 	if (keyValue.getName().equals("limitmap_date")) {
-	  if (layer.getId().equals("1"))
-	    assertEquals("JOB.1 OVERRIDE", keyValue.getValue());
+	  if (layer.getId().equals("2"))
+	    assertEquals("JOB.2 OVERRIDE", keyValue.getValue());
 	  else
 	    assertEquals("rpn: @attr 1=date @attr 6=3", keyValue.getValue());
 	}
