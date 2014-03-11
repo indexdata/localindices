@@ -82,6 +82,13 @@ public class SearchablesConverter extends Records {
   private void overrideSetting(SearchableTypeLayer layerInstance, String key, String value) {
     try {
       Method method = methodMap.get(key.toLowerCase());
+      // Work-around for fields that have XmlEntity overrides (like cclmap_XX) 
+      // We want to be able to name the setting as the element name, not the java method name. 
+      if (key.toLowerCase().contains("_")) { 
+	key = key.replaceAll("_", "");
+	if (methodMap.containsKey(key))
+	  method = methodMap.get(key);
+      }
       if (method != null)
 	method.invoke(layerInstance, value);
       else {
@@ -98,6 +105,7 @@ public class SearchablesConverter extends Records {
 	  }
 	}
 	// Key not there, add
+	// TODO Validate key: It becomes a XML element name.
 	elements.add(new KeyValue(key, value));
       }
     } catch (Exception e) {
@@ -203,14 +211,20 @@ public class SearchablesConverter extends Records {
       }
     }
 
-    String[] settingPrefixes = { "searchables.settings.", "solr.searchables." };
+    String[] defaultPrefixes = { "searchables.settings.", "solr.searchables." };
     if (map.get("searchables.prefixes") != null)
-      settingPrefixes = map.get("searchables.prefixes").toString().split(",");
+      defaultPrefixes = map.get("searchables.prefixes").toString().split(",");
     List<String> settingsPrefixes = new LinkedList<String>();
-    settingsPrefixes.addAll(settingsPrefixes);
+    for (String prefix : defaultPrefixes) {
+      prefix = prefix.trim();
+      if (!prefix.endsWith("."))
+	prefix = prefix + ".";
+      settingsPrefixes.add(prefix);
+    }
+    
     settingsPrefixes.add("job." + entity.getId() + ".searchables.");
 
-    for (String prefix : settingPrefixes) {
+    for (String prefix: settingsPrefixes) {
       if (prefix != null) {
 	List<Setting> settings = dao.retrieve(0, dao.getCount(prefix), prefix, false);
 	for (Setting setting : settings) {
@@ -265,14 +279,4 @@ public class SearchablesConverter extends Records {
       return searchUrl + "?" + string;
     return searchUrl + "&" + string;
   }
-
-  // For unit testing only. Replace with reflection?
-  public SettingDAO getDao() {
-    return dao;
-  }
-
-  public void setDao(SettingDAO dao) {
-    this.dao = dao;
-  }
-
 }
