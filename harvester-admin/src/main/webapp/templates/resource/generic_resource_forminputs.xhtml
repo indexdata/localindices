@@ -107,8 +107,11 @@
                 <f:selectItems 
                     value="#{resourceController.jobLevelItems}" />
             </h:selectOneMenu>
-            <h:outputText value="Record Limit: (Testing)"/>
-            <h:inputText value="#{resourceController.resource.recordLimit}"/>
+            <h:outputText value="Record Limit: (Testing)" styleClass="optionalInput" />
+            <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />
+            <h:outputText value="Extra Configuration: (JSON)" styleClass="optionalInput" />
+            <h:inputTextarea cols="60" rows="2" styleClass="optionalInput"
+                value="#{resourceController.resource.json}" />
             
 		</h:panelGrid>
 	</ui:composition>
