@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Stack;
 
+import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
@@ -46,6 +47,8 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.utils.CronLine;
+import com.indexdata.utils.CronLineParseException;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -208,7 +211,7 @@ public class ResourceController {
     this.month = month;
   }
 
-  private String scheduleInputsToString() {
+  private String scheduleInputsToString() throws ContinueEdit {
     String min = this.min;
     String hour = this.hour;
     String dayOfMonth = this.dayOfMonth.equals("0") ? "*" : this.dayOfMonth;
@@ -216,11 +219,21 @@ public class ResourceController {
     String dayOfWeek = this.dayOfWeek;
     this.min = this.hour = this.dayOfMonth = this.month = this.dayOfWeek = null;
     if (dayOfMonth != null && month != null && dayOfWeek != null) {
-      return min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
+      String cronLine = min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
+      CronLine cron = new CronLine(cronLine);
+      try {
+	cron.nextMatchingDate(new Date());
+	return cronLine;
+      } catch (CronLineParseException clpe) {
+	logger.log(Level.ERROR, "Failed to find next schedule from " + cronLine);
+	FacesContext.getCurrentInstance().addMessage("jobForm:schedule", new FacesMessage(clpe.getMessage()));
+      }
+
     } else {
       logger.log(Level.ERROR, "Something messed up with the schedule inputs.");
+      FacesContext.getCurrentInstance().addMessage("jobForm:schedule", new FacesMessage("Schedule did not resolve to a real date (internal error)"));
     }
-    return null;
+    throw new ContinueEdit();
   }
 
   private void scheduleStringToInputs(String scheduleString) {
@@ -295,7 +308,7 @@ public class ResourceController {
 
   public List<SelectItem> getDaysOfMonth() {
     List<SelectItem> list = new ArrayList<SelectItem>();
-    for (int i = 0; i < 31; i++) {
+    for (int i = 0; i < 32; i++) {
       SelectItem selectItem = new SelectItem();
       String key = i == 0 ? "Any" : String.valueOf(i);
       Integer value = i;
@@ -409,10 +422,15 @@ public class ResourceController {
   }
 
   private String createResource() {
+    try {
     prePersist();
     dao.create(resource);
     resource = null;
     return listResources();
+    } catch (ContinueEdit ex) {
+      String type = resource.getClass().getSimpleName();
+      return "edit_" + type;
+    }
   }
   
   public String addResource() {
@@ -492,10 +510,15 @@ public class ResourceController {
   }
   
   private String updateResource() {
-    prePersist();
-    resource = dao.update(resource);
-    resource = null;
-    return listResources();
+    try {
+      prePersist();
+      resource = dao.update(resource);
+      resource = null;
+      return listResources();
+    } catch (ContinueEdit ce) {
+      String type = resource.getClass().getSimpleName();
+      return "edit_" + type;
+    }
   }
 
   public String saveResource() {
@@ -550,11 +573,16 @@ public class ResourceController {
     } catch (EntityInUse eiu) {
       logger.warn("Job is in use", eiu);
     }
-    prePersist();
-    resource.setId(null);
-    dao.create(resource);
-    resource = null;
-    return listResources();
+    try {
+      prePersist();
+      resource.setId(null);
+      dao.create(resource);
+      resource = null;
+      return listResources();
+    } catch (ContinueEdit ce) {
+      String type = resource.getClass().getSimpleName();
+      return "edit_" + type;
+    }
   }
 
   public String reset() {
@@ -578,7 +606,7 @@ public class ResourceController {
     return null;
   }
 
-  private void prePersist() {
+  private void prePersist() throws ContinueEdit {
     resource.setScheduleString(scheduleInputsToString());
     if (resource instanceof OaiPmhResource) {
       if (longDate)
