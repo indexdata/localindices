@@ -192,7 +192,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     final public void onError() {
       try {
         logger.info("Attempt at retrieving engine log for the failed invocation:");
-        logger.info(getLog());
+        String log = getLog();
+        logger.info(log);
+        errors.add("Engine log: " + log);
       } catch (Exception le) {
         logger.warn("Retrieving engine log failed.");
         logger.debug("Cause:", le);
