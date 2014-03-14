@@ -37,30 +37,34 @@
 			<h:inputTextarea id="contactNotes" cols="60" rows="3"
 				value="#{resourceController.resource.contactNotes}" />
 			<h:outputText value="Harvest schedule:" />
-			<h:panelGrid columns="7">
-          Harvest
+			<h:panelGroup>
+                <h:panelGrid id="schedule" columns="7">
+           Harvest
           <h:selectOneMenu value="#{resourceController.dayOfMonth}">
-					<f:selectItems value="#{resourceController.daysOfMonth}" />
-				</h:selectOneMenu>
+						<f:selectItems value="#{resourceController.daysOfMonth}" />
+					</h:selectOneMenu>
           (day) of
           <h:selectOneMenu value="#{resourceController.month}">
-					<f:selectItems value="#{resourceController.months}" />
-				</h:selectOneMenu>
+						<f:selectItems value="#{resourceController.months}" />
+					</h:selectOneMenu>
           (month) if it's
           <h:selectOneMenu value="#{resourceController.dayOfWeek}">
-					<f:selectItems value="#{resourceController.daysOfWeek}" />
-				</h:selectOneMenu>
+						<f:selectItems value="#{resourceController.daysOfWeek}" />
+					</h:selectOneMenu>
           (day of the week)
           <h:column>Harvesting time:</h:column>
-				<h:selectOneMenu value="#{resourceController.hour}">
-					<f:selectItems value="#{resourceController.hours}" />
-				</h:selectOneMenu>
+					<h:selectOneMenu value="#{resourceController.hour}">
+						<f:selectItems value="#{resourceController.hours}" />
+					</h:selectOneMenu>
           (hour in 24 format)
           <h:selectOneMenu value="#{resourceController.min}">
-					<f:selectItems value="#{resourceController.mins}" />
-				</h:selectOneMenu>
+						<f:selectItems value="#{resourceController.mins}" />
+					</h:selectOneMenu>
           (min)
-        </h:panelGrid>
+				</h:panelGrid>
+	         <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
+			</h:panelGroup>
+
 			<h:outputText value="Harvest job enabled:" />
 			<h:selectBooleanCheckbox
 				value="#{resourceController.resource.enabled}" />
