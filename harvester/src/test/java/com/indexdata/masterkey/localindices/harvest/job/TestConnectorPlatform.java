@@ -133,6 +133,7 @@ public class TestConnectorPlatform extends JobTester {
     StorageStatus firstStatus = recordStorage.getStatus();
     resource.setConnector(aaceConnectorWithOutAuth);
     resource.setOverwrite(true);
+    resource.setResumptionToken(null);
     recordStorage = createStorage(resource, true);
     job = doHarvestJob(recordStorage, resource);
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
