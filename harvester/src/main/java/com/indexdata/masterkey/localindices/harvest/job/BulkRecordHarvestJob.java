@@ -86,7 +86,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
       setStatus(HarvestStatus.RUNNING);
       if (!resource.isDiskRun())
-        downloadList(resource.getUrl().split(" "), false, dc);
+        downloadList(resource.getUrl().split("[, \n]"), false, dc);
       else {
         downloadList(dc.list(), true, dc);
       }

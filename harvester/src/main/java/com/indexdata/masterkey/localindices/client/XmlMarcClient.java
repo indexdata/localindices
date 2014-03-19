@@ -1,15 +1,16 @@
 package com.indexdata.masterkey.localindices.client;
 
+import static com.indexdata.utils.TextUtils.joinPath;
+
+import java.io.BufferedInputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,26 +22,18 @@ import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.TurboMarcXmlWriter;
 
-import com.indexdata.masterkey.localindices.crawl.HTMLPage;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
-import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
-import com.indexdata.utils.DateUtil;
 import com.indexdata.xml.filter.SplitContentHandler;
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.Proxy;
-
-import static com.indexdata.utils.TextUtils.joinPath;
-import java.io.BufferedInputStream;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -68,40 +61,27 @@ public class XmlMarcClient extends AbstractHarvestClient {
   public int download(URL url) throws Exception {
     logger.info("Starting download - " + url.toString());
     try {
-      HttpURLConnection conn = createConnection(url);
-      conn.setRequestMethod("GET");
-      if (getResource().getAllowCondReq() && (lastRequested != null)) {
-        String lastModified = 
-          DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
-        logger.info("Conditional request If-Modified-Since: "+lastModified);
-        conn.setRequestProperty("If-Modified-Since", lastModified);
-      }
-      conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
-      int responseCode = conn.getResponseCode();
-      if (responseCode == 200) {
-	String contentType = conn.getContentType();
-	if ("text/html".startsWith(contentType)) {
-	  return handleJumpPage(conn);
+      ClientTransport clientTransport = createClientTransport(url); 
+      try {
+	RemoteFileIterator iterator = clientTransport.get(url);
+	while (iterator.hasNext()) { 
+	  RemoteFile file = iterator.get();
+	  if (file.isDirectory()) 
+	    download(url);
+	  else {
+	    ReadStore readStore = prepareReadStore(file, resource.isCacheEnabled() ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
+			: null);
+	    readStore.readAndStore();	    
+	  
+	  }
 	}
-	else {
-	  ReadStore readStore = prepareReadStore(conn.getInputStream(), 
-            getContentLength(conn), conn.getContentType(), conn.getContentEncoding(), 
-             resource.isCacheEnabled()
-              ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
-              : null);
-	  readStore.readAndStore();
-	}
-      } else if (responseCode == 304) {//not-modified
-        logger.info("Content was not modified since '" + DateUtil.serialize(
-          lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
-        return 0;
-      } else {
+      } catch (ClientTransportError cte) {
 	if (getResource().getAllowErrors()) {
 	  setErrors(getErrors() + (url.toString() + " "));
 	  return 1;
-	}
-	else
-	  throw new Exception("Http connection failed. (" + responseCode + ")");
+	} else
+	  throw new Exception(cte.getMessage(), cte);
+	
       }
       // TODO HACK HACK HACK
       Thread.sleep(2000);
@@ -122,26 +102,19 @@ public class XmlMarcClient extends AbstractHarvestClient {
     return 0;
   }
   
+  private ClientTransport createClientTransport(URL url) {
+    // TODO, dispatch on URL protocol 
+    return new HttpClientTransport((XmlBulkResource) resource, lastRequested);
+  }
+
   public int download(File file) throws Exception {
     try {
-      ReadStore readStore = prepareReadStore(new FileInputStream(file), -1, null, null, null);
+      ReadStore readStore = prepareReadStore(new LocalRemoteFile(file), null);
       readStore.readAndStore();
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
     }
     return 0;
-  }
-
-  private long getContentLength(HttpURLConnection conn) {
-    // conn.getContentLength() overruns at 2GB, since the interface returns a integer
-    long contentLength = -1;
-    try {
-      contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
-    } catch (Exception e) {
-      logger.error("Error parsing Content-Length: " + conn.getHeaderField("Content-Length"));
-      contentLength = -1;
-    }
-    return contentLength;
   }
 
   interface ReadStore {
@@ -232,28 +205,20 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
-  private ReadStore prepareReadStore(InputStream isRaw, long contentLength, 
-    String contentType, String contentEncoding, String cacheFile) throws IOException {
+  private ReadStore prepareReadStore(RemoteFile file,  String cacheFile) throws IOException {
     // InputStream after possible Content-Encoding decoded.
-    InputStream isDec = handleContentEncoding(isRaw, contentEncoding);
+    long contentLength = file.length();
+    InputStream isDec = file.getInputStream();
     StreamIterator streamIterator = new StreamIterator(); 
-    // Content is being decoded. Not the real length
-    if (isDec != isRaw)
+    if (file.isCompressed())
       contentLength = -1; 
-    // handle content type
-    if ("application/x-gzip".equals(contentType))
-      isDec = new GZIPInputStream(isDec);
-    else if ("application/zip".equals(contentType)) {
-      ZipInputStream zipInput = new ZipInputStream(isDec);
-      streamIterator = new ZipStreamIterator(zipInput);
-      isDec = zipInput;
-    }
     //buffer reads
     isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
     if (cacheFile != null) {
       isDec = new CachingInputStream(isDec, cacheFile);
     }
+    String contentType = file.getContentType();
     MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
     // Expected type overrides content type
     if (getResource().getExpectedSchema() != null)
@@ -277,15 +242,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
     logger.info("Setting up InputStream reader. "
 	+ (contentType != null ? "Content-Type:" + contentType : ""));
     return new InputStreamReadStore(isDec, contentLength, streamIterator);
-  }
-
-  private InputStream handleContentEncoding(InputStream is, String contentEncoding) throws IOException 
-  {
-    if ("gzip".equals(contentEncoding))
-      return new GZIPInputStream(is);
-    if ("deflate".equalsIgnoreCase(contentEncoding))
-      return new InflaterInputStream(is, new Inflater(true));
-    return is;
   }
 
   private void store(MarcStreamReader reader, long contentLength) throws IOException {
@@ -367,17 +323,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
     progress.end();
     
     os.flush();
-  }
-
-  private int handleJumpPage(HttpURLConnection conn) throws Exception 
-  {
-    HTMLPage jp = new HTMLPage(handleContentEncoding(conn.getInputStream(), 
-      conn.getContentEncoding()), conn.getURL());
-    int results = 0;
-    for (URL link : jp.getLinks()) {
-      results += download(link);
-    }    
-    return results; 
   }
 
   class TotalProgressLogger {

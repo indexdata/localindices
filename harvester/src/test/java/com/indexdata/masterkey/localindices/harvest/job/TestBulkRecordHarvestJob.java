@@ -1,7 +1,11 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -443,6 +447,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 	    .equals(errorMessage));
   }
 
+  
   public void testBadSplitAt() throws IOException, StatusNotImplemented {
 
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
@@ -455,7 +460,70 @@ public class TestBulkRecordHarvestJob extends JobTester {
     HarvestStatus jobStatus = job.getStatus();
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.FINISHED);
   }
+  
+  private boolean valid(String path) {
+    if (path != null && !"".equals(path))
+      return true;
+    return false;
+  }
 
+  private int ftpDownload(FTPClient client, String path) throws IOException {
+    String currentPwd = client.printWorkingDirectory();
+    System.out.println("Current directory " + currentPwd);
+    boolean changedDir = false;
+
+    if (valid(path)) {
+      changedDir = client.changeWorkingDirectory(path);
+      if (!changedDir) {
+	System.out.println("Failed to cd to " + path);
+	return 0;
+      }
+      else
+	System.out.println("Change directory " + path);
+    }
+    int count = 0;
+    FTPFile[] files = client.listFiles();
+    for (FTPFile file : files) {
+      if (file.isDirectory())
+	count += ftpDownload(client, file.getName());
+      else {
+	count++;
+	InputStream input = client.retrieveFileStream(file.getName());
+	
+      }
+    }
+    if (changedDir)
+      client.changeToParentDirectory();
+    
+    return count;
+  }
+
+  public void testFTPConnection() throws IOException {
+    String url = new String("ftp://dennis:john238@satay/home/dennis/pub");
+    URL ftpUrl = new URL(url);
+    FTPClient client = new FTPClient();
+    client.connect(ftpUrl.getHost(), (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort()));
+    if (client.isConnected()) {
+      if (ftpUrl.getUserInfo() != null) {
+	String userInfo = ftpUrl.getUserInfo();
+	int pos = userInfo.indexOf(":");
+	if (pos > 0) {
+	  String user = userInfo.substring(0, pos);
+	  String pw = "";
+	  if (userInfo.length() > pos)
+	    pw = userInfo.substring(pos+1); 
+	  System.out.println("User: " + user + " PW: " + pw);
+	  boolean ok = client.login(user, pw);
+	  if (!ok) {
+	    System.out.println("Failed to login as " + user + " " + pw);
+	    return ;
+	  }
+	}
+	int count = ftpDownload(client, ftpUrl.getPath());
+	System.out.println("Found " + count + " files");
+      }
+    }
+  }
   
   public void testCleanOAIsterTurboMarcRecordLimit() throws IOException, StatusNotImplemented { 
     Harvestable resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc",1, 1000, false); 

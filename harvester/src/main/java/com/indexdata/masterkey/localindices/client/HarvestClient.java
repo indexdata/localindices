@@ -1,12 +1,12 @@
 package com.indexdata.masterkey.localindices.client;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 public interface HarvestClient {
   
   int download(URL url) throws Exception;
-  HttpURLConnection createConnection(URL url) throws IOException;
+  URLConnection createConnection(URL url) throws IOException;
 }
 

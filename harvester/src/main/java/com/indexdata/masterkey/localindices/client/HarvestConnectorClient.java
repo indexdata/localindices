@@ -373,7 +373,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       (params != null ? "?" + params : "");
     URL url = new URL(urlString);
     logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
-    HttpURLConnection conn = createConnection(url); 
+    HttpURLConnection conn = (HttpURLConnection) createConnection(url); 
     conn.setRequestMethod("POST");
     conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     return conn; 
