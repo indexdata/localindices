@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
