@@ -15,8 +15,8 @@ public class FtpRemoteFile extends RemoteFile {
   FTPClient client;
   private FtpInputStream ftpInputStream;
   
-  public FtpRemoteFile(FTPFile file, FTPClient client) throws MalformedURLException, IOException {
-    super(new URL("ftp://localhost" + client.printWorkingDirectory() +  "/" + file.getName()));
+  public FtpRemoteFile(URL parent, FTPFile file, FTPClient client) throws MalformedURLException, IOException {
+    super(new URL(parent, file.getName()));
     this.file = file;
     this.client = client; 
   }
