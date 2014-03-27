@@ -25,6 +25,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
   private String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
   private String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
+  private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
+  private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
+  private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
   // private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
   // String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
   String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
@@ -317,7 +320,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testUrlGZippedTurboMarc(String url, boolean inParallel, boolean clear,
-      boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
+      boolean overwrite, long add, long expected_total) throws IOException, StatusNotImplemented {
     Harvestable resource = createResource(url, "application/marc; charset=MARC-8",
 	"application/tmarc", 1, 100, overwrite);
     resource.setId(2l);
@@ -327,26 +330,38 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
-    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
+    checkStorageStatus(recordStorage.getStatus(), add, 0, expected_total);
   }
 
-  public void testCleanJumpPageGZippedTurboMarc(int number, boolean clear, boolean overwrite,
-      long expected_total) throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, 2004);
+  public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, 2004, 2004);
   }
+
+  public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceMarc3, false, true, true, 3006, 3006);
+  }
+  
+  public void testCleanFtp() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceFtp, false, true, true, 4008, 4008);
+  }
+
+  public void testCleanJumpPageMixed() throws IOException, StatusNotImplemented {
+    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, 3006, 3006);
+  }
+  
 
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
   }
 
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, 2 * NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, 3 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true, true,   NO_RECORDS, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, NO_RECORDS, 3 * NO_RECORDS);
     /* Now restart and check that overwrite mode worked */
-    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, NO_RECORDS, NO_RECORDS);
 
   }
 
@@ -448,7 +463,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   
-  public void testBadSplitAt() throws IOException, StatusNotImplemented {
+  public void testBadSplitAt() throws IOException, StatusNotImplemented 
+  {
 
     XmlBulkResource resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
 	null, "", "", false);
