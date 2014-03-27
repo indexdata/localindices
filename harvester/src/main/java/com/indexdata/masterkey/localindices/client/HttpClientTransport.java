@@ -6,7 +6,6 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
@@ -16,27 +15,28 @@ import java.util.zip.ZipInputStream;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.utils.DateUtil;
 
 public class HttpClientTransport implements ClientTransport {
 
   Logger logger = Logger.getLogger(this.getClass());
-  XmlBulkResource resource;
+  //XmlBulkResource resource;
   Date lastRequested;
   HttpURLConnection conn;
+  Integer timeout;
+  String compressedFormat; 
+  ClientTransportFactory clientTransportFactory;
   
-  public HttpClientTransport(XmlBulkResource resource, Date fromDate) {
-    this.resource = resource;
-    lastRequested = fromDate;
+  public HttpClientTransport(ClientTransportFactory clientFactory) {
+    clientTransportFactory = clientFactory;
   }
 
   @Override
   public void connect(URL url) throws IOException {
      conn = createConnection(url);
-     if (resource.getTimeout() != null) {
-       conn.setConnectTimeout(1000*resource.getTimeout());
-       conn.setReadTimeout(1000*resource.getTimeout());
+     if (timeout != null) {
+       conn.setConnectTimeout(timeout);
+       conn.setReadTimeout(timeout);
      }
   }
 
@@ -56,14 +56,17 @@ public class HttpClientTransport implements ClientTransport {
     return inputStream;
   }
 
-  private RemoteFileIterator handleJumpPage(HttpURLConnection conn) throws IOException, URISyntaxException 
+  private RemoteFileIterator handleJumpPage(HttpURLConnection conn) throws IOException, URISyntaxException, ClientTransportError 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
-    ArrayList<RemoteFile> files = new ArrayList<RemoteFile>();
+    LinkRemoteFileIterator files  = new LinkRemoteFileIterator();
     for (URL link : jp.getLinks()) {
-      files.add(new RemoteFile(link));
+      ClientTransport client = clientTransportFactory.lookup(link);
+      RemoteFileIterator iter = client.get(link);
+      while (iter.hasNext()) 
+	files.add(iter.get());
     }    
-    return new LinkRemoteFileIterator(files);
+    return files;
   }
 
 
@@ -71,7 +74,7 @@ public class HttpClientTransport implements ClientTransport {
   public RemoteFileIterator get(URL url) throws IOException, ClientTransportError {
     HttpURLConnection conn = createConnection(url);
     conn.setRequestMethod("GET");
-    if (getResource().getAllowCondReq() && (lastRequested != null)) {
+    if (lastRequested != null) {
       try {
       String lastModified = DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
       logger.info("Conditional request If-Modified-Since: " + lastModified);
@@ -101,12 +104,12 @@ public class HttpClientTransport implements ClientTransport {
 	  //System.out.println("Detecting type from decompressed stream: " + URLConnection.guessContentTypeFromStream(isDec));
 	  file = new RemoteFile(url, isDec, true);
 	  file.setLength(length);
-	  file.setContentType(resource.getExpectedSchema());
+	  file.setContentType(compressedFormat);
 	  return new SingleFileIterator(file);
 	}
 	else if ("application/zip".equals(contentType)) {
 	  ZipInputStream zipInput = new ZipInputStream(isDec);
-	  return new ZipRemoteFileIterator(url, zipInput, resource.getExpectedSchema());
+	  return new ZipRemoteFileIterator(url, zipInput, compressedFormat);
 	}
 	return new SingleFileIterator(file);
       }
@@ -123,10 +126,6 @@ public class HttpClientTransport implements ClientTransport {
     }
 }
 
-  public XmlBulkResource getResource() {
-    return resource;
-  }
-  
   private long getContentLength(HttpURLConnection conn) {
     // conn.getContentLength() overruns at 2GB, since the interface returns a integer
     long contentLength = -1;
@@ -145,6 +144,28 @@ public class HttpClientTransport implements ClientTransport {
 
   public void setLastRequested(Date lastRequested) {
     this.lastRequested = lastRequested;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public String getCompressedFormat() {
+    return compressedFormat;
+  }
+
+  public void setCompressedFormat(String compressedFormat) {
+    this.compressedFormat = compressedFormat;
+  }
+
+  @Override
+  public void setFromDate(Date date) {
+    lastRequested = date;
+    
   }
 
 

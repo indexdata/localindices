@@ -7,7 +7,6 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
@@ -38,13 +37,11 @@ import com.indexdata.xml.filter.SplitContentHandler;
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private Date lastRequested;
   private int splitAt = 1;
  
   public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,  
     Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
     super(resource, job, proxy, logger, dc);
-    this.lastRequested = lastRequested;
   }
 
   @Override
@@ -56,24 +53,35 @@ public class XmlMarcClient extends AbstractHarvestClient {
   public XmlBulkResource getResource() {
     return (XmlBulkResource) resource; 
   }
+
+  public int download(RemoteFile file) throws Exception {
+    int count = 0;
+    if (file.isDirectory()) { 
+      RemoteFileIterator iterator = file.getIterator();
+      while (iterator.hasNext())
+	count += download(iterator.get());
+    }
+    else {
+      ReadStore readStore = prepareReadStore(file, resource.isCacheEnabled() ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
+	  : null);
+      readStore.readAndStore();
+      count++;
+    }
+    return count;
+  }
   
   @Override
   public int download(URL url) throws Exception {
+    ClientTransportFactory factory = new ResourceClientTransportFactory((XmlBulkResource) resource);
     logger.info("Starting download - " + url.toString());
     try {
-      ClientTransport clientTransport = createClientTransport(url); 
+      
+      ClientTransport clientTransport = factory.lookup(url);
+      clientTransport.connect(url);
       try {
 	RemoteFileIterator iterator = clientTransport.get(url);
 	while (iterator.hasNext()) { 
-	  RemoteFile file = iterator.get();
-	  if (file.isDirectory()) 
-	    download(url);
-	  else {
-	    ReadStore readStore = prepareReadStore(file, resource.isCacheEnabled() ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
-			: null);
-	    readStore.readAndStore();	    
-	  
-	  }
+	  download(iterator.get());
 	}
       } catch (ClientTransportError cte) {
 	if (getResource().getAllowErrors()) {
@@ -102,11 +110,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
     return 0;
   }
   
-  private ClientTransport createClientTransport(URL url) {
-    // TODO, dispatch on URL protocol 
-    return new HttpClientTransport((XmlBulkResource) resource, lastRequested);
-  }
-
   public int download(File file) throws Exception {
     try {
       ReadStore readStore = prepareReadStore(new LocalRemoteFile(file), null);
@@ -302,69 +305,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
     xmlSplitter.processDataFromInputStream(is);
   }
-
-  /* 
-   * Pipe is reading after decompression, so Content-Length does does not match total
-   * Any stream that doesn't support valid total should return -1 into. The ProgressLogger should adjust to this
-   * 
-   */
-  @SuppressWarnings("unused")
-  private void pipe(InputStream is, OutputStream os, long total) throws IOException {
-    int blockSize = 100*1024;
-    byte[] buf = new byte[blockSize];
-    TotalProgressLogger progress = new TotalProgressLogger(total);
-    for (int len = -1; (len = is.read(buf)) != -1;) {
-      os.write(buf, 0, len);
-      if (job.isKillSent()) {
-	throw new IOException("Download interruted with a kill signal.");
-      }
-      progress.progress(len);
-    }
-    progress.end();
-    
-    os.flush();
-  }
-
-  class TotalProgressLogger {
-    long total;
-    long copied = 0;
-    long num = 0;
-    int logBlockNum = 1024; // how many blocks to log progress
-    String message = "Downloaded ";
-    private long lastPercent;
-
-    public TotalProgressLogger(long total) {
-      this.total = total;
-    }
-
-    void progress(int len) {
-      copied += len;
-      if (copied == total) {
-	message = "Download finished: ";
-      }
-      if (num % logBlockNum == 0 || copied == total) {
-	showProgress();
-      }
-      num++;
-    }
-    
-    protected void end() {
-	message = "Download finished: ";
-	showProgress();
-    }
-    protected void showProgress() {
-      
-      if (total != -1) {
-	long newPercent = Math.round((double) copied / (double) total * 100); 
-	if (lastPercent != newPercent)
-	  logger.info(message + copied + "/" + total + " bytes (" + newPercent + "%)");
-	lastPercent = newPercent;
-      }
-      else
-	logger.info(message + copied + " bytes");
-    }
-  }
-
 
   public String getErrors() {
     return errors;

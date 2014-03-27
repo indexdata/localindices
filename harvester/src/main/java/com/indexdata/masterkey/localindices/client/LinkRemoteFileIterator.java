@@ -4,8 +4,12 @@ import java.util.ArrayList;
 
 public class LinkRemoteFileIterator implements RemoteFileIterator {
 
-  ArrayList<RemoteFile> files;
+  ArrayList<RemoteFile> files; ;
   int index = 0;
+
+  LinkRemoteFileIterator() {
+    files = new ArrayList<RemoteFile>();  
+  }
 
   LinkRemoteFileIterator(ArrayList<RemoteFile> httpLinks) {
     files = httpLinks;
@@ -21,4 +25,7 @@ public class LinkRemoteFileIterator implements RemoteFileIterator {
     return files.get(index++);
   }
 
+  public void add(RemoteFile file) {
+    files.add(file);
+  }
 }
