@@ -16,7 +16,6 @@ public class FtpClientTransport implements ClientTransport {
   XmlBulkResource resource;
   Date fromDate;
   FTPClient client = null;
-  private String mimeType;
   
   public FtpClientTransport(XmlBulkResource resource, Date fromDate) {
     this.resource = resource;
@@ -54,6 +53,12 @@ public class FtpClientTransport implements ClientTransport {
     return false;
   }
 
+  public String appendPath(String path, String name) {
+    if (path.endsWith("/")) 
+      return path + name;
+    else
+      return path + "/" + name;
+  }
 
   @Override
   public synchronized RemoteFileIterator get(URL url) throws IOException, ClientTransportError {
@@ -61,17 +66,7 @@ public class FtpClientTransport implements ClientTransport {
       connect(url);
 
     FTPFile[] files = client.listFiles(url.getPath());
-    LinkRemoteFileIterator remoteFiles = new LinkRemoteFileIterator();
-    for (FTPFile file : files) {
-      RemoteFile remoteFile = null;
-      if (file.isDirectory())
-	remoteFile = new FtpRemoteDirectory(file,client);
-      else {
-	remoteFile = new FtpRemoteFile(file, client);
-      }
-      remoteFiles.add(remoteFile);
-    }
-    return remoteFiles;
+    return new FtpRemoteFileIterator(client, url, files);
   }
 
   public XmlBulkResource getResource() {
@@ -85,8 +80,7 @@ public class FtpClientTransport implements ClientTransport {
   }
 
   @Override
-  public void setCompressedFormat(String mimetype) {
-    this.mimeType = mimetype; 
+  public void setCompressedFormat(String mimetype) { 
   }
 
   @Override
