@@ -1,11 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -28,12 +24,13 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
   private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
   private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
-  // private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  // String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
-  String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
-  String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
+  private String resourceMarcXml0_no_namespace = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000_namespace.xml";
+  private String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
+  private String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
+  private String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
 
-  String resourceOaiPmh = "http://lui-dev.indexdata.com/oaipmh/Harvester_Full_1.xml";
+  private String resourceOaiPmh = "http://lui-dev.indexdata.com/oaipmh/Harvester_Full_1.xml";
 
   // String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
   //private String resourceOAIster = "http://lui-dev.indexdata.com/marcdata/meta/oaister/harvester-index.html";
@@ -67,7 +64,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private Harvestable createResource(String url, String expectedSchema, String outputSchema,
-      int splitAt, int size, boolean overwrite) throws IOException {
+      int splitAt, int size, boolean overwrite, boolean cacheEnabled) throws IOException {
     return createResource(url, expectedSchema, outputSchema, String.valueOf(splitAt),
 	String.valueOf(size), overwrite);
   }
@@ -84,7 +81,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private Transformation createMarc21Transformation(boolean inParallel) throws IOException {
     String[] resourceSteps = {
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
-	"resources/marc21.xsl",
+	"resources/marc21-marc-namespace.xsl",
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
 	"resources/pz2-create-id.xsl",
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" };
@@ -166,9 +163,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private void testMarc21SplitByNumber(boolean inParallel, int number, boolean clear,
-      boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
-	null, 0, number, overwrite);
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceMarc0, "application/marc;charset=MARC8", null, 0, number, overwrite, cacheEnabled);
     resource.setId(1l);
     resource.setTransformation(createMarc21Transformation(inParallel));
 
@@ -188,25 +184,25 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue("Total records != 0: " + total, total == 0);
   }
 
-  private void testCleanMarc21SplitByNumber(boolean inParallel, int number) throws IOException,
+  private void testCleanMarc21SplitByNumber(boolean inParallel, int number, boolean cacheEnabled) throws IOException,
       StatusNotImplemented {
-    testMarc21SplitByNumber(inParallel, number, true, true, NO_RECORDS);
+    testMarc21SplitByNumber(inParallel, number, true, true, cacheEnabled, NO_RECORDS);
   }
 
   public void testCleanMarc21NoSplitSerial() throws IOException, StatusNotImplemented {
-    testCleanMarc21SplitByNumber(false, 0);
+    testCleanMarc21SplitByNumber(false, 0, false);
   }
 
   public void testCleanMarc21NoSplitParallel() throws IOException, StatusNotImplemented {
-    testCleanMarc21SplitByNumber(true, 0);
+    testCleanMarc21SplitByNumber(true, 0, false);
   }
 
   public void testCleanMarc21Split1Serial() throws IOException, StatusNotImplemented {
-    testCleanMarc21SplitByNumber(false, 1);
+    testCleanMarc21SplitByNumber(false, 1, false);
   }
 
   public void testCleanMarc21Split1Parallel() throws IOException, StatusNotImplemented {
-    testCleanMarc21SplitByNumber(true, 1);
+    testCleanMarc21SplitByNumber(true, 1, false);
   }
 
   /*
@@ -217,9 +213,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
    * StatusNotImplemented { testCleanMarc21SplitByNumber(1000); }
    */
   private void testCleanTurboMarcSplitByNumber(boolean inParallel, int number, boolean clean,
-      boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarc0, "application/marc; charset=MARC8",
-	"application/tmarc", 0, number, overwrite);
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceTurboMarc0, null, null, 0, number, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
     RecordStorage recordStorage = createStorage(clean, resource);
@@ -230,15 +225,15 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanTurboMarcNoSplitSerial() throws IOException, StatusNotImplemented {
-    testCleanTurboMarcSplitByNumber(false, 0, true, true, NO_RECORDS);
+    testCleanTurboMarcSplitByNumber(false, 0, true, true, false, NO_RECORDS);
   }
 
   public void testCleanTurboMarcSplit1Parallel() throws IOException, StatusNotImplemented {
-    testCleanTurboMarcSplitByNumber(true, 1, true, true, NO_RECORDS);
+    testCleanTurboMarcSplitByNumber(true, 1, true, true, false, NO_RECORDS);
   }
 
   public void testCleanTurboMarcSplit100() throws IOException, StatusNotImplemented {
-    testCleanTurboMarcSplitByNumber(false, 100, true, true, NO_RECORDS);
+    testCleanTurboMarcSplitByNumber(false, 100, true, true, false, NO_RECORDS);
   }
 
   /*
@@ -248,9 +243,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
    */
 
   private void testGZippedMarc21SplitByNumber(boolean inParallel, int number, boolean clean,
-      boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarcGZ, "application/marc", null, 1, number,
-	overwrite);
+      boolean overwrite, boolean cacheEnabled, long total_expected) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceMarcGZ, "application/marc", null, 1, number, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(inParallel));
 
@@ -263,30 +257,29 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private void testCleanGZippedMarc21SplitByNumber(boolean inParallel, int number,
-      boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    testGZippedMarc21SplitByNumber(inParallel, number, true, overwrite, NO_RECORDS);
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    testGZippedMarc21SplitByNumber(inParallel, number, true, overwrite, cacheEnabled, NO_RECORDS);
   }
 
   public void testCleanGZippedMarc21NoSplit() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 1, true, NO_RECORDS);
+    testCleanGZippedMarc21SplitByNumber(false, 1, true, false, NO_RECORDS);
   }
 
   public void testCleanGZippedMarc21Split1() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 1, true, NO_RECORDS);
+    testCleanGZippedMarc21SplitByNumber(false, 1, true, false, NO_RECORDS);
   }
 
   public void testCleanGZippedMarc21Split100() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 100, true, NO_RECORDS);
+    testCleanGZippedMarc21SplitByNumber(false, 100, true, false, NO_RECORDS);
   }
 
   public void testCleanGZippedMarc21Split1000() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 1000, true, NO_RECORDS);
+    testCleanGZippedMarc21SplitByNumber(false, 1000, true, false, NO_RECORDS);
   }
 
   private void testGZippedTurboMarcSplitByNumber(boolean inParallel, int number, boolean clear,
-      boolean overwrite, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarcGZ, "application/marc",
-	"application/tmarc", 1, number, overwrite);
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceMarcGZ, "application/marc", "application/tmarc", 1, number, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
 
@@ -300,7 +293,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private void testCleanGZippedTurboMarcSplitByNumber(boolean inParallel, int number)
       throws IOException, StatusNotImplemented {
-    testGZippedTurboMarcSplitByNumber(inParallel, number, true, true, NO_RECORDS);
+    testGZippedTurboMarcSplitByNumber(inParallel, number, true, true, false, NO_RECORDS);
   }
 
   public void testCleanGZippedTurboMarcNoSplit() throws IOException, StatusNotImplemented {
@@ -320,9 +313,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testUrlGZippedTurboMarc(String url, boolean inParallel, boolean clear,
-      boolean overwrite, long add, long expected_total) throws IOException, StatusNotImplemented {
+      boolean overwrite, boolean cacheEnabled, long add, long expected_total) throws IOException, StatusNotImplemented {
     Harvestable resource = createResource(url, "application/marc; charset=MARC-8",
-	"application/tmarc", 1, 100, overwrite);
+	"application/tmarc", 1, 100, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
 
@@ -334,41 +327,41 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, 2004, 2004);
+    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, false, 2004, 2004);
   }
 
   public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc3, false, true, true, 3006, 3006);
+    testUrlGZippedTurboMarc(resourceMarc3, false, true, true, false, 3006, 3006);
   }
   
   public void testCleanFtp() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceFtp, false, true, true, 4008, 4008);
+    testUrlGZippedTurboMarc(resourceFtp, false, true, true, false, 4008, 4008);
   }
 
   public void testCleanJumpPageMixed() throws IOException, StatusNotImplemented {
     // Some of the test data is duplicate, therefore a higher add than commit. Records are being overwritten.
-    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, 6012, 4008);
+    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, false, 6012, 4008);
   }
   
 
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true, NO_RECORDS, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true,  true,  false, NO_RECORDS, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
   }
 
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true, true,   NO_RECORDS, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, NO_RECORDS, 3 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, true,  true,  false, NO_RECORDS, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, false, NO_RECORDS, 3 * NO_RECORDS);
     /* Now restart and check that overwrite mode worked */
-    testUrlGZippedTurboMarc(resourceMarc0, false, false, true, NO_RECORDS, NO_RECORDS);
+    testUrlGZippedTurboMarc(resourceMarc0, false, false, true,  false, NO_RECORDS, NO_RECORDS);
 
   }
 
   private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
-      boolean overwrite, long total_expected) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(zipMarcUrl, "application/marc", null, 1, 1, overwrite);
+      boolean overwrite, boolean cacheEnabled, long total_expected) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(zipMarcUrl, "application/marc", null, 1, 1, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(inParallel));
 
@@ -382,8 +375,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private void testZippedMarcXmlSplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
-      boolean overwrite, int added, long total_expected) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(zipMarcUrl, null, null, 1, 1, overwrite);
+      boolean overwrite, boolean cacheEnabled, int added, long total_expected) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(zipMarcUrl, null, null, 1, 1, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(inParallel));
 
@@ -397,17 +390,50 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanMarc21ZippedSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, NO_RECORDS);
+    testZippedMarc21SplitByNumber(resourceMarcZIP, false, true, true, false, NO_RECORDS);
   }
 
   public void testCleanMarc21ZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarc21SplitByNumber(resourceMarcZIPMulti, false, true, true, 1000);
+    testZippedMarc21SplitByNumber(resourceMarcZIPMulti, false, true, true, false, 1000);
   }
 
   public void testCleanMarcXmlZippedMultiEntriesSplitBy() throws IOException, StatusNotImplemented {
-    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, false, true, true, 10020, 10007);
+    testZippedMarcXmlSplitByNumber(resourceMarcXmlZIPMulti, false, true, true, false, 10020, 10007);
   }
 
+  private void testXml(boolean inParallel, boolean clean, int splitAt, int splitSize,  
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceMarcXml0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
+    resource.setId(2l);
+    resource.setTransformation(createMarc21Transformation(inParallel));
+    RecordStorage recordStorage = createStorage(clean, resource);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
+    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
+  }
+  
+  public void testCleanXml() throws IOException, StatusNotImplemented {
+    testXml(false, true, 1, 1, true, false, 1002);
+  }
+
+  private void testTurboXml(boolean inParallel, boolean clean, int splitAt, int splitSize,  
+      boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
+    Harvestable resource = createResource(resourceMarcXml0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
+    resource.setId(2l);
+    resource.setTransformation(createTurboMarcTransformation(inParallel));
+    RecordStorage recordStorage = createStorage(clean, resource);
+    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    emulateJobScheduler(resource, job);
+    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
+  }
+  
+  public void testCleanTurboXml() throws IOException, StatusNotImplemented {
+    testTurboXml(false, true, 1, 1, true, false, 1002);
+  }
+
+  
   @SuppressWarnings("unused")
   private class JobStorageHelper {
     private final StorageStatus expectedStorageStatus;
@@ -429,7 +455,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     }
 
     public void test() throws IOException, StatusNotImplemented {
-      Harvestable resource = createResource(url, null, null, 1, 1, overwrite);
+      Harvestable resource = createResource(url, null, null, 1, 1, overwrite, false);
       resource.setId(2l);
       resource.setTransformation(createMarc21Transformation(inParallel));
       RecordStorage recordStorage = storageCreator.createStorage(clean, resource);
@@ -444,7 +470,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   public void testBadSolrStorage() throws IOException, StatusNotImplemented {
 
     Harvestable resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
-	null, 1, 1, false);
+	null, 1, 1, false, false);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(false));
     SolrStorageEntity storageEntity = new SolrStorageEntity();
@@ -478,72 +504,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.FINISHED);
   }
   
-  private boolean valid(String path) {
-    if (path != null && !"".equals(path))
-      return true;
-    return false;
-  }
-
-  private int ftpDownload(FTPClient client, String path) throws IOException {
-    String currentPwd = client.printWorkingDirectory();
-    System.out.println("Current directory " + currentPwd);
-    boolean changedDir = false;
-
-    if (valid(path)) {
-      changedDir = client.changeWorkingDirectory(path);
-      if (!changedDir) {
-	System.out.println("Failed to cd to " + path);
-	return 0;
-      }
-      else
-	System.out.println("Change directory " + path);
-    }
-    int count = 0;
-    FTPFile[] files = client.listFiles();
-    for (FTPFile file : files) {
-      if (file.isDirectory())
-	count += ftpDownload(client, file.getName());
-      else {
-	count++;
-	InputStream input = client.retrieveFileStream(file.getName());
-	
-      }
-    }
-    if (changedDir)
-      client.changeToParentDirectory();
-    
-    return count;
-  }
-
-  public void testFTPConnection() throws IOException {
-    String url = new String("ftp://dennis:john238@satay/home/dennis/pub");
-    URL ftpUrl = new URL(url);
-    FTPClient client = new FTPClient();
-    client.connect(ftpUrl.getHost(), (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort()));
-    if (client.isConnected()) {
-      if (ftpUrl.getUserInfo() != null) {
-	String userInfo = ftpUrl.getUserInfo();
-	int pos = userInfo.indexOf(":");
-	if (pos > 0) {
-	  String user = userInfo.substring(0, pos);
-	  String pw = "";
-	  if (userInfo.length() > pos)
-	    pw = userInfo.substring(pos+1); 
-	  System.out.println("User: " + user + " PW: " + pw);
-	  boolean ok = client.login(user, pw);
-	  if (!ok) {
-	    System.out.println("Failed to login as " + user + " " + pw);
-	    return ;
-	  }
-	}
-	int count = ftpDownload(client, ftpUrl.getPath());
-	System.out.println("Found " + count + " files");
-      }
-    }
-  }
-  
   public void testCleanOAIsterTurboMarcRecordLimit() throws IOException, StatusNotImplemented { 
-    Harvestable resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc",1, 1000, false); 
+    Harvestable resource = createResource(resourceMarcUTF8, "application/marc", "application/tmarc",1, 1000, false, false); 
     int recordLimit = 3 * NO_RECORDS;
     resource.setId(2l);
     resource.setRecordLimit(recordLimit);
