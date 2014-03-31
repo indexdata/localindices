@@ -26,8 +26,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
   private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
   private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
-  private String resourceMarcXml0_no_namespace = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000_namespace.xml";
+  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  private String resourceMarcXml0_namespace = "http://lui-dev.indexdata.com/loc/loc-small.0000000_namespace.xml";
   private String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
   private String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
   private String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
@@ -83,7 +83,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private Transformation createMarc21Transformation(boolean inParallel) throws IOException {
     String[] resourceSteps = {
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
-	"resources/marc21-marc-namespace.xsl",
+	"resources/marc21.xsl",
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
 	"resources/pz2-create-id.xsl",
 	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" };
