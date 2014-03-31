@@ -346,7 +346,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanJumpPageMixed() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, 3006, 3006);
+    // Some of the test data is duplicate, therefore a higher add than commit. Records are being overwritten.
+    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, 6012, 4008);
   }
   
 
