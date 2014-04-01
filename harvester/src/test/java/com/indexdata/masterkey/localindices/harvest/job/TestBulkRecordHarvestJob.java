@@ -21,8 +21,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000";
   private String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
   private String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
-  // private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  // String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
   private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
   private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
   private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
@@ -419,7 +417,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private void testTurboXml(boolean inParallel, boolean clean, int splitAt, int splitSize,  
       boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarcXml0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
+    Harvestable resource = createResource(resourceTurboMarc0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
     RecordStorage recordStorage = createStorage(clean, resource);
