@@ -476,9 +476,9 @@
    <field name="author-date"  type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
    <field name="author-title" type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
 
-   <field name="corporate-date"     type="text" indexed="true" stored="true" omitNorms="true"/>
-   <field name="corporate-location" type="text" indexed="true" stored="true" omitNorms="true"/>
-   <field name="corporate-name"     type="text" indexed="true" stored="true" omitNorms="true"/>
+   <field name="corporate-date"     type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+   <field name="corporate-location" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+   <field name="corporate-name"     type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="callnumber" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
    <field name="citation"   type="text" indexed="true" stored="true" multiValued="true"  omitNorms="true"/>
@@ -498,12 +498,12 @@
    <field name="issn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
    <field name="lccn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
-   <field name="medium"       type="text"  indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
+   <field name="medium"       type="text"  indexed="true" stored="true"   multiValued="true" omitNorms="true"/>
    <field name="medium_exact" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true" docValues="true" />
 
-   <field name="meeting-date"     type="text" indexed="true" stored="true" omitNorms="true"/>
-   <field name="meeting-location" type="text" indexed="true" stored="true" omitNorms="true"/>
-   <field name="meeting-name"     type="text" indexed="true" stored="true" omitNorms="true"/>
+   <field name="meeting-date"     type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+   <field name="meeting-location" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+   <field name="meeting-name"     type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="series-title" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
