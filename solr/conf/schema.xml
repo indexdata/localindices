@@ -471,8 +471,8 @@
 
    <field name="transactionId" type="long" indexed="true" stored="false"/>
 
-   <field name="author"       type="text"   indexed="true" stored="true"  multiValued="true"  omitNorms="true"/>
-   <field name="author_exact" type="string"  indexed="true" stored="false" multiValued="true"  omitNorms="true" docValues="true" />
+   <field name="author"       type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
+   <field name="author_exact" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true" docValues="true" />
    <field name="author-date"  type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
    <field name="author-title" type="text"   indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
 
@@ -499,7 +499,7 @@
    <field name="lccn" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="medium"       type="text"  indexed="true" stored="true"  multiValued="true" omitNorms="true"/>
-   <field name="medium_exact" type="facet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+   <field name="medium_exact" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true" docValues="true" />
 
    <field name="meeting-date"     type="text" indexed="true" stored="true" omitNorms="true"/>
    <field name="meeting-location" type="text" indexed="true" stored="true" omitNorms="true"/>
@@ -508,7 +508,7 @@
    <field name="series-title" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 
    <field name="subject"       type="text_ws" indexed="true" stored="true"  multiValued="true" omitNorms="true" />
-   <field name="subject_exact" type="facet"   indexed="true" stored="false" multiValued="true" omitNorms="true" />
+   <field name="subject_exact" type="string"  indexed="true" stored="false" multiValued="true" omitNorms="true" docValues="true" />
    <field name="subject-long"  type="text_ws" indexed="true" stored="true"  multiValued="true" omitNorms="true" />
 
    <field name="system-control-nr" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
@@ -529,7 +529,7 @@
    <field name="title-uniform-parts"    type="text"   indexed="true" multiValued="true" stored="true"/>
 
    <field name="journal-title"          type="text" indexed="true" multiValued="true"  stored="true" />
-   <field name="journal-title_exact"    type="text" indexed="true" multiValued="true"  stored="false"/>
+   <field name="journal-title_exact"    type="string" indexed="true" multiValued="true"  stored="false" docValues="true" />
 
    <field name="physical-accomp"     type="text" indexed="true" stored="true" multiValued="true" />
    <field name="physical-dimensions" type="text" indexed="true" stored="true" multiValued="true" />
@@ -644,7 +644,7 @@
 	  destination field is to use the dynamic field syntax. 
 	  copyField also supports a maxChars to copy setting.  -->
 	   
-   <copyField source="*" dest="text" maxChars="10000"/> 
+   <copyField source="*" dest="text"/> 
 
    <!-- copy name to alphaNameSort, a field designed for sorting by name -->
    <!-- <copyField source="name" dest="alphaNameSort"/> -->
