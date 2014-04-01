@@ -1,2 +1,4 @@
 *.NavData
 /target
+.externalToolBuilders/
+WEB-INF/
