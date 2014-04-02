@@ -1,22 +1,3 @@
-/*
-
-Licensed to the Apache Software Foundation (ASF) under one or more
-contributor license agreements.  See the NOTICE file distributed with
-this work for additional information regarding copyright ownership.
-The ASF licenses this file to You under the Apache License, Version 2.0
-(the "License"); you may not use this file except in compliance with
-the License.  You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-*/
-
 #content #cores
 {
   position: relative;
@@ -31,11 +12,6 @@ limitations under the License.
   left: -5px;
   top: 35px;
   width: 500px;
-}
-
-#content #cores.empty .requires-core
-{
-  display: none;
 }
 
 #content #cores #frame
@@ -58,7 +34,6 @@ limitations under the License.
 #content #cores #frame .actions
 {
   margin-bottom: 20px;
-  min-height: 30px;
 }
 
 #content #cores .actions div.action
@@ -71,19 +46,9 @@ limitations under the License.
   display: none;
 }
 
-#content #cores .actions form .directory-note
-{
-  background-image: url( ../../img/ico/information-white.png );
-  background-position: 22% 1px;
-  color: #c0c0c0;
-}
-
 #content #cores .actions form .error
 {
-  background-image: url( ../../img/ico/cross-button.png );
-  background-position: 22% 1px;
-  color: #c00;
-  font-weight: bold;
+  color: #800;
   display: none;
 }
 
@@ -104,16 +69,10 @@ limitations under the License.
 #content #cores .actions form input,
 #content #cores .actions form select,
 #content #cores .actions form .buttons,
-#content #cores .actions form .note span
+#content #cores .actions form .error span
 {
   float: right;
-  width: 71%;
-}
-
-#content #cores .actions form .note span
-{
-  padding-left: 3px;
-  padding-right: 3px;
+  width: 73%;
 }
 
 #content #cores .actions form .buttons
@@ -192,7 +151,7 @@ limitations under the License.
   display: none;
   position: absolute;
   left: -50px;
-  top: 40px;
+  top: 40;
   padding: 10px;
 }
 
