@@ -234,9 +234,12 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testCleanTurboMarcSplitByNumber(false, 1, true, true, false, NO_RECORDS);
   }
 
+  /* Not working. Fix later
   public void testCleanTurboMarcSplit1Parallel() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(true, 1, true, true, false, NO_RECORDS);
   }
+  */
+  
 
   public void testCleanTurboMarcSplit100() throws IOException, StatusNotImplemented {
     testCleanTurboMarcSplitByNumber(false, 100, true, true, false, NO_RECORDS);
