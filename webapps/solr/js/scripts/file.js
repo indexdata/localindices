@@ -22,51 +22,34 @@ sammy.get
   function( context )
   {
     var core_basepath = this.active_core.attr( 'data-basepath' );
-    var content_element = $( '#content' );
+	var filetype = context.params.splat[1]; // either schema or config	
+	var filename = this.active_core.attr( filetype );
 
-    var url = window.location.protocol + '//' + window.location.host + core_basepath + '/admin/file'
-            + '?file=' + this.active_core.attr( context.params.splat[1] )
-            + '&contentType=text/xml;charset=utf-8';
-
-    $.get
+    $.ajax
     (
-      'tpl/file.html',
-      function( template )
       {
-        content_element
-          .html( template );
+        url : core_basepath + "/admin/file?file=" + filename + "&contentType=text/xml;charset=utf-8",
+        dataType : 'xml',
+        context : $( '#content' ),
+        beforeSend : function( xhr, settings )
+        {
+          this
+          .html( '<div class="loader">Loading ...</div>' );
+        },
+        complete : function( xhr, text_status )
+        {
+          var code = $(
+            '<pre class="syntax language-xml"><code>' +
+            xhr.responseText.esc() +
+            '</code></pre>'
+          );
+          this.html( code );
 
-        $( '#url', content_element )
-          .text( url )
-          .attr( 'href', url );
-
-        $.ajax
-        (
+          if( 'success' === text_status )
           {
-            url : url,
-            dataType : 'xml',
-            context : $( '#response' ,content_element ),
-            beforeSend : function( xhr, settings )
-            {
-              this
-              .html( '<div class="loader">Loading ...</div>' );
-            },
-            complete : function( xhr, text_status )
-            {
-              var code = $(
-                '<pre class="syntax language-xml"><code>' +
-                xhr.responseText.esc() +
-                '</code></pre>'
-              );
-              this.html( code );
-
-              if( 'success' === text_status )
-              {
-                hljs.highlightBlock( code.get(0) );
-              }
-            }
+            hljs.highlightBlock( code.get(0) );
           }
-        );
+        }
       }
     );
   }

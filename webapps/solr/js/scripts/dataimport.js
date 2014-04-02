@@ -323,6 +323,9 @@ sammy.get
                 submit_span
                   .data( 'original', submit_span.text() )
                   .text( submit_span.data( 'debugmode' ) );
+
+                $( 'textarea', block )
+                  .autogrow()
               }
               else
               {

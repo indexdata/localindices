@@ -125,11 +125,11 @@ sammy.get
               var fields = 0;
               for( var key in context.params )
               {
-                if( 'string' === typeof context.params[key] && 0 !== context.params[key].length )
+                if( 'string' === typeof context.params[key] )
                 {
                   fields++;
                   $( '[name="' + key + '"]', analysis_form )
-                    .val( context.params[key] );
+                    .val( context.params[key].replace( /\+/g, ' ' ) );
                 }
               }
 
@@ -250,8 +250,7 @@ sammy.get
               var params = $.param( compute_analysis_params() )
                             .replace( /[\w\.]+=\+*(&)/g, '$1' ) // remove empty parameters
                             .replace( /(&)+/, '$1' )            // reduce multiple ampersands
-                            .replace( /^&/, '' )                // remove leading ampersand
-                            .replace( /\+/g, '%20' );           // replace plus-signs with encoded whitespaces
+                            .replace( /^&/, '' );               // remove leading ampersand
 
               context.redirect( context.path.split( '?' ).shift() + '?' + params );
               return false;
