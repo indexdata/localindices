@@ -22,7 +22,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc1 = "http://lui-dev.indexdata.com/loc/loc-small.0000001";
   private String resourceMarc2 = "http://lui-dev.indexdata.com/loc/loc-small.0000002";
   private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
-  private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
+  private String resourceFtp = "ftp://anonymous:tests@localhost/pub/marc/";
   private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
   private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
   @SuppressWarnings("unused")
