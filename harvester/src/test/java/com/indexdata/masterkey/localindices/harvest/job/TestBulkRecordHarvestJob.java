@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -252,15 +253,30 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private void testGZippedMarc21SplitByNumber(boolean inParallel, int number, boolean clean,
       boolean overwrite, boolean cacheEnabled, long total_expected) throws IOException, StatusNotImplemented {
     Harvestable resource = createResource(resourceMarcGZ, "application/marc", null, 1, number, overwrite, cacheEnabled);
+
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(inParallel));
 
     RecordStorage recordStorage = createStorage(clean, resource);
     
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, NO_RECORDS);
+
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    StorageStatus storageStatus = recordStorage.getStatus();
+    checkStorageStatus(storageStatus, NO_RECORDS, 0, total_expected);
     emulateJobScheduler(resource, job);
+
+    if (!cacheEnabled)
+      return;
+    resource.setDiskRun(true);
+    RecordStorage diskRecordStorage = createStorage(clean, resource);
+    RecordHarvestJob diskJob = doHarvestJob(diskRecordStorage, resource);
+    emulateJobScheduler(resource, diskJob);
+    
+    assertTrue(diskJob.getStatus() == HarvestStatus.FINISHED);
+    StorageStatus diskrunStorageStatus = diskRecordStorage.getStatus();
+    assertTrue("Diskrun differs from real run", storageStatus.equals(diskrunStorageStatus));
+
   }
 
   private void testCleanGZippedMarc21SplitByNumber(boolean inParallel, int number,
@@ -268,34 +284,41 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testGZippedMarc21SplitByNumber(inParallel, number, true, overwrite, cacheEnabled, NO_RECORDS);
   }
 
-  public void testCleanGZippedMarc21NoSplit() throws IOException, StatusNotImplemented {
+  public void testCleanGZippedMarc21Split1NoCache() throws IOException, StatusNotImplemented {
     testCleanGZippedMarc21SplitByNumber(false, 1, true, false, NO_RECORDS);
   }
 
-  public void testCleanGZippedMarc21Split1() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 1, true, false, NO_RECORDS);
+  public void testCleanGZippedMarc21Split1Cached() throws IOException, StatusNotImplemented {
+    testCleanGZippedMarc21SplitByNumber(false, 1, true, true, NO_RECORDS);
   }
 
-  public void testCleanGZippedMarc21Split100() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 100, true, false, NO_RECORDS);
-  }
 
-  public void testCleanGZippedMarc21Split1000() throws IOException, StatusNotImplemented {
-    testCleanGZippedMarc21SplitByNumber(false, 1000, true, false, NO_RECORDS);
-  }
-
-  private void testGZippedTurboMarcSplitByNumber(boolean inParallel, int number, boolean clear,
+  private void testGZippedTurboMarcSplitByNumber(boolean inParallel, int number, boolean clean,
       boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
     Harvestable resource = createResource(resourceMarcGZ, "application/marc", "application/tmarc", 1, number, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
 
-    RecordStorage recordStorage = createStorage(clear, resource);
+    RecordStorage recordStorage = createStorage(clean, resource);
 
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue(job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
-    checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
+    StorageStatus storageStatus = recordStorage.getStatus();
+    checkStorageStatus(storageStatus, NO_RECORDS, 0, expected_total);
+    
+    if (!cacheEnabled)
+      return;
+    resource.setDiskRun(true);
+    RecordStorage diskRecordStorage = createStorage(clean, resource);
+    RecordHarvestJob diskJob = doHarvestJob(diskRecordStorage, resource);
+    emulateJobScheduler(resource, diskJob);
+    
+    assertTrue(diskJob.getStatus() == HarvestStatus.FINISHED);
+    StorageStatus diskrunStorageStatus = diskRecordStorage.getStatus();
+    assertTrue("Diskrun differs from real run", storageStatus.equals(diskrunStorageStatus));
+
+    
   }
 
   private void testCleanGZippedTurboMarcSplitByNumber(boolean inParallel, int number)
@@ -319,49 +342,86 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testCleanGZippedTurboMarcSplitByNumber(false, 1000);
   }
 
-  public void testUrlGZippedTurboMarc(String url, boolean inParallel, boolean clear,
-      boolean overwrite, boolean cacheEnabled, long expected_add, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(url, "application/marc; charset=MARC-8",
-	"application/tmarc", 1, 100, overwrite, cacheEnabled);
-    resource.setId(2l);
-    resource.setTransformation(createTurboMarcTransformation(inParallel));
+  class ResourceCount {
+    
+    String url;
+    int add;
+    int total;
+    public ResourceCount(String resource, int add, int totla) {
+      	this.url = resource;
+      	this.add = add ;
+      	this.total = total;
+    }
+  }
+  
+  
+  public void testUrlGZippedTurboMarc(ResourceCount[] resources, boolean inParallel, boolean clean,
+      boolean overwrite, boolean cacheEnabled) throws IOException, StatusNotImplemented {
+    ArrayList<StorageStatus> storageStatusList = new ArrayList<StorageStatus>();
+    
+    // Do one or two runs. One if cache is disabled.  
+    for (int index = 0; index < 2; index++) {
+      for (ResourceCount testResource  : resources) {
+	Harvestable resource = createResource(testResource.url, "application/marc; charset=MARC-8",
+	    "application/tmarc", 1, 100, overwrite, cacheEnabled);
+	if (index == 1)
+	  resource.setDiskRun(true);
+	resource.setId(2l);
+	resource.setTransformation(createTurboMarcTransformation(inParallel));
 
-    RecordStorage recordStorage = createStorage(clear, resource);
-    RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+	RecordStorage recordStorage = createStorage(clean, resource);
+	RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+	assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
-    checkStorageStatus(recordStorage.getStatus(), expected_add, 0, expected_total);
+	storageStatusList.set(index, recordStorage.getStatus());
+	checkStorageStatus(storageStatusList.get(index), testResource.add, 0, testResource.total);
+	resource.setDiskRun(true);
+      }
+      if (!cacheEnabled)
+	      return;
+    }
+
+    assertTrue("Diskrun differs from real run", storageStatusList.get(0).equals(storageStatusList.get(1)));
+
   }
 
   public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0 + " " + resourceMarc1, false, true, true, false, 2004, 2004);
+    ResourceCount[] testResources =  { new ResourceCount(resourceMarc0 + " " + resourceMarc1, 2004, 20004)};
+    testUrlGZippedTurboMarc(testResources, false, true, true, false);
   }
 
   public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc3, false, true, true, false, 3006, 3006);
+    ResourceCount[] testResources =  { new ResourceCount(resourceMarc3, 3006, 3006)};
+    testUrlGZippedTurboMarc(testResources, false, true, true, false);
   }
 
   public void testCleanFtp() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceFtp, false, true, true, false, 4008, 4008);
+    ResourceCount[] testResources =  { new ResourceCount(resourceMarc3, 4008, 4008)};
+    testUrlGZippedTurboMarc(testResources, false, true, true, false);
   }
 
   public void testCleanJumpPageMixed() throws IOException, StatusNotImplemented {
     // Some of the test data is duplicate, therefore a higher add than commit. Records are being overwritten.
-    testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, false, 6012, 4008);
+    ResourceCount[] testResources =  { new ResourceCount(resourceMarc3, 6012, 4008)};
+    testUrlGZippedTurboMarc(testResources, false, true, true, false);
   }
   
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true,  true,  false, NO_RECORDS, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
+    ResourceCount[] testResources =  { new ResourceCount(resourceMarc0, 2004, 20004), new ResourceCount(resourceMarc1, 2004, 20004)};
+    testUrlGZippedTurboMarc(testResources, false, true,  true,  false);
   }
 
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
-    testUrlGZippedTurboMarc(resourceMarc0, false, true,  true,  false, NO_RECORDS, NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc1, false, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
-    testUrlGZippedTurboMarc(resourceMarc2, false, false, false, false, NO_RECORDS, 3 * NO_RECORDS);
+    ResourceCount[] testResources =  { 
+		new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS), 
+		new ResourceCount(resourceMarc1, NO_RECORDS, 2 * NO_RECORDS),
+		new ResourceCount(resourceMarc2, NO_RECORDS, 3 * NO_RECORDS)
+    };
+    testUrlGZippedTurboMarc(testResources, false, false, false, false);
     /* Now restart and check that overwrite mode worked */
-    testUrlGZippedTurboMarc(resourceMarc0, false, false, true,  false, NO_RECORDS, NO_RECORDS);
+    ResourceCount[] testResource = { new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS) };
+    testUrlGZippedTurboMarc(testResource, false, false, true, false);
   }
 
   private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
