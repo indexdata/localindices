@@ -24,12 +24,14 @@ public class TestBulkRecordHarvestJob extends JobTester {
   private String resourceMarc3 = "http://lui-dev.indexdata.com/loc/jumppage-relative.html";
   private String resourceFtp = "ftp://dennis:john238@satay/home/dennis/pub/marc";
   private String resourceJumppageMixed= "http://lui-dev.indexdata.com/loc/jumppage-mixed.html";
-  private String resourceMarcXml0_no_namespace = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
-  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000_namespace.xml";
+  private String resourceMarcXml0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.xml";
+  @SuppressWarnings("unused")
+  private String resourceMarcXml0_namespace = "http://lui-dev.indexdata.com/loc/loc-small.0000000_namespace.xml";
   private String resourceTurboMarc0 = "http://lui-dev.indexdata.com/loc/loc-small.0000000.txml";
   private String resourceMarcUTF8 = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc";
+  @SuppressWarnings("unused")
   private String resourceMarcUTF8gzipped = "http://lui-dev.indexdata.com/oaister/oais.000000.mrc.gz";
-
+  @SuppressWarnings("unused")
   private String resourceOaiPmh = "http://lui-dev.indexdata.com/oaipmh/Harvester_Full_1.xml";
 
   // String resourceLoCMarc8gz = "http://lui-dev.indexdata.com/loc/part01.dat.gz";
@@ -89,7 +91,9 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   private Transformation createTurboMarcTransformation(boolean inParallel) throws IOException {
-    String[] resourceSteps = { "resources/tmarc.xsl", "resources/pz2-create-id.xsl" };
+    String[] resourceSteps = { 
+	"resources/tmarc.xsl", 
+	"resources/pz2-create-id.xsl" };
     return createTransformationFromResources(resourceSteps, inParallel);
   }
 
@@ -214,18 +218,18 @@ public class TestBulkRecordHarvestJob extends JobTester {
    */
   private void testCleanTurboMarcSplitByNumber(boolean inParallel, int number, boolean clean,
       boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceTurboMarc0, null, null, 0, number, overwrite, cacheEnabled);
+    Harvestable resource = createResource(resourceTurboMarc0, null, null, 1, number, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
     RecordStorage recordStorage = createStorage(clean, resource);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-    assertTrue(job.getStatus() == HarvestStatus.FINISHED);
+    assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, job);
     checkStorageStatus(recordStorage.getStatus(), NO_RECORDS, 0, expected_total);
   }
 
-  public void testCleanTurboMarcNoSplitSerial() throws IOException, StatusNotImplemented {
-    testCleanTurboMarcSplitByNumber(false, 0, true, true, false, NO_RECORDS);
+  public void testCleanTurboMarcSplit1Serial() throws IOException, StatusNotImplemented {
+    testCleanTurboMarcSplitByNumber(false, 1, true, true, false, NO_RECORDS);
   }
 
   public void testCleanTurboMarcSplit1Parallel() throws IOException, StatusNotImplemented {
@@ -313,7 +317,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testUrlGZippedTurboMarc(String url, boolean inParallel, boolean clear,
-      boolean overwrite, boolean cacheEnabled, long add, long expected_total) throws IOException, StatusNotImplemented {
+      boolean overwrite, boolean cacheEnabled, long expected_add, long expected_total) throws IOException, StatusNotImplemented {
     Harvestable resource = createResource(url, "application/marc; charset=MARC-8",
 	"application/tmarc", 1, 100, overwrite, cacheEnabled);
     resource.setId(2l);
@@ -323,7 +327,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
-    checkStorageStatus(recordStorage.getStatus(), add, 0, expected_total);
+    checkStorageStatus(recordStorage.getStatus(), expected_add, 0, expected_total);
   }
 
   public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
@@ -333,7 +337,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc3, false, true, true, false, 3006, 3006);
   }
-  
+
   public void testCleanFtp() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceFtp, false, true, true, false, 4008, 4008);
   }
@@ -343,7 +347,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testUrlGZippedTurboMarc(resourceJumppageMixed, false, true, true, false, 6012, 4008);
   }
   
-
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
     testUrlGZippedTurboMarc(resourceMarc0, false, true,  true,  false, NO_RECORDS, NO_RECORDS);
     testUrlGZippedTurboMarc(resourceMarc1, false, false, false, false, NO_RECORDS, 2 * NO_RECORDS);
@@ -356,7 +359,6 @@ public class TestBulkRecordHarvestJob extends JobTester {
     testUrlGZippedTurboMarc(resourceMarc2, false, false, false, false, NO_RECORDS, 3 * NO_RECORDS);
     /* Now restart and check that overwrite mode worked */
     testUrlGZippedTurboMarc(resourceMarc0, false, false, true,  false, NO_RECORDS, NO_RECORDS);
-
   }
 
   private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
@@ -419,7 +421,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private void testTurboXml(boolean inParallel, boolean clean, int splitAt, int splitSize,  
       boolean overwrite, boolean cacheEnabled, long expected_total) throws IOException, StatusNotImplemented {
-    Harvestable resource = createResource(resourceMarcXml0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
+    Harvestable resource = createResource(resourceTurboMarc0, null, null, splitAt, splitSize, overwrite, cacheEnabled);
     resource.setId(2l);
     resource.setTransformation(createTurboMarcTransformation(inParallel));
     RecordStorage recordStorage = createStorage(clean, resource);
