@@ -79,10 +79,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       DiskCache dc = new DiskCache(resource.getId());
-      if (resource.isCacheEnabled()) dc.init();
+      if (resource.isCacheEnabled()) 
+	dc.init();
       if (resource.getOverwrite()) {
         getStorage().purge(false);
-        if (resource.isCacheEnabled() && !resource.isDiskRun()) dc.empty();
+        if (resource.isCacheEnabled() && !resource.isDiskRun())
+          dc.empty();
       }
       setStatus(HarvestStatus.RUNNING);
       if (!resource.isDiskRun())
