@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -347,29 +346,45 @@ public class TestBulkRecordHarvestJob extends JobTester {
     String url;
     int add;
     int total;
+    boolean clean;
+    boolean overwrite;
     public ResourceCount(String resource, int add, int total) {
       	this.url = resource;
       	this.add = add ;
       	this.total = total;
+      	clean = false;
+      	overwrite = false;
     }
+
+    public ResourceCount(String resource, int add, int total, boolean clean, boolean overwrite) {
+    	this.url = resource;
+    	this.add = add ;
+    	this.total = total;
+    	this.clean = clean;
+    	this.overwrite = overwrite;
+  }
   }
   
+  public class ResourceCountFirst extends ResourceCount {
+    	public ResourceCountFirst(String resource, int add, int total) {
+    	  super(resource, add, total, true, true);
+    	}
+  }
   
-  public void testUrlGZippedTurboMarc(ResourceCount[] resources, boolean inParallel, boolean clean,
-      boolean overwrite, boolean cacheEnabled) throws IOException, StatusNotImplemented {
+  public void testUrlGZippedTurboMarc(ResourceCount[] resources, boolean inParallel, boolean cacheEnabled) throws IOException, StatusNotImplemented {
     StorageStatus[] storageStatusList = { null, null};
     
     // Do one or two runs. One if cache is disabled.  
     for (int index = 0; index < 2; index++) {
       for (ResourceCount testResource  : resources) {
 	Harvestable resource = createResource(testResource.url, "application/marc; charset=MARC-8",
-	    "application/tmarc", 1, 100, overwrite, cacheEnabled);
+	    "application/tmarc", 1, 100, testResource.overwrite, cacheEnabled);
 	if (index == 1)
 	  resource.setDiskRun(true);
 	resource.setId(2l);
 	resource.setTransformation(createTurboMarcTransformation(inParallel));
 
-	RecordStorage recordStorage = createStorage(clean, resource);
+	RecordStorage recordStorage = createStorage(testResource.clean, resource);
 	RecordHarvestJob job = doHarvestJob(recordStorage, resource);
 	assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
 
@@ -386,42 +401,42 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCount(resourceMarc0 + " " + resourceMarc1, 2004, 2004)};
-    testUrlGZippedTurboMarc(testResources, false, true, true, false);
+    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc0 + " " + resourceMarc1, 2004, 2004)};
+    testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCount(resourceMarc3, 3006, 3006)};
-    testUrlGZippedTurboMarc(testResources, false, true, true, false);
+    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc3, 3006, 3006)};
+    testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanFtp() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCount(resourceFtp, 4008, 4008)};
-    testUrlGZippedTurboMarc(testResources, false, true, true, false);
+    ResourceCount[] testResources =  { new ResourceCountFirst(resourceFtp, 4008, 4008)};
+    testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanJumpPageMixed() throws IOException, StatusNotImplemented {
     // Some of the test data is duplicate, therefore a higher add than commit. Records are being overwritten.
-    ResourceCount[] testResources =  { new ResourceCount(resourceJumppageMixed, 6012, 4008)};
-    testUrlGZippedTurboMarc(testResources, false, true, true, false);
+    ResourceCount[] testResources =  { new ResourceCountFirst(resourceJumppageMixed, 6012, 4008)};
+    testUrlGZippedTurboMarc(testResources, false, false);
   }
   
   public void testMultiGZippedTurboMarcTwoJobs() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCount(resourceMarc0, 1002, 1002), new ResourceCount(resourceMarc1, 1002, 20004)};
-    testUrlGZippedTurboMarc(testResources, false, true,  true,  false);
+    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc0, 1002, 1002), new ResourceCount(resourceMarc1, 1002, 2004)};
+    testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testMulti2GZippedTurboMarcFourJobsAndOverwrite() throws IOException,
       StatusNotImplemented {
     ResourceCount[] testResources =  { 
-		new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS), 
+		new ResourceCountFirst(resourceMarc0, NO_RECORDS, NO_RECORDS), 
 		new ResourceCount(resourceMarc1, NO_RECORDS, 2 * NO_RECORDS),
 		new ResourceCount(resourceMarc2, NO_RECORDS, 3 * NO_RECORDS)
     };
-    testUrlGZippedTurboMarc(testResources, false, false, false, false);
+    testUrlGZippedTurboMarc(testResources, false, false);
     /* Now restart and check that overwrite mode worked */
-    ResourceCount[] testResource = { new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS) };
-    testUrlGZippedTurboMarc(testResource, false, false, true, false);
+    ResourceCount[] testResource = { new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS, false, true) };
+    testUrlGZippedTurboMarc(testResource, false, false);
   }
 
   private void testZippedMarc21SplitByNumber(String zipMarcUrl, boolean inParallel, boolean clean,
