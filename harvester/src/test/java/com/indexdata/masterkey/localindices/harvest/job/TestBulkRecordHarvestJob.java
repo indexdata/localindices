@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -329,9 +330,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     resource.setDiskRun(true);
     RecordStorage diskRecordStorage = createStorage(clean, resource);
     RecordHarvestJob diskJob = doHarvestJob(diskRecordStorage, resource);
+    assertTrue("Disk run not finished: " + diskJob.getStatus(), diskJob.getStatus() == HarvestStatus.FINISHED);
     emulateJobScheduler(resource, diskJob);
-    
-    assertTrue(diskJob.getStatus() == HarvestStatus.FINISHED);
     StorageStatus diskrunStorageStatus = diskRecordStorage.getStatus();
     assertTrue("Diskrun differs from real run", storageStatus.equals(diskrunStorageStatus));
 
@@ -362,6 +362,8 @@ public class TestBulkRecordHarvestJob extends JobTester {
     int total;
     boolean clean;
     boolean overwrite;
+    boolean cacheRun = false;
+    
     public ResourceCount(String resource, int add, int total) {
       	this.url = resource;
       	this.add = add ;
@@ -384,63 +386,86 @@ public class TestBulkRecordHarvestJob extends JobTester {
     	  super(resource, add, total, true, true);
     	}
   }
-  
-  public void testUrlGZippedTurboMarc(ResourceCount[] resources, boolean inParallel, boolean cacheEnabled) throws IOException, StatusNotImplemented {
-    StorageStatus[] storageStatusList = { null, null};
+
+  public class ResourceCountCacheRun extends ResourceCountFirst {
     
-    // Do one or two runs. One if cache is disabled.  
-    for (int index = 0; index < 2; index++) {
-      for (ResourceCount testResource  : resources) {
-	Harvestable resource = createResource(testResource.url, "application/marc; charset=MARC-8",
-	    "application/tmarc", 1, 100, testResource.overwrite, cacheEnabled);
-	if (index == 1)
-	  resource.setDiskRun(true);
-	resource.setId(2l);
-	resource.setTransformation(createTurboMarcTransformation(inParallel));
+    public ResourceCountCacheRun(String resource, int add, int total) {
+	  super(resource, add, total);
+	  cacheRun = true;
+	  
+	}
+}
 
-	RecordStorage recordStorage = createStorage(testResource.clean, resource);
-	RecordHarvestJob job = doHarvestJob(recordStorage, resource);
-	assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+  public void testUrlGZippedTurboMarc(ResourceCount[] resources, boolean inParallel, boolean cacheEnabled) throws IOException, StatusNotImplemented {
+    ArrayList<StorageStatus> storageStatusList = new ArrayList<StorageStatus>();
+    
+    for (ResourceCount testResource  : resources) {
+      Harvestable resource = createResource(testResource.url, "application/marc; charset=MARC-8",
+	  "application/tmarc", 1, 100, testResource.overwrite, cacheEnabled);
+      resource.setId(2l);
+      resource.setDiskRun(testResource.cacheRun);
+      resource.setTransformation(createTurboMarcTransformation(inParallel));
 
-	storageStatusList[index] = recordStorage.getStatus();
-	checkStorageStatus(storageStatusList[index], testResource.add, 0, testResource.total);
-	resource.setDiskRun(true);
+      RecordStorage recordStorage = createStorage(testResource.clean, resource);
+      RecordHarvestJob job = doHarvestJob(recordStorage, resource);
+      assertTrue("Job not finished: " + job.getStatus(), job.getStatus() == HarvestStatus.FINISHED);
+
+      StorageStatus storageStatus = recordStorage.getStatus();
+      checkStorageStatus(storageStatus, testResource.add, 0, testResource.total);
+      if (testResource.cacheRun) {
+	// TODO test this run with previos one. 
+	//assertTrue("Diskrun differs from real run", storageStatusList[0].equals(storageStatusList[1]));
       }
-      if (!cacheEnabled)
-	      return;
+      storageStatusList.add(storageStatus);
     }
 
-    assertTrue("Diskrun differs from real run", storageStatusList[0].equals(storageStatusList[1]));
 
   }
 
   public void testCleanJumpPageGZippedTurboMarc() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc0 + " " + resourceMarc1, 2004, 2004)};
+    ResourceCount[] testResources =  { 	
+	new ResourceCountFirst(resourceMarc0 + " " + resourceMarc1, 2004, 2004)
+    };
     testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanJumpPageGZippedTurboMarcCached() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc0 + " " + resourceMarc1, 2004, 2004)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceMarc0 + " " + resourceMarc1, 2004, 2004),
+	new ResourceCountCacheRun(resourceMarc0 + " " + resourceMarc1, 2004, 2004)
+	
+    };
     testUrlGZippedTurboMarc(testResources, false, true);
   }
 
   public void testCleanJumpPageRelative() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc3, 3006, 3006)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceMarc3, 3006, 3006)
+    };
     testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanJumpPageRelativeCached() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc3, 3006, 3006)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceMarc3, 3006, 3006),
+	new ResourceCountCacheRun(resourceMarc3, 3006, 3006)
+	
+    };
     testUrlGZippedTurboMarc(testResources, false, true);
   }
 
   public void testCleanFtp() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceFtp, 4008, 4008)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceFtp, 4008, 4008)
+    };
     testUrlGZippedTurboMarc(testResources, false, false);
   }
 
   public void testCleanFtpCached() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceFtp, 4008, 4008)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceFtp, 4008, 4008),
+	new ResourceCountCacheRun(resourceFtp, 4008, 4008)
+    };
     testUrlGZippedTurboMarc(testResources, false, true);
   }
 
@@ -452,7 +477,10 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   public void testCleanJumpPageMixedCached() throws IOException, StatusNotImplemented {
     // Some of the test data is duplicate, therefore a higher add than commit. Records are being overwritten.
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceJumppageMixed, 6012, 4008)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceJumppageMixed, 6012, 4008),
+	new ResourceCountCacheRun(resourceJumppageMixed, 6012, 4008)
+    };
     testUrlGZippedTurboMarc(testResources, false, true);
   }
 
@@ -462,7 +490,10 @@ public class TestBulkRecordHarvestJob extends JobTester {
   }
 
   public void testMultiGZippedTurboMarcTwoJobsCached() throws IOException, StatusNotImplemented {
-    ResourceCount[] testResources =  { new ResourceCountFirst(resourceMarc0, 1002, 1002), new ResourceCount(resourceMarc1, 1002, 2004)};
+    ResourceCount[] testResources =  { 
+	new ResourceCountFirst(resourceMarc0, 1002, 1002), new ResourceCount(resourceMarc1, 1002, 2004), 
+	new ResourceCountCacheRun(resourceMarc1, 2004, 2004), 
+    };
     testUrlGZippedTurboMarc(testResources, false, true);
   }
 
@@ -470,13 +501,17 @@ public class TestBulkRecordHarvestJob extends JobTester {
   public void testMulti2GZippedTurboMarcFourJobsAndOverwriteCached() throws IOException,
       StatusNotImplemented {
     ResourceCount[] testResources =  { 
-		new ResourceCountFirst(resourceMarc0, NO_RECORDS, NO_RECORDS), 
-		new ResourceCount(resourceMarc1, NO_RECORDS, 2 * NO_RECORDS),
-		new ResourceCount(resourceMarc2, NO_RECORDS, 3 * NO_RECORDS)
+		new ResourceCountFirst(resourceMarc0, NO_RECORDS,     NO_RECORDS), 
+		new ResourceCount(     resourceMarc1, NO_RECORDS, 2 * NO_RECORDS),
+		new ResourceCount(     resourceMarc2, NO_RECORDS, 3 * NO_RECORDS),
+		new ResourceCountCacheRun(resourceMarc2, 3 * NO_RECORDS, 3 * NO_RECORDS)
     };
     testUrlGZippedTurboMarc(testResources, false, true);
     /* Now restart and check that overwrite mode worked */
-    ResourceCount[] testResource = { new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS, false, true) };
+    ResourceCount[] testResource = { 
+	new ResourceCount(resourceMarc0, NO_RECORDS, NO_RECORDS, false, true), 
+	new ResourceCountCacheRun(resourceMarc0, NO_RECORDS, NO_RECORDS) 
+    };
     testUrlGZippedTurboMarc(testResource, false, true);
   }
 
