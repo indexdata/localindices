@@ -52,6 +52,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 
   public void run() {
     String startResumptionToken = resource.getResumptionToken();
+    String subject = "";
+    String msg     = "";
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
@@ -80,7 +82,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       }
       else 
 	setStatus(HarvestStatus.FINISHED);
-      mailMessage("Harvest Job completed: ", mailMesssage.toString());
+      subject = "Harvest Job completed: ";
+      msg = mailMesssage.toString();
     } catch (Exception e) {
       if (isKillSent()) {
 	if (resource.getAllowErrors()) 
@@ -89,16 +92,20 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 	    commit();
 	    return ; 
 	  } catch (Exception ioe) {
-	    logger.error("Failed to commit on job killed: " + ioe.getMessage());
+	    subject = "Job stopped: Commit failed: ";
+	    msg = ioe.getMessage();
+	    logger.error(subject + msg);
 	  }
       }
       String error = e.getMessage();
       setStatus(HarvestStatus.ERROR, error);
       resource.setResumptionToken(startResumptionToken);
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
-      mailMessage("Harvest Job failed: ", error);
+      subject = "Harvest Job failed: ";
+      msg = error + " " + msg;
     }
     finally {
+      mailMessage(subject, msg);
       shutdown();
     }
   }
