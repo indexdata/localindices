@@ -69,7 +69,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-
+    String subject = "";
+    String msg = "";
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
@@ -92,8 +93,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       else {
         downloadList(dc.list(), true, dc);
       }
-      String subject = "Completed.";
-      String msg = "";
+      subject = "Completed: ";
+      msg = "OK";
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
@@ -116,7 +117,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.databaseEnd();
         transformationStorage.rollback();
       }
-      mailMessage(subject, msg);
     } catch (Exception e) {
       setStatus(HarvestStatus.ERROR);
       String message = "Failed to complete job, rolling back...";
@@ -131,10 +131,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 	message += "Roll-back failed: " + ioe.getMessage();  
         logger.error(message);
       }
-      String subject = "Harvest failed"; 
-      logError(subject, e.getMessage());
-      mailMessage(subject, message);
+      subject = "Harvest failed";
+      msg = e.getMessage();
+      logError(subject, msg);
     } finally {
+      mailMessage(subject, msg);
       shutdown();
     }
   }
