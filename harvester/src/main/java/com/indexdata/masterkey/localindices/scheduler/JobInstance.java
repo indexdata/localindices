@@ -18,6 +18,7 @@ import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.StatusResource;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -26,6 +27,7 @@ import com.indexdata.masterkey.localindices.harvest.job.ConnectorHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.OAIRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.StatusJob;
 import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
@@ -65,6 +67,8 @@ public class JobInstance {
     }
     if (hable instanceof OaiPmhResource) {
       if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
+	// Should move to admin/UI check! 
+	// And since some resources do support finer granularity, it's basically wrong
 	Calendar cal = Calendar.getInstance();
 	int min = cal.get(Calendar.MINUTE);
 	int hr = cal.get(Calendar.HOUR_OF_DAY);
@@ -77,6 +81,8 @@ public class JobInstance {
 	harvestJob = new BulkRecordHarvestJob((XmlBulkResource) hable, proxy);
     } else if (hable instanceof WebCrawlResource) {
       harvestJob = new WebRecordHarvestJob((WebCrawlResource) hable, proxy);
+    } else if (hable instanceof StatusResource) {
+      harvestJob = new StatusJob((StatusResource) hable, proxy);
     } else if (hable instanceof HarvestConnectorResource) {
       // hable.getJobClass();
       try {
@@ -114,11 +120,18 @@ public class JobInstance {
       if (harvestJob != null) {
 	harvestJob.setJobThread(harvestingThread);
       	// Refresh storage. The cascading in the persistence layer is currently not working
-	Storage storage = storageDao.retrieveById(harvestable.getStorage().getId());
-      	harvestable.setStorage(storage);
-      	RecordStorage recordStorage = HarvestStorageFactory.getStorage(storage);
-      	recordStorage.setHarvestable(harvestable);
-      	harvestJob.setStorage(recordStorage);
+	if (harvestable.getStorage() != null) {
+	  Storage storage = storageDao.retrieveById(harvestable.getStorage().getId());
+      	  harvestable.setStorage(storage);
+      	  RecordStorage recordStorage = HarvestStorageFactory.getStorage(storage);
+      	  recordStorage.setHarvestable(harvestable);
+      	  harvestJob.setStorage(recordStorage);
+	}
+	else {
+	  if (!(harvestable instanceof StatusResource)) {
+	    logger.error("Running Harvest Job without Storage: " + harvestable);
+	  }
+	}
 
       }
       harvestingThread.start();
