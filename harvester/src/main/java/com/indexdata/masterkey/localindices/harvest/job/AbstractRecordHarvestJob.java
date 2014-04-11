@@ -61,7 +61,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   
   @Override
   public synchronized RecordStorage getStorage() {
-    if (transformationStorage == null) {
+    if (transformationStorage == null && storage != null) {
       Transformation transformation = getHarvestable().getTransformation();
       List<TransformationStep> steps = null;
       Boolean parallel = false;
@@ -123,8 +123,9 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
     String status = getStatus().toString();
     Harvestable harvestable = getHarvestable();
     StringBuffer buffer = new StringBuffer(message);
-    if (harvestable.getMailLevel() != null && checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) {
-      while (!transformationStorage.getErrors().isEmpty()) {
+    if (harvestable.getMailLevel() == null || checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) 
+    {
+      while (transformationStorage != null && !transformationStorage.getErrors().isEmpty()) {
 	try {
 	  Object obj = transformationStorage.getErrors().take();
 	  if (obj instanceof Record) {
@@ -151,13 +152,15 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
         } else {
           throw new NotificationException("No Sender configured", null);
         }
-      } catch (NotificationException e1) {
-        logger.error("Failed to send notification " + e1.getMessage());
+      } catch (NotificationException ne) {
+	String mailError = "Failed to send notification " + ne.getMessage();
+        logger.error(mailError);
+        setStatus(getStatus(), getMessage() + " " + mailError);
       }
     }
   }
 
-  private boolean checkMailLevel(HarvestStatus mailLevel, HarvestStatus status) {
+  protected boolean checkMailLevel(HarvestStatus mailLevel, HarvestStatus status) {
     if (mailLevel.ordinal() <= status.ordinal())
       return true;
     return false;
@@ -173,6 +176,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
     getHarvestable().setDiskRun(false);
     markForUpdate();
     try {
+      if (getStorage() != null)
 	getStorage().shutdown();
     } catch (IOException ioe) {
 	logger.warn("Storage shutdown exception: " + ioe.getMessage());
