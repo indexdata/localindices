@@ -44,6 +44,7 @@ import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.StatusResource;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
@@ -421,6 +422,12 @@ public class ResourceController {
     return "new_XmlBulkResource";
   }
 
+  public String prepareStatusResourceToAdd() {
+    resource = new StatusResource();
+    return "new_StatusResource";
+  }
+
+  
   private String createResource() {
     try {
     prePersist();
@@ -561,7 +568,7 @@ public class ResourceController {
   }
 
   public String getStorageUrl() {
-    if (resource != null && resource.getId() != null) {
+    if (resource != null && resource.getId() != null && resource.getStorage() != null) {
       return resource.getStorage().getSearchUrl(resource);
     }
     return null;
