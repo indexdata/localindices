@@ -118,6 +118,10 @@
             <to-view-id>/jobs/add_connector.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
+            <from-outcome>new_StatusResource</from-outcome>
+            <to-view-id>/jobs/add_status.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
             <from-outcome>edit_OaiPmhResource</from-outcome>
             <to-view-id>/jobs/edit_oaipmh.xhtml</to-view-id>
         </navigation-case>
@@ -132,6 +136,10 @@
         <navigation-case>
             <from-outcome>edit_HarvestConnectorResource</from-outcome>
             <to-view-id>/jobs/edit_connector.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_StatusResource</from-outcome>
+            <to-view-id>/jobs/edit_status.xhtml</to-view-id>
         </navigation-case>
     </navigation-rule>
     <navigation-rule>
