@@ -73,7 +73,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       response = server.add(docs);
       if (response.getStatus() != 0) {
 	logger.error("Error adding documents. HTTP Status code: " + response.getStatus());
-	throw new RuntimeException("Error adding documents. HTTP error: " + response.getStatus());
+	throw new StorageException("Error adding documents. HTTP error: " + response.getStatus());
       }
       else {
 	((SolrStorageStatus) storageStatus).incrementAdd(no_docs);
@@ -83,17 +83,17 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
       logger.error("Solr Exception (" + ste.getMessage() + ") while adding documents. Outstanding adds: " + no_docs
 	 + ". Deletes: " + deleteIds.size() , ste);
       docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Exception: while adding records: " + ste.getMessage(), ste);
+      throw new StorageException("Solr Exception: while adding records: " + ste.getMessage(), ste);
     } catch (SolrServerException ste) {
       logger.error("Solr Server Exception (" + ste.getMessage() + ") while adding documents. Outstanding adds: " + no_docs + ". Deletes: " + deleteIds.size());
       // TODO add docs to error queue
       docs = new LinkedList<SolrInputDocument>();
-      throw new RuntimeException("Solr Server Exception while adding records: " + ste.getMessage(), ste);
+      throw new StorageException("Solr Server Exception while adding records: " + ste.getMessage(), ste);
     } catch (IOException e) {
       e.printStackTrace();
       // TODO Add to failed records queue
       deleteIds = new LinkedList<String>();
-      throw new RuntimeException("IO Exception while adding records: " + e.getMessage(), e);
+      throw new StorageException("IO Exception while adding records: " + e.getMessage(), e);
     }
   }
 
@@ -111,10 +111,10 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     } catch (SolrServerException e) {
       // TODO Add to failed records queue
       deleteIds = new LinkedList<String>();
-      throw new RuntimeException("Solr Server Exception while deleting records", e);
+      throw new StorageException("Solr Server Exception while deleting records", e);
     } catch (IOException e) {
       e.printStackTrace();
-      throw new RuntimeException("IO Exception while delete records", e);
+      throw new StorageException("IO Exception while delete records", e);
     }
   }
 
