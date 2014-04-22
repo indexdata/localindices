@@ -84,11 +84,10 @@ public class TestBulkRecordHarvestJob extends JobTester {
 
   private Transformation createMarc21Transformation(boolean inParallel) throws IOException {
     String[] resourceSteps = {
-	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
 	"resources/marc21-marc-namespace.xsl",
-	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter",
-	"resources/pz2-create-id.xsl",
-	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" };
+	"resources/pz2-create-id.xsl"
+//	"class:com.indexdata.masterkey.localindices.harvest.messaging.XmlLoggerRouter" 
+	};
     return createTransformationFromResources(resourceSteps, inParallel);
   }
 
@@ -647,7 +646,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
   public void testBadSolrStorage() throws IOException, StatusNotImplemented {
 
     Harvestable resource = createResource(resourceMarc0, "application/marc;charset=MARC8",
-	null, 1, 1, false, false);
+	null, 1, 1, true, false);
     resource.setId(2l);
     resource.setTransformation(createMarc21Transformation(false));
     SolrStorageEntity storageEntity = new SolrStorageEntity();
@@ -662,8 +661,7 @@ public class TestBulkRecordHarvestJob extends JobTester {
     assertTrue("Wrong Storage status: " + jobStatus, jobStatus == HarvestStatus.ERROR);
     String errorMessage = resource.getMessage();
     assertTrue("Wrong Error message: " + errorMessage,
-	"Solr Server Exception while adding records: Server refused connection at: http://localhost:8686/solrbad"
-	    .equals(errorMessage));
+	errorMessage.contains("Solr Server Exception while adding records: Server refused connection at: http://localhost:8686/solrbad"));
   }
 
   
