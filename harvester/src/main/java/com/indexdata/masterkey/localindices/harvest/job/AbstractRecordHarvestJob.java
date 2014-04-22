@@ -122,6 +122,10 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
     Sender sender = SenderFactory.getSender();
     String status = getStatus().toString();
     Harvestable harvestable = getHarvestable();
+    if (message == null) {
+      logger.error("mailMessage called with null pointer: " + subject);
+      message = "";
+    }
     StringBuffer buffer = new StringBuffer(message);
     if (harvestable.getMailLevel() == null || checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) 
     {
@@ -150,12 +154,12 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
           else
             sender.send(msg);
         } else {
-          throw new NotificationException("No Sender configured", null);
+          throw new NotificationException("No Sender configured when sending: " + msg.getMesage() , null);
         }
       } catch (NotificationException ne) {
 	String mailError = "Failed to send notification " + ne.getMessage();
         logger.error(mailError);
-        setStatus(getStatus(), getMessage() + " " + mailError);
+        setStatus(getStatus(), mailError + " " + (getMessage() != null ? getMessage() : ""));
       }
     }
   }
