@@ -118,18 +118,22 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.rollback();
       }
     } catch (Exception e) {
-      setStatus(HarvestStatus.ERROR);
-      String message = "Failed to complete job, rolling back...";
+      setStatus(HarvestStatus.ERROR, e.getMessage());
       logger.error("Cause of failure:", e);
-      // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
       try {
-	if (e instanceof StorageException)
+	if (e instanceof StorageException) {
 	  logger.info("No attempt to rollback due to StorageException");
-	else
+	  subject = "Storage Error";
+	  msg = e.getMessage();
+	}
+	else {
+	  msg = "Failed to complete job, rolling back...";
+	  subject = "Error";
 	  getStorage().rollback();
+	}
       } catch (Exception ioe) {
-	message += "Roll-back failed: " + ioe.getMessage();  
-        logger.error(message);
+	msg += " Roll-back failed: " + ioe.getMessage();  
+        logger.error(msg);
       }
       subject = "Harvest failed";
       msg = e.getMessage();
