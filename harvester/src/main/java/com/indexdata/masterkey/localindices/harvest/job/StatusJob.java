@@ -5,6 +5,9 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,11 +60,13 @@ public class StatusJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     try {
       
-      StringBuffer mailMesssage = new StringBuffer("Status of Jobs:\n");
+      StringBuffer mailMesssage = new StringBuffer("");
       List<HarvestableBrief> harvestables = dao.retrieveBriefs(0,dao.getCount());
       logger.info(subject);
+      String logLine = String.format("%8s \t %-45s \t %-8s \t %-10s \t %-8s", "Id", "Job name" , "Status", "Message", "Amount");
+      mailMesssage.append(logLine).append("\n\n");
       for (HarvestableBrief brief : harvestables) {
-	String logLine = String.format("%10d %-50s %-10s %10d", brief.getId(), brief.getName(), brief.getCurrentStatus(), (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : -1));
+	logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d", brief.getId(), brief.getName(), brief.getCurrentStatus(), brief.getMessage(), (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : -1));
 	logger.info(logLine);
 	mailMesssage.append(logLine).append("\n");
 	setStatus(HarvestStatus.OK);
@@ -75,7 +80,14 @@ public class StatusJob extends AbstractRecordHarvestJob {
       }
       subject = "Status Job failed: " + e.getMessage();
       logger.log(Level.ERROR, subject , e);
-      msg = e.getStackTrace().toString();
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      e.printStackTrace(new PrintStream(baos));
+      try {
+	msg = baos.toString("UTF-8");
+      } catch (UnsupportedEncodingException e1) {
+	// TODO Auto-generated catch block
+	e1.printStackTrace();
+      }
     }
     finally {
       mailMessage(subject, msg);
