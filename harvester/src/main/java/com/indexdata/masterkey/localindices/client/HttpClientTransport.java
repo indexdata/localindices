@@ -87,7 +87,7 @@ public class HttpClientTransport implements ClientTransport {
     int responseCode = conn.getResponseCode();
     if (responseCode == 200) {
       String contentType = conn.getContentType();
-      if ("text/html".startsWith(contentType)) {
+      if (contentType != null && "text/html".startsWith(contentType)) {
 	try { 
 	  return handleJumpPage(conn);
 	} catch (URISyntaxException ex) {
