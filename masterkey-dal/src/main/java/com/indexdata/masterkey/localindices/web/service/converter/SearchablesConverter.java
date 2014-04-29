@@ -156,7 +156,7 @@ public class SearchablesConverter extends Records {
       Storage storage = entity.getStorage();
       if (storage instanceof SolrStorageEntity) {
 	Storage solrStorage = (Storage) storage;
-	layer.setZurl(appendQuery(appendSelect(solrStorage.getSearchUrl()),
+	layer.setZurl(appendQuery(appendSelect(modifySolrUrl(solrStorage.getSearchUrl())),
 	    "fq=database:" + entity.getId()));
 	layer.setExtraArgs("defType=lucene");
 	// TODO Just like id the udb should be unique across all (possible)
@@ -249,19 +249,21 @@ public class SearchablesConverter extends Records {
   String select = "select";
   String slash = "/";
 
-  @SuppressWarnings("unused")
   private String modifySolrUrl(String url) {
     String zurl = url;
     // Yaz did not handled zurls with http://. 5.0.12 does
+    // But pazpar2 1.6.39 fails
     if (zurl.startsWith(http))
       zurl = zurl.substring(http.length());
-
+    
+/*
     // Also handled by yaz 5.0.12
     if (!zurl.endsWith(select)) {
       if (!zurl.endsWith(slash))
 	zurl = zurl.concat(slash);
       zurl.concat(select);
     }
+*/
     return zurl;
   }
 
