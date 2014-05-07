@@ -248,7 +248,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	}
 	try {
 	  if (resource.getKeepPartial()) {
-	    msg = msg + "Commiting up partial harvest as configured. ";
+	    msg = msg + " Commiting up partial harvest as configured. ";
 	    logger.log(Level.INFO, subject + msg);
 	    commit();
 	    // Persist resumption token
