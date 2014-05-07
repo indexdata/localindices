@@ -3,7 +3,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
-        
+      xmlns:f="http://java.sun.com/jsf/core"
       xmlns:h="http://java.sun.com/jsf/html">
   <body>
     <ui:composition>
@@ -21,7 +21,9 @@
                        action="#{resourceController.reset}"/>
       <h:commandButton onclick="return confirm('This will delete the job and all harvested records. Are you sure?');" 
                        value="Delete Job and Records" 
-                       action="#{resourceController.saveAndPurge}"/>
+                       action="#{resourceController.deleteResource}">
+                       <f:param name="resourceId" value="#{resourceController.resource.id}" />
+      </h:commandButton>
       <br/>
       <h5>Status Info: </h5>
       <h:outputText styleClass="item" value="Initially harvested: #{resourceController.resource.initiallyHarvested}"/>
