@@ -162,8 +162,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       } catch (NotificationException ne) {
         String mailError = "Failed to send notification " + ne.getMessage();
         logger.error(mailError);
-        setStatus(getStatus(), mailError + " "
-            + (getMessage() != null ? getMessage() : ""));
+        setStatus(getStatus(), message + " (" + mailError + 
+             (getMessage() != null ? " " + getMessage() : "") + ")");
       }
     }
   }
