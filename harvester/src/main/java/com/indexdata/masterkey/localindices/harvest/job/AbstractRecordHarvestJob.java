@@ -36,12 +36,12 @@ import com.indexdata.masterkey.localindices.notification.SimpleNotification;
  * 
  * @author Dennis
  */
-public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
+public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   private RecordStorage storage;
   protected StorageJobLogger logger;
   protected String error;
-  boolean debug = false; 
-  boolean useParallel =  false;
+  boolean debug = false;
+  boolean useParallel = false;
   AbstractTransformationRecordStorageProxy transformationStorage;
   protected int splitSize = 1;
   protected int splitDepth = 1;
@@ -51,14 +51,13 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   private boolean die;
   private Thread jobThread;
 
-  
   @Override
   public void setStorage(RecordStorage storage) {
     // Invalidate transformation storage proxy
     this.transformationStorage = null;
     this.storage = storage;
   }
-  
+
   @Override
   public synchronized RecordStorage getStorage() {
     if (transformationStorage == null && storage != null) {
@@ -66,19 +65,21 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
       List<TransformationStep> steps = null;
       Boolean parallel = false;
       if (transformation != null) {
-	steps = transformation.getSteps();
-	parallel = transformation.getParallel();
+        steps = transformation.getSteps();
+        parallel = transformation.getParallel();
       }
       try {
-	if (new Boolean(true).equals(parallel))
-	  transformationStorage = new ThreadedTransformationRecordStorageProxy(storage, steps, this);
-	else
-	  transformationStorage = new TransformationRecordStorageProxy(storage, steps, this);
-	  
+        if (new Boolean(true).equals(parallel))
+          transformationStorage = new ThreadedTransformationRecordStorageProxy(
+              storage, steps, this);
+        else
+          transformationStorage = new TransformationRecordStorageProxy(storage,
+              steps, this);
+
       } catch (TransformerConfigurationException e) {
-	e.printStackTrace();
+        e.printStackTrace();
       } catch (IOException e) {
-	e.printStackTrace();
+        e.printStackTrace();
       }
     }
     return transformationStorage;
@@ -103,16 +104,15 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
     Harvestable resource = getHarvestable();
     resource.setLastHarvestFinished(new Date());
     try {
-      StorageStatus storageStatus = storage.getStatus();  
+      StorageStatus storageStatus = storage.getStatus();
       if (storageStatus != null) {
         resource.setAmountHarvested(storageStatus.getAdds());
-        logger.info("Committed "  
-            	     + storageStatus.getAdds() + " adds, "  
-            	     + storageStatus.getDeletes() + " deletes. " 
-            	     + storageStatus.getTotalRecords() + " in total (pending warming of index).");
+        logger.info("Committed " + storageStatus.getAdds() + " adds, "
+            + storageStatus.getDeletes() + " deletes. "
+            + storageStatus.getTotalRecords()
+            + " in total (pending warming of index).");
       }
-    }
-    catch (StatusNotImplemented exception) {
+    } catch (StatusNotImplemented exception) {
       logger.warn("Failed to get Storage Status.");
     }
     markForUpdate();
@@ -127,25 +127,27 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
       message = "";
     }
     StringBuffer buffer = new StringBuffer(message);
-    if (harvestable.getMailLevel() == null || checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()), getStatus())) 
-    {
-      while (transformationStorage != null && !transformationStorage.getErrors().isEmpty()) {
-	try {
-	  Object obj = transformationStorage.getErrors().take();
-	  if (obj instanceof Record) {
-	    buffer.append("Failed to convert: ").append(obj.toString()).append("\n");
-	  }
-	  if (obj instanceof String) {
-	    buffer.append("Error: " + (Record) obj);
-	  }
-	} catch (InterruptedException ie) {
-	    buffer.append("Failed to extract error message from Error Queue");
-	}
+    if (harvestable.getMailLevel() == null
+        || checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()),
+            getStatus())) {
+      while (transformationStorage != null
+          && !transformationStorage.getErrors().isEmpty()) {
+        try {
+          Object obj = transformationStorage.getErrors().take();
+          if (obj instanceof Record) {
+            buffer.append("Failed to convert: ").append(obj.toString()).append("\n");
+          }
+          if (obj instanceof String) {
+            buffer.append("Error: " + (Record) obj);
+          }
+        } catch (InterruptedException ie) {
+          buffer.append("Failed to extract error message from Error Queue");
+        }
       }
-      	
-      Notification msg = new SimpleNotification(status, 
-  		harvestable.getName() + "(" + harvestable.getId() + "): "  + subject, message);
-      
+
+      Notification msg = new SimpleNotification(status, harvestable.getName()
+          + "(" + harvestable.getId() + "): " + subject, message);
+
       try {
         if (sender != null) {
           String customRecievers = harvestable.getMailAddress();
@@ -154,12 +156,14 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
           else
             sender.send(msg);
         } else {
-          throw new NotificationException("No Sender configured when sending: " + msg.getMesage() , null);
+          throw new NotificationException("No Sender configured when sending: "
+              + msg.getMesage(), null);
         }
       } catch (NotificationException ne) {
-	String mailError = "Failed to send notification " + ne.getMessage();
+        String mailError = "Failed to send notification " + ne.getMessage();
         logger.error(mailError);
-        setStatus(getStatus(), mailError + " " + (getMessage() != null ? getMessage() : ""));
+        setStatus(getStatus(), mailError + " "
+            + (getMessage() != null ? getMessage() : ""));
       }
     }
   }
@@ -173,17 +177,17 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   protected void logError(String logSubject, String message) {
     setStatus(HarvestStatus.ERROR, message);
     getHarvestable().setMessage(message);
-    logger.error(logSubject + ": " +  message);
+    logger.error(logSubject + ": " + message);
   }
-  
+
   protected void shutdown() {
     getHarvestable().setDiskRun(false);
     markForUpdate();
     try {
       if (getStorage() != null)
-	getStorage().shutdown();
+        getStorage().shutdown();
     } catch (IOException ioe) {
-	logger.warn("Storage shutdown exception: " + ioe.getMessage());
+      logger.warn("Storage shutdown exception: " + ioe.getMessage());
     } finally {
       transformationStorage = null;
       logger.close();
@@ -200,9 +204,11 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   }
 
   /**
-   *
-   * @param Set the job ending status
-   * @param error An optional message to be displayed
+   * 
+   * @param Set
+   *          the job ending status
+   * @param error
+   *          An optional message to be displayed
    */
   @Override
   public void setStatus(HarvestStatus status, String msg) {
@@ -224,7 +230,8 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
     if (jobThread != null) {
       jobThread.interrupt();
     } else {
-      Logger.getLogger(this.getClass()).warn("No job thread to interrupt on kill. Slower shutdown");
+      Logger.getLogger(this.getClass()).warn(
+          "No job thread to interrupt on kill. Slower shutdown");
     }
     if (runStatus == HarvestStatus.RUNNING) {
       runStatus = HarvestStatus.KILLED;
@@ -239,7 +246,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob{
   @Override
   public final synchronized void finishReceived() {
     runStatus = jobStatus;
-    Harvestable harvestable = getHarvestable(); 
+    Harvestable harvestable = getHarvestable();
     harvestable.setLastHarvestFinished(new Date());
   }
 
