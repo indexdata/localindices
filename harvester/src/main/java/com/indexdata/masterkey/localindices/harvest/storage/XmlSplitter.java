@@ -32,13 +32,11 @@ public class XmlSplitter  {
     } catch (IOException ioe) {
       if (logger != null) 
 	logger.error("IOException in XML split", ioe);
-      ioe.printStackTrace();
       throw new TransformerException("IO Error while parsing/transforming: " + ioe.getMessage(), ioe);
     } catch (SAXException e) {
-	if (logger != null) 
-	  logger.error("SAXException in XML split", e);
-	 e.printStackTrace();
-	throw new TransformerException("SAX Exception: " + e.getMessage(), e);
+      if (logger != null) 
+        logger.error("SAXException in XML split", e);
+      throw new TransformerException("SAX Exception: " + e.getMessage(), e);
     }
   };
 }
