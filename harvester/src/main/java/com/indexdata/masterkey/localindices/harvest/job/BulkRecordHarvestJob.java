@@ -119,7 +119,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       }
     } catch (Exception e) {
       setStatus(HarvestStatus.ERROR, e.getMessage());
-      logger.error("Cause of failure:", e);
+      logger.error("Failed. " + e.getMessage(), e);
       try {
 	if (e instanceof StorageException) {
 	  logger.info("No attempt to rollback due to StorageException");

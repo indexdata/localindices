@@ -1,7 +1,9 @@
 package com.indexdata.masterkey.localindices.client;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -21,32 +23,49 @@ public class FtpClientTransport implements ClientTransport {
   public FtpClientTransport(XmlBulkResource resource, Date fromDate) {
     this.resource = resource;
     this.fromDate = fromDate;
-
   }
 
   @Override
   public void connect(URL ftpUrl) throws IOException {
     client = new FTPClient();
-    client.connect(ftpUrl.getHost(), 
-                   (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort()));
-    if (!client.isConnected())
-      throw new IOException("Error connecting to " + ftpUrl.toString());
-    else
-      logger.debug("Client is connected to " + ftpUrl.getHost());
-
-    String user = "";
-    String pw = "";
-    String userInfo = ftpUrl.getUserInfo();
-    if (userInfo != null) {
-      StringTokenizer tokens = new StringTokenizer(userInfo, ":");
-      user = tokens.nextToken();
-      if (tokens.hasMoreTokens()) {
-        pw = tokens.nextToken();
+    String host = ftpUrl.getHost();
+    int port = (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort());
+    try {
+      client.connect(host,port);
+      String serverReply = (client.getReplyString()==null ? "" : " Server replied: " + client.getReplyString().split("\n")[0] + ")");
+      if (client.isConnected()) {
+        logger.debug("Client is connected to " + host + serverReply);
+      } else {
+        logger.error("Error connecting to " + ftpUrl.toString() + serverReply);
+        throw new IOException("Error connecting to " + ftpUrl.toString() + serverReply);
       }
+    } catch (SocketException se) {
+      logger.error("Error connecting to host " + host + ", port " + port + ": "+ se.getMessage());
+      throw new SocketException("Error connecting to host " + host + ", port " + port + ": "+ se.getMessage());
+    } catch (UnknownHostException uhe) {
+      logger.debug("Error connecting. Unknown host: " + uhe.getMessage());
+      throw new UnknownHostException("Unknown host: "+uhe.getMessage());
+    } catch (IOException ioe) {
+      logger.debug("Error connecting: " + ioe.getMessage(), ioe);
+      throw ioe;
     }
-    boolean ok = client.login(user, pw);
-    if (!ok) {
-      throw new IOException("Failure logging in using un:pw [" + user + "]:[" + pw + "]");
+  }
+
+  private void login(String userInfo) throws IOException {
+    if (userInfo != null) {
+      String user = "";
+      String pw = "";
+      StringTokenizer tokens = new StringTokenizer(userInfo, ":");
+      if (tokens.hasMoreTokens()) user = tokens.nextToken();
+      if (tokens.hasMoreTokens()) pw = tokens.nextToken();
+      boolean ok = client.login(user, pw);
+      if (!ok) {
+        logger.error("Error logging in to FTP server: " + client.getReplyString());
+        throw new IOException("Error logging in to FTP server: " + client.getReplyString());
+      }
+    } else {
+      logger.error("Could not log in to FTP server: No user info provided with FTP URL.");
+      throw new IOException("Could not log in to FTP server: No user info provided with FTP URL.");
     }
   }
 
@@ -66,10 +85,14 @@ public class FtpClientTransport implements ClientTransport {
   @Override
   public synchronized RemoteFileIterator get(URL url) throws IOException,
       ClientTransportError {
-    if (client == null)
-      connect(url);
+    if (client == null) connect(url);
+    login(url.getUserInfo());
     FTPFile[] files = client.listFiles(url.getPath());
-    logger.debug("Found " + files.length + " files in " + url.getPath());
+    if (files.length==0) {
+      logger.warn("Did not find any files in " + url.getPath());
+    } else {
+      logger.debug("Found " + files.length + " files in " + url.getPath());
+    }
     return new FtpRemoteFileIterator(client, url, files);
   }
 
@@ -80,7 +103,6 @@ public class FtpClientTransport implements ClientTransport {
   @Override
   public void setTimeout(Integer seconds) {
     // TODO Auto-generated method stub
-
   }
 
   @Override
