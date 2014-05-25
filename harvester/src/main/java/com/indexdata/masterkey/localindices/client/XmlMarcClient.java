@@ -26,6 +26,7 @@ import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
@@ -80,9 +81,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
       clientTransport.connect(url);
       try {
 	RemoteFileIterator iterator = clientTransport.get(url);
-	while (iterator.hasNext()) { 
-	  download(iterator.get());
-	}
+  if (iterator.hasNext()) {
+    while (iterator.hasNext()) {
+      download(iterator.get());
+    }
+  } else {
+    getJob().setStatus(HarvestStatus.WARN,"Found no files at " + url.toString());
+  }
       } catch (ClientTransportError cte) {
 	if (getResource().getAllowErrors()) {
 	  setErrors(getErrors() + (url.toString() + " "));
