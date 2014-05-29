@@ -1,59 +1,49 @@
 package com.indexdata.masterkey.localindices.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
 public class RemoteFile  {
-
-  DecompressStream decompressor; 
-  InputStream inputStream; 
-  boolean compressed = false;
-  String contentType;
-  URL url;
-  String entry;
-  long length;
-  File file; 
+  private URL url;
+  private String contentType;
+  private long length;
+  private InputStream inputStream; 
+  private boolean compressed = false;
   boolean isDirectory = false;
-  String name;
-  String path;
+  private final String name;
+  private final String path;
   
-  public RemoteFile(URL pathname) /* throws URISyntaxException */ {
-    //super(pathname.toURI());    
-    this.url = pathname;
-    path = url.getPath(); 
-    int index = path.lastIndexOf("/");
-    if (index == -1)
+  public RemoteFile(URL url) {
+    this.url = url;
+    this.path = url.getPath(); 
+    int slash = path.lastIndexOf("/");
+    if (slash == -1)
       name = path;
-    name = path.substring(index+1);
+    else
+      name = path.substring(slash+1);
+  }
+
+  public RemoteFile(URL pathname, InputStream is, boolean compressed) {
+    this(pathname);
+    this.inputStream = is;
+    this.compressed = compressed;
   }
   
-
-  public RemoteFile(URL pathname, InputStream is, boolean compressed) /* throws URISyntaxException */  {
-    //super(pathname.toURI());
+  public RemoteFile(URL url, String name, InputStream is, boolean compressed) {
+    this.url = url;
+    this.path = url.getPath();
+    this.name = name;
+    this.inputStream = is;
     this.compressed = compressed;
-    inputStream = is;
-  }
-
-  public RemoteFile(URL pathname, String subentry, InputStream is, boolean compressed) /* throws URISyntaxException */ {
-    //super(pathname.toURI());
-    url = pathname;
-    entry = subentry;
-    this.compressed = compressed;
-    inputStream = is;
   }
 
   boolean isCompressed() {
-    if (decompressor != null)
-      return decompressor.isCompressed();
     return compressed;
   }
 
   public InputStream getInputStream() throws IOException {
-    if (decompressor != null)
-      return decompressor.getInputStream();
     return inputStream;
   }
 

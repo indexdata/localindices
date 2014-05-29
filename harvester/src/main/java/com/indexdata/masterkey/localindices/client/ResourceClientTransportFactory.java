@@ -22,16 +22,14 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     
     ClientTransport transport = null; 
     if ("http".equals(url.getProtocol())) {
-      logger.debug("Setting up HTTP trasport");
       transport = new HttpClientTransport(this, logger);
     }
     else if (url.getProtocol().equals("ftp")) {
-      logger.debug("Setting up FTP transport");
       String authority = url.getAuthority();
       if (authority != null) {
 	transport = clientMap.get(authority);
 	if (transport == null) {
-	  transport = new FtpClientTransport(resource.getLastUpdated(), logger);
+	  transport = new FtpClientTransport(logger);
 	  clientMap.put(authority, transport);
 	}
       }
@@ -42,6 +40,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     if (transport == null) {
       throw new ClientTransportError("Unsupported protocol: " + url);
     }
+    transport.setRecursive(true);
     if (resource.getTimeout() != null) {
       transport.setTimeout(1000*resource.getTimeout());
     }

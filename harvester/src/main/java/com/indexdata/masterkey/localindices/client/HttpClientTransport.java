@@ -22,6 +22,7 @@ public class HttpClientTransport implements ClientTransport {
   private Integer timeout;
   private String compressedFormat; 
   private final ClientTransportFactory clientTransportFactory;
+  private boolean isRecursive;
   
   public HttpClientTransport(ClientTransportFactory clientTransportFactory, 
     StorageJobLogger logger) {
@@ -56,6 +57,9 @@ public class HttpClientTransport implements ClientTransport {
     for (URL link : jp.getLinks()) {
       ClientTransport client = clientTransportFactory.lookup(link);
       client.connect(link);
+      //we only expect jump pages to be linked directly in the harvester
+      //otherwise we would need to protect against back-links, cycles, etc
+      client.setRecursive(false);
       RemoteFileIterator iter = client.get(link);
       while (iter.hasNext()) 
 	files.add(iter.get());
@@ -85,14 +89,18 @@ public class HttpClientTransport implements ClientTransport {
       String contentType = conn.getContentType();
       logger.debug("Content-Type: "+contentType+" at "+url);
       if (contentType != null && contentType.startsWith("text/html")) {
-	try {
-          logger.debug("Detected jump/index page at "+url);
-	  return handleJumpPage(conn);
-	} catch (URISyntaxException ex) {
-	  throw new ClientTransportError("URI syntax error ", ex);
-	}
+	if (isRecursive) {
+          try {
+            logger.debug("Detected jump/index page at "+url);
+            return handleJumpPage(conn);
+          } catch (URISyntaxException ex) {
+            throw new ClientTransportError("URI syntax error ", ex);
+          }
+        } else {
+          logger.debug("Ignoring html page at "+url);
+          return new EmptyRemoteFileIterator();
+        }
       } else {
-	// handle content type
 	InputStream isDec = handleContentEncoding(conn);
 	long length = getContentLength(conn);
 	RemoteFile file = new RemoteFile(url, isDec, false);
@@ -130,7 +138,7 @@ public class HttpClientTransport implements ClientTransport {
     try {
       contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
     } catch (NumberFormatException e) {
-      logger.warn("Prolemb parsing Content-Length: " + conn.getHeaderField("Content-Length"));
+      logger.warn("Problem with parsing Content-Length: " + conn.getHeaderField("Content-Length"));
       contentLength = -1;
     }
     return contentLength;
@@ -167,5 +175,9 @@ public class HttpClientTransport implements ClientTransport {
     lastRequested = date;
   }
 
-
+  @Override
+  public void setRecursive(boolean isRecursive) {
+    this.isRecursive = isRecursive;
+  }
+ 
 }

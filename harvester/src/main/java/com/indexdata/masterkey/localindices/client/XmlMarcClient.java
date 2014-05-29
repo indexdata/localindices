@@ -10,8 +10,6 @@ import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.dom.DOMResult;
 
@@ -76,7 +74,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   public int download(URL url) throws Exception {
     ClientTransportFactory factory = new ResourceClientTransportFactory(
       (XmlBulkResource) resource, logger);
-    logger.info("Preparing retrieval of " + url.toString());
+    logger.info("Preparing retrieval of " + url);
     try {
       ClientTransport clientTransport = factory.lookup(url);
       clientTransport.connect(url);
@@ -85,12 +83,11 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (iterator.hasNext()) {
           while (iterator.hasNext()) {
             RemoteFile rf = iterator.get();
-            logger.info("Found file or link at "+rf.getName());
+            logger.info("Found harvestable file: "+rf.getName());
             download(rf);
           }
         } else {
-          getJob().setStatus(HarvestStatus.WARN, "Found no files at " + url.
-            toString());
+          getJob().setStatus(HarvestStatus.WARN, "Found no files at "+url);
         }
       } catch (ClientTransportError cte) {
         if (getResource().getAllowErrors()) {
@@ -190,7 +187,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       NonClosableInputStream ncis = new NonClosableInputStream(input);
       try {
         while (iterator.hasNext()) {
-          store(ncis, contentLength);
+          store(ncis);
         }
       } finally {
         ncis.reallyClose();
@@ -203,23 +200,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
     public boolean hasNext() throws IOException {
       return once-- > 0;
-    }
-  }
-
-  class ZipStreamIterator extends StreamIterator {
-    ZipInputStream zip;
-
-    public ZipStreamIterator(ZipInputStream input) {
-      zip = input;
-    }
-
-    public boolean hasNext() throws IOException {
-      ZipEntry zipEntry = zip.getNextEntry();
-      if (zipEntry != null) {
-        @SuppressWarnings("unused")
-        int method = zipEntry.getMethod();
-      }
-      return zipEntry != null;
     }
   }
 
@@ -247,7 +227,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
     if (mimeCharset.isMimeType("application/marc") || mimeCharset.isMimeType(
       "application/tmarc")) {
-      logger.info("Setting up Binary MARC reader ("
+      logger.debug("Setting up Binary MARC reader ("
         + (mimeCharset.getCharset() != null ? mimeCharset.getCharset()
         : "default") + ")"
         + (getResource().getExpectedSchema() != null
@@ -263,7 +243,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       return readStore;
     }
 
-    logger.info("Setting up InputStream reader. "
+    logger.debug("Setting up InputStream reader. "
       + (contentType != null ? "Content-Type:" + contentType : ""));
     return new InputStreamReadStore(isDec, contentLength, streamIterator);
   }
@@ -326,8 +306,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
     logger.info("Marc record read total: " + index);
   }
 
-  private void store(InputStream is, long contentLength) throws Exception {
+  private void store(InputStream is) throws Exception {
     RecordStorage storage = job.getStorage();
+    logger.debug("Invoking XML splitter");
     SplitContentHandler handler = new SplitContentHandler(
       new RecordStorageConsumer(storage, job.getLogger()),
       getJob().getNumber(getResource().getSplitAt(), splitAt));

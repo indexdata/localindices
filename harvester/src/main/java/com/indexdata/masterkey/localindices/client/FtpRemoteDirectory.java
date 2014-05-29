@@ -13,17 +13,12 @@ public class FtpRemoteDirectory extends RemoteFile {
   
   public FtpRemoteDirectory(URL parent, FTPFile file, FTPClient client) throws MalformedURLException, IOException {
     super(new URL(parent, file.getName() + "/"));
-    directory = file;
+    this.directory = file;
     this.client = client;
   }
 
+  @Override
   public boolean isDirectory() {
-    
     return true;
-  }
-
-  public RemoteFileIterator getFileIterator() throws IOException {
-    FTPFile[] files = client.listFiles(url.getPath());
-    return new FtpRemoteFileIterator(client, url, files);
   }
 }

@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.SocketException;
@@ -13,11 +12,11 @@ import org.apache.commons.net.ftp.FTPFile;
 
 public class FtpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
-  Date fromDate;
-  FTPClient client = null;
+  private Date fromDate;
+  private FTPClient client = null;
+  private boolean isRecursive;
 
-  public FtpClientTransport(Date fromDate, StorageJobLogger logger) {
-    this.fromDate = fromDate;
+  public FtpClientTransport(StorageJobLogger logger) {
     this.logger = logger;
   }
 
@@ -89,7 +88,6 @@ public class FtpClientTransport implements ClientTransport {
 
   @Override
   public void setTimeout(Integer seconds) {
-    // TODO Auto-generated method stub
   }
 
   @Override
@@ -100,5 +98,12 @@ public class FtpClientTransport implements ClientTransport {
   public void setFromDate(Date date) {
     fromDate = date;
   }
+
+  @Override
+  public void setRecursive(boolean isRecursive) {
+    this.isRecursive = isRecursive;
+  }
+  
+ 
 
 }
