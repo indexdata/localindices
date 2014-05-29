@@ -8,43 +8,60 @@ import java.util.zip.ZipInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 
 public class ZipRemoteFileIterator implements RemoteFileIterator {
-
-  ZipInputStream zip;
-  ZipEntry zipEntry = null;
-  URL url;
-  String contentType; 
-  public ZipRemoteFileIterator(URL url, ZipInputStream input, String contentType) {
-    zip = input;
+  private final URL url;
+  private final ZipInputStream zis;
+  private ZipEntry zipEntry;
+  private final String contentType;
+  private boolean closed = false;
+  
+  public ZipRemoteFileIterator(URL url, ZipInputStream zis, String contentType) throws IOException {
+    this.zis = zis;
     this.url = url; 
     this.contentType = contentType;
+    this.zipEntry = zis.getNextEntry();
+    if (zipEntry == null) {
+      closed = true;
+      zis.close();
+    }
   }
 
+  @Override
   public boolean hasNext() throws IOException {
-    try {
-      zipEntry = zip.getNextEntry();
-      if (zipEntry != null) {
-        @SuppressWarnings("unused")
-        int method = zipEntry.getMethod();
+    if (closed) return false;
+    if (zipEntry == null) {
+      //signaled by get() to retrieve
+      zipEntry = zis.getNextEntry();
+      if (zipEntry == null) {
+        closed = true;
+        zis.close();
+        return false;
+      } else {
+        return true;
       }
-      else {
-	zip.close();
-      }
-      return zipEntry != null;
-    }
-    catch (IOException ioe) {
-      return false;
+    } else {
+      return true;
     }
   }
 
   @Override
   public RemoteFile get() throws IOException {
-    if (zipEntry != null) {
-      RemoteFile file = new RemoteFile(url, zipEntry.getName(), new NonClosableInputStream(zip), false);
-      file.setContentType(contentType);
-      file.setLength(zipEntry.getSize());
-      return file;
+    if (closed) return null;
+    //we have signaled to next to fetch more but next wasn't called
+    if (zipEntry == null) {
+      zipEntry = zis.getNextEntry();
+      if (zipEntry == null) {
+        closed = true;
+        zis.close();
+        return null;
+      }
     }
-    throw new IOException("No Zip Entry found in " + url);
+    RemoteFile file = new RemoteFile(url, zipEntry.getName(), 
+      new NonClosableInputStream(zis), false);
+    file.setContentType(contentType);
+    file.setLength(zipEntry.getSize());
+    //signal to hasNext
+    zipEntry = null;
+    return file;
   }
 
 

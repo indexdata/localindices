@@ -24,7 +24,6 @@ public class RecordStorageConsumer implements MessageConsumer {
   public void accept(Node xmlNode) {
     Record record = new RecordDOMImpl(null, null, xmlNode);
     try {
-      logger.debug("Found record.");
       recordStorage.add(record);
       if (++added % 1000 == 0)
       	logger.info("Fetched " + added + " records.");
