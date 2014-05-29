@@ -1,5 +1,8 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.utils.DateUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -12,43 +15,33 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
 
-import org.apache.log4j.Logger;
-
-import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.utils.DateUtil;
-
 public class HttpClientTransport implements ClientTransport {
-
-  Logger logger = Logger.getLogger(this.getClass());
-  //XmlBulkResource resource;
-  Date lastRequested;
-  HttpURLConnection conn;
-  Integer timeout;
-  String compressedFormat; 
-  ClientTransportFactory clientTransportFactory;
+  private final StorageJobLogger logger;
+  private Date lastRequested;
+  private HttpURLConnection conn;
+  private Integer timeout;
+  private String compressedFormat; 
+  private final ClientTransportFactory clientTransportFactory;
   
-  public HttpClientTransport(ClientTransportFactory clientFactory) {
-    clientTransportFactory = clientFactory;
+  public HttpClientTransport(ClientTransportFactory clientTransportFactory, 
+    StorageJobLogger logger) {
+    this.clientTransportFactory = clientTransportFactory;
+    this.logger = logger;
   }
 
   @Override
   public void connect(URL url) throws IOException {
-     conn = createConnection(url);
+     conn = (HttpURLConnection) url.openConnection();
      if (timeout != null) {
        conn.setConnectTimeout(timeout);
        conn.setReadTimeout(timeout);
      }
   }
 
-  private HttpURLConnection createConnection(URL url) throws IOException {
-    return (HttpURLConnection) url.openConnection();
-  }
-
   private InputStream handleContentEncoding(HttpURLConnection conn) throws IOException 
   {
     String contentEncoding = conn.getContentEncoding();
     InputStream inputStream = conn.getInputStream();
-
     if ("gzip".equals(contentEncoding))
       return new GZIPInputStream(inputStream);
     if ("deflate".equalsIgnoreCase(contentEncoding))
@@ -62,6 +55,7 @@ public class HttpClientTransport implements ClientTransport {
     LinkRemoteFileIterator files  = new LinkRemoteFileIterator();
     for (URL link : jp.getLinks()) {
       ClientTransport client = clientTransportFactory.lookup(link);
+      client.connect(link);
       RemoteFileIterator iter = client.get(link);
       while (iter.hasNext()) 
 	files.add(iter.get());
@@ -72,7 +66,8 @@ public class HttpClientTransport implements ClientTransport {
 
   @Override
   public RemoteFileIterator get(URL url) throws IOException, ClientTransportError {
-    HttpURLConnection conn = createConnection(url);
+    if (conn == null)
+      throw new ClientTransportError("HTTP client must be initialized with a call to #connect");
     conn.setRequestMethod("GET");
     if (lastRequested != null) {
       try {
@@ -86,9 +81,12 @@ public class HttpClientTransport implements ClientTransport {
     conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
     int responseCode = conn.getResponseCode();
     if (responseCode == 200) {
+      logger.debug("Response OK (200) at "+url);
       String contentType = conn.getContentType();
-      if (contentType != null && "text/html".startsWith(contentType)) {
-	try { 
+      logger.debug("Content-Type: "+contentType+" at "+url);
+      if (contentType != null && contentType.startsWith("text/html")) {
+	try {
+          logger.debug("Detected jump/index page at "+url);
 	  return handleJumpPage(conn);
 	} catch (URISyntaxException ex) {
 	  throw new ClientTransportError("URI syntax error ", ex);
@@ -128,11 +126,11 @@ public class HttpClientTransport implements ClientTransport {
 
   private long getContentLength(HttpURLConnection conn) {
     // conn.getContentLength() overruns at 2GB, since the interface returns a integer
-    long contentLength = -1;
+    long contentLength;
     try {
       contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
-    } catch (Exception e) {
-      logger.error("Error parsing Content-Length: " + conn.getHeaderField("Content-Length"));
+    } catch (NumberFormatException e) {
+      logger.warn("Prolemb parsing Content-Length: " + conn.getHeaderField("Content-Length"));
       contentLength = -1;
     }
     return contentLength;
@@ -150,6 +148,7 @@ public class HttpClientTransport implements ClientTransport {
     return timeout;
   }
 
+  @Override
   public void setTimeout(Integer timeout) {
     this.timeout = timeout;
   }
@@ -158,6 +157,7 @@ public class HttpClientTransport implements ClientTransport {
     return compressedFormat;
   }
 
+  @Override
   public void setCompressedFormat(String compressedFormat) {
     this.compressedFormat = compressedFormat;
   }
@@ -165,7 +165,6 @@ public class HttpClientTransport implements ClientTransport {
   @Override
   public void setFromDate(Date date) {
     lastRequested = date;
-    
   }
 
 

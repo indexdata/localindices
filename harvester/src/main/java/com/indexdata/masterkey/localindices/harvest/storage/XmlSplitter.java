@@ -28,7 +28,7 @@ public class XmlSplitter  {
   {    
     try {
       InputSource source = new InputSource(input);
-      XmlUtils.read(source, handler);
+      XmlUtils.read(source, handler, true);
     } catch (IOException ioe) {
       if (logger != null) 
 	logger.error("IOException in XML split", ioe);

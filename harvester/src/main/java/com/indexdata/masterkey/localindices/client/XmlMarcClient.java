@@ -75,17 +75,18 @@ public class XmlMarcClient extends AbstractHarvestClient {
   @Override
   public int download(URL url) throws Exception {
     ClientTransportFactory factory = new ResourceClientTransportFactory(
-      (XmlBulkResource) resource);
-    logger.info("Starting download - " + url.toString());
+      (XmlBulkResource) resource, logger);
+    logger.info("Preparing retrieval of " + url.toString());
     try {
-
       ClientTransport clientTransport = factory.lookup(url);
       clientTransport.connect(url);
       try {
         RemoteFileIterator iterator = clientTransport.get(url);
         if (iterator.hasNext()) {
           while (iterator.hasNext()) {
-            download(iterator.get());
+            RemoteFile rf = iterator.get();
+            logger.info("Found file or link at "+rf.getName());
+            download(rf);
           }
         } else {
           getJob().setStatus(HarvestStatus.WARN, "Found no files at " + url.
@@ -96,7 +97,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
           setErrors(getErrors() + (url.toString() + " "));
           return 1;
         } else {
-          throw new Exception(cte.getMessage(), cte);
+          throw cte;
         }
 
       }

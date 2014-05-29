@@ -1,28 +1,24 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.StringTokenizer;
-
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.apache.log4j.Logger;
-
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 
 public class FtpClientTransport implements ClientTransport {
-
-  Logger logger = Logger.getLogger(this.getClass());
-  XmlBulkResource resource;
+  private final StorageJobLogger logger;
   Date fromDate;
   FTPClient client = null;
 
-  public FtpClientTransport(XmlBulkResource resource, Date fromDate) {
-    this.resource = resource;
+  public FtpClientTransport(Date fromDate, StorageJobLogger logger) {
     this.fromDate = fromDate;
+    this.logger = logger;
   }
 
   @Override
@@ -69,12 +65,6 @@ public class FtpClientTransport implements ClientTransport {
     }
   }
 
-  private boolean valid(String path) {
-    if (path != null && !"".equals(path))
-      return true;
-    return false;
-  }
-
   public String appendPath(String path, String name) {
     if (path.endsWith("/"))
       return path + name;
@@ -85,7 +75,8 @@ public class FtpClientTransport implements ClientTransport {
   @Override
   public synchronized RemoteFileIterator get(URL url) throws IOException,
       ClientTransportError {
-    if (client == null) connect(url);
+    if (client == null)
+      throw new ClientTransportError("FTP client must be initialized with a call to #connect");
     login(url.getUserInfo());
     FTPFile[] files = client.listFiles(url.getPath());
     if (files.length==0) {
@@ -94,10 +85,6 @@ public class FtpClientTransport implements ClientTransport {
       logger.debug("Found " + files.length + " files in " + url.getPath());
     }
     return new FtpRemoteFileIterator(client, url, files);
-  }
-
-  public XmlBulkResource getResource() {
-    return resource;
   }
 
   @Override

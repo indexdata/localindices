@@ -4,6 +4,6 @@ import java.net.URL;
 
 public interface ClientTransportFactory {
   
-  ClientTransport lookup(URL url);
+  public ClientTransport lookup(URL url) throws ClientTransportError;
 
 }
