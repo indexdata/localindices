@@ -3,21 +3,19 @@ package com.indexdata.masterkey.localindices.client;
 import java.io.IOException;
 
 public class SingleFileIterator implements RemoteFileIterator {
-
-  RemoteFile file;
-  public SingleFileIterator(RemoteFile remote) {
-    file = remote;
+  private RemoteFile file;
+  
+  public SingleFileIterator(RemoteFile file) {
+    this.file = file;
   }
  
-  boolean hasMore = true;
   @Override
   public boolean hasNext() throws IOException {
-    return hasMore;
+    return file != null;
   }
 
   @Override
-  public RemoteFile get() throws IOException {
-    hasMore = false;
+  public RemoteFile getNext() throws IOException {
     RemoteFile remote = file;
     file = null;
     return remote;

@@ -29,7 +29,7 @@ public class ZipRemoteFileIterator implements RemoteFileIterator {
   public boolean hasNext() throws IOException {
     if (closed) return false;
     if (zipEntry == null) {
-      //signaled by get() to retrieve
+      //signaled by getNext() to retrieve
       zipEntry = zis.getNextEntry();
       if (zipEntry == null) {
         closed = true;
@@ -44,7 +44,7 @@ public class ZipRemoteFileIterator implements RemoteFileIterator {
   }
 
   @Override
-  public RemoteFile get() throws IOException {
+  public RemoteFile getNext() throws IOException {
     if (closed) return null;
     //we have signaled to next to fetch more but next wasn't called
     if (zipEntry == null) {

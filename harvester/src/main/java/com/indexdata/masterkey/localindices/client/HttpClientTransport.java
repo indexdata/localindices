@@ -62,7 +62,7 @@ public class HttpClientTransport implements ClientTransport {
       client.setRecursive(false);
       RemoteFileIterator iter = client.get(link);
       while (iter.hasNext()) 
-	files.add(iter.get());
+	files.add(iter.getNext());
     }    
     return files;
   }

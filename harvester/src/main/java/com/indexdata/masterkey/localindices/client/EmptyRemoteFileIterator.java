@@ -10,7 +10,7 @@ public class EmptyRemoteFileIterator implements RemoteFileIterator {
   }
 
   @Override
-  public RemoteFile get() throws IOException {
+  public RemoteFile getNext() throws IOException {
     return null;
   }
 

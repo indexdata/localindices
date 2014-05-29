@@ -21,7 +21,7 @@ public class LinkRemoteFileIterator implements RemoteFileIterator {
   }
 
   @Override
-  public RemoteFile get() {
+  public RemoteFile getNext() {
     return files.get(index++);
   }
 

@@ -58,7 +58,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     if (file.isDirectory()) {
       RemoteFileIterator iterator = file.getIterator();
       while (iterator.hasNext()) {
-        count += download(iterator.get());
+        count += download(iterator.getNext());
       }
     } else {
       ReadStore readStore = prepareReadStore(file, resource.isCacheEnabled()
@@ -82,7 +82,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         RemoteFileIterator iterator = clientTransport.get(url);
         if (iterator.hasNext()) {
           while (iterator.hasNext()) {
-            RemoteFile rf = iterator.get();
+            RemoteFile rf = iterator.getNext();
             logger.info("Found harvestable file: "+rf.getName());
             download(rf);
           }

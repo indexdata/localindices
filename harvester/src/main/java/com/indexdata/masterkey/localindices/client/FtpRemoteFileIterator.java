@@ -29,7 +29,7 @@ public class FtpRemoteFileIterator implements RemoteFileIterator {
   }
 
   @Override
-  public synchronized RemoteFile get() throws IOException {
+  public synchronized RemoteFile getNext() throws IOException {
     FTPFile file = files.get(index++);
     
     if (file.isDirectory()) {
