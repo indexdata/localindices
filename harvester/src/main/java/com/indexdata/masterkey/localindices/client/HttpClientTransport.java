@@ -53,7 +53,7 @@ public class HttpClientTransport implements ClientTransport {
   private RemoteFileIterator handleJumpPage(HttpURLConnection conn) throws IOException, URISyntaxException, ClientTransportError 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
-    LinkRemoteFileIterator files  = new LinkRemoteFileIterator();
+    RemoteFileIteratorIterator itt = new RemoteFileIteratorIterator();
     for (URL link : jp.getLinks()) {
       ClientTransport client = clientTransportFactory.lookup(link);
       client.connect(link);
@@ -61,10 +61,9 @@ public class HttpClientTransport implements ClientTransport {
       //otherwise we would need to protect against back-links, cycles, etc
       client.setRecursive(false);
       RemoteFileIterator iter = client.get(link);
-      while (iter.hasNext()) 
-	files.add(iter.getNext());
+      itt.add(iter);
     }    
-    return files;
+    return itt;
   }
 
 

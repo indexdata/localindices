@@ -1,10 +1,9 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
 public class MimeTypeCharSet {
-  
+  private final static String CHARSET_PREFIX =  "charset=";
   private String mimetype = "";
   private String charset  = null;
-  static String CHARSET =  "charset=";
   public MimeTypeCharSet(String mimetypeCharset) {
     if (mimetypeCharset == null)
       	return ;
@@ -12,9 +11,9 @@ public class MimeTypeCharSet {
     if (pos > 0) {
       mimetype = mimetypeCharset.substring(0, pos);
       charset = mimetypeCharset.substring(pos);
-      pos = charset.indexOf(CHARSET);
+      pos = charset.indexOf(CHARSET_PREFIX);
       if (pos > 0) {
-	charset = charset.substring(pos+CHARSET.length());
+	charset = charset.substring(pos+CHARSET_PREFIX.length());
       }
     }
     else 
@@ -26,9 +25,7 @@ public class MimeTypeCharSet {
   }
 
   public boolean isMimeType(String mimetype) {
-    if (this.mimetype.equals(mimetype))
-      return true;
-    return false;
+    return this.mimetype.equals(mimetype);
   }
 
   public String getCharset() {

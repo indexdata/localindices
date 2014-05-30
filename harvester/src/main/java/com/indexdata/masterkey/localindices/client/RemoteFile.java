@@ -39,10 +39,6 @@ public class RemoteFile  {
     this.compressed = compressed;
   }
 
-  boolean isCompressed() {
-    return compressed;
-  }
-
   public InputStream getInputStream() throws IOException {
     return inputStream;
   }
@@ -50,17 +46,11 @@ public class RemoteFile  {
   public String getContentType() throws IOException {
     if (contentType != null)
       return contentType;
-    inputStream = getInputStream(); 
     if (inputStream != null) {
       return URLConnection.guessContentTypeFromStream(getInputStream());
     }
     return null;
   }
-  
-  public long length() {
-    return length;
-  }
-
 
   public long getLength() {
     return length;
@@ -93,9 +83,6 @@ public class RemoteFile  {
   }
 
   public RemoteFileIterator getIterator() {
-    if (!isDirectory) {
-      throw new RuntimeException( getName() + " is not a directory");
-    }
-    throw new RuntimeException("Iterator not implemented");
+    return null;
   }
 }

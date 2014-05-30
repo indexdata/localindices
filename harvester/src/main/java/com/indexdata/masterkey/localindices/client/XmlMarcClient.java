@@ -206,12 +206,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private ReadStore prepareReadStore(RemoteFile file, String cacheFile) throws
     IOException {
     // InputStream after possible Content-Encoding decoded.
-    long contentLength = file.length();
+    long contentLength = file.getLength();
     InputStream isDec = file.getInputStream();
     StreamIterator streamIterator = new StreamIterator();
-    if (file.isCompressed()) {
-      contentLength = -1;
-    }
     //buffer reads
     isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
