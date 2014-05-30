@@ -119,7 +119,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   public int download(File file) throws Exception {
     try {
-      storeAny(new LocalRemoteFile(file), null);
+      storeAny(new LocalRemoteFile(file, logger), null);
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
     }
@@ -137,11 +137,14 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     MimeTypeCharSet mimeType;
     // user mime-type override
-    if (getResource().getExpectedSchema() != null) {
+    if (getResource().getExpectedSchema() != null
+      && !getResource().getExpectedSchema().isEmpty()) {
+      logger.debug("Applying user content type: "+getResource().getExpectedSchema());
       mimeType = new MimeTypeCharSet(getResource().getExpectedSchema());
     } else {
       mimeType = new MimeTypeCharSet(file.getContentType());
     }
+    logger.debug("Mime-Type: "+mimeType);
     try {
       if (mimeType.isMimeType("application/marc") 
         || mimeType.isMimeType("application/tmarc")) {

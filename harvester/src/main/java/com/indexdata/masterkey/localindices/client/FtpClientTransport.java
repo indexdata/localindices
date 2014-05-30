@@ -48,6 +48,7 @@ public class FtpClientTransport implements ClientTransport {
 
   private void login(String userInfo) throws IOException {
     if (userInfo != null) {
+      logger.debug("Logging in to the server with "+userInfo);
       String user = "";
       String pw = "";
       StringTokenizer tokens = new StringTokenizer(userInfo, ":");
@@ -77,13 +78,14 @@ public class FtpClientTransport implements ClientTransport {
     if (client == null)
       throw new ClientTransportError("FTP client must be initialized with a call to #connect");
     login(url.getUserInfo());
+    logger.debug("Retrieving file list for "+url.getPath());
     FTPFile[] files = client.listFiles(url.getPath());
     if (files.length==0) {
       logger.warn("Did not find any files in " + url.getPath());
     } else {
       logger.debug("Found " + files.length + " files in " + url.getPath());
     }
-    return new FtpRemoteFileIterator(client, url, files);
+    return new FtpRemoteFileIterator(client, url, files, logger);
   }
 
   @Override

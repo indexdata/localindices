@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -13,8 +14,9 @@ public class RemoteFile  {
   boolean isDirectory = false;
   private final String name;
   private final String path;
+  private final StorageJobLogger logger;
   
-  public RemoteFile(URL url) {
+  public RemoteFile(URL url, StorageJobLogger logger) {
     this.url = url;
     this.path = url.getPath(); 
     int slash = path.lastIndexOf("/");
@@ -22,18 +24,20 @@ public class RemoteFile  {
       name = path;
     else
       name = path.substring(slash+1);
+    this.logger = logger;
   }
 
-  public RemoteFile(URL pathname, InputStream is) {
-    this(pathname);
+  public RemoteFile(URL url, InputStream is, StorageJobLogger logger) {
+    this(url, logger);
     this.inputStream = is;
   }
   
-  public RemoteFile(URL url, String name, InputStream is) {
+  public RemoteFile(URL url, String name, InputStream is, StorageJobLogger logger) {
     this.url = url;
     this.path = url.getPath();
     this.name = name;
     this.inputStream = is;
+    this.logger = logger;
   }
 
   public InputStream getInputStream() throws IOException {
@@ -41,12 +45,11 @@ public class RemoteFile  {
   }
 
   public String getContentType() throws IOException {
-    if (contentType != null)
-      return contentType;
-    if (inputStream != null) {
-      return URLConnection.guessContentTypeFromStream(getInputStream());
+    if (contentType == null) {
+      contentType = URLConnection.guessContentTypeFromStream(getInputStream());
+      logger.debug("Trying to deduce content type from stream: " +contentType);
     }
-    return null;
+    return contentType;
   }
 
   public long getLength() {

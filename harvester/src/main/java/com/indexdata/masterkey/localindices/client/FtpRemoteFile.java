@@ -1,24 +1,26 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
 public class FtpRemoteFile extends RemoteFile {
-
-  FTPFile file; 
-  FTPClient client;
+  private final StorageJobLogger logger;
+  private FTPFile file; 
+  private FTPClient client;
   private FtpInputStream ftpInputStream;
   
-  public FtpRemoteFile(URL parent, FTPFile file, FTPClient client) throws MalformedURLException, IOException {
-    super(new URL(parent, file.getName()));
+  public FtpRemoteFile(URL parent, FTPFile file, FTPClient client, 
+    StorageJobLogger logger) throws MalformedURLException, IOException {
+    super(new URL(parent, file.getName()), logger);
     this.file = file;
     this.client = client; 
+    this.logger = logger;
   }
 
   public boolean isDirectory() {

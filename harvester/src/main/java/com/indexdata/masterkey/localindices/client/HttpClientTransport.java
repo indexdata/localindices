@@ -102,18 +102,18 @@ public class HttpClientTransport implements ClientTransport {
       } else {
 	InputStream isDec = handleContentEncoding(conn);
 	long length = getContentLength(conn);
-	RemoteFile file = new RemoteFile(url, isDec);
+	RemoteFile file = new RemoteFile(url, isDec, logger);
 	file.setContentType(contentType);
 	if ("application/x-gzip".equals(contentType)) {
 	  isDec = new GZIPInputStream(isDec);
-	  file = new RemoteFile(url, isDec);
+	  file = new RemoteFile(url, isDec, logger);
 	  file.setLength(length);
 	  file.setContentType(compressedFormat);
 	  return new SingleFileIterator(file);
 	}
 	else if ("application/zip".equals(contentType)) {
 	  ZipInputStream zipInput = new ZipInputStream(isDec);
-	  return new ZipRemoteFileIterator(url, zipInput, compressedFormat);
+	  return new ZipRemoteFileIterator(url, zipInput, compressedFormat, logger);
 	}
 	return new SingleFileIterator(file);
       }

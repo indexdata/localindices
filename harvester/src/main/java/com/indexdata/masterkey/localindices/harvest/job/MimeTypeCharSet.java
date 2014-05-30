@@ -2,36 +2,39 @@ package com.indexdata.masterkey.localindices.harvest.job;
 
 public class MimeTypeCharSet {
   private final static String CHARSET_PREFIX =  "charset=";
-  private String mimetype = "";
-  private String charset  = null;
-  public MimeTypeCharSet(String mimetypeCharset) {
-    if (mimetypeCharset == null)
-      	return ;
-    int pos = mimetypeCharset.indexOf(";");
-    if (pos > 0) {
-      mimetype = mimetypeCharset.substring(0, pos);
-      charset = mimetypeCharset.substring(pos);
-      pos = charset.indexOf(CHARSET_PREFIX);
-      if (pos > 0) {
-	charset = charset.substring(pos+CHARSET_PREFIX.length());
+  private String mimeType = "";
+  private String charset;
+  
+  public MimeTypeCharSet(String contentType) {
+    if (contentType == null) return;
+    int colon = contentType.indexOf(";");
+    if (colon > 0) {
+      mimeType = contentType.substring(0, colon);
+      charset = contentType.substring(colon);
+      int prefix = charset.indexOf(CHARSET_PREFIX);
+      if (prefix > 0) {
+	charset = charset.substring(prefix+CHARSET_PREFIX.length());
       }
+    } else { 
+      mimeType = contentType;
     }
-    else 
-      mimetype = mimetypeCharset;
   }
 
-  String getMimeType() {
-    return mimetype;
+  public String getMimeType() {
+    return mimeType;
   }
 
-  public boolean isMimeType(String mimetype) {
-    return this.mimetype.equals(mimetype);
+  public boolean isMimeType(String contentType) {
+    return mimeType.equals(contentType);
   }
 
   public String getCharset() {
     return charset;
   }
   
+  @Override
+  public String toString() {
+    return mimeType + (charset != null ? "; charset=" + charset : "");
+  }
   
-
 }

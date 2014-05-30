@@ -44,7 +44,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     if (resource.getTimeout() != null) {
       transport.setTimeout(1000*resource.getTimeout());
     }
-    transport.setCompressedFormat(resource.getExpectedSchema());
+    //transport.setCompressedFormat(resource.getExpectedSchema());
     if (resource.getAllowCondReq())
       transport.setFromDate(resource.getLastUpdated());
     return transport;
