@@ -56,7 +56,7 @@ public class ZipRemoteFileIterator implements RemoteFileIterator {
       }
     }
     RemoteFile file = new RemoteFile(url, zipEntry.getName(), 
-      new NonClosableInputStream(zis), false);
+      new NonClosableInputStream(zis));
     file.setContentType(contentType);
     file.setLength(zipEntry.getSize());
     //signal to hasNext

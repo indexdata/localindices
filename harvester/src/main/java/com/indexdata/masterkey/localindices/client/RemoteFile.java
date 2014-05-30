@@ -10,7 +10,6 @@ public class RemoteFile  {
   private String contentType;
   private long length;
   private InputStream inputStream; 
-  private boolean compressed = false;
   boolean isDirectory = false;
   private final String name;
   private final String path;
@@ -25,18 +24,16 @@ public class RemoteFile  {
       name = path.substring(slash+1);
   }
 
-  public RemoteFile(URL pathname, InputStream is, boolean compressed) {
+  public RemoteFile(URL pathname, InputStream is) {
     this(pathname);
     this.inputStream = is;
-    this.compressed = compressed;
   }
   
-  public RemoteFile(URL url, String name, InputStream is, boolean compressed) {
+  public RemoteFile(URL url, String name, InputStream is) {
     this.url = url;
     this.path = url.getPath();
     this.name = name;
     this.inputStream = is;
-    this.compressed = compressed;
   }
 
   public InputStream getInputStream() throws IOException {

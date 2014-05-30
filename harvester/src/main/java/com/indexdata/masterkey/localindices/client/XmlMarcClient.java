@@ -22,7 +22,6 @@ import org.marc4j.TurboMarcXmlWriter;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
@@ -32,6 +31,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.xml.filter.SplitContentHandler;
+import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -61,10 +61,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
         count += download(iterator.getNext());
       }
     } else {
-      ReadStore readStore = prepareReadStore(file, resource.isCacheEnabled()
+      storeAny(file, resource.isCacheEnabled()
         ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
         : null);
-      readStore.readAndStore();
       count++;
     }
     return count;
@@ -120,145 +119,69 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   public int download(File file) throws Exception {
     try {
-      ReadStore readStore = prepareReadStore(new LocalRemoteFile(file), null);
-      readStore.readAndStore();
+      storeAny(new LocalRemoteFile(file), null);
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
     }
     return 0;
   }
 
-  interface ReadStore {
-    void readAndStore() throws Exception;
-  }
-
-  class MarcReadStore implements ReadStore {
-    InputStream input;
-    boolean useTurboMarc = false;
-    // Default MARC-8 encoding, use setEncoding to override
-    String encoding = null;
-    StreamIterator iterator;
-
-    public MarcReadStore(InputStream input, StreamIterator iterator) {
-      this.input = input;
-      this.iterator = iterator;
-    }
-
-    public MarcReadStore(InputStream input, StreamIterator iterator,
-      boolean useTurboMarc) {
-      this.input = input;
-      this.useTurboMarc = useTurboMarc;
-    }
-
-    void setEncoding(String encoding) {
-      this.encoding = encoding;
-    }
-
-    @Override
-    public void readAndStore() throws Exception {
-      try {
-        MarcStreamReader reader = new MarcStreamReader(input, encoding);
-        reader.setBadIndicators(false);
-        while (iterator.hasNext()) {
-          store(reader, -1);
-        }
-      } finally {
-        //failure to close the input stream will result in malformed cached data
-        //and leaking fds
-        input.close();
-      }
-    }
-  }
-
-  class InputStreamReadStore implements ReadStore {
-    InputStream input;
-    long contentLength;
-    StreamIterator iterator;
-
-    public InputStreamReadStore(InputStream input, long contentLength,
-      StreamIterator iterator) {
-      this.input = input;
-      this.contentLength = contentLength;
-      this.iterator = iterator;
-    }
-
-    @Override
-    public void readAndStore() throws Exception {
-      NonClosableInputStream ncis = new NonClosableInputStream(input);
-      try {
-        while (iterator.hasNext()) {
-          store(ncis);
-        }
-      } finally {
-        ncis.reallyClose();
-      }
-    }
-  }
-
-  class StreamIterator {
-    int once = 1;
-
-    public boolean hasNext() throws IOException {
-      return once-- > 0;
-    }
-  }
-
-  private ReadStore prepareReadStore(RemoteFile file, String cacheFile) throws
+  private void storeAny(RemoteFile file, String cacheFile) throws
     IOException {
-    // InputStream after possible Content-Encoding decoded.
-    long contentLength = file.getLength();
     InputStream isDec = file.getInputStream();
-    StreamIterator streamIterator = new StreamIterator();
     //buffer reads
     isDec = new BufferedInputStream(isDec);
     //cache responses to filesystem
     if (cacheFile != null) {
       isDec = new CachingInputStream(isDec, cacheFile);
     }
-    String contentType = file.getContentType();
-    MimeTypeCharSet mimeCharset = new MimeTypeCharSet(contentType);
-    // Expected type overrides content type
+    MimeTypeCharSet mimeType;
+    // user mime-type override
     if (getResource().getExpectedSchema() != null) {
-      mimeCharset = new MimeTypeCharSet(getResource().getExpectedSchema());
+      mimeType = new MimeTypeCharSet(getResource().getExpectedSchema());
+    } else {
+      mimeType = new MimeTypeCharSet(file.getContentType());
     }
-
-    if (mimeCharset.isMimeType("application/marc") || mimeCharset.isMimeType(
-      "application/tmarc")) {
-      logger.debug("Setting up Binary MARC reader ("
-        + (mimeCharset.getCharset() != null ? mimeCharset.getCharset()
-        : "default") + ")"
-        + (getResource().getExpectedSchema() != null
-        ? " Override by resource mime-type: " + getResource().
-        getExpectedSchema()
-        : "Content-type: " + contentType));
-
-      MarcReadStore readStore = new MarcReadStore(isDec, streamIterator);
-      String encoding = mimeCharset.getCharset();
-      if (encoding != null) {
-        readStore.setEncoding(encoding);
+    try {
+      if (mimeType.isMimeType("application/marc") 
+        || mimeType.isMimeType("application/tmarc")) {
+        //dealing with binary MARC
+        logger.debug("Setting up Binary MARC reader ("
+          + (mimeType.getCharset() != null ? mimeType.getCharset()
+          : "default") + ")"
+          + (getResource().getExpectedSchema() != null
+          ? " Override by resource mime-type: " + getResource().
+          getExpectedSchema()
+          : "Content-type: " + file.getContentType()));
+        storeMarc(isDec, mimeType.getCharset());
+      } else {
+        logger.debug("Setting up InputStream reader. "
+          + (file.getContentType() != null ? "Content-Type:" + file.getContentType() : ""));
+        storeXml(isDec);
       }
-      return readStore;
+    } finally {
+      //make sure the stream is closed!
+      isDec.close();
     }
-
-    logger.debug("Setting up InputStream reader. "
-      + (contentType != null ? "Content-Type:" + contentType : ""));
-    return new InputStreamReadStore(isDec, contentLength, streamIterator);
   }
 
-  private void store(MarcStreamReader reader, long contentLength) throws
+  private void storeMarc(InputStream input, String encoding) throws
     IOException {
-    long index = 0;
-    MarcWriter writer;
-    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(getResource().
-      getOutputSchema());
+    //encoding defaults to MARC-8 when null
+    MarcStreamReader reader = new MarcStreamReader(input, encoding);
+    reader.setBadIndicators(false);
     boolean isTurboMarc = false;
-    if (mimetypeCharset.isMimeType("application/tmarc")) {
+    //check what MARC output we want
+    MimeTypeCharSet mimeType = 
+      new MimeTypeCharSet(getResource().getOutputSchema());
+    if (mimeType.isMimeType("application/tmarc")) {
       isTurboMarc = true;
       logger.info("Setting up Binary MARC to TurboMarc converter");
     } else {
       logger.info("Setting up Binary MARC to MarcXml converter");
-      //writer = new MarcXmlWriter(output, true);
     }
+    long index = 0;
+    MarcWriter writer;
     RecordStorage storage = job.getStorage();
     while (reader.hasNext()) {
       try {
@@ -277,7 +200,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
           storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.
             getNode()));
         }
-
         if (job.isKillSent()) {
           // Close to end the pipe 
           writer.close();
@@ -295,22 +217,24 @@ public class XmlMarcClient extends AbstractHarvestClient {
         break;
       }
       if ((++index) % 1000 == 0) {
-        logger.info("Marc record read: " + index);
+        logger.info("MARC records read: " + index);
       }
     }
-    //writer.close();
-
-    logger.info("Marc record read total: " + index);
+    logger.info("MARC records read: " + index);
   }
 
-  private void store(InputStream is) throws Exception {
+  private void storeXml(InputStream is) throws IOException {
     RecordStorage storage = job.getStorage();
     logger.debug("Invoking XML splitter");
     SplitContentHandler handler = new SplitContentHandler(
       new RecordStorageConsumer(storage, job.getLogger()),
       getJob().getNumber(getResource().getSplitAt(), splitAt));
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
-    xmlSplitter.processDataFromInputStream(is);
+    try {
+      xmlSplitter.processDataFromInputStream(is);
+    } catch (SAXException se) {
+      throw new IOException(se);
+    }
   }
 
   public String getErrors() {

@@ -19,12 +19,12 @@ public class XmlSplitter  {
   private ContentHandler handler;
 
   public XmlSplitter(RecordStorage storage, StorageJobLogger logger, ContentHandler handler) 
-  	throws IOException, TransformerConfigurationException {
+  	throws IOException {
     this.logger = logger;
     this.handler = handler;
   }
 
-  public void processDataFromInputStream(InputStream input) throws TransformerException, ParserConfigurationException, SAXException 
+  public void processDataFromInputStream(InputStream input) throws SAXException, IOException 
   {    
     try {
       InputSource source = new InputSource(input);
@@ -32,11 +32,11 @@ public class XmlSplitter  {
     } catch (IOException ioe) {
       if (logger != null) 
 	logger.error("IOException in XML split", ioe);
-      throw new TransformerException("IO Error while parsing/transforming: " + ioe.getMessage(), ioe);
+      throw ioe;
     } catch (SAXException e) {
       if (logger != null) 
         logger.error("SAXException in XML split", e);
-      throw new TransformerException("SAX Exception: " + e.getMessage(), e);
+      throw e;
     }
   };
 }

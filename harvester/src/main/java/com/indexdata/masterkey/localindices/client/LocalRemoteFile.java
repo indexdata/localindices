@@ -10,7 +10,7 @@ import java.net.URL;
 public class LocalRemoteFile extends RemoteFile {
 
   public LocalRemoteFile(File file) throws MalformedURLException, FileNotFoundException, URISyntaxException {
-    super(new URL("file:://" + file.getAbsolutePath()), new FileInputStream(file), false); 
+    super(new URL("file:://" + file.getAbsolutePath()), new FileInputStream(file)); 
   }
 
 }

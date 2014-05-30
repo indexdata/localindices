@@ -102,12 +102,11 @@ public class HttpClientTransport implements ClientTransport {
       } else {
 	InputStream isDec = handleContentEncoding(conn);
 	long length = getContentLength(conn);
-	RemoteFile file = new RemoteFile(url, isDec, false);
+	RemoteFile file = new RemoteFile(url, isDec);
 	file.setContentType(contentType);
 	if ("application/x-gzip".equals(contentType)) {
 	  isDec = new GZIPInputStream(isDec);
-	  //System.out.println("Detecting type from decompressed stream: " + URLConnection.guessContentTypeFromStream(isDec));
-	  file = new RemoteFile(url, isDec, true);
+	  file = new RemoteFile(url, isDec);
 	  file.setLength(length);
 	  file.setContentType(compressedFormat);
 	  return new SingleFileIterator(file);
