@@ -31,6 +31,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.xml.filter.SplitContentHandler;
+import java.net.URLConnection;
 import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
@@ -139,27 +140,43 @@ public class XmlMarcClient extends AbstractHarvestClient {
     // user mime-type override
     if (getResource().getExpectedSchema() != null
       && !getResource().getExpectedSchema().isEmpty()) {
-      logger.debug("Applying user content type: "+getResource().getExpectedSchema());
+      logger.debug("Applying content type override: "+getResource().getExpectedSchema());
       mimeType = new MimeTypeCharSet(getResource().getExpectedSchema());
     } else {
+      if (file.getContentType() == null) {
+        String cT = URLConnection.guessContentTypeFromStream(isDec);
+        if (cT == null) {
+          cT = URLConnection.guessContentTypeFromName(file.getName());
+        }
+        if (cT == null) {
+          if (file.getName() != null) {
+            if (file.getName().endsWith(".mrc") 
+              || file.getName().endsWith(".marc")
+              || file.getName().endsWith(".data")) {
+              cT = "application/marc";
+            }
+          }
+        }
+        logger.debug("Guessing content type from file name or stream: "+cT);
+        /*
+        TODO detect binary marc:
+        0,1,2,3,4 digits
+        12,13,14,15,16 digits
+        20 - 4
+        21 - 5
+        */
+        file.setContentType(cT);
+      }
       mimeType = new MimeTypeCharSet(file.getContentType());
     }
-    logger.debug("Mime-Type: "+mimeType);
+    logger.debug("Mime-Type (provided or guessed) "+mimeType);
     try {
       if (mimeType.isMimeType("application/marc") 
         || mimeType.isMimeType("application/tmarc")) {
-        //dealing with binary MARC
-        logger.debug("Setting up Binary MARC reader ("
-          + (mimeType.getCharset() != null ? mimeType.getCharset()
-          : "default") + ")"
-          + (getResource().getExpectedSchema() != null
-          ? " Override by resource mime-type: " + getResource().
-          getExpectedSchema()
-          : "Content-type: " + file.getContentType()));
+        logger.debug("Setting up Binary MARC reader ("+mimeType+")");
         storeMarc(isDec, mimeType.getCharset());
       } else {
-        logger.debug("Setting up InputStream reader. "
-          + (file.getContentType() != null ? "Content-Type:" + file.getContentType() : ""));
+        logger.debug("Setting up XML reader ("+mimeType+")");
         storeXml(isDec);
       }
     } finally {
@@ -228,7 +245,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private void storeXml(InputStream is) throws IOException {
     RecordStorage storage = job.getStorage();
-    logger.debug("Invoking XML splitter");
     SplitContentHandler handler = new SplitContentHandler(
       new RecordStorageConsumer(storage, job.getLogger()),
       getJob().getNumber(getResource().getSplitAt(), splitAt));

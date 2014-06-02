@@ -45,10 +45,6 @@ public class RemoteFile  {
   }
 
   public String getContentType() throws IOException {
-    if (contentType == null) {
-      contentType = URLConnection.guessContentTypeFromStream(getInputStream());
-      logger.debug("Trying to deduce content type from stream: " +contentType);
-    }
     return contentType;
   }
 
