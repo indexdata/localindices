@@ -276,7 +276,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
     SplitContentHandler handler = new SplitContentHandler(
       new RecordStorageConsumer(storage, job.getLogger()),
       getJob().getNumber(getResource().getSplitAt(), splitAt));
-    XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
+    XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
+      handler, resource.isLaxParsing());
     try {
       xmlSplitter.processDataFromInputStream(is);
     } catch (SAXException se) {

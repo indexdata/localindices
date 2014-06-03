@@ -108,7 +108,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private String originalUri = null;
   @Column(nullable=true)
   private String json = null;
-
+  @Column(nullable=false)
+  private boolean laxParsing = false;
   
   public String getDescription() {
     return description;
@@ -441,6 +442,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setJson(String json) {
     this.json = json;
+  }
+
+  public void setLaxParsing(boolean laxParsing) {
+    this.laxParsing = laxParsing;
+  }
+
+  public boolean isLaxParsing() {
+    return laxParsing;
   }
   
 }
