@@ -177,8 +177,15 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned compressed file type, need to expand");
       RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
         new ZipInputStream(input), null, logger);
+      int count = 0;
       while (it.hasNext()) {
-        storeAny(it.getNext(), proposeCachePath());
+        RemoteFile rf = it.getNext();
+        logger.debug("Found harvestable file: "+rf.getName());
+        storeAny(rf, proposeCachePath());
+        count++;
+      }
+      if (count == 0) {
+        logger.debug("Found no files in the archive.");
       }
       return;
     }
