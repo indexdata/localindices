@@ -11,38 +11,44 @@ import org.apache.commons.net.ftp.FTPFile;
 
 public class FtpRemoteFile extends RemoteFile {
   private final StorageJobLogger logger;
-  private FTPFile file; 
-  private FTPClient client;
+  private final FTPFile file; 
+  private final FTPClient client;
+  private final String rootRelPath;
   private FtpInputStream ftpInputStream;
   
   public FtpRemoteFile(URL parent, FTPFile file, FTPClient client, 
     StorageJobLogger logger) throws MalformedURLException, IOException {
-    super(new URL(parent, file.getName()), logger);
+    super(new URL(parent, basename(file.getName())), logger);
     this.file = file;
     this.client = client; 
     this.logger = logger;
+    //FTP needs root relative paths!
+    if (getAbsoluteName().startsWith("/")) {
+      rootRelPath = getAbsoluteName().substring(1);
+    } else {
+      rootRelPath = getAbsoluteName();
+    }
   }
 
+  @Override
   public boolean isDirectory() {
     return false;
   }
   
-  public String getName() {
-    return file.getName();
-  }
-  
+  @Override
   public synchronized InputStream getInputStream() throws IOException {
     if (ftpInputStream != null)
       return ftpInputStream;
     client.setFileType(FTP.BINARY_FILE_TYPE);
-    InputStream data = client.retrieveFileStream(getAbsoluteName());
+    InputStream data = client.retrieveFileStream(rootRelPath);
     if (data == null) 
-      throw new IOException("Error retriving file " + getAbsoluteName());  
+      throw new IOException("Error retriving file " + rootRelPath);  
     ftpInputStream = new FtpInputStream(data, file.getSize(), client);
     return ftpInputStream;
   }
   
-  public long length() {
+  @Override
+  public long getLength() {
     return file.getSize();
   }
 

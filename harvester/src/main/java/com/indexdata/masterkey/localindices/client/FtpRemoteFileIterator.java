@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import static com.indexdata.masterkey.localindices.client.RemoteFile.basename;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.URL;
@@ -10,9 +11,9 @@ import org.apache.commons.net.ftp.FTPFile;
 
 public class FtpRemoteFileIterator implements RemoteFileIterator {
   private final StorageJobLogger logger;
-  private FTPClient client;
-  private URL parent;
-  private List<FTPFile> files = new LinkedList<FTPFile>();
+  private final FTPClient client;
+  private final URL parent;
+  private final List<FTPFile> files = new LinkedList<FTPFile>();
   private int index = 0;
   
   public FtpRemoteFileIterator(FTPClient client, URL parent, FTPFile[] files, 
@@ -20,9 +21,9 @@ public class FtpRemoteFileIterator implements RemoteFileIterator {
     this.client = client;
     this.parent = parent;
     this.logger = logger;
-    for (int index = 0 ; index < files.length; index++)
-      if (!(files[index].getName().equals(".") || files[index].getName().equals(".."))) {
-	this.files.add(files[index]);
+    for (FTPFile file : files)
+      if (!(basename(file.getName()).equals(".") || basename(file.getName()).equals(".."))) {
+        this.files.add(file);
       }
   }
   
@@ -33,8 +34,7 @@ public class FtpRemoteFileIterator implements RemoteFileIterator {
 
   @Override
   public synchronized RemoteFile getNext() throws IOException {
-    FTPFile file = files.get(index++);
-    
+    FTPFile file = files.get(index++);   
     if (file.isDirectory()) {
       return new FtpRemoteDirectory(parent, file, client, logger);
     }

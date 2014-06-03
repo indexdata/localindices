@@ -4,7 +4,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 
 public class RemoteFile  {
   private URL url;
@@ -16,14 +15,18 @@ public class RemoteFile  {
   private final String path;
   private final StorageJobLogger logger;
   
+  public static final String basename(String path) {
+    int slash = path.lastIndexOf("/");
+    if (slash == -1)
+      return path;
+    else
+      return path.substring(slash+1);
+  }
+  
   public RemoteFile(URL url, StorageJobLogger logger) {
     this.url = url;
     this.path = url.getPath(); 
-    int slash = path.lastIndexOf("/");
-    if (slash == -1)
-      name = path;
-    else
-      name = path.substring(slash+1);
+    this.name = basename(path);
     this.logger = logger;
   }
 

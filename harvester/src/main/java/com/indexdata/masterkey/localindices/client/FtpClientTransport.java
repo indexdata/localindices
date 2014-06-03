@@ -65,25 +65,23 @@ public class FtpClientTransport implements ClientTransport {
     }
   }
 
-  public String appendPath(String path, String name) {
-    if (path.endsWith("/"))
-      return path + name;
-    else
-      return path + "/" + name;
-  }
-
   @Override
   public synchronized RemoteFileIterator get(URL url) throws IOException,
       ClientTransportError {
     if (client == null)
       throw new ClientTransportError("FTP client must be initialized with a call to #connect");
     login(url.getUserInfo());
-    logger.debug("Retrieving file list for "+url.getPath());
-    FTPFile[] files = client.listFiles(url.getPath());
+    //we must strip leading slash!
+    String path = url.getPath();
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    logger.debug("Retrieving file list for "+path);
+    FTPFile[] files = client.listFiles(path);
     if (files.length==0) {
-      logger.warn("Did not find any files in " + url.getPath());
+      logger.warn("Did not find any files at " + path);
     } else {
-      logger.debug("Found " + files.length + " files in " + url.getPath());
+      logger.debug("Found " + files.length + " file(s) at " + path);
     }
     return new FtpRemoteFileIterator(client, url, files, logger);
   }

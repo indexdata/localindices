@@ -13,7 +13,7 @@ public class FtpRemoteDirectory extends RemoteFile {
   
   public FtpRemoteDirectory(URL parent, 
     FTPFile file, FTPClient client, StorageJobLogger logger) throws MalformedURLException, IOException {
-    super(new URL(parent, file.getName() + "/"), logger);
+    super(new URL(parent, basename(file.getName()) + "/"), logger);
     this.directory = file;
     this.client = client;
   }
