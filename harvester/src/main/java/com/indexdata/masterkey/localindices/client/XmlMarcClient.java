@@ -32,6 +32,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.xml.filter.SplitContentHandler;
 import java.net.URLConnection;
+import java.util.zip.ZipInputStream;
 import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
@@ -62,12 +63,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
         count += download(iterator.getNext());
       }
     } else {
-      storeAny(file, resource.isCacheEnabled()
-        ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
-        : null);
+      storeAny(file, proposeCachePath());
       count++;
     }
     return count;
+  }
+
+  private String proposeCachePath() {
+    return resource.isCacheEnabled()
+      ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
+      : null;
   }
 
   @Override
@@ -126,62 +131,78 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     return 0;
   }
+  
+  private void storeAny(RemoteFile file, String cacheFile) throws IOException {
+    storeAny(file, cacheFile, true);
+  }
 
-  private void storeAny(RemoteFile file, String cacheFile) throws
+  private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
     IOException {
-    InputStream isDec = file.getInputStream();
     //buffer reads
-    isDec = new BufferedInputStream(isDec);
-    //cache responses to filesystem
-    if (cacheFile != null) {
-      isDec = new CachingInputStream(isDec, cacheFile);
+    InputStream input = shouldBuffer 
+      ? new BufferedInputStream(file.getInputStream())
+      : file.getInputStream();
+    //first we attempt to deduce real content type
+    if (file.getContentType() == null) {
+      String cT = URLConnection.guessContentTypeFromStream(input);
+      if (cT == null) {
+        cT = URLConnection.guessContentTypeFromName(file.getName());
+      }
+      if (cT == null) {
+        if (file.getName() != null) {
+          if (file.getName().endsWith(".mrc") 
+            || file.getName().endsWith(".marc")
+            || file.getName().endsWith(".data")) {
+            cT = "application/marc";
+          }
+        }
+      }
+      logger.debug("Guessed content type from stream type or filename: "+cT);
+      /*
+      TODO detect binary marc:
+      0,1,2,3,4 digits
+      12,13,14,15,16 digits
+      20 - 4
+      21 - 5
+      */
+      file.setContentType(cT);
+    } else {
+      logger.debug("Content type provided by transport: "+file.getContentType());
     }
-    MimeTypeCharSet mimeType;
+    MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
+    //TODO RemoteFile abstraction is not good enough to make this clean
+    //some transports may deal with compressed files (e.g http) others may not
+    //if we end up with a compressed mimetype we need to decompress
+    if (mimeType.isMimeType("application/zip")) {
+      logger.debug("Transport returned compressed file type, need to expand");
+      RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
+        new ZipInputStream(input), null, logger);
+      while (it.hasNext()) {
+        storeAny(it.getNext(), proposeCachePath());
+      }
+      return;
+    }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
       && !getResource().getExpectedSchema().isEmpty()) {
-      logger.debug("Applying content type override: "+getResource().getExpectedSchema());
+      logger.debug("Applying user content type override: "+getResource().getExpectedSchema());
       mimeType = new MimeTypeCharSet(getResource().getExpectedSchema());
-    } else {
-      if (file.getContentType() == null) {
-        String cT = URLConnection.guessContentTypeFromStream(isDec);
-        if (cT == null) {
-          cT = URLConnection.guessContentTypeFromName(file.getName());
-        }
-        if (cT == null) {
-          if (file.getName() != null) {
-            if (file.getName().endsWith(".mrc") 
-              || file.getName().endsWith(".marc")
-              || file.getName().endsWith(".data")) {
-              cT = "application/marc";
-            }
-          }
-        }
-        logger.debug("Guessing content type from file name or stream: "+cT);
-        /*
-        TODO detect binary marc:
-        0,1,2,3,4 digits
-        12,13,14,15,16 digits
-        20 - 4
-        21 - 5
-        */
-        file.setContentType(cT);
-      }
-      mimeType = new MimeTypeCharSet(file.getContentType());
     }
-    logger.debug("Mime-Type (provided or guessed) "+mimeType);
+    //cache responses to filesystem
+    if (cacheFile != null) {
+      input = new CachingInputStream(input, cacheFile);
+    }
     try {
-      if (mimeType.isMimeType("application/marc") 
-        || mimeType.isMimeType("application/tmarc")) {
+      if (mimeType.isMimeType("application/marc")) {
         logger.debug("Setting up Binary MARC reader ("+mimeType+")");
-        storeMarc(isDec, mimeType.getCharset());
+        storeMarc(input, mimeType.getCharset());
       } else {
         logger.debug("Setting up XML reader ("+mimeType+")");
-        storeXml(isDec);
+        storeXml(input);
       }
     } finally {
       //make sure the stream is closed!
-      isDec.close();
+      input.close();
     }
   }
 

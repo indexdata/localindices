@@ -84,4 +84,8 @@ public class RemoteFile  {
   public RemoteFileIterator getIterator() {
     return null;
   }
+  
+  public URL getURL() {
+    return url;
+  }
 }
