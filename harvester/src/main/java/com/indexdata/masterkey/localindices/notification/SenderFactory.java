@@ -15,13 +15,14 @@ public class SenderFactory implements ServletContextListener {
   
   static synchronized public Sender getSender() 
   {
+    //TODO those properites must be moved to the SETTING table
     if (sender == null) {
       if (ctx != null) {
 	Properties props = (Properties) ctx.getAttribute("harvester.properties");
-	sender = new SimpleMailSender();
-	sender.setSmtpServer((String) props.getProperty("harvester.smtp.server"));
-	sender.setFrom((String) props.getProperty("harvester.smtp.from"));
-	sender.setRecievers((String) props.getProperty("harvester.smtp.to"));
+	String smtpServer = (String) props.getProperty("harvester.smtp.server");
+	String from = (String) props.getProperty("harvester.smtp.from");
+	String to = (String) props.getProperty("harvester.smtp.to");
+	sender = new SimpleMailSender(from, to, smtpServer);
       }
       else 
 	Logger.getLogger(SenderFactory.class).error("Unable to get Servlet context");

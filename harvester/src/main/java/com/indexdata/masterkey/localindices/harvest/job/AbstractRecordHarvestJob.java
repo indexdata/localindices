@@ -120,16 +120,19 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
 
   protected void mailMessage(String subject, String message) {
     Sender sender = SenderFactory.getSender();
+    if (sender == null) {
+      logger.warn("Notification sender not configured,"
+        + " notification will not be sent");
+      return;
+    }
     String status = getStatus().toString();
     Harvestable harvestable = getHarvestable();
-    if (message == null) {
-      logger.error("mailMessage called with null pointer: " + subject);
-      message = "";
-    }
-    StringBuffer buffer = new StringBuffer(message);
-    if (harvestable.getMailLevel() == null
-        || checkMailLevel(HarvestStatus.valueOf(harvestable.getMailLevel()),
-            getStatus())) {
+    HarvestStatus mailLevel = harvestable.getMailAddress() != null
+      ? HarvestStatus.valueOf(harvestable.getMailLevel())
+      : null;
+    if (shouldSend(mailLevel, getStatus())) {
+      if (message == null) message = "";
+      StringBuilder buffer = new StringBuilder(message);
       while (transformationStorage != null
           && !transformationStorage.getErrors().isEmpty()) {
         try {
@@ -138,7 +141,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
             buffer.append("Failed to convert: ").append(obj.toString()).append("\n");
           }
           if (obj instanceof String) {
-            buffer.append("Error: " + (Record) obj);
+            buffer.append("Error: ").append((Record) obj);
           }
         } catch (InterruptedException ie) {
           buffer.append("Failed to extract error message from Error Queue");
@@ -146,32 +149,29 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       }
 
       Notification msg = new SimpleNotification(status, harvestable.getName()
-          + "(" + harvestable.getId() + "): " + subject, message);
+          + "(" + harvestable.getId() + "): " + subject, buffer.toString());
 
       try {
-        if (sender != null) {
-          String customRecievers = harvestable.getMailAddress();
-          if (customRecievers != null && !"".equals(customRecievers))
-            sender.send(customRecievers, msg);
-          else
-            sender.send(msg);
-        } else {
-          throw new NotificationException("No Sender configured when sending: "
-              + msg.getMesage(), null);
-        }
+        String recipients = harvestable.getMailAddress();
+        if (recipients != null && !recipients.isEmpty())
+          sender.send(recipients, msg);
+        else if (sender.getDefaultRecipients() != null 
+          && !sender.getDefaultRecipients().isEmpty())
+          sender.send(msg);
+        else
+          logger.warn("No default or custom recipients specified,"
+            + " notification will not be sent");
       } catch (NotificationException ne) {
-        String mailError = "Failed to send notification " + ne.getMessage();
+        String mailError = "Failed to send notification: " + ne.getMessage();
         logger.error(mailError);
-        setStatus(getStatus(), message + " (" + mailError + 
-             (getMessage() != null ? " " + getMessage() : "") + ")");
+        logger.debug("Cause: ", ne);
       }
     }
   }
 
-  protected boolean checkMailLevel(HarvestStatus mailLevel, HarvestStatus status) {
-    if (mailLevel.ordinal() <= status.ordinal())
-      return true;
-    return false;
+  protected boolean shouldSend(HarvestStatus mailLevel, HarvestStatus status) {
+    if (mailLevel == null || status == null) return false;
+    return mailLevel.ordinal() <= status.ordinal();
   }
 
   protected void logError(String logSubject, String message) {
