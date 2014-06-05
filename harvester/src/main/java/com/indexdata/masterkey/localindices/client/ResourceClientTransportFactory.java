@@ -46,7 +46,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     }
     //transport.setCompressedFormat(resource.getExpectedSchema());
     if (resource.getAllowCondReq())
-      transport.setFromDate(resource.getLastUpdated());
+      transport.setFromDate(resource.getLastHarvestFinished());
     return transport;
   }
 
