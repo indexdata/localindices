@@ -107,7 +107,7 @@
     <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-common</artifactId>
-      <version>0.1.28-SNAPSHOT</version>
+      <version>0.1.28</version>
     </dependency>
   </dependencies>
   <repositories>
@@ -135,7 +135,7 @@
       <uniqueVersion>false</uniqueVersion>
       <id>id-maven-repo</id>
       <name>Index Data Maven Repository</name>
-      <url>scp://maven.indexdata.com:222/var/www/maven/repository</url>
+      <url>scp://maven.indexdata.com:22/var/www/maven/repository</url>
     </repository>
     <!--
 	<site>
