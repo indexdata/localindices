@@ -63,8 +63,17 @@ public class XmlMarcClient extends AbstractHarvestClient {
         count += download(iterator.getNext());
       }
     } else {
-      storeAny(file, proposeCachePath());
-      count++;
+      try {
+        storeAny(file, proposeCachePath());
+        count++;
+      } catch (IOException ex) {     
+        if (getResource().getAllowErrors()) {
+          logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.getMessage());
+          setErrors(getErrors() + (file.getAbsoluteName() + " "));
+        } else {
+          throw ex;
+        }
+      }
     }
     return count;
   }
