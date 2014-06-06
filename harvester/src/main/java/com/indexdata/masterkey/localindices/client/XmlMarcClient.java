@@ -32,6 +32,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import com.indexdata.xml.filter.SplitContentHandler;
 import java.net.URLConnection;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import org.xml.sax.SAXException;
 
@@ -156,47 +157,74 @@ public class XmlMarcClient extends AbstractHarvestClient {
       String cT = URLConnection.guessContentTypeFromStream(input);
       if (cT == null) {
         cT = URLConnection.guessContentTypeFromName(file.getName());
-      }
-      if (cT == null) {
-        if (file.getName() != null) {
-          if (file.getName().endsWith(".mrc") 
-            || file.getName().endsWith(".marc")
-            || file.getName().endsWith(".data")) {
-            cT = "application/marc";
-          }
+        if (cT != null) {
+          logger.debug("Guessed content type from filename: "+cT);
         }
+      } else {
+        logger.debug("Guessed content type from stream: "+cT);
       }
-      logger.debug("Guessed content type from stream type or filename: "+cT);
-      /*
-      TODO detect binary marc:
-      0,1,2,3,4 digits
-      12,13,14,15,16 digits
-      20 - 4
-      21 - 5
-      */
       file.setContentType(cT);
     } else {
       logger.debug("Content type provided by transport: "+file.getContentType());
     }
+    //octet-stream may mean marc or a compressed archive
+    if (file.getContentType() == null || "application/octet-stream".equals(file.getContentType())) {
+      if (file.getName() != null) {
+        if (file.getName().endsWith(".zip")) {
+          file.setContentType("application/zip");
+        } else if (file.getName().endsWith(".gz")) {
+          file.setContentType("application/gzip");
+        } else { //assume marc for missing content type
+          file.setContentType("application/marc");
+        }
+        logger.debug("Guessed content type from filename: "+file.getContentType());
+      }
+    }
+    /*
+    TODO detect binary marc:
+    0,1,2,3,4 digits
+    12,13,14,15,16 digits
+    20 - 4
+    21 - 5
+    */
     MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
     //TODO RemoteFile abstraction is not good enough to make this clean
     //some transports may deal with compressed files (e.g http) others may not
     //if we end up with a compressed mimetype we need to decompress
-    if (mimeType.isMimeType("application/zip")) {
+    if (mimeType.isZip()) {
       logger.debug("Transport returned compressed file type, need to expand");
-      RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
-        new ZipInputStream(input), null, logger);
-      int count = 0;
-      while (it.hasNext()) {
-        RemoteFile rf = it.getNext();
-        logger.debug("Found harvestable file: "+rf.getName());
-        storeAny(rf, proposeCachePath());
-        count++;
+      ZipInputStream zis = new ZipInputStream(input);
+      try {
+        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
+          zis, null, logger);
+        int count = 0;
+        while (it.hasNext()) {
+          RemoteFile rf = it.getNext();
+          logger.debug("Found harvestable file: "+rf.getName());
+          try {
+            storeAny(rf, proposeCachePath());
+          } catch (IOException ex) {
+            if (getResource().getAllowErrors()) {
+              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
+                getMessage());
+              setErrors(getErrors() + (file.getAbsoluteName() + " "));
+            } else {
+              throw ex;
+            }
+          }
+          count++;
+        }
+        if (count == 0) {
+          logger.debug("Found no files in the archive.");
+        }
+        return;
+      } finally {
+        //we need to close in case the iteration did not exhause all entries
+        zis.close();
       }
-      if (count == 0) {
-        logger.debug("Found no files in the archive.");
-      }
-      return;
+    } else if (mimeType.isGzip()) {
+      //built-in gzip does not support tar files
+      //TODO use apache-compress
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
@@ -212,9 +240,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
       if (mimeType.isMimeType("application/marc")) {
         logger.debug("Setting up Binary MARC reader ("+mimeType+")");
         storeMarc(input, mimeType.getCharset());
-      } else {
+      } else if (mimeType.isXML()) {
         logger.debug("Setting up XML reader ("+mimeType+")");
         storeXml(input);
+      } else {
+        logger.info("Ignoring file '"+file.getName()
+          +"' because of unsupported content-type '"+file.getContentType()+"'");
       }
     } finally {
       //make sure the stream is closed!

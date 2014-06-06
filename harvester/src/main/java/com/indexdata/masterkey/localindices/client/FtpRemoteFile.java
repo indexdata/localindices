@@ -47,7 +47,7 @@ public class FtpRemoteFile extends RemoteFile {
       if (reply != null) msg += ": " + reply;
       throw new IOException(msg);
     }
-    ftpInputStream = new FtpInputStream(data, file.getSize(), client);
+    ftpInputStream = new FtpInputStream(data, file.getSize(), client, logger);
     return ftpInputStream;
   }
   
