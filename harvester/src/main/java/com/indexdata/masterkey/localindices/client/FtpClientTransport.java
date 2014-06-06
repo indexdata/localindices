@@ -4,6 +4,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.StringTokenizer;
@@ -52,8 +53,8 @@ public class FtpClientTransport implements ClientTransport {
       String user = "";
       String pw = "";
       StringTokenizer tokens = new StringTokenizer(userInfo, ":");
-      if (tokens.hasMoreTokens()) user = tokens.nextToken();
-      if (tokens.hasMoreTokens()) pw = tokens.nextToken();
+      if (tokens.hasMoreTokens()) user = URLDecoder.decode(tokens.nextToken(),"UTF-8");
+      if (tokens.hasMoreTokens()) pw = URLDecoder.decode(tokens.nextToken(),"UTF-8");
       boolean ok = client.login(user, pw);
       if (!ok) {
         logger.error("Error logging in to FTP server: " + client.getReplyString());
