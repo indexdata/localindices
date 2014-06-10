@@ -16,9 +16,11 @@ public class FtpClientTransport implements ClientTransport {
   private Date fromDate;
   private FTPClient client = null;
   private boolean isRecursive;
+  private final boolean usePassive;
 
-  public FtpClientTransport(StorageJobLogger logger) {
+  public FtpClientTransport(StorageJobLogger logger, boolean usePassive) {
     this.logger = logger;
+    this.usePassive = usePassive;
   }
 
   @Override
@@ -28,13 +30,23 @@ public class FtpClientTransport implements ClientTransport {
     int port = (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort());
     try {
       client.connect(host,port);
-      String serverReply = (client.getReplyString()==null ? "" : " Server replied: " + client.getReplyString().split("\n")[0] + ")");
+      String serverReply = (client.getReplyString() == null 
+        ? "" 
+        : " Server replied: " + client.getReplyString().split("\n")[0] + ")");
       if (client.isConnected()) {
         logger.debug("Client is connected to " + host + serverReply);
       } else {
         logger.error("Error connecting to " + ftpUrl.toString() + serverReply);
         throw new IOException("Error connecting to " + ftpUrl.toString() + serverReply);
       }
+      if (usePassive) {
+        client.enterLocalPassiveMode();
+        logger.debug("FTP client configured to use passive mode.");
+      } else {
+        client.enterLocalActiveMode();
+        logger.debug("FTP client configured to use active mode.");
+      }
+        
     } catch (SocketException se) {
       logger.error("Error connecting to host " + host + ", port " + port + ": "+ se.getMessage());
       throw new SocketException("Error connecting to host " + host + ", port " + port + ": "+ se.getMessage());

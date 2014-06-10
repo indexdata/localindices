@@ -32,6 +32,8 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
         <h:outputText value="Use conditional HTTP request"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
+        <h:outputText value="Use passive mode for FTP transfers"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
       </h:panelGrid>
     </ui:composition>
   </body>

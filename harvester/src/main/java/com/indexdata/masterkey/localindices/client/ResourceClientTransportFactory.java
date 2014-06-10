@@ -29,7 +29,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
       if (authority != null) {
 	transport = clientMap.get(authority);
 	if (transport == null) {
-	  transport = new FtpClientTransport(logger);
+	  transport = new FtpClientTransport(logger, resource.getPassiveMode());
 	  clientMap.put(authority, transport);
 	}
       }
