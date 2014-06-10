@@ -6,14 +6,14 @@ import java.io.InputStream;
 import java.net.URL;
 
 public class RemoteFile  {
-  private URL url;
+  protected URL url;
   private String contentType;
   private long length;
   private InputStream inputStream; 
   boolean isDirectory = false;
   private final String name;
   private final String path;
-  private final StorageJobLogger logger;
+  protected final StorageJobLogger logger;
   
   public static final String basename(String path) {
     int slash = path.lastIndexOf("/");

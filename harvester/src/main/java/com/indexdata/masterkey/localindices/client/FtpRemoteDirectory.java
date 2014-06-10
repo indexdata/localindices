@@ -22,4 +22,24 @@ public class FtpRemoteDirectory extends RemoteFile {
   public boolean isDirectory() {
     return true;
   }
+  
+  public FtpRemoteFileIterator getIterator () {
+    String path = url.getPath();
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    logger.debug("Retrieving file list for "+path);
+    FTPFile[] files = null;
+    try {
+      files = client.listFiles(path);
+    } catch (IOException e) {
+      logger.error("Could not browse FTP directory due to " + e.getMessage());
+    }
+    if (files == null || files.length==0) {
+      logger.warn("Did not find any files at " + path);
+    } else {
+      logger.debug("Found " + files.length + " file(s) at " + path);
+    }
+    return new FtpRemoteFileIterator(client, url, files, logger); 
+  }
 }
