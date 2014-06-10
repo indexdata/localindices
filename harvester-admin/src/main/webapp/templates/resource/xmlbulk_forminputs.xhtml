@@ -32,6 +32,8 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
         <h:outputText value="Use conditional HTTP request"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
+        <h:outputText value="Recurse into subfolders"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.recursionLevels}"/>
       </h:panelGrid>
     </ui:composition>
   </body>
