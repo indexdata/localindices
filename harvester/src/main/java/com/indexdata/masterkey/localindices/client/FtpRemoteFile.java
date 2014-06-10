@@ -41,9 +41,13 @@ public class FtpRemoteFile extends RemoteFile {
       return ftpInputStream;
     client.setFileType(FTP.BINARY_FILE_TYPE);
     InputStream data = client.retrieveFileStream(rootRelPath);
-    if (data == null) 
-      throw new IOException("Error retriving file " + rootRelPath);  
-    ftpInputStream = new FtpInputStream(data, file.getSize(), client);
+    if (data == null) {
+      String reply = client.getReplyString();
+      String msg = "Error retriving file " + rootRelPath;
+      if (reply != null) msg += ": " + reply;
+      throw new IOException(msg);
+    }
+    ftpInputStream = new FtpInputStream(data, file.getSize(), client, logger);
     return ftpInputStream;
   }
   

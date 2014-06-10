@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.client;
 
 import com.indexdata.masterkey.localindices.crawl.HTMLPage;
+import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.utils.DateUtil;
 import java.io.IOException;
@@ -87,10 +88,11 @@ public class HttpClientTransport implements ClientTransport {
       logger.debug("Response OK (200) at "+url);
       String contentType = conn.getContentType();
       logger.debug("Content-Type: "+contentType+" at "+url);
-      if (contentType != null && contentType.startsWith("text/html")) {
+      MimeTypeCharSet mt = new MimeTypeCharSet(contentType);
+      if (mt.isHTML()) {
 	if (isRecursive) {
           try {
-            logger.debug("Detected jump/index page at "+url);
+            logger.debug("Detected HTML jump/index page at "+url);
             return handleJumpPage(conn);
           } catch (URISyntaxException ex) {
             throw new ClientTransportError("URI syntax error ", ex);
@@ -104,14 +106,14 @@ public class HttpClientTransport implements ClientTransport {
 	long length = getContentLength(conn);
 	RemoteFile file = new RemoteFile(url, isDec, logger);
 	file.setContentType(contentType);
-	if ("application/x-gzip".equals(contentType)) {
+	if (mt.isGzip()) {
 	  isDec = new GZIPInputStream(isDec);
 	  file = new RemoteFile(url, isDec, logger);
 	  file.setLength(length);
 	  file.setContentType(compressedFormat);
 	  return new SingleFileIterator(file);
 	}
-	else if ("application/zip".equals(contentType)) {
+	else if (mt.isZip()) {
 	  ZipInputStream zipInput = new ZipInputStream(isDec);
 	  return new ZipRemoteFileIterator(url, zipInput, compressedFormat, logger);
 	}
