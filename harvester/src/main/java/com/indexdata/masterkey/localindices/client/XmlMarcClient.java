@@ -63,6 +63,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         count += download(iterator.getNext());
       }
     } else {
+      logger.info("Found harvestable file: "+file.getName());
       storeAny(file, proposeCachePath());
       count++;
     }
@@ -96,7 +97,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 logger.info("Found subfolder but recursion is off, ignoring.");
               }
             } else {
-              logger.info("Found harvestable file: "+rf.getName());
               download(rf);
             }
           }
