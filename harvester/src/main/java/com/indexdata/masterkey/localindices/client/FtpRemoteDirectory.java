@@ -23,6 +23,7 @@ public class FtpRemoteDirectory extends RemoteFile {
     return true;
   }
   
+  @Override
   public FtpRemoteFileIterator getIterator () {
     String path = url.getPath();
     if (path.startsWith("/")) {

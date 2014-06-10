@@ -88,8 +88,17 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (iterator.hasNext()) {
           while (iterator.hasNext()) {
             RemoteFile rf = iterator.getNext();
-            logger.info("Found harvestable file: "+rf.getName());
-            download(rf);
+            if (rf.isDirectory()) {
+              if (getResource().getRecurse()) {
+                logger.info("Found subfolder and recursion is on.");
+                download(rf);
+              } else {
+                logger.info("Found subfolder but recursion is off, ignoring.");
+              }
+            } else {
+              logger.info("Found harvestable file: "+rf.getName());
+              download(rf);
+            }
           }
         } else {
           getJob().setStatus(HarvestStatus.WARN, "Found no files at "+url);

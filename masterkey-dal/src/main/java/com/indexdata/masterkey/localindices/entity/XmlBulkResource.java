@@ -99,11 +99,11 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     this.allowCondReq = allowCondReq;
   }
   
-  public boolean getRecursionLevels() {
+  public boolean getRecurse() {
     return recursionLevels;
   }
 
-  public void setRecursionLevels(boolean recursionLevels) {
+  public void setRecurse(boolean recursionLevels) {
     this.recursionLevels = recursionLevels;
   }
 
