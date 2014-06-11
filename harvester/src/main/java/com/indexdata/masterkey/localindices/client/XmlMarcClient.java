@@ -100,12 +100,14 @@ public class XmlMarcClient extends AbstractHarvestClient {
             RemoteFile rf = iterator.getNext();
             if (rf.isDirectory()) {
               if (getResource().getRecurse()) {
-                logger.info("Found subfolder and recursion is on.");
+                logger.info("Found subfolder '"+rf.getName()+"' and recursion is on.");
                 download(rf);
               } else {
-                logger.info("Found subfolder but recursion is off, ignoring.");
+                logger.info("Found subfolder '"+rf.getName()
+                  +"' but recursion is off, ignoring.");
               }
             } else {
+              logger.info("Found harvestable file: "+rf.getName());
               download(rf);
             }
           }
@@ -208,7 +210,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         int count = 0;
         while (it.hasNext()) {
           RemoteFile rf = it.getNext();
-          logger.debug("Found harvestable file: "+rf.getName());
+          logger.info("Found harvestable file: "+rf.getName());
           try {
             storeAny(rf, proposeCachePath());
           } catch (IOException ex) {
@@ -272,9 +274,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
       new MimeTypeCharSet(getResource().getOutputSchema());
     if (mimeType.isMimeType("application/tmarc")) {
       isTurboMarc = true;
-      logger.info("Setting up Binary MARC to TurboMarc converter");
+      logger.debug("MARC XML output type is TurboMarc");
     } else {
-      logger.info("Setting up Binary MARC to MarcXml converter");
+      logger.debug("MARC XML output type is MarcXML");
     }
     long index = 0;
     MarcWriter writer;

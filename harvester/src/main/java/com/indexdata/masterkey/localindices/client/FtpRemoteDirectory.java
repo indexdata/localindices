@@ -9,9 +9,9 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilter;
 
 public class FtpRemoteDirectory extends RemoteFile { 
-  FTPFile directory;
-  FTPClient client;
-  FTPFileFilter filter = null;
+  private final FTPFile directory;
+  private final FTPClient client;
+  private final FTPFileFilter filter;
   
   public FtpRemoteDirectory(URL parent, 
     FTPFile file, FTPClient client, FTPFileFilter filter, StorageJobLogger logger) throws MalformedURLException, IOException {
@@ -35,7 +35,7 @@ public class FtpRemoteDirectory extends RemoteFile {
     logger.debug("Retrieving file list for "+path);
     FTPFile[] files = null;
     try {
-      files = client.listFiles(path,filter);
+      files = client.listFiles(path, filter);
     } catch (IOException e) {
       logger.error("Could not browse FTP directory due to " + e.getMessage());
     }
@@ -46,4 +46,11 @@ public class FtpRemoteDirectory extends RemoteFile {
     }
     return new FtpRemoteFileIterator(client, url, files, filter, logger); 
   }
+
+  @Override
+  public String getName() {
+    return directory.getName();
+  }
+  
+  
 }
