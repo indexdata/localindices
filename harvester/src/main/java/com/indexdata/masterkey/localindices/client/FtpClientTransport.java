@@ -1,6 +1,8 @@
 package com.indexdata.masterkey.localindices.client;
 
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.sun.research.ws.wadl.Resource;
+
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
@@ -10,6 +12,8 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPFileFilter;
+import org.apache.commons.net.ftp.FTPFileFilters;
 
 public class FtpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
@@ -89,14 +93,17 @@ public class FtpClientTransport implements ClientTransport {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    logger.debug("Retrieving file list for "+path);
-    FTPFile[] files = client.listFiles(path);
+    logger.info("Retrieving file list for " + path + (fromDate != null ? " with timestamps after " + fromDate : ""));
+    
+    FTPFileFilter filter = (fromDate != null ? new FTPDateFilter(fromDate) : FTPFileFilters.ALL);
+    FTPFile[] files =  client.listFiles(path,filter); 
+
     if (files.length==0) {
       logger.warn("Did not find any files at " + path);
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
-    return new FtpRemoteFileIterator(client, url, files, logger);
+    return new FtpRemoteFileIterator(client, url, files, filter, logger);
   }
 
   @Override
@@ -117,6 +124,6 @@ public class FtpClientTransport implements ClientTransport {
     this.isRecursive = isRecursive;
   }
   
- 
+  
 
 }

@@ -110,7 +110,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
             }
           }
         } else {
-          getJob().setStatus(HarvestStatus.WARN, "Found no files at "+url);
+          getJob().setStatus(HarvestStatus.OK, "Found no files at "+url+ (getResource().getAllowCondReq() ? ", possibly due to filtering. " : ""));
         }
       } catch (ClientTransportError cte) {
         if (getResource().getAllowErrors()) {
