@@ -21,7 +21,6 @@ public class HttpClientTransport implements ClientTransport {
   private Date lastRequested;
   private HttpURLConnection conn;
   private Integer timeout;
-  private String compressedFormat; 
   private final ClientTransportFactory clientTransportFactory;
   private boolean isRecursive;
   
@@ -102,21 +101,12 @@ public class HttpClientTransport implements ClientTransport {
           return new EmptyRemoteFileIterator();
         }
       } else {
+        //we do not deal with file-level compression in the transport
 	InputStream isDec = handleContentEncoding(conn);
 	long length = getContentLength(conn);
 	RemoteFile file = new RemoteFile(url, isDec, logger);
 	file.setContentType(contentType);
-	if (mt.isGzip()) {
-	  isDec = new GZIPInputStream(isDec);
-	  file = new RemoteFile(url, isDec, logger);
-	  file.setLength(length);
-	  file.setContentType(compressedFormat);
-	  return new SingleFileIterator(file);
-	}
-	else if (mt.isZip()) {
-	  ZipInputStream zipInput = new ZipInputStream(isDec);
-	  return new ZipRemoteFileIterator(url, zipInput, compressedFormat, logger);
-	}
+        file.setLength(length);
 	return new SingleFileIterator(file);
       }
     } else if (responseCode == 304) {// not-modified
@@ -159,15 +149,6 @@ public class HttpClientTransport implements ClientTransport {
   @Override
   public void setTimeout(Integer timeout) {
     this.timeout = timeout;
-  }
-
-  public String getCompressedFormat() {
-    return compressedFormat;
-  }
-
-  @Override
-  public void setCompressedFormat(String compressedFormat) {
-    this.compressedFormat = compressedFormat;
   }
 
   @Override

@@ -1,10 +1,8 @@
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.util.regex.Pattern;
-
 public class MimeTypeCharSet {
   private final static String CHARSET_PREFIX =  "charset=";
-  private String mimeType = "";
+  private String mimeType = ""; //NOT NULL!
   private String charset;
   
   public MimeTypeCharSet(String contentType) {
@@ -39,8 +37,24 @@ public class MimeTypeCharSet {
     return mimeType + (charset != null ? "; charset=" + charset : "");
   }
   
+  public boolean isUndefined() {
+    return mimeType.isEmpty();
+  }
+  
   public boolean isXML() {
     return mimeType.matches("(?:application|text)/(?:.*[+])?xml");
+  }
+  
+  public boolean isBinary() {
+    return "application/octet-stream".equals(mimeType);
+  }
+  
+  public boolean isTar() {
+    return isTarGz() || "application/x-tar".equals(mimeType);
+  }
+  
+  public boolean isTarGz() {
+    return "application/x-gtar".equals(mimeType);
   }
   
   public boolean isGzip() {

@@ -1,24 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import static com.indexdata.utils.TextUtils.joinPath;
-
-import java.io.BufferedInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Proxy;
-import java.net.URL;
-import java.util.Date;
-
-import javax.xml.transform.dom.DOMResult;
-
-import org.marc4j.MarcException;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcWriter;
-import org.marc4j.MarcXmlWriter;
-import org.marc4j.TurboMarcXmlWriter;
-
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
@@ -30,10 +11,26 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
+import static com.indexdata.utils.TextUtils.joinPath;
 import com.indexdata.xml.filter.SplitContentHandler;
+import java.io.BufferedInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Proxy;
+import java.net.URL;
 import java.net.URLConnection;
+import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
+import javax.xml.transform.dom.DOMResult;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.marc4j.MarcException;
+import org.marc4j.MarcStreamReader;
+import org.marc4j.MarcWriter;
+import org.marc4j.MarcXmlWriter;
+import org.marc4j.TurboMarcXmlWriter;
 import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
@@ -65,6 +62,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
     } else {
       try {
+        logger.info("Found harvestable file: "+file.getName());
         storeAny(file, proposeCachePath());
         count++;
       } catch (IOException ex) {     
@@ -107,7 +105,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
                   +"' but recursion is off, ignoring.");
               }
             } else {
-              logger.info("Found harvestable file: "+rf.getName());
               download(rf);
             }
           }
@@ -162,7 +159,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
     InputStream input = shouldBuffer 
       ? new BufferedInputStream(file.getInputStream())
       : file.getInputStream();
-    //first we attempt to deduce real content type
+    //if transport does not provide content type
+    //we attempt to deduce it
     if (file.getContentType() == null) {
       String cT = URLConnection.guessContentTypeFromStream(input);
       if (cT == null) {
@@ -177,16 +175,24 @@ public class XmlMarcClient extends AbstractHarvestClient {
     } else {
       logger.debug("Content type provided by transport: "+file.getContentType());
     }
-    //octet-stream may mean marc or a compressed archive
-    if (file.getContentType() == null || "application/octet-stream".equals(file.getContentType())) {
+    MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
+    //missing, deduced or provided content type may not be enough
+    //we check the extension in this case anyway
+    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isGzip()) {
       if (file.getName() != null) {
         if (file.getName().endsWith(".zip")) {
           file.setContentType("application/zip");
+        } else if (file.getName().endsWith(".tar")) {
+          file.setContentType("application/x-tar");
+        } else if (file.getName().endsWith("tar.gz")
+          || file.getName().endsWith(".tgz")) {
+          file.setContentType("application/x-gtar");
         } else if (file.getName().endsWith(".gz")) {
           file.setContentType("application/gzip");
         } else { //assume marc for missing content type
           file.setContentType("application/marc");
         }
+        mimeType = new MimeTypeCharSet(file.getContentType());
         logger.debug("Guessed content type from filename: "+file.getContentType());
       }
     }
@@ -197,12 +203,11 @@ public class XmlMarcClient extends AbstractHarvestClient {
     20 - 4
     21 - 5
     */
-    MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
     //TODO RemoteFile abstraction is not good enough to make this clean
     //some transports may deal with compressed files (e.g http) others may not
     //if we end up with a compressed mimetype we need to decompress
     if (mimeType.isZip()) {
-      logger.debug("Transport returned compressed file type, need to expand");
+      logger.debug("Transport returned ZIP compressed file, expanding..");
       ZipInputStream zis = new ZipInputStream(input);
       try {
         RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
@@ -232,9 +237,47 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //we need to close in case the iteration did not exhause all entries
         zis.close();
       }
+    } else if (mimeType.isTar()) {
+      logger.debug("Transport returned TAR archive file, expanding..");
+      if (mimeType.isTarGz()) {
+        logger.debug("TAR archive is GZIP compressed, decompressing..");
+        input = new GZIPInputStream(input);
+      }
+      TarArchiveInputStream tis = new TarArchiveInputStream(input);
+      try {
+        RemoteFileIterator it = new TarRemoteFileIterator(file.getURL(),
+          tis, null, logger);
+        int count = 0;
+        while (it.hasNext()) {
+          RemoteFile rf = it.getNext();
+          logger.info("Found harvestable file: "+rf.getName());
+          try {
+            storeAny(rf, proposeCachePath());
+          } catch (IOException ex) {
+            if (getResource().getAllowErrors()) {
+              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
+                getMessage());
+              setErrors(getErrors() + (file.getAbsoluteName() + " "));
+            } else {
+              throw ex;
+            }
+          }
+          count++;
+        }
+        if (count == 0) {
+          logger.debug("Found no files in the archive.");
+        }
+        return;
+      } finally {
+        //we need to close in case the iteration did not exhause all entries
+        tis.close();
+      }
     } else if (mimeType.isGzip()) {
-      //built-in gzip does not support tar files
-      //TODO use apache-compress
+      //it probably is a single-file pure gzip stream, in which case we assumed
+      //MARC or use the end-user override
+      //TODO we could auto-detect this
+      input = new GZIPInputStream(input);
+      file.setLength(-1);
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null

@@ -110,9 +110,6 @@ public class FtpClientTransport implements ClientTransport {
   public void setTimeout(Integer seconds) {
   }
 
-  @Override
-  public void setCompressedFormat(String mimetype) {
-  }
 
   @Override
   public void setFromDate(Date date) {
