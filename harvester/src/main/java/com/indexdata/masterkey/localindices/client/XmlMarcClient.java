@@ -178,18 +178,24 @@ public class XmlMarcClient extends AbstractHarvestClient {
     MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
     //missing, deduced or provided content type may not be enough
     //we check the extension in this case anyway
-    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isGzip()) {
+    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isPlainText() || mimeType.isGzip()) {
       if (file.getName() != null) {
         if (file.getName().endsWith(".zip")) {
           file.setContentType("application/zip");
         } else if (file.getName().endsWith(".tar")) {
           file.setContentType("application/x-tar");
         } else if (file.getName().endsWith("tar.gz")
-          || file.getName().endsWith(".tgz")) {
+                || file.getName().endsWith(".tgz")) {
           file.setContentType("application/x-gtar");
         } else if (file.getName().endsWith(".gz")) {
           file.setContentType("application/gzip");
-        } else { //assume marc for missing content type
+        } else if (file.getName().endsWith(".bin")
+                || file.getName().endsWith(".marc")
+                || file.getName().endsWith(".lfts")
+                || file.getName().endsWith(".dat"))
+        {
+          file.setContentType("application/marc");
+        } else if (mimeType.isUndefined()) {
           file.setContentType("application/marc");
         }
         mimeType = new MimeTypeCharSet(file.getContentType());

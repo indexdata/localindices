@@ -49,6 +49,10 @@ public class MimeTypeCharSet {
     return "application/octet-stream".equals(mimeType);
   }
   
+  public boolean isPlainText() {
+    return "text/plain".equals(mimeType);
+  }
+  
   public boolean isTar() {
     return isTarGz() || "application/x-tar".equals(mimeType);
   }
