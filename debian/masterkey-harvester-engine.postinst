@@ -12,7 +12,11 @@ dpkg-maintscript-helper mv_conffile \
 
 # Manual link /etc/masterkey/harvester/ files into /usr/share/masterkey/
 # Using recommended <package>.links end in circular links
-ln -sf  /etc/masterkey/harvester/web.xml              /usr/share/masterkey/harvester/WEB-INF/
+f [ -L /usr/share/masterkey/harvester/WEB-INF/web.xml ]; then
+  touch /usr/share/masterkey/harvester/WEB-INF/web.xml
+else
+  ln -sf /etc/masterkey/harvester/web.xml /usr/share/masterkey/harvester/WEB-INF/
+fi
 ln -sf  /etc/masterkey/harvester/harvester.properties /usr/share/masterkey/harvester/WEB-INF/
 ln -sf  /etc/masterkey/harvester/log4j.properties     /usr/share/masterkey/harvester/WEB-INF/classes/
 

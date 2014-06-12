@@ -45,6 +45,9 @@ Description: Creating an initial harvester database with sample data (MySQL)
 
 Package: masterkey-harvester
 Architecture: all
-Depends: masterkey-harvester-admin-tomcat6, masterkey-harvester-engine-tomcat6,masterkey-harvester-mysql,masterkey-harvester-utils
+Depends: masterkey-harvester-admin-tomcat6 (= ${binary:Version}), 
+  masterkey-harvester-engine-tomcat6 (= ${binary:Version}),
+  masterkey-harvester-mysql (= ${binary:Version}),
+  masterkey-harvester-utils (= ${binary:Version})
 Description: Meta package to install a complete Harvester with Admin, utilities and database
  Installs all pacakges. 
