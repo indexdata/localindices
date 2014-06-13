@@ -17,25 +17,25 @@
            required="true" requiredMessage="Please provide target URL(s)!"/>
           <h:message for="resourceUrls" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="Overwrite with each run (non-incremental):" />
-        <h:selectBooleanCheckbox
-              value="#{resourceController.resource.overwrite}" />
-        <h:outputText value="Split at depth (Zero disables splitting):"/>
-        <h:inputText value="#{resourceController.resource.splitAt}"/>
-        <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
-        <h:inputText value="#{resourceController.resource.splitSize}"/>
-        <h:outputText value="Mime-type for compressed data (application/marc; charset=MARC-8 for binary MARC in MARC-8)"/>
-        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
-        <h:outputText value="Output format (application/tmarc for TurboMARC)"/>
-        <h:inputText value="#{resourceController.resource.outputSchema}"/>
         <h:outputText value="Continue on errors:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
-        <h:outputText value="Only retrieve files with timestamps after last harvest:"/>
+        <h:outputText value="Overwrite data with each run (non-incremental):" />
+        <h:selectBooleanCheckbox
+              value="#{resourceController.resource.overwrite}" />
+        <h:outputText value="Ask server for new files only (incremental):"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
-        <h:outputText value="Use passive mode for FTP transfers"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
+        <h:outputText value="Split XML at depth (zero/empty disables split):"/>
+        <h:inputText value="#{resourceController.resource.splitAt}"/>
+        <h:outputText value="Split files at number of records (zero/empty disables split):"/>
+        <h:inputText value="#{resourceController.resource.splitSize}"/>
+        <h:outputText value="Mime-type override (e.g: application/marc; charset=MARC-8)"/>
+        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
+        <h:outputText value="MARC XML stylesheet format (application/marc or application/tmarc)"/>
+        <h:inputText value="#{resourceController.resource.outputSchema}"/>
         <h:outputText value="Recurse into subfolders"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.recurse}"/>
+        <h:outputText value="Use passive mode for FTP transfers"/>
+        <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
       </h:panelGrid>
     </ui:composition>
   </body>
