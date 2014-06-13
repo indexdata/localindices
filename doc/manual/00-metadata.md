@@ -1,3 +1,3 @@
 % Harvester Admin Manual
 % Index Data
-% August 2013
+% June 2014
