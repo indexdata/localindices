@@ -70,7 +70,7 @@
         <h:selectBooleanCheckbox id="clearResumptionOnConnectError" value="#{resourceController.resource.clearRtOnError}"/>
         <h:outputText value="Keep partial harvests:"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
-        <h:outputText value="Request Retry count:" styleClass="optionalInput" />
+        <h:outputText value="Request retry count:" styleClass="optionalInput" />
         <h:panelGroup>
             <h:inputText id="retryCount" value="#{resourceController.resource.retryCount}" styleClass="optionalInput">
                 <f:validateLongRange minimum="0" maximum="10" />

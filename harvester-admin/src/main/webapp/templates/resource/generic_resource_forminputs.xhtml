@@ -36,6 +36,9 @@
         <h:outputText value="Contact notes:" />
         <h:inputTextarea id="contactNotes" cols="60" rows="3"
                          value="#{resourceController.resource.contactNotes}" />
+        <h:outputText value="Harvest job enabled:" />
+        <h:selectBooleanCheckbox
+          value="#{resourceController.resource.enabled}" />
         <h:outputText value="Harvest schedule:" />
         <h:panelGroup>
           <h:panelGrid id="schedule" columns="7">
@@ -65,12 +68,6 @@
           <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
         </h:panelGroup>
 
-        <h:outputText value="Harvest job enabled:" />
-        <h:selectBooleanCheckbox
-          value="#{resourceController.resource.enabled}" />
-        <h:outputText value="Cache on disk:" />
-        <h:selectBooleanCheckbox
-          value="#{resourceController.resource.cacheEnabled}" />
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Transformation Pipeline:" />
         <h:selectOneMenu value="#{resourceController.transformation}">
@@ -80,6 +77,9 @@
         <h:outputText value="Use lax parsing (if possible):" />
         <h:selectBooleanCheckbox
           value="#{resourceController.resource.laxParsing}" />
+        <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
+        <h:inputText value="#{resourceController.resource.encoding}"
+                     size="20" />
         <!-- List box of Storages -->
         <h:outputText value="Storage:" />
         <h:panelGroup>
@@ -97,26 +97,26 @@
                       rendered="#{resourceController.storageUrl != null}">
           <h:outputText value="click to view" />
         </h:outputLink>
-        <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
-        <h:inputText value="#{resourceController.resource.encoding}"
-                     size="20" />
+        <h:outputText value="Cache on disk:" />
+        <h:selectBooleanCheckbox
+          value="#{resourceController.resource.cacheEnabled}" />
+        <h:outputText value="Limit record number to: " styleClass="optionalInput" />
+        <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />
         <h:outputText value="Connection/read timeout (seconds):" />
         <h:inputText value="#{resourceController.resource.timeout}" size="20" />
-        <h:outputText value="Job Log Level:" />
+        <h:outputText value="Log level:" />
         <h:selectOneMenu value="#{resourceController.resource.logLevel}">
           <f:selectItems
             value="#{resourceController.logLevelItems}" />
         </h:selectOneMenu>
-        <h:outputText value="Custom e-mails (multiple separated with comma): " />
+        <h:outputText value="Notification e-mail address(es) (separate with comma): " />
         <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
-        <h:outputText value="Email on Job status: " />
+        <h:outputText value="Send notification if severity at least: " />
         <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
           <f:selectItems 
             value="#{resourceController.jobLevelItems}" />
         </h:selectOneMenu>
-        <h:outputText value="Record Limit: (Testing)" styleClass="optionalInput" />
-        <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />
-        <h:outputText value="Extra Configuration: (JSON)" styleClass="optionalInput" />
+        <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
         <h:inputTextarea cols="60" rows="2" styleClass="optionalInput"
                          value="#{resourceController.resource.json}" />
 
