@@ -189,13 +189,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
           file.setContentType("application/x-gtar");
         } else if (file.getName().endsWith(".gz")) {
           file.setContentType("application/gzip");
-        } else if (file.getName().endsWith(".bin")
-                || file.getName().endsWith(".marc")
-                || file.getName().endsWith(".lfts")
-                || file.getName().endsWith(".dat"))
-        {
-          file.setContentType("application/marc");
-        } else if (mimeType.isUndefined()) {
+        } else {
+          //assume binary marc since it's close to impossible to rely on the marc dump extensions
           file.setContentType("application/marc");
         }
         mimeType = new MimeTypeCharSet(file.getContentType());
