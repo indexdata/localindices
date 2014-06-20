@@ -28,7 +28,7 @@ public class ConnectorItemSelectedListener implements ValueChangeListener {
     AbortProcessingException {
     ConnectorItem ci = (ConnectorItem) vce.getNewValue();
     //injection does not work for some reason
-    ResourceController rc = (ResourceController) FacesContext.getCurrentInstance().
+    JobController rc = (JobController) FacesContext.getCurrentInstance().
         getExternalContext().getSessionMap().get("resourceController");
     HarvestConnectorResource hcr = (HarvestConnectorResource) rc.getResource();
     hcr.setName(ci.getDisplayName());

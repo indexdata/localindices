@@ -23,9 +23,9 @@ public class OaiPmhListSetsItemsSource extends CompletionItemsSource {
   private List<SelectItem> selectItems = new ArrayList<SelectItem>();
   
   @ManagedProperty("#{resourceController}")
-  private ResourceController resourceController;
+  private JobController resourceController;
 
-  public void setResourceController(ResourceController resourceController) {
+  public void setResourceController(JobController resourceController) {
     logger.debug("Setting resource to " + resourceController);
     this.resourceController = resourceController;
   }

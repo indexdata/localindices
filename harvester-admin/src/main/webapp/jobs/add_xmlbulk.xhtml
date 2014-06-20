@@ -4,8 +4,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
-      >
+        
+      xmlns:f="http://java.sun.com/jsf/core">
   <h:body>
+    
+    <f:metadata>
+      <f:event type="preRenderView" 
+               listener="#{resourceController.prepareXmlBulkResourceToAdd}" />
+    </f:metadata>
 
     <ui:composition template="/templates/master.xhtml">
       <ui:param name="title" value="Add new XML/MARC Bulk Harvest Job" />

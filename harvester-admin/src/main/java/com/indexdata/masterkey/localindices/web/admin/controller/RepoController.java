@@ -47,10 +47,10 @@ public class RepoController implements Serializable {
   private final static String repoFilterQuery = "?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
   
   @ManagedProperty("#{resourceController}")
-  private ResourceController resourceController;
+  private JobController resourceController;
 
   //JSF bug -- injection does not work without a setter
-  public void setResourceController(ResourceController resourceController) {
+  public void setResourceController(JobController resourceController) {
     this.resourceController = resourceController;
   }
   

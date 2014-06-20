@@ -58,7 +58,7 @@ import com.indexdata.utils.CronLineParseException;
  * @author jakub
  * @author Dennis
  */
-public class ResourceController {
+public class JobController {
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private HarvestableDAO dao;
   private Harvestable resource;
@@ -91,7 +91,7 @@ public class ResourceController {
     this.longDate = longDate;
   }
 
-  public ResourceController() {
+  public JobController() {
     try {
       dao = HarvestableDAOFactory.getHarvestableDAO((ServletContext) FacesContext
 	  .getCurrentInstance().getExternalContext().getContext());

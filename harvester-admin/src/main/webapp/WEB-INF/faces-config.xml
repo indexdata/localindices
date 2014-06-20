@@ -9,9 +9,8 @@
     version="2.1">    
     <managed-bean>
         <managed-bean-name>resourceController</managed-bean-name>
-        <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.ResourceController</managed-bean-class>
-        <managed-bean-scope>session</managed-bean-scope>
-    </managed-bean>
+        <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.JobController</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope></managed-bean>
     <managed-bean>
         <managed-bean-name>storageController</managed-bean-name>
         <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.StorageController</managed-bean-class>

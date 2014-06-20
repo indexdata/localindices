@@ -13,21 +13,16 @@
       <ui:define name="content">
         <h:form>
           <h:outputText value="Add new harvest job: " />
-          <h:commandLink styleClass="navigation" value="OAI-PMH"
-                         action="#{resourceController.prepareOaiPmhResourceToAdd}" />
+          <h:link styleClass="navigation" value="OAI-PMH" 
+                  outcome="new_OaiPmhResource"/>
           <h:outputText value=", " />
-          <h:commandLink styleClass="navigation" value="XML/MARC bulk"
-                         action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+          <h:link styleClass="navigation" value="XML/MARC bulk" 
+                  outcome="new_XmlBulkResource"/>
           <h:outputText value=", "/>
-          <h:commandLink styleClass="navigation" value="Connector" 
-                         action="#{resourceController.prepareConnectorResourceToAdd}" />       
-          <h:commandLink styleClass="navigation" value="Status" 
-                         action="#{resourceController.prepareStatusResourceToAdd}" />       
-<!--
-          <h:outputText value=", "/>
-          <h:commandLink styleClass="navigation" value="WebCrawl" 
-                         action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
--->
+          <h:link styleClass="navigation" value="Connector" 
+                  outcome="new_HarvestConnectorResourcelocal"/>       
+          <h:link styleClass="navigation" value="Status" 
+                  outcome="new_StatusResource"/>
         </h:form>
         <h:panelGroup id="autoCheckbox">
           <h:selectBooleanCheckbox value="true" 
