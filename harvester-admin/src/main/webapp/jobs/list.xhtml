@@ -128,11 +128,10 @@
                 <f:facet name="header">
                   <h:outputText value="Actions" />
                 </f:facet>
-                <h:commandLink styleClass="action"
-                               action="#{resourceController.prepareResourceToEdit}">
+                <h:link styleClass="action" outcome="edit_#{item.jobClass}" >
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
-                </h:commandLink>
+                </h:link>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{!item.running}">

@@ -453,28 +453,12 @@ public class JobController {
   public String addAndRunFromCache() {
     resource.setDiskRun(true);
     return addRunResource();
+    
   }
   
-
-  /* update resource */
-  public String prepareResourceToEdit() {
-    logger.debug("prepare resource to edit called..................");
+  public void prepareResourceToEdit() {
     resource = getResourceFromRequestParam();
     postDePersist();
-    logger.log(Level.INFO, "Retrieved persisted resource of type " + resource.getClass().getSimpleName());
-    String type = resource.getClass().getSimpleName();
-    return "edit_" + type;
-/*
-    if (resource instanceof OaiPmhResource) {
-    } else if (resource instanceof WebCrawlResource) {
-      return "edit_webcrawl";
-    } else if (resource instanceof XmlBulkResource) {
-      return "edit_xmlbulk";
-    } else {
-      logger.log(Level.INFO, "Unknown resource type. No matching form defined.");
-      return "failure";
-    }
-*/
   }
 
   /* update resource */
