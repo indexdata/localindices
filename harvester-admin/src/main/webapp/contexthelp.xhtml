@@ -29,7 +29,7 @@
  </f:metadata>
  <f:loadBundle basename="contexthelp" var="help"/>
  <h1><h:outputText value="#{contextHelp.section}"/>: <h:outputText value="#{contextHelp.label}"/></h1>
- <p><h:outputText value="#{help[contextHelp.field]}" /></p>
+ <p><h:outputText value="#{help[contextHelp.field]}" escape="false"/></p>
    <p style="text-align: center">
    <input type="button" onclick="self.close()" value="OK"/>
   </p>

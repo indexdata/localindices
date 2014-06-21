@@ -15,7 +15,7 @@ import javax.faces.model.SelectItem;
 import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.web.admin.controller.ResourceController;
+import com.indexdata.masterkey.localindices.web.admin.controller.JobController;
 
 @ManagedBean(name = "oaiPmhLookupsController")
 @ViewScoped
@@ -36,13 +36,13 @@ public class OaiPmhLookupsController implements Serializable {
   private static final long serialVersionUID = 4673759604059297999L;
   
   @ManagedProperty("#{resourceController}")
-  public ResourceController resourceController;
+  public JobController resourceController;
   
-  public void setResourceController(ResourceController resourceController) {
+  public void setResourceController(JobController resourceController) {
     this.resourceController = resourceController;
   }
   
-  public ResourceController getResourceController () {
+  public JobController getResourceController () {
     return this.resourceController;
   }
   
@@ -150,10 +150,10 @@ public class OaiPmhLookupsController implements Serializable {
     OaiPmhResource resource = ((OaiPmhResource) resourceController.getResource());
     if (resource.getDateFormat() == null) {
       if (identify.getGranularity().length()>10) {
-        resource.setDateFormat(ResourceController.LONG_DATE_FORMAT);
+        resource.setDateFormat(JobController.LONG_DATE_FORMAT);
         resourceController.setLongDate(true);
       } else if (identify.getGranularity().length()>0) {
-        resource.setDateFormat(ResourceController.SHORT_DATE_FORMAT);
+        resource.setDateFormat(JobController.SHORT_DATE_FORMAT);
         resourceController.setLongDate(false);
       }
     }
