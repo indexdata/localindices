@@ -4,14 +4,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
-
       <h5>General information:</h5>
       <h:panelGrid columns="2">
         <h:outputText value="Id:" />
-        <h:outputText value="#{resourceController.resource.id}" />
+        <h:panelGroup>
+          <h:outputText value="#{resourceController.resource.id}" />
+          <id:helplink  field="jobs.General_information.Id"/>
+        </h:panelGroup>
         <h:outputText value="Name:" />
         <h:panelGroup>
           <h:inputText id="resourceName"
@@ -19,11 +22,15 @@
                        required="true"
                        requiredMessage="Please provide a name for the job!" />
           <h:message for="resourceName" style="color: red;" />
+          <id:helplink area="jobs" section="General information" label="Name"/>
         </h:panelGroup>
         <h:outputText value="Service Provider:" />
-        <h:inputText id="serviceProvider" 
+        <h:panelGroup>
+          <h:inputText id="serviceProvider" 
                      value="#{resourceController.resource.serviceProvider}"
                      size="30" />
+          <id:helplink field="jobs.General_information.Service_Provider"/>
+        </h:panelGroup>
         <h:outputText value="Open Access resource:" />
         <h:selectBooleanCheckbox
           value="#{resourceController.resource.openAccess}" />
