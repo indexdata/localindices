@@ -6,6 +6,11 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"     
       xmlns:f="http://java.sun.com/jsf/core">
   <h:body>
+      
+    <f:metadata>
+      <f:event type="preRenderView" 
+               listener="#{resourceController.viewJobLog}" />
+    </f:metadata>
 
     <ui:composition template="/templates/master.xhtml">
       <ui:param name="title" value="Harvest Job Logfile" />
