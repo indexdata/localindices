@@ -39,7 +39,7 @@ public class ContextHelp {
   
   public void setSection (String section) {
     this.sectionText = section;
-    this.sectionId = section.replaceAll(" ", "_").replaceAll("[:\\.]","");
+    this.sectionId = section.replaceAll(" ", "_").replaceAll(":","");
   }
   public String getSection () {
     return getSectionText();
@@ -55,7 +55,7 @@ public class ContextHelp {
   
   public void setLabel (String label) {
     labelText = label;
-    labelId = label.replaceAll(" ","_").replaceAll("[:\\.]","");
+    labelId = label.replaceAll(" ","_").replaceAll(":","");
   }
   
   public String getLabel () {
