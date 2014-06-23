@@ -10,23 +10,23 @@ import javax.faces.bean.ViewScoped;
 public class ContextHelp {
 
   String area = "";
-  String section = "";
-  String label = "";
+  String sectionId = "";
+  String sectionText = "";
+  String labelId = "";
+  String labelText = "";
   
   public ContextHelp() {
   }
 
   public void setField (String field) {
-    if (field.contains(".")) {
-      StringTokenizer tokens = new StringTokenizer(field,".");
-      area = tokens.nextToken();
-      section = tokens.nextToken();
-      label = tokens.nextToken();
-    }
+    StringTokenizer tokens = new StringTokenizer(field,"[]");
+    area = tokens.nextToken();
+    setSection(tokens.nextToken());
+    setLabel(tokens.nextToken());
   }
   
   public String getField () {
-    return area + "." + section + "." + label;
+    return area + "." + sectionId + "." + labelId;
   }
   
   public void setArea (String area) {
@@ -38,18 +38,36 @@ public class ContextHelp {
   }
   
   public void setSection (String section) {
-    this.section = section.replaceAll(" ", "_");
+    this.sectionText = section;
+    this.sectionId = section.replaceAll(" ", "_").replaceAll("[:\\.]","");
   }
   public String getSection () {
-    return section.replaceAll("_", " ");
+    return getSectionText();
+  }
+  
+  public String getSectionText() {
+    return sectionText;
+  }
+  
+  public String getSectionId() {
+    return sectionId;
   }
   
   public void setLabel (String label) {
-    this.label = label.replaceAll(" ", "_");
+    labelText = label;
+    labelId = label.replaceAll(" ","_").replaceAll("[:\\.]","");
   }
   
   public String getLabel () {
-    return this.label.replaceAll("_", " ");
+    return getLabelText();
+  }
+  
+  public String getLabelId () {
+    return this.labelId;
+  }
+  
+  public String getLabelText() {
+    return this.labelText;
   }
   
 }
