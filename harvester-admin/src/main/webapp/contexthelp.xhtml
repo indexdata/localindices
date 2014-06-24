@@ -10,7 +10,8 @@
   <title>Help</title>
   <style type="text/css">
    body { background: #ffffe0 }
-   h1 { color: #000040; background: #d4e7f3; padding: 0.25em 0.5em;
+   h3 { text-align: center; }
+   h1 { color: #000040; background: #dcf3eb; padding: 0.25em 0.5em;
   font-size: 150%; text-align: center;
         corner-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
    ul.gappy li { margin-top: 1em }
@@ -28,7 +29,7 @@
    <f:viewParam name="label" value="#{contextHelp.label}"/>
  </f:metadata>
  <f:loadBundle basename="contexthelp" var="help"/>
- <h1><h:outputText value="#{contextHelp.sectionText}"/>:<br/><h:outputText value="#{contextHelp.labelText}"/></h1>
+ <h3><h:outputText value="#{contextHelp.sectionText}"/>:</h3><h1><h:outputText value="#{contextHelp.labelText}"/></h1>
  <p><h:outputText value="#{help[contextHelp.field]}" escape="false"/></p>
    <p style="text-align: center">
    <input type="button" onclick="self.close()" value="OK"/>
