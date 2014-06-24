@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
 
@@ -25,11 +26,17 @@
         <h:outputText value="Ask server for new files only (incremental):"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
         <h:outputText value="Split XML at depth (zero/empty disables split):"/>
-        <h:inputText value="#{resourceController.resource.splitAt}"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.splitAt}"/>
+          <id:helplink field="[jobs][XML bulk specific information][Split XML at depth (zero/empty disables split)]"/>
+        </h:panelGroup>
         <h:outputText value="Split files at number of records (zero/empty disables split):"/>
         <h:inputText value="#{resourceController.resource.splitSize}"/>
         <h:outputText value="Mime-type override (e.g: application/marc; charset=MARC-8)"/>
-        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.expectedSchema}"/>
+          <id:helplink field="[jobs][XML bulk specific information][Mime-type override (e.g: application/marc; charset=MARC-8)]"/>
+        </h:panelGroup>
         <h:outputText value="MARC XML transformation format (application/marc or application/tmarc)"/>
         <h:inputText value="#{resourceController.resource.outputSchema}"/>
         <h:outputText value="Recurse into subfolders"/>
