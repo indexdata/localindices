@@ -9,7 +9,8 @@ import javax.faces.bean.ViewScoped;
 @ViewScoped
 public class ContextHelp {
 
-  String area = "";
+  String areaId = "";
+  String areaText = "";
   String sectionId = "";
   String sectionText = "";
   String labelId = "";
@@ -20,21 +21,30 @@ public class ContextHelp {
 
   public void setField (String field) {
     StringTokenizer tokens = new StringTokenizer(field,"[]");
-    area = tokens.nextToken();
+    setArea(tokens.nextToken());
     setSection(tokens.nextToken());
     setLabel(tokens.nextToken());
   }
   
   public String getField () {
-    return area + "." + sectionId + "." + labelId;
+    return areaId + "." + sectionId + "." + labelId;
   }
   
   public void setArea (String area) {
-    this.area = area;
+    this.areaText = area;
+    this.areaId = area.replaceAll(" ", "_").replaceAll("[:=]","");;
   }
   
   public String getArea () {
-    return area;
+    return getAreaText();
+  }
+  
+  public String getAreaText() {
+    return areaText;
+  }
+  
+  public String getAreaId() {
+    return areaId;
   }
   
   public void setSection (String section) {

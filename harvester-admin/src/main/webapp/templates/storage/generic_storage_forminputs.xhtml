@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
       <h5>General information: </h5>
@@ -15,6 +16,7 @@
         <h:panelGroup>
           <h:inputText id="storageName" value="#{storageController.storage.name}" size="30"
               required="true" requiredMessage="Please provide storage name!"/>
+          <id:helplink field="[Storage Engines][General information][Name]"></id:helplink>
           <h:message for="storageName" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Storage Description:"/>

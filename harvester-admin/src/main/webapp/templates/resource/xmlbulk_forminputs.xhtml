@@ -16,54 +16,54 @@
           <h:inputTextarea id="resourceUrls" 
                          cols="60" rows="15" value="#{resourceController.resource.url}"
            required="true" requiredMessage="Please provide target URL(s)!"/>
-          <id:helplink field="[jobs][XML bulk specific information][URLs (space-separated)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][URLs (space-separated)]"/>
           <h:message for="resourceUrls" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Continue on errors:"/>
         <h:panelGroup>
           <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Continue on errors]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Continue on errors]"/>
         </h:panelGroup>
         <h:outputText value="Overwrite data with each run (non-incremental):" />
         <h:panelGroup>
           <h:selectBooleanCheckbox
               value="#{resourceController.resource.overwrite}" />
-          <id:helplink field="[jobs][XML bulk specific information][Overwrite data with each run (non-incremental)]"/>    
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Overwrite data with each run (non-incremental)]"/>    
         </h:panelGroup>
         <h:outputText value="Ask server for new files only (incremental):"/>
         <h:panelGroup>
           <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Ask server for new files only (incremental)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Ask server for new files only (incremental)]"/>
         </h:panelGroup>
         <h:outputText value="Split XML at depth (zero/empty disables split):"/>
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.splitAt}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Split XML at depth (zero/empty disables split)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Split XML at depth (zero/empty disables split)]"/>
         </h:panelGroup>
         <h:outputText value="Split files at number of records (zero/empty disables split):"/>
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.splitSize}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Split files at number of records (zero/empty disables split)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Split files at number of records (zero/empty disables split)]"/>
         </h:panelGroup>
         <h:outputText value="Mime-type override (e.g: application/marc; charset=MARC-8)"/>
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.expectedSchema}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Mime-type override (e.g: application/marc; charset=MARC-8)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Mime-type override (e.g: application/marc; charset=MARC-8)]"/>
         </h:panelGroup>
         <h:outputText value="MARC XML transformation format (application/marc or application/tmarc)"/>
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.outputSchema}"/>
-          <id:helplink field="[jobs][XML bulk specific information][MARC XML transformation format (application/marc or application/tmarc)]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][MARC XML transformation format (application/marc or application/tmarc)]"/>
         </h:panelGroup>
         <h:outputText value="Recurse into subfolders"/>
         <h:panelGroup>
           <h:selectBooleanCheckbox value="#{resourceController.resource.recurse}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Recurse into subfolders]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Recurse into subfolders]"/>
         </h:panelGroup>
         <h:outputText value="Use passive mode for FTP transfers"/>
         <h:panelGroup>
           <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
-          <id:helplink field="[jobs][XML bulk specific information][Use passive mode for FTP transfers]"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Use passive mode for FTP transfers]"/>
         </h:panelGroup>
       </h:panelGrid>
     </ui:composition>

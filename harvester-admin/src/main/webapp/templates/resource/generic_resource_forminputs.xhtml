@@ -13,7 +13,7 @@
         <h:outputText value="Id:" />
         <h:panelGroup>
           <h:outputText value="#{resourceController.resource.id}" />
-          <id:helplink  field="[jobs][General information][Id]"/>
+          <id:helplink  field="[Harvest Jobs][General information][Id]"/>
         </h:panelGroup>
         <h:outputText value="Name:" />
         <h:panelGroup>
@@ -22,14 +22,14 @@
                        required="true"
                        requiredMessage="Please provide a name for the job!" />
           <h:message for="resourceName" style="color: red;" />
-          <id:helplink area="jobs" section="General information" label="Name"/>
+          <id:helplink area="Harvest Jobs" section="General information" label="Name"/>
         </h:panelGroup>
         <h:outputText value="Service Provider:" />
         <h:panelGroup>
           <h:inputText id="serviceProvider" 
                      value="#{resourceController.resource.serviceProvider}"
                      size="30" />
-          <id:helplink field="[jobs][General information][Service Provider]"/>
+          <id:helplink field="[Harvest Jobs][General information][Service Provider]"/>
         </h:panelGroup>
         <h:outputText value="Open Access resource:" />
         <h:selectBooleanCheckbox
@@ -38,25 +38,25 @@
         <h:panelGroup>
           <h:inputTextarea cols="60" rows="3"
                          value="#{resourceController.resource.description}" />
-          <id:helplink field="[jobs][General information][Content Description]"/>
+          <id:helplink field="[Harvest Jobs][General information][Content Description]"/>
         </h:panelGroup>
         <h:outputText value="Technical Notes:" />
         <h:panelGroup>
           <h:inputTextarea id="technicalNotes" cols="60" rows="3"
                          value="#{resourceController.resource.technicalNotes}" />
-          <id:helplink field="[jobs][General information][Technical Notes]"/>
+          <id:helplink field="[Harvest Jobs][General information][Technical Notes]"/>
         </h:panelGroup>
         <h:outputText value="Contact notes:" />
         <h:panelGroup>
           <h:inputTextarea id="contactNotes" cols="60" rows="3"
                          value="#{resourceController.resource.contactNotes}" />
-          <id:helplink field="[jobs][General information][Contact Notes]"/>
+          <id:helplink field="[Harvest Jobs][General information][Contact Notes]"/>
         </h:panelGroup>
         <h:outputText value="Harvest job enabled:" />
         <h:panelGroup>
           <h:selectBooleanCheckbox
             value="#{resourceController.resource.enabled}" />
-          <id:helplink field="[jobs][General information][Harvest job enabled]"/>
+          <id:helplink field="[Harvest Jobs][General information][Harvest job enabled]"/>
         </h:panelGroup>
         <h:outputText value="Harvest schedule:" />
         <h:panelGroup>
@@ -84,7 +84,7 @@
             </h:selectOneMenu>
             (min)
           </h:panelGrid>
-          <id:helplink field="[jobs][General information][Harvest schedule]"/>
+          <id:helplink field="[Harvest Jobs][General information][Harvest schedule]"/>
           <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
         </h:panelGroup>
 
@@ -95,19 +95,19 @@
             <f:selectItems
               value="#{transformationController.transformationItems}" />
           </h:selectOneMenu>
-          <id:helplink field="[jobs][General information][Transformation Pipeline]"/>
+          <id:helplink field="[Harvest Jobs][General information][Transformation Pipeline]"/>
         </h:panelGroup>
         <h:outputText value="Use lax parsing (if possible):" />
         <h:panelGroup>
           <h:selectBooleanCheckbox
           value="#{resourceController.resource.laxParsing}" />
-          <id:helplink field="[jobs][General information][Use lax parsing (if possible)]"/>
+          <id:helplink field="[Harvest Jobs][General information][Use lax parsing (if possible)]"/>
         </h:panelGroup>
         <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.encoding}"
                      size="20" />
-          <id:helplink field="[jobs][General information][Encoding override (ISO-8859-1, UTF-8, ...)]"/>
+          <id:helplink field="[Harvest Jobs][General information][Encoding override (ISO-8859-1, UTF-8, ...)]"/>
         </h:panelGroup>
         <!-- List box of Storages -->
         <h:outputText value="Storage:" />
@@ -117,7 +117,7 @@
                            requiredMessage="Please specify a storage for this job!">
             <f:selectItems value="#{storageController.storageItems}" />
           </h:selectOneMenu>
-          <id:helplink field="[jobs][General information][Storage]"/>
+          <id:helplink field="[Harvest Jobs][General information][Storage]"/>
           <h:message for="storageList" style="color: red;" />
         </h:panelGroup>
         <h:outputText value="Stored records:"
@@ -127,23 +127,23 @@
                       value="#{resourceController.storageUrl}">
             <h:outputText value="click to view" />
           </h:outputLink>
-          <id:helplink field="[jobs][General information][Stored records]"/>
+          <id:helplink field="[Harvest Jobs][General information][Stored records]"/>
         </h:panelGroup>
         <h:outputText value="Cache on disk:" />
         <h:panelGroup>
           <h:selectBooleanCheckbox
             value="#{resourceController.resource.cacheEnabled}" />
-          <id:helplink field="[jobs][General information][Cache on disk]"/>
+          <id:helplink field="[Harvest Jobs][General information][Cache on disk]"/>
         </h:panelGroup>
         <h:outputText value="Limit record number to: " styleClass="optionalInput" />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />
-          <id:helplink field="[jobs][General information][Limit record number to]"/>
+          <id:helplink field="[Harvest Jobs][General information][Limit record number to]"/>
         </h:panelGroup>
         <h:outputText value="Connection/read timeout (seconds):" />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.timeout}" size="20" />
-          <id:helplink area="jobs" section="General information" label="Connection/read timeout (seconds)"/>
+          <id:helplink area="Harvest Jobs" section="General information" label="Connection/read timeout (seconds)"/>
         </h:panelGroup>
         <h:outputText value="Log level:" />
         <h:panelGroup>
@@ -151,12 +151,12 @@
             <f:selectItems
               value="#{resourceController.logLevelItems}" />
           </h:selectOneMenu>
-          <id:helplink field="[jobs][General information][Log level]"/>
+          <id:helplink field="[Harvest Jobs][General information][Log level]"/>
         </h:panelGroup>
         <h:outputText value="Notification e-mail address(es) (separate with comma): " />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
-          <id:helplink field="[jobs][General information][Notification e-mail address(es) (separate with comma)]"/>
+          <id:helplink field="[Harvest Jobs][General information][Notification e-mail address(es) (separate with comma)]"/>
         </h:panelGroup>
         <h:outputText value="Send notification if severity at least: " />
         <h:panelGroup>
@@ -164,13 +164,13 @@
             <f:selectItems 
               value="#{resourceController.jobLevelItems}" />
           </h:selectOneMenu>
-          <id:helplink field="[jobs][General information][Send notification if severity at least]"/>
+          <id:helplink field="[Harvest Jobs][General information][Send notification if severity at least]"/>
         </h:panelGroup>
         <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
         <h:panelGroup>
           <h:inputTextarea cols="60" rows="2" styleClass="optionalInput"
                          value="#{resourceController.resource.json}" />
-          <id:helplink field="[jobs][General information][Extra configuration (JSON)]"/>
+          <id:helplink field="[Harvest Jobs][General information][Extra configuration (JSON)]"/>
         </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
