@@ -19,13 +19,15 @@
                            required="true">
             <f:selectItems value="#{settings.connectorEngines}" var="s" itemValue="#{s}" itemLabel="#{s.label}" />
           </h:selectOneMenu>
+          <id:helplink field="[jobs][Connector specific information][CF Engine]"/>
           <h:message for="engineUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Engine parameters (optional)" styleClass="optionalInput"/>
-        <h:inputText  value="#{resourceController.resource.engineParameters}" size="20" styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:inputText  value="#{resourceController.resource.engineParameters}" size="20" styleClass="optionalInput" />
+          <id:helplink field="[jobs][Connector specific information][Engine parameters (optional)]"/>
+        </h:panelGroup>
         <h:outputText value="CF Repository:" styleClass="required" />
-        
-        
         <h:panelGroup>
           <h:selectOneMenu id="repoUrl" 
                            value="#{resourceController.resource.connectorRepoUrlSetting}" 
@@ -37,6 +39,7 @@
                            itemValue="#{s}" itemLabel="#{s.label}" />
             <f:ajax />
           </h:selectOneMenu>
+          <id:helplink field="[jobs][Connector specific information][CF Repository]"/>
           <h:message for="repoUrl" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Connector (type for suggestion):"  styleClass="required"/>
@@ -49,35 +52,69 @@
                              required="true" 
                              requiredMessage="Please provide the Connector filename!"
                              render=":jobForm:resourceName :jobForm:contactNotes :jobForm:technicalNotes"/>
+          <id:helplink field="[jobs][Connector specific information][Connector (type for suggestion)]"/>
           <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Overwrite with each run (non-incremental):" />
-        <h:selectBooleanCheckbox
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
           value="#{resourceController.resource.overwrite}" />
+          <id:helplink field="[jobs][Connector specific information][Overwrite with each run (non-incremental)]"/>
+        </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>
-        <h:inputText  value="#{resourceController.resource.username}" size="20" styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:inputText  value="#{resourceController.resource.username}" size="20" styleClass="optionalInput" />
+          <id:helplink field="[jobs][Connector specific information][User Name]"/>
+        </h:panelGroup>
         <h:outputText value="Password:" styleClass="optionalInput" />
-        <h:inputText  value="#{resourceController.resource.password}" size="20" styleClass="optionalInput"/>
+        <h:panelGroup>
+          <h:inputText  value="#{resourceController.resource.password}" size="20" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Password]"/>
+        </h:panelGroup>
         <h:outputText value="Proxy server address:" styleClass="optionalInput" />
-        <h:inputText  value="#{resourceController.resource.proxy}" size="20" styleClass="optionalInput"/>
-        <h:outputText value="Init Data" styleClass="optionalInput"/> 
-        <h:inputTextarea cols="60" rows="4" value="#{resourceController.resource.initData}" styleClass="optionalInput"/>
+        <h:panelGroup>
+          <h:inputText  value="#{resourceController.resource.proxy}" size="20" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Proxy server address]"/>
+        </h:panelGroup>
+        <h:outputText value="Init Data" styleClass="optionalInput"/>
+        <h:panelGroup> 
+          <h:inputTextarea cols="60" rows="4" value="#{resourceController.resource.initData}" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Init Data]"/>
+        </h:panelGroup>
         <h:outputText value="Harvest from (yyyy-MM-dd):" styleClass="optionalInput"/>
-        <h:inputText value="#{resourceController.resource.fromDate}" size="8" styleClass="optionalInput">
-          <f:convertDateTime pattern="yyyy-MM-dd" />
-        </h:inputText>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.fromDate}" size="8" styleClass="optionalInput">
+            <f:convertDateTime pattern="yyyy-MM-dd" />
+          </h:inputText>
+          <id:helplink field="[jobs][Connector specific information][Harvest from (yyyy-MM-dd)]"/>
+        </h:panelGroup>
         <h:outputText value="Harvest until (yyyy-MM-dd):" styleClass="optionalInput"/>
-        <h:inputText value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
-          <f:convertDateTime pattern="yyyy-MM-dd" />
-        </h:inputText>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
+            <f:convertDateTime pattern="yyyy-MM-dd" />
+          </h:inputText>
+          <id:helplink field="[jobs][Connector specific information][Harvest until (yyyy-MM-dd)]"/>
+        </h:panelGroup>
         <h:outputText value="Start token (incremental harvest):" styleClass="optionalInput"/>
-        <h:inputTextarea cols="60" rows="4"  value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="4"  value="#{resourceController.resource.resumptionToken}" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Start token (incremental harvest)]"/>
+        </h:panelGroup>
         <h:outputText value="Delay between requests (milliseconds):" styleClass="optionalInput" />
-        <h:inputText value="#{resourceController.resource.sleep}" styleClass="optionalInput"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.sleep}" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Delay between requests (milliseconds)]"/>
+        </h:panelGroup>
         <h:outputText value="Failed request retry count:" styleClass="optionalInput" />
-        <h:inputText value="#{resourceController.resource.retryCount}" styleClass="optionalInput"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.retryCount}" styleClass="optionalInput"/>
+          <id:helplink field="[jobs][Connector specific information][Failed request retry count]"/>
+        </h:panelGroup>
         <h:outputText value="Continue on errors:" styleClass="optionalInput" />
-        <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
+          <id:helplink field="[jobs][Connector specific information][Continue on errors]"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>
