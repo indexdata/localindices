@@ -122,10 +122,9 @@
         </h:panelGroup>
         <h:outputText value="Stored records:"
                       rendered="#{resourceController.storageUrl != null}" />
-        <h:panelGroup>
+        <h:panelGroup rendered="#{resourceController.storageUrl != null}">
           <h:outputLink target="_blank"
-                      value="#{resourceController.storageUrl}"
-                      rendered="#{resourceController.storageUrl != null}">
+                      value="#{resourceController.storageUrl}">
             <h:outputText value="click to view" />
           </h:outputLink>
           <id:helplink field="[jobs][General information][Stored records]"/>
