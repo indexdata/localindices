@@ -32,6 +32,7 @@ import com.indexdata.masterkey.localindices.harvest.job.WebRecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.utils.CronLine;
+import com.indexdata.utils.CronLineParseException;
 
 /**
  * A JobInstance is one instance of a harvesting job managed by the scheduler.
@@ -63,7 +64,11 @@ public class JobInstance {
       cronLine = CronLine.currentCronLine();
       hable.setScheduleString(cronLine.toString());
     } else {
-      cronLine = new CronLine(hable.getScheduleString());
+      try {
+        cronLine = new CronLine(hable.getScheduleString());
+      } catch (CronLineParseException clpe) {
+        throw new IllegalArgumentException("Bad schedule string", clpe);
+      }
     }
     if (hable instanceof OaiPmhResource) {
       if (cronLine.shortestPeriod() < CronLine.DAILY_PERIOD) {
@@ -72,7 +77,11 @@ public class JobInstance {
 	Calendar cal = Calendar.getInstance();
 	int min = cal.get(Calendar.MINUTE);
 	int hr = cal.get(Calendar.HOUR_OF_DAY);
-	cronLine = new CronLine(min + " " + hr + " " + "* * *");
+        try {
+          cronLine = new CronLine(min + " " + hr + " " + "* * *");
+        } catch (CronLineParseException clpe) {
+          throw new IllegalArgumentException(clpe);
+        }
 	logger.log(Level.WARN,
 	    "Job scheduled with lower than daily granularity. Schedule overridden to " + cronLine);
       }

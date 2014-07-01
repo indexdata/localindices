@@ -221,8 +221,8 @@ public class JobController {
     this.min = this.hour = this.dayOfMonth = this.month = this.dayOfWeek = null;
     if (dayOfMonth != null && month != null && dayOfWeek != null) {
       String cronLine = min + " " + hour + " " + dayOfMonth + " " + month + " " + dayOfWeek;
-      CronLine cron = new CronLine(cronLine);
       try {
+        CronLine cron = new CronLine(cronLine);
 	cron.nextMatchingDate(new Date());
 	return cronLine;
       } catch (CronLineParseException clpe) {
