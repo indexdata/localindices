@@ -23,7 +23,7 @@
         </h:panelGroup>
         <h:outputText value="OAI Set Name (type for suggestions):"/>
         <h:panelGroup>
-          <id:autoComplete id="listsets" value="#{resourceController.resource.oaiSetName}"
+          <id:autoComplete id="listsets" value="#{resourceController.resource.oaiSetName}" 
                              itemsSource="#{oaiPmhListSetsItemsSource.itemsSource}"
                              completionItems="#{oaiPmhListSetsItemsSource.selectItems}"
                              completionItemConverter="objectConverter"
