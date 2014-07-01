@@ -17,12 +17,12 @@
     <composite:implementation>
       <h:panelGroup rendered="#{not empty cc.attrs.field}">
         <a title="Help (pops up in a new window)" href="#"
-              onclick="window.open('#{request.contextPath}/contexthelp.xhtml?field=#{cc.attrs.field}', 'help',
+              onclick="window.open(window.location.protocol+'//'+window.location.host+'#{request.contextPath}/contexthelp.xhtml?field=#{cc.attrs.field}', 'help',
                      'status=0,scrollbars=1,height=320,width=320'); return false;"><img alt="Help (pops up in a new window)" height="16" width="16" src="#{request.contextPath}/images/help.png" style="float:right"/></a>
       </h:panelGroup>
       <h:panelGroup rendered="#{not empty cc.attrs.area}">
         <a title="Help (pops up in a new window)" href="#"
-              onclick="window.open('#{request.contextPath}/contexthelp.xhtml?area=#{cc.attrs.area}&amp;section=#{cc.attrs.section}&amp;label=#{cc.attrs.label}', 'help',
+              onclick="window.open(window.location.protocol+'//'+window.location.host+'#{request.contextPath}/contexthelp.xhtml?area=#{cc.attrs.area}&amp;section=#{cc.attrs.section}&amp;label=#{cc.attrs.label}', 'help',
                      'status=0,scrollbars=1,height=320,width=320'); return false;"><img alt="Help (pops up in a new window)" height="16" width="16" src="#{request.contextPath}/images/help.png" style="float:right"/></a>
       </h:panelGroup>
       
