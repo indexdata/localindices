@@ -20,13 +20,20 @@
           <h:message for="storageName" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Storage Description:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{storageController.storage.description}"/>
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="3" value="#{storageController.storage.description}"/>
+          <id:helplink field="[Storage Engines][General information][Storage Description]"/>
+        </h:panelGroup>
         <h:outputText value="Enabled:"/>
-        <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
+          <id:helplink field="[Storage Engines][General information][Enabled]"/>
+        </h:panelGroup>
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Custom Storage Class (optional):" styleClass="optionalInput" style="display: none;" />
         <h:panelGroup style="display: none;">
           <h:inputText id="storageClass" value="#{storageController.storage.customClass}" size="50" styleClass="optionalInput" />
+          <id:helplink field="[Storage Engines][General information][Custom Storage Class (optional)]"/>
           <h:message   for="storageClass" style="color: red;"/>
         </h:panelGroup>
       </h:panelGrid>
