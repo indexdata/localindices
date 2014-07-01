@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
       <h5>SOLR specific information: </h5>
@@ -22,6 +23,7 @@
         <h:outputText style="Display: None;" styleClass="optionalInput" value="Bulk size" />
         <h:panelGroup style="Display: None;">
           <h:inputText id="bulkSize" styleClass="optionalInput" value="#{storageController.storage.bulkSize}" size="20"/>
+          <id:helplink field="[Storage Engines][General information][Bulk size]"/>
           <h:message for="bulkSize" style="color: red;"/>
         </h:panelGroup>
       </h:panelGrid>

@@ -3,14 +3,18 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
-
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata"
+      >
   <body>
     <ui:composition>
       <div id="XSLeditStep" style="display:inline">
         <h:panelGrid columns="1">
-          <h:outputText value="Transformation/Configuration:" />
+          <h:panelGroup>
+            <h:outputText value="Transformation/Configuration:" />
+            <id:helplink field="[Transformation Steps][General information][Transformation/Configuration]"/>
+          </h:panelGroup>
           <h:panelGrid>
               <h:inputTextarea id="script" value="#{stepController.current.script}" rows="30" cols="100" />
               <h:message for="script" style="color: red;"/>
