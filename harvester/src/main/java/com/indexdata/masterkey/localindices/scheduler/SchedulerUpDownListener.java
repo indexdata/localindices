@@ -5,6 +5,9 @@
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Setting;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,13 +17,12 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -38,6 +40,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
 
   private Thread th;
   private SchedulerThread st;
+  private SettingDAO dao;
   /*
    * private StorageBackend storageBackend; private StorageBackend
    * reindexStorageBackend;
@@ -86,20 +89,6 @@ public class SchedulerUpDownListener implements ServletContextListener {
       // We cannot just restarts the jobs. 
     }
 
-    /* Refactor for multiple backends and types of backends */
-    /*
-     * Disable ZebraStorage for now
-     * 
-     * String harvestDirPath = props.getProperty("harvester.dir");
-     * storageBackend = new ZebraStorageBackend(harvestDirPath, "idx");
-     * storageBackend.init(props); storageBackend.start();
-     */
-    /* TODO: re-index should be hidden behind the StorageBackend */
-    /*
-     * reindexStorageBackend = new ZebraStorageBackend(harvestDirPath, "reidx");
-     * reindexStorageBackend.init(props);
-     */
-    // load properties to a config
     @SuppressWarnings({ "rawtypes", "unchecked" })
     Map<String, Object> config = new HashMap(props);
 
@@ -116,7 +105,15 @@ public class SchedulerUpDownListener implements ServletContextListener {
 	  proxyPort));
       config.put("harvester.http.proxy", proxy);
     }
-
+    //read DB settings with prefix 'harvester.'
+    logger.debug("Attempting to read 'harvester.' settings from the DB...");
+    dao = new SettingDAOJPA();
+    String prefix = "harvester.";
+    List<Setting> settings = dao.retrieve(0, dao.getCount(prefix), prefix, false);
+    for (Setting setting : settings) {
+      logger.debug("Setting "+setting.getName()+"="+setting.getValue());
+      config.put(setting.getName(), setting.getValue());
+    }
     // put the config and scheduler in the context
     ctx.setAttribute("harvester.config", config);
     ctx.setAttribute("harvester.properties", props);
