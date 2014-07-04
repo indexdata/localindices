@@ -11,16 +11,17 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class SimpleMailSender implements Sender {
-
   private final String defaultFrom;
   private final String defaultRecipients;
   private final String smtpServer;
+  private final String adminUrl;
 
   public SimpleMailSender(String from, String defaultRecipients,
-    String smtpServer) {
+    String smtpServer, String adminUrl) {
     this.defaultFrom = from;
     this.defaultRecipients = defaultRecipients;
     this.smtpServer = smtpServer;
+    this.adminUrl = adminUrl;
   }
  
   private static void sendViaSMTP(String smtpServer, String recipients, String from,
@@ -82,6 +83,11 @@ public class SimpleMailSender implements Sender {
 
   public String getSmtpServer() {
     return smtpServer;
+  }
+
+  @Override
+  public String getAdminUrl() {
+    return adminUrl;
   }
 
 }

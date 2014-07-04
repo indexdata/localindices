@@ -29,6 +29,7 @@ import com.indexdata.masterkey.localindices.notification.NotificationException;
 import com.indexdata.masterkey.localindices.notification.Sender;
 import com.indexdata.masterkey.localindices.notification.SenderFactory;
 import com.indexdata.masterkey.localindices.notification.SimpleNotification;
+import com.indexdata.utils.TextUtils;
 
 /**
  * Specifies the simplest common behavior of all HarvestJobs that otherwise
@@ -131,8 +132,20 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       ? HarvestStatus.valueOf(harvestable.getMailLevel())
       : null;
     if (shouldSend(mailLevel, getStatus())) {
-      if (message == null) message = "";
-      StringBuilder buffer = new StringBuilder(message);
+      //prepend msg with link to the job log
+      StringBuilder buffer = new StringBuilder();
+      if (sender.getAdminUrl() != null && !sender.getAdminUrl().isEmpty()) {
+        String jobLink = 
+          TextUtils.joinPath(sender.getAdminUrl(), "jobs", "log.xhtml")
+          + "?resourceId="+ getHarvestable().getId() + "#bottom";
+        buffer.append("For details see: ").append(jobLink).append("\n")
+          .append("\n");
+      } else {
+        buffer.append("(please configure 'harvester.admin.url' setting in "
+          + "the Settings tab to include a link to the job log in this e-mail)\n\n");
+      }
+      if (message != null) buffer.append(message);
+      //transformation errors
       while (transformationStorage != null
           && !transformationStorage.getErrors().isEmpty()) {
         try {
