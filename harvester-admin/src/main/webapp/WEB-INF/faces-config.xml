@@ -99,7 +99,6 @@
       </navigation-case>
     </navigation-rule>
     <navigation-rule>
-        <from-view-id>/jobs/list.xhtml</from-view-id>
         <navigation-case>
             <from-outcome>new_OaiPmhResource</from-outcome>
             <to-view-id>/jobs/add_oaipmh.xhtml</to-view-id>

@@ -8,6 +8,10 @@
       xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
+      <h:link styleClass="navigation" outcome="harvester_log" value="See Job log"
+              rendered="${mode == 'edit'}">
+        <f:param name="resourceId" value="#{resourceController.resource.id}" />
+      </h:link>
       <h5>General information:</h5>
       <h:panelGrid columns="2">
         <h:outputText value="Id:" />

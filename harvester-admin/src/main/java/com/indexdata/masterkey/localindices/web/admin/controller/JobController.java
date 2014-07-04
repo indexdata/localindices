@@ -468,7 +468,7 @@ public class JobController {
       logger.error("No resource found in the request, ignoring action.");
       return listResources();
     }
-    String action = getParameterFromRequestParam("action");
+    String action = getRequestParam("action");
     if (action == null) {
       logger.error("Received 'null' action, ignoring");
       return listResources();
@@ -527,7 +527,7 @@ public class JobController {
     return runResource();
   }
 
-  /* list resources */
+  // TODO change that to fire off on preRenderView
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getResources() {
     // check if new request
@@ -622,13 +622,8 @@ public class JobController {
 
   @SuppressWarnings("unused")
   public String viewJobLog() {
-    String param = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
-	.get("resourceId");
-    String start = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
-	.get("start");
-    String end = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
-	.get("end");
-    Long id = new Long(param);
+    String strId = getRequestParam("resourceId");
+    Long id = new Long(strId);
     setCurrentId(id);
 
     StringBuilder sb = new StringBuilder(10240);
@@ -641,10 +636,10 @@ public class JobController {
     else 
       tempReader = new InputStreamReader(is);
     BufferedReader reader = new BufferedReader(tempReader);
-    String line = null;
+    String line;
     try {
       while ((line = reader.readLine()) != null) {
-	sb.append(line + "\n");
+	sb.append(line).append("\n");
       }
     } catch (IOException e) {
       logger.log(Level.ERROR, e);
@@ -657,6 +652,8 @@ public class JobController {
       }
     }
     jobLog = sb.toString();
+    //we need to retrieve the actual job as well to figure out the type and constuct edit link
+    resource = getResourceFromRequestParam();
     return "harvester_log";
 
   }
@@ -667,36 +664,25 @@ public class JobController {
 
   // </editor-fold>
 
-  /* parameter value from request */
-  public String getParameterFromRequestParam(String name) {
+  private String getRequestParam(String name) {
       String value = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get(name);
       return value;
     }
 
-  /* objects from request */
+  //TODO avoid a back-trip to the web-service when job is already retrieved
   public Harvestable getResourceFromRequestParam() {
     Harvestable o = null;
     if (model != null) {
       o = (Harvestable) model.getRowData();
       // o = em.merge(o);
     } else {
-      String param = getParameterFromRequestParam("resourceId");
+      String param = getRequestParam("resourceId");
       Long id = new Long(param);
       o = dao.retrieveById(id);
     }
     return o;
   }
-
-  
-  /* objects from request */
-/*
-  public String getActionFromRequestParam() {
-      String param = FacesContext.getCurrentInstance().getExternalContext()
-	  .getRequestParameterMap().get("action");
-    return param;
-  }
-*/
   
   public String getTransformation() {
     if (resource != null && resource.getTransformation() != null)
