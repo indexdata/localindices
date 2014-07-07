@@ -399,35 +399,37 @@ public class JobController {
 
   // </editor-fold>
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
-  /* add new resource */
-  public String prepareOaiPmhResourceToAdd() {
-    logger.info("about to prepare oai=pmh resource to add");
-    resource = new OaiPmhResource();
-    resource.getClass().getSimpleName();
-    return "new_OaiPmhResource";
-  }
-
-  public String prepareConnectorResourceToAdd() {
-    resource = new HarvestConnectorResource();
-    return "new_HarvestConnectorResource";
-  }
-
-  public String prepareWebCrawlResourceToAdd() {
-    resource = new WebCrawlResource();
-    return "new_WebCrawlResource";
-  }
-
-  public String prepareXmlBulkResourceToAdd() {
-    resource = new XmlBulkResource();
-    return "new_XmlBulkResource";
-  }
-
-  public String prepareStatusResourceToAdd() {
-    resource = new StatusResource();
-    return "new_StatusResource";
-  }
-
   
+  public void prepareOaiPmhResourceToAdd() {
+    //avoid resetting on partial updates (ajax)
+    if (!FacesContext.getCurrentInstance().isPostback())
+      resource = new OaiPmhResource();
+  }
+
+  public void prepareConnectorResourceToAdd() {
+    //avoid resetting on partial updates (ajax)
+    if (!FacesContext.getCurrentInstance().isPostback())
+      resource = new HarvestConnectorResource();
+  }
+
+  public void prepareWebCrawlResourceToAdd() {
+    //avoid resetting on partial updates (ajax)
+    if (!FacesContext.getCurrentInstance().isPostback())
+      resource = new WebCrawlResource();
+  }
+
+  public void prepareXmlBulkResourceToAdd() {
+    //avoid resetting on partial updates (ajax)
+    if (!FacesContext.getCurrentInstance().isPostback())
+      resource = new XmlBulkResource();
+  }
+
+  public void prepareStatusResourceToAdd() {
+    //avoid resetting on partial updates (ajax)
+    if (!FacesContext.getCurrentInstance().isPostback())
+      resource = new StatusResource();
+  }
+
   private String createResource() {
     try {
     prePersist();
@@ -457,8 +459,11 @@ public class JobController {
   }
   
   public void prepareResourceToEdit() {
-    resource = getResourceFromRequestParam();
-    postDePersist();
+    //avoid retrieving instances on partial (ajax) updates
+    if (!FacesContext.getCurrentInstance().isPostback()) {
+      resource = getResourceFromRequestParam();
+      postDePersist();
+    }
   }
 
   /* update resource */
@@ -678,6 +683,8 @@ public class JobController {
       // o = em.merge(o);
     } else {
       String param = getRequestParam("resourceId");
+      if (param == null || param.isEmpty())
+        return null;
       Long id = new Long(param);
       o = dao.retrieveById(id);
     }
