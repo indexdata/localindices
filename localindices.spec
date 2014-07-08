@@ -10,7 +10,7 @@ Source: masterkey-harvester-%{version}.tar.gz
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: maven2
-Packager: Dennis Schafroth <dennis@indexdata.com>
+Packager: Index Data <info@indexdata.com>
 URL: http://www.indexdata.dk/masterkey
 Requires: jpackage-utils-compat-el5
 %description

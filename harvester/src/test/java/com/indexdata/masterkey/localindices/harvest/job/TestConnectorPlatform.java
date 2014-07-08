@@ -28,8 +28,7 @@ public class TestConnectorPlatform extends JobTester {
   // String cfServer = "http://satay.index:9000/connector";
   String session = "{\"id\":3}";
   String indexdataBlogConnector = "idblog.6.cf";
-  String acceConnectorWithAuth    = "aace_harvester.7.cf";
-  String acceConnectorWithOutAuth = "aace_harvester.8.cf";
+  String aaceConnectorWithOutAuth = "aace_harvester.cf";
   String solrUrl = "http://localhost:8585/solr/";
   //SolrServerFactory factory = new EmbeddedSolrServerFactory(solrUrl);
   //SolrServer solrServer = factory.create();
@@ -125,15 +124,16 @@ public class TestConnectorPlatform extends JobTester {
   }
 */
 
-  public void testConnectorHarvestJobACCE_overwrite() throws ParseException, IOException, StatusNotImplemented {
-    HarvestConnectorResource resource = createResource(acceConnectorWithAuth, false, false);
+  public void testConnectorHarvestJobAACE_overwrite() throws ParseException, IOException, StatusNotImplemented {
+    HarvestConnectorResource resource = createResource(aaceConnectorWithOutAuth, false, true);
     RecordStorage recordStorage = createStorage(resource, true);
     RecordHarvestJob job = doHarvestJob(recordStorage, resource);
     HarvestStatus status = job.getStatus();
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);
     StorageStatus firstStatus = recordStorage.getStatus();
-    resource.setConnector(acceConnectorWithOutAuth);
+    resource.setConnector(aaceConnectorWithOutAuth);
     resource.setOverwrite(true);
+    resource.setResumptionToken(null);
     recordStorage = createStorage(resource, true);
     job = doHarvestJob(recordStorage, resource);
     assertTrue("Harvest Job not finished: " + status, HarvestStatus.FINISHED == status);

@@ -20,3 +20,4 @@ install-stamp
 /data/
 logs/
 solr/collection1/data/
+masterkey-dal/generated-sources/

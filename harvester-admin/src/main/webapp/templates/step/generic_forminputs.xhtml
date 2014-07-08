@@ -3,8 +3,8 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
-
-      xmlns:h="http://java.sun.com/jsf/html">
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
       <h:panelGrid columns="2">
@@ -12,18 +12,28 @@
         <h:panelGroup>
           <h:inputText id="stepName" value="#{stepController.current.name}"
              required="true" requiredMessage="Please provide a name for the step!"/>
+             <id:helplink field="[Transformation Steps][General information][Step Name]"/>
           <h:message for="stepName" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Description:" />
-        <h:inputText value="#{stepController.current.description}" />
+        <h:panelGroup>
+          <h:inputText value="#{stepController.current.description}" />
+          <id:helplink field="[Transformation Steps][General information][Description]"/>
+        </h:panelGroup>
         <!-- for future use
         <h:outputText value="Type:" />
         <h:inputText value="#{stepController.current.type}" />
         -->
         <h:outputText value="Input format:" />
-        <h:inputText value="#{stepController.current.inputFormat}" />
+        <h:panelGroup>
+          <h:inputText value="#{stepController.current.inputFormat}" />
+          <id:helplink field="[Transformation Steps][General information][Input format]"/>
+        </h:panelGroup>
         <h:outputText value="Output format:" />
-        <h:inputText value="#{stepController.current.outputFormat}" />
+        <h:panelGroup>
+          <h:inputText value="#{stepController.current.outputFormat}" />
+          <id:helplink field="[Transformation Steps][General information][Output format]"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>

@@ -16,7 +16,7 @@ import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
 
-public class TransformationRecordStorageProxy extends RecordStorageProxy {
+public class TransformationRecordStorageProxy extends AbstractTransformationRecordStorageProxy  {
   private StorageJobLogger logger;
   private List<TransformationStep> steps;
   
@@ -24,7 +24,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
   private MessageRouter<Object>[] messageRouters;
   private MessageProducer<Object> source;
   private MessageQueue<Object> result = new BlockingMessageQueue<Object>();
-  private MessageQueue<Object> error = new BlockingMessageQueue<Object>();
+  private MessageQueue<Object> errors = new BlockingMessageQueue<Object>();
   private int count = 0;
   private Integer limit = null;
   
@@ -71,7 +71,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       try {
 	Record transformed = transformNode(recordDOM);
 	if (transformed != null)
-	  storage.add(transformed);
+	  getTarget().add(transformed);
 	else {
 	  logger.warn("Record filtered out" + record);
 	}
@@ -80,7 +80,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       } catch (InterruptedException e) {
 	e.printStackTrace();
 	try {
-	  error.put(e);
+	  errors.put(e);
 	} catch (InterruptedException e1) {
 	  logger.error("Record not added to error" + record);
 	  e1.printStackTrace();
@@ -97,7 +97,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       try {
 	Record transformed = transformNode(recordDOM);
 	if (transformed != null)
-	  storage.delete(transformed.getId());
+	  getTarget().delete(transformed.getId());
 	else {
 	  logger.warn("Record filtered out. " + recordDOM);
 	}
@@ -105,7 +105,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       } catch (InterruptedException e) {
 	e.printStackTrace();
 	try {
-	  error.put(e);
+	  errors.put(e);
 	} catch (InterruptedException e1) {
 	  logger.error("Record not added to error. " + recordDOM);
 	  e1.printStackTrace();
@@ -147,7 +147,7 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
       MessageRouter<Object> previous = null;
       for (TransformationStep step : steps) {
 	MessageRouter<Object> router = factory.create(step);
-	router.setError(error);
+	router.setError(errors);
 	if (source == null)
 	  source = new ConsumerProxy<Object>(router);
 	if (previous != null)
@@ -163,5 +163,13 @@ public class TransformationRecordStorageProxy extends RecordStorageProxy {
     }
     if (source == null)
       source = result;
+  }
+
+  public MessageQueue<Object> getErrors() {
+    return errors;
+  }
+
+  public void setErrors(MessageQueue<Object> errors) {
+    this.errors = errors;
   }
 }

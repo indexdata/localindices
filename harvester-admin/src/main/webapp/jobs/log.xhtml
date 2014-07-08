@@ -6,6 +6,11 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"     
       xmlns:f="http://java.sun.com/jsf/core">
   <h:body>
+      
+    <f:metadata>
+      <f:event type="preRenderView" 
+               listener="#{resourceController.viewJobLog}" />
+    </f:metadata>
 
     <ui:composition template="/templates/master.xhtml">
       <ui:param name="title" value="Harvest Job Logfile" />
@@ -17,21 +22,29 @@
           }
         </script>  
         <h:form>
+          <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
+              <f:param name="resourceId" value="#{resourceController.resource.id}" />
+          </h:link>
           <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
             <f:param name="resourceId" value="#{resourceController.currentId}" />
           </h:commandLink>
           <a class="navigation" href="#bottom">Bottom</a>
-          <div class="logview">
-            <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
-          </div>
         </h:form>
+        <a name="top"></a>
+        <div class="logview">
+          <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
+        </div>
+        <a name="bottom"></a>
         <h:form>
-            <h:commandLink styleClass="navigation" value="Back to Harvest Jobs"  action="#{resourceController.listResources}" />
+            <h:link styleClass="navigation" value="Back to Harvest Jobs" outcome="list_resources" />
+            <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
+                <f:param name="resourceId" value="#{resourceController.resource.id}" />
+            </h:link>
             <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
             <f:param name="resourceId" value="#{resourceController.currentId}" />
           </h:commandLink>
+          <a class="navigation" href="#top">Top</a>
         </h:form>
-        <a name="bottom"></a>
       </ui:define>
     </ui:composition>
 

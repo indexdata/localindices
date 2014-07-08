@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core">
+<body>
+	<ui:composition>
+
+		<h5>General information:</h5>
+		<h:panelGrid columns="2">
+			<h:outputText value="Id:" />
+			<h:outputText value="#{resourceController.resource.id}" />
+			<h:outputText value="Name:" />
+			<h:panelGroup>
+				<h:inputText id="resourceName"
+					value="#{resourceController.resource.name}" size="30"
+					required="true"
+					requiredMessage="Please provide a name for the job!" />
+				<h:message for="resourceName" style="color: red;" />
+			</h:panelGroup>
+			<h:outputText value="Harvest schedule:" />
+			<h:panelGroup>
+                <h:panelGrid id="schedule" columns="7">
+           Harvest
+          <h:selectOneMenu value="#{resourceController.dayOfMonth}">
+						<f:selectItems value="#{resourceController.daysOfMonth}" />
+					</h:selectOneMenu>
+          (day) of
+          <h:selectOneMenu value="#{resourceController.month}">
+						<f:selectItems value="#{resourceController.months}" />
+					</h:selectOneMenu>
+          (month) if it's
+          <h:selectOneMenu value="#{resourceController.dayOfWeek}">
+						<f:selectItems value="#{resourceController.daysOfWeek}" />
+					</h:selectOneMenu>
+          (day of the week)
+          <h:column>Harvesting time:</h:column>
+					<h:selectOneMenu value="#{resourceController.hour}">
+						<f:selectItems value="#{resourceController.hours}" />
+					</h:selectOneMenu>
+          (hour in 24 format)
+          <h:selectOneMenu value="#{resourceController.min}">
+						<f:selectItems value="#{resourceController.mins}" />
+					</h:selectOneMenu>
+          (min)
+				</h:panelGrid>
+	         <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
+			</h:panelGroup>
+
+			<h:outputText value="Status job enabled:" />
+			<h:selectBooleanCheckbox
+				value="#{resourceController.resource.enabled}" />
+            <h:outputText value="Custom e-mails addresses (multiple separated with comma): " />
+            <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
+            
+		</h:panelGrid>
+	</ui:composition>
+</body>
+</html>

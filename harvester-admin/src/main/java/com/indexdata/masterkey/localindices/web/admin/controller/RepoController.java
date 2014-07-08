@@ -39,14 +39,18 @@ import javax.faces.event.ValueChangeEvent;
 @ManagedBean(name="repoController")
 @ViewScoped
 public class RepoController implements Serializable {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2959742931617525262L;
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   private final static String repoFilterQuery = "?filter=harvest&show_all=0&filter_type=tasks&search=search&xml=1";
   
   @ManagedProperty("#{resourceController}")
-  private ResourceController resourceController;
+  private JobController resourceController;
 
   //JSF bug -- injection does not work without a setter
-  public void setResourceController(ResourceController resourceController) {
+  public void setResourceController(JobController resourceController) {
     this.resourceController = resourceController;
   }
   
@@ -85,6 +89,7 @@ public class RepoController implements Serializable {
           repoUrl = repoUrlSetting.getValue();
           logger.info("Retrieved repo url setting from resource controller - "+repoUrl);
         } else { //get the first setting available
+          // TODO throws null pointer if none is configured
           repoUrl = settingsController.getConnectorRepos().get(0).getValue();
           logger.info("Retrieved repo url setting from settings controller - "+repoUrl);
         }

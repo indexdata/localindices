@@ -5,7 +5,6 @@
  */
 package com.indexdata.masterkey.localindices.harvest.job;
 
-import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import org.apache.log4j.Level;
 import com.indexdata.masterkey.localindices.client.HarvestConnectorClient;
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 
 /**
@@ -29,7 +27,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   private List<URL> urls = new ArrayList<URL>();
   private HarvestConnectorResource resource;
   private Proxy proxy;
-  private RecordStorage streamTransformationStorage;
   private Thread jobThread = null;
   
   public ConnectorHarvestJob(HarvestConnectorResource resource, Proxy proxy) {
@@ -38,11 +35,6 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     this.resource.setMessage(null);
     logger = new FileStorageJobLogger(this.getClass(), resource);
-  }
-
-  public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage) 
-      super.setStorage((RecordStorage) storage); 
   }
 
   public String getMessage() {
@@ -60,6 +52,8 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 
   public void run() {
     String startResumptionToken = resource.getResumptionToken();
+    String subject = "";
+    String msg     = "";
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
@@ -77,12 +71,19 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       //if we have accumulated errors, warn
-      if (!client.getErrors().isEmpty()) {
-        setStatus(HarvestStatus.WARN, "Completed with problems, see logfile for details.");
-      }
       storage.databaseEnd();
       commit();
-      setStatus(HarvestStatus.FINISHED);
+      StringBuffer mailMesssage = new StringBuffer("Successfully");
+      if (!client.getErrors().isEmpty()) {
+	mailMesssage = new StringBuffer("Client Errors: \n");
+	setStatus(HarvestStatus.WARN, "Completed with problems, see logfile for details.");
+        for (String error : client.getErrors()) 
+          mailMesssage.append(error).append("\n");
+      }
+      else 
+	setStatus(HarvestStatus.FINISHED);
+      subject = "Harvest Job completed: ";
+      msg = mailMesssage.toString();
     } catch (Exception e) {
       if (isKillSent()) {
 	if (resource.getAllowErrors()) 
@@ -91,33 +92,22 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
 	    commit();
 	    return ; 
 	  } catch (Exception ioe) {
-	    logger.error("Failed to commit on job killed: " + ioe.getMessage());
+	    subject = "Job stopped: Commit failed: ";
+	    msg = ioe.getMessage();
+	    logger.error(subject + msg);
 	  }
       }
       String error = e.getMessage();
       setStatus(HarvestStatus.ERROR, error);
       resource.setResumptionToken(startResumptionToken);
       logger.log(Level.ERROR, "Harvest failed: " + error, e);
+      subject = "Harvest Job failed: ";
+      msg = error + " " + msg;
     }
     finally {
+      mailMessage(subject, msg);
       shutdown();
     }
-  }
-
-  @SuppressWarnings("deprecation")
-  protected RecordStorage setupTransformation(RecordStorage storage) {
-    splitSize = 1;
-    splitDepth =  1;
-    return super.setupTransformation(storage);
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    logger.debug("Using deprecated stream interface");
-    streamTransformationStorage = setupTransformation(getStorage());
-    //if (streamStorage.isClosed)))
-    	
-    return streamTransformationStorage.getOutputStream();
   }
 
   @Override
@@ -132,4 +122,5 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
   public void setJobThread(Thread jobThread) {
     this.jobThread = jobThread;
   }
+
 }

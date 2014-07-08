@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
 
@@ -13,26 +14,50 @@
         <h:outputText value="OAI Repository URL:"/>
         <h:panelGroup>
           <h:inputText id="resourceUrl" value="#{resourceController.resource.url}" size="50"
-                       required="true" requiredMessage="Please provide the repository URL!"/>
-          <h:message for="resourceUrl" style="color: red;"/>
+                       required="true" requiredMessage="Please provide the repository URL!"
+                       valueChangeListener="#{oaiPmhLookupsController.resourceUrlChanged}">
+             <f:ajax render="resourceUrlMessage metadataPrefixList dateformat"/>
+          </h:inputText>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][OAI Repository URL]"/>
+          <h:message id="resourceUrlMessage" for="resourceUrl" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="OAI Set Name:"/>
-        <h:inputText id="setName" value="#{resourceController.resource.oaiSetName}" size="50"/>
+        <h:outputText value="OAI Set Name (type for suggestions):"/>
+        <h:panelGroup>
+          <id:autoComplete id="listsets" value="#{resourceController.resource.oaiSetName}" 
+                             itemsSource="#{oaiPmhListSetsItemsSource.itemsSource}"
+                             completionItems="#{oaiPmhListSetsItemsSource.selectItems}"
+                             completionItemConverter="objectConverter"
+                             itemSelectedListenerType="#{resourceSetSelectedListener}"
+                             required="false" 
+                             requiredMessage=""
+                             render=""/>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][OAI Set Name (type for suggestions)]"/>
+          <h:message for="listsets:input" style="color: red;"/>
+        </h:panelGroup>
         <h:outputText value="Metadata Prefix: "/>
-        <h:selectOneMenu value="#{resourceController.resource.metadataPrefix}">
-          <f:selectItems value="#{resourceController.metadataPrefixes}" />
-        </h:selectOneMenu>
+        <h:panelGroup>
+          <h:selectOneMenu id="metadataPrefixList" value="#{resourceController.resource.metadataPrefix}">
+            <f:selectItem itemValue="" itemLabel="Select prefix" />
+            <f:selectItems value="#{oaiPmhLookupsController.metadataFormatSelectItems}" />
+          </h:selectOneMenu>
+          <h:message for="metadataPrefixList" style="color: red;"/>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Metadata Prefix]"/>
+        </h:panelGroup>
         <!--
         <h:outputText value="Metadata Schema URI: "/>
         <h:inputText value="#{resourceController.resource.schemaURI}"/>
         -->
         <h:outputText value="Use long date format:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.longDate}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox id="dateformat" value="#{oaiPmhLookupsController.longDate}"/>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Use long date format]"/>
+        </h:panelGroup>
         <h:outputText value="Harvest from (yyyy-MM-dd):"/>
         <h:panelGroup>
             <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8">
                 <f:convertDateTime pattern="yyyy-MM-dd" />
             </h:inputText>
+            <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Harvest from (yyyy-MM-dd)]"/>
             <h:message for="fromDate" style="color: red;" />
         </h:panelGroup>
         <h:outputText value="Harvest until (yyyy-MM-dd):"/>
@@ -40,23 +65,32 @@
             <h:inputText id="untilDate" value="#{resourceController.resource.untilDate}" size="8">
               <f:convertDateTime pattern="yyyy-MM-dd" />
             </h:inputText>
+            <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Harvest until (yyyy-MM-dd)]"/>
             <h:message for="untilDate" style="color: red;" />
         </h:panelGroup>
-        <h:outputText value="Resumption token: (overrrides date)"/>
+        <h:outputText value="Resumption token (overrrides date):"/>
         <h:panelGroup>
             <h:inputText  id="resumptionToken" value="#{resourceController.resource.resumptionToken}"/>
+            <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Resumption token (overrides date)]"/>
             <h:message for="resumptionToken" style="color: red;" />
         </h:panelGroup>
 
         <h:outputText value="Clear resumption token on connection errors:"/>
-        <h:selectBooleanCheckbox id="clearResumptionOnConnectError" value="#{resourceController.resource.clearRtOnError}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox id="clearResumptionOnConnectError" value="#{resourceController.resource.clearRtOnError}"/>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Clear resumption token on connection errors]"/>
+        </h:panelGroup>
         <h:outputText value="Keep partial harvests:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
-        <h:outputText value="Request Retry count:" styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.keepPartial}"/>
+          <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Keep partial harvests]"/>
+        </h:panelGroup>
+        <h:outputText value="Request retry count:" styleClass="optionalInput" />
         <h:panelGroup>
             <h:inputText id="retryCount" value="#{resourceController.resource.retryCount}" styleClass="optionalInput">
                 <f:validateLongRange minimum="0" maximum="10" />
             </h:inputText>
+            <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Request retry count]"/>
             <h:message for="retryCount" style="color: red;"/> 
         </h:panelGroup>
         <h:outputText value="Delay before retry (seconds):" styleClass="optionalInput"/>
@@ -64,6 +98,7 @@
             <h:inputText  id="retryWait" value="#{resourceController.resource.retryWait}" styleClass="optionalInput">
                 <f:validateLongRange minimum="0" maximum="1000" />
             </h:inputText>
+            <id:helplink field="[Harvest Jobs][OAI-PMH specific information][Delay before retry (seconds)]"/>
             <h:message for="retryWait" style="color: red;"/>
         </h:panelGroup> 
             

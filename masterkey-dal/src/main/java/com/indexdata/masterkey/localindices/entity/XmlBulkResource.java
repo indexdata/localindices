@@ -28,6 +28,10 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private String outputSchema;
   @Column(nullable=false)
   private boolean allowCondReq;
+  @Column(nullable=false)
+  private boolean recursionLevels;
+  @Column(nullable=false)
+  private boolean passiveMode;
 
   public XmlBulkResource() {
   }
@@ -98,7 +102,24 @@ public class XmlBulkResource extends Harvestable implements Serializable {
     this.allowCondReq = allowCondReq;
   }
   
+  public boolean getRecurse() {
+    return recursionLevels;
+  }
+
+  public void setRecurse(boolean recursionLevels) {
+    this.recursionLevels = recursionLevels;
+  }
+
   public void reset() {
     super.reset();
   }
+
+  public boolean getPassiveMode() {
+    return passiveMode;
+  }
+
+  public void setPassiveMode(boolean passiveMode) {
+    this.passiveMode = passiveMode;
+  }
+  
 }

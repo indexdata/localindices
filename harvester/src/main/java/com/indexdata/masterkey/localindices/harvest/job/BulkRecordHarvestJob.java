@@ -16,8 +16,6 @@ import com.indexdata.masterkey.localindices.client.XmlMarcClient;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
@@ -71,7 +69,8 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
-
+    String subject = "";
+    String msg = "";
     try {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
@@ -81,19 +80,21 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       DiskCache dc = new DiskCache(resource.getId());
-      if (resource.isCacheEnabled()) dc.init();
+      if (resource.isCacheEnabled()) 
+	dc.init();
       if (resource.getOverwrite()) {
         getStorage().purge(false);
-        if (resource.isCacheEnabled() && !resource.isDiskRun()) dc.empty();
+        if (resource.isCacheEnabled() && !resource.isDiskRun())
+          dc.empty();
       }
       setStatus(HarvestStatus.RUNNING);
       if (!resource.isDiskRun())
-        downloadList(resource.getUrl().split(" "), false, dc);
+        downloadList(resource.getUrl().split("[, \n]"), false, dc);
       else {
         downloadList(dc.list(), true, dc);
       }
-      String subject = "Completed.";
-      String msg = "";
+      subject = "Completed: ";
+      msg = "OK";
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
@@ -116,25 +117,29 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         transformationStorage.databaseEnd();
         transformationStorage.rollback();
       }
-      mailMessage(subject, msg);
     } catch (Exception e) {
-      setStatus(HarvestStatus.ERROR);
-      String message = "Failed to complete job, rolling back...";
-      logger.error("Cause of failure:", e);
-      // Should detect SolrExceptions and avoid roll back if we cannot communicate with it
+      setStatus(HarvestStatus.ERROR, e.getMessage());
+      logger.error("Failed. " + e.getMessage(), e);
       try {
-	if (e instanceof StorageException)
+	if (e instanceof StorageException) {
 	  logger.info("No attempt to rollback due to StorageException");
-	else
+	  subject = "Storage Error";
+	  msg = e.getMessage();
+	}
+	else {
+	  msg = "Failed to complete job, rolling back...";
+	  subject = "Error";
 	  getStorage().rollback();
+	}
       } catch (Exception ioe) {
-	message += "Roll-back failed: " + ioe.getMessage();  
-        logger.error(message);
+	msg += " Roll-back failed: " + ioe.getMessage();  
+        logger.error(msg);
       }
-      String subject = "Harvest failed"; 
-      logError(subject, e.getMessage());
-      mailMessage(subject, message);
+      subject = "Harvest failed";
+      msg = e.getMessage();
+      logError(subject, msg);
     } finally {
+      mailMessage(subject, msg);
       shutdown();
     }
   }
@@ -168,17 +173,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
           throw e;
         }
       }
-    }
-  }
-
-  @Override
-  public void setStorage(HarvestStorage storage) {
-    if (storage instanceof RecordStorage) {
-      super.setStorage((RecordStorage) storage);
-    } else {
-      setStatus(HarvestStatus.ERROR);
-      resource.setCurrentStatus("Unsupported StorageType: " + storage.getClass().getCanonicalName()
-              + ". Requires RecordStorage");
     }
   }
 

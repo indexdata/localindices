@@ -2,115 +2,181 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core">
-<body>
-	<ui:composition>
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
+  <body>
+    <ui:composition>
+      <h:link styleClass="navigation" outcome="harvester_log" value="See Job log"
+              rendered="${mode == 'edit'}">
+        <f:param name="resourceId" value="#{resourceController.resource.id}" />
+      </h:link>
+      <h5>General information:</h5>
+      <h:panelGrid columns="2">
+        <h:outputText value="Id:" />
+        <h:panelGroup>
+          <h:outputText value="#{resourceController.resource.id}" />
+          <id:helplink  field="[Harvest Jobs][General information][Id]"/>
+        </h:panelGroup>
+        <h:outputText value="Name:" />
+        <h:panelGroup>
+          <h:inputText id="resourceName"
+                       value="#{resourceController.resource.name}" size="30"
+                       required="true"
+                       requiredMessage="Please provide a name for the job!" />
+          <h:message for="resourceName" style="color: red;" />
+          <id:helplink area="Harvest Jobs" section="General information" label="Name"/>
+        </h:panelGroup>
+        <h:outputText value="Service Provider:" />
+        <h:panelGroup>
+          <h:inputText id="serviceProvider" 
+                     value="#{resourceController.resource.serviceProvider}"
+                     size="30" />
+          <id:helplink field="[Harvest Jobs][General information][Service Provider]"/>
+        </h:panelGroup>
+        <h:outputText value="Open Access resource:" />
+        <h:selectBooleanCheckbox
+          value="#{resourceController.resource.openAccess}" />
+        <h:outputText value="Content Description:" />
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="3"
+                         value="#{resourceController.resource.description}" />
+          <id:helplink field="[Harvest Jobs][General information][Content Description]"/>
+        </h:panelGroup>
+        <h:outputText value="Technical Notes:" />
+        <h:panelGroup>
+          <h:inputTextarea id="technicalNotes" cols="60" rows="3"
+                         value="#{resourceController.resource.technicalNotes}" />
+          <id:helplink field="[Harvest Jobs][General information][Technical Notes]"/>
+        </h:panelGroup>
+        <h:outputText value="Contact notes:" />
+        <h:panelGroup>
+          <h:inputTextarea id="contactNotes" cols="60" rows="3"
+                         value="#{resourceController.resource.contactNotes}" />
+          <id:helplink field="[Harvest Jobs][General information][Contact Notes]"/>
+        </h:panelGroup>
+        <h:outputText value="Harvest job enabled:" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
+            value="#{resourceController.resource.enabled}" />
+          <id:helplink field="[Harvest Jobs][General information][Harvest job enabled]"/>
+        </h:panelGroup>
+        <h:outputText value="Harvest schedule:" />
+        <h:panelGroup>
+          <h:panelGrid id="schedule" columns="7">
+            Harvest
+            <h:selectOneMenu value="#{resourceController.dayOfMonth}">
+              <f:selectItems value="#{resourceController.daysOfMonth}" />
+            </h:selectOneMenu>
+            (day) of
+            <h:selectOneMenu value="#{resourceController.month}">
+              <f:selectItems value="#{resourceController.months}" />
+            </h:selectOneMenu>
+            (month) if it's
+            <h:selectOneMenu value="#{resourceController.dayOfWeek}">
+              <f:selectItems value="#{resourceController.daysOfWeek}" />
+            </h:selectOneMenu>
+            (day of the week)
+            <h:column>Harvesting time:</h:column>
+            <h:selectOneMenu value="#{resourceController.hour}">
+              <f:selectItems value="#{resourceController.hours}" />
+            </h:selectOneMenu>
+            (hour in 24 format)
+            <h:selectOneMenu value="#{resourceController.min}">
+              <f:selectItems value="#{resourceController.mins}" />
+            </h:selectOneMenu>
+            (min)
+          </h:panelGrid>
+          <id:helplink field="[Harvest Jobs][General information][Harvest schedule]"/>
+          <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
+        </h:panelGroup>
 
-		<h5>General information:</h5>
-		<h:panelGrid columns="2">
-			<h:outputText value="Id:" />
-			<h:outputText value="#{resourceController.resource.id}" />
-			<h:outputText value="Name:" />
-			<h:panelGroup>
-				<h:inputText id="resourceName"
-					value="#{resourceController.resource.name}" size="30"
-					required="true"
-					requiredMessage="Please provide a name for the job!" />
-				<h:message for="resourceName" style="color: red;" />
-			</h:panelGroup>
-			<h:outputText value="Service Provider:" />
-                        <h:inputText id="serviceProvider" 
-                                     value="#{resourceController.resource.serviceProvider}"
-				size="30" />
-                        <h:outputText value="Open Access resource:" />
-			<h:selectBooleanCheckbox
-                          value="#{resourceController.resource.openAccess}" />
-			<h:outputText value="Content Description:" />
-			<h:inputTextarea cols="60" rows="3"
-				value="#{resourceController.resource.description}" />
-			<h:outputText value="Technical Notes:" />
-			<h:inputTextarea id="technicalNotes" cols="60" rows="3"
-				value="#{resourceController.resource.technicalNotes}" />
-			<h:outputText value="Contact notes:" />
-			<h:inputTextarea id="contactNotes" cols="60" rows="3"
-				value="#{resourceController.resource.contactNotes}" />
-			<h:outputText value="Harvest schedule:" />
-			<h:panelGrid columns="7">
-          Harvest
-          <h:selectOneMenu value="#{resourceController.dayOfMonth}">
-					<f:selectItems value="#{resourceController.daysOfMonth}" />
-				</h:selectOneMenu>
-          (day) of
-          <h:selectOneMenu value="#{resourceController.month}">
-					<f:selectItems value="#{resourceController.months}" />
-				</h:selectOneMenu>
-          (month) if it's
-          <h:selectOneMenu value="#{resourceController.dayOfWeek}">
-					<f:selectItems value="#{resourceController.daysOfWeek}" />
-				</h:selectOneMenu>
-          (day of the week)
-          <h:column>Harvesting time:</h:column>
-				<h:selectOneMenu value="#{resourceController.hour}">
-					<f:selectItems value="#{resourceController.hours}" />
-				</h:selectOneMenu>
-          (hour in 24 format)
-          <h:selectOneMenu value="#{resourceController.min}">
-					<f:selectItems value="#{resourceController.mins}" />
-				</h:selectOneMenu>
-          (min)
-        </h:panelGrid>
-			<h:outputText value="Harvest job enabled:" />
-			<h:selectBooleanCheckbox
-				value="#{resourceController.resource.enabled}" />
-                        <h:outputText value="Cache on disk:" />
-			<h:selectBooleanCheckbox
-				value="#{resourceController.resource.cacheEnabled}" />
-			<!-- List box of Transformations pipeline-->
-			<h:outputText value="Transformation Pipeline:" />
-			<h:selectOneMenu value="#{resourceController.transformation}">
-				<f:selectItems
-					value="#{transformationController.transformationItems}" />
-			</h:selectOneMenu>
-			<!-- List box of Storages -->
-			<h:outputText value="Storage:" />
-			<h:panelGroup>
-				<h:selectOneMenu id="storageList"
-					value="#{resourceController.storage}" required="true"
-					requiredMessage="Please specify a storage for this job!">
-					<f:selectItems value="#{storageController.storageItems}" />
-				</h:selectOneMenu>
-				<h:message for="storageList" style="color: red;" />
-			</h:panelGroup>
-			<h:outputText value="Stored records:"
-				rendered="#{resourceController.storageUrl != null}" />
-			<h:outputLink target="_blank"
-				value="#{resourceController.storageUrl}"
-				rendered="#{resourceController.storageUrl != null}">
-				<h:outputText value="click to view" />
-			</h:outputLink>
-			<h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
-			<h:inputText value="#{resourceController.resource.encoding}"
-				size="20" />
-			<h:outputText value="Connection/read timeout (seconds):" />
-			<h:inputText value="#{resourceController.resource.timeout}" size="20" />
-			<h:outputText value="Job Log Level:" />
-            <h:selectOneMenu value="#{resourceController.resource.logLevel}">
-                <f:selectItems
-                    value="#{resourceController.logLevelItems}" />
-            </h:selectOneMenu>
-            <h:outputText value="Custom e-mails (multiple separated with comma): " />
-            <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
-            <h:outputText value="Email on Job status: " />
-            <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
-                <f:selectItems 
-                    value="#{resourceController.jobLevelItems}" />
-            </h:selectOneMenu>
-            <h:outputText value="Record Limit: (Testing)"/>
-            <h:inputText value="#{resourceController.resource.recordLimit}"/>
-            
-		</h:panelGrid>
-	</ui:composition>
-</body>
+        <!-- List box of Transformations pipeline-->
+        <h:outputText value="Transformation Pipeline:" />
+        <h:panelGroup>
+          <h:selectOneMenu value="#{resourceController.transformation}">
+            <f:selectItems
+              value="#{transformationController.transformationItems}" />
+          </h:selectOneMenu>
+          <id:helplink field="[Harvest Jobs][General information][Transformation Pipeline]"/>
+        </h:panelGroup>
+        <h:outputText value="Use lax parsing (if possible):" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
+          value="#{resourceController.resource.laxParsing}" />
+          <id:helplink field="[Harvest Jobs][General information][Use lax parsing (if possible)]"/>
+        </h:panelGroup>
+        <h:outputText value="Encoding override (ISO-8859-1, UTF-8, ...):" />
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.encoding}"
+                     size="20" />
+          <id:helplink field="[Harvest Jobs][General information][Encoding override (ISO-8859-1, UTF-8, ...)]"/>
+        </h:panelGroup>
+        <!-- List box of Storages -->
+        <h:outputText value="Storage:" />
+        <h:panelGroup>
+          <h:selectOneMenu id="storageList"
+                           value="#{resourceController.storage}" required="true"
+                           requiredMessage="Please specify a storage for this job!">
+            <f:selectItems value="#{storageController.storageItems}" />
+          </h:selectOneMenu>
+          <id:helplink field="[Harvest Jobs][General information][Storage]"/>
+          <h:message for="storageList" style="color: red;" />
+        </h:panelGroup>
+        <h:outputText value="Stored records:"
+                      rendered="#{resourceController.storageUrl != null}" />
+        <h:panelGroup rendered="#{resourceController.storageUrl != null}">
+          <h:outputLink target="_blank"
+                      value="#{resourceController.storageUrl}">
+            <h:outputText value="click to view" />
+          </h:outputLink>
+          <id:helplink field="[Harvest Jobs][General information][Stored records]"/>
+        </h:panelGroup>
+        <h:outputText value="Cache on disk:" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
+            value="#{resourceController.resource.cacheEnabled}" />
+          <id:helplink field="[Harvest Jobs][General information][Cache on disk]"/>
+        </h:panelGroup>
+        <h:outputText value="Limit record number to: " styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />
+          <id:helplink field="[Harvest Jobs][General information][Limit record number to]"/>
+        </h:panelGroup>
+        <h:outputText value="Connection/read timeout (seconds):" />
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.timeout}" size="20" />
+          <id:helplink area="Harvest Jobs" section="General information" label="Connection/read timeout (seconds)"/>
+        </h:panelGroup>
+        <h:outputText value="Log level:" />
+        <h:panelGroup>
+          <h:selectOneMenu value="#{resourceController.resource.logLevel}">
+            <f:selectItems
+              value="#{resourceController.logLevelItems}" />
+          </h:selectOneMenu>
+          <id:helplink field="[Harvest Jobs][General information][Log level]"/>
+        </h:panelGroup>
+        <h:outputText value="Notification e-mail address(es) (separate with comma): " />
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />
+          <id:helplink field="[Harvest Jobs][General information][Notification e-mail address(es) (separate with comma)]"/>
+        </h:panelGroup>
+        <h:outputText value="Send notification if severity at least: " />
+        <h:panelGroup>
+          <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
+            <f:selectItems 
+              value="#{resourceController.jobLevelItems}" />
+          </h:selectOneMenu>
+          <id:helplink field="[Harvest Jobs][General information][Send notification if severity at least]"/>
+        </h:panelGroup>
+        <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="2" styleClass="optionalInput"
+                         value="#{resourceController.resource.json}" />
+          <id:helplink field="[Harvest Jobs][General information][Extra configuration (JSON)]"/>
+        </h:panelGroup>
+      </h:panelGrid>
+    </ui:composition>
+  </body>
 </html>

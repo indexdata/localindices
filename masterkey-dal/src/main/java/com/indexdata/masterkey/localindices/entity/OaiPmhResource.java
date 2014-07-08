@@ -14,6 +14,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.log4j.Logger;
+
 /**
  * 
  * @author jakub
@@ -23,6 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class OaiPmhResource extends Harvestable implements Serializable {
 
   private static final long serialVersionUID = -3980532198473557541L;
+  private static Logger logger = Logger.getLogger(OaiPmhResource.class);
   private String url;
   private String oaiSetName;
   private String metadataPrefix;
@@ -67,10 +70,12 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   }
 
   public String getUrl() {
+    logger.debug("Getting url " + url);
     return url;
   }
 
   public void setUrl(String url) {
+    logger.debug("Setting url " + url);
     this.url = url;
   }
 

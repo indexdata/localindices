@@ -104,7 +104,13 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private boolean cacheEnabled = false;
   @Column(nullable=false)
   private boolean openAccess = false;
-
+  @Column(nullable=true)
+  private String originalUri = null;
+  @Column(nullable=true)
+  private String json = null;
+  @Column(nullable=false)
+  private boolean laxParsing = false;
+  
   public String getDescription() {
     return description;
   }
@@ -420,6 +426,30 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setOpenAccess(boolean openAccess) {
     this.openAccess = openAccess;
+  }
+
+  public String getOriginalUri() {
+    return originalUri;
+  }
+
+  public void setOriginalUri(String originalOri) {
+    this.originalUri = originalOri;
+  }
+
+  public String getJson() {
+    return json;
+  }
+
+  public void setJson(String json) {
+    this.json = json;
+  }
+
+  public void setLaxParsing(boolean laxParsing) {
+    this.laxParsing = laxParsing;
+  }
+
+  public boolean isLaxParsing() {
+    return laxParsing;
   }
   
 }

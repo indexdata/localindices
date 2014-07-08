@@ -1,0 +1,39 @@
+#!/bin/sh -e
+
+case "$1" in
+    configure|upgrade)
+    ETC_DIR=/etc/masterkey/harvester-admin
+    SHARE_DIR=/usr/share/masterkey/harvester-admin/WEB-INF
+
+    dpkg-maintscript-helper mv_conffile ${SHARE_DIR}/web.xml ${ETC_DIR}/web.xml 2.6.0-alpha4-1indexdata -- "$@"
+
+    dpkg-maintscript-helper mv_conffile \
+               ${SHARE_DIR}/classes/prefixes.properties ${ETC_DIR}/prefixes.properties 2.6.0-alpha4-1indexdata -- "$@"
+    dpkg-maintscript-helper mv_conffile \
+               ${SHARE_DIR}/classes/log4j.properties /etc/masterkey/harvester-admin/log4j.properties 2.6.0-alpha4-1indexdata -- "$@"
+
+     # Manual link /etc/masterkey/harvester/ files into /usr/share/masterkey/
+     # Using recommended <package>.links end in circular links
+     if [ -L /usr/share/masterkey/harvester-admin/WEB-INF/web.xml ]; then
+       touch /usr/share/masterkey/harvester-admin/WEB-INF/web.xml
+     else
+       ln -sf  /etc/masterkey/harvester-admin/web.xml /usr/share/masterkey/harvester-admin/WEB-INF/
+     fi
+     ln -sf  /etc/masterkey/harvester-admin/log4j.properties    /usr/share/masterkey/harvester-admin/WEB-INF/classes/
+     ln -sf  /etc/masterkey/harvester-admin/prefixes.properties /usr/share/masterkey/harvester-admin/WEB-INF/classes/
+
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#                                                                                                                                                    
+
+exit 0
+

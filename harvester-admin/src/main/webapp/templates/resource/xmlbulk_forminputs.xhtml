@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
 
@@ -12,26 +13,58 @@
       <h:panelGrid columns="2">
         <h:outputText value="URLs (space-separated):"/>
         <h:panelGroup>
-        <h:inputTextarea id="resourceUrls" 
+          <h:inputTextarea id="resourceUrls" 
                          cols="60" rows="15" value="#{resourceController.resource.url}"
            required="true" requiredMessage="Please provide target URL(s)!"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][URLs (space-separated)]"/>
           <h:message for="resourceUrls" style="color: red;"/>
         </h:panelGroup>
-        <h:outputText value="Overwrite with each run (non-incremental):" />
-        <h:selectBooleanCheckbox
-              value="#{resourceController.resource.overwrite}" />
-        <h:outputText value="Split at depth (Zero disables splitting):"/>
-        <h:inputText value="#{resourceController.resource.splitAt}"/>
-        <h:outputText value="Split (number of records. Zero or Empty disables split):"/>
-        <h:inputText value="#{resourceController.resource.splitSize}"/>
-        <h:outputText value="Mime-type for compressed data (application/marc; charset=MARC-8 for binary MARC in MARC-8)"/>
-        <h:inputText value="#{resourceController.resource.expectedSchema}"/>
-        <h:outputText value="Output format (application/tmarc for TurboMARC)"/>
-        <h:inputText value="#{resourceController.resource.outputSchema}"/>
         <h:outputText value="Continue on errors:"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
-        <h:outputText value="Use conditional HTTP request"/>
-        <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.allowErrors}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Continue on errors]"/>
+        </h:panelGroup>
+        <h:outputText value="Overwrite data with each run (non-incremental):" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
+              value="#{resourceController.resource.overwrite}" />
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Overwrite data with each run (non-incremental)]"/>    
+        </h:panelGroup>
+        <h:outputText value="Ask server for new files only (incremental):"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Ask server for new files only (incremental)]"/>
+        </h:panelGroup>
+        <h:outputText value="Split XML at depth (zero/empty disables split):"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.splitAt}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Split XML at depth (zero/empty disables split)]"/>
+        </h:panelGroup>
+        <h:outputText value="Split files at number of records (zero/empty disables split):"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.splitSize}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Split files at number of records (zero/empty disables split)]"/>
+        </h:panelGroup>
+        <h:outputText value="Mime-type override (e.g: application/marc; charset=MARC-8)"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.expectedSchema}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Mime-type override (e.g: application/marc; charset=MARC-8)]"/>
+        </h:panelGroup>
+        <h:outputText value="MARC XML transformation format (application/marc or application/tmarc)"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.outputSchema}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][MARC XML transformation format (application/marc or application/tmarc)]"/>
+        </h:panelGroup>
+        <h:outputText value="Recurse into subfolders"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.recurse}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Recurse into subfolders]"/>
+        </h:panelGroup>
+        <h:outputText value="Use passive mode for FTP transfers"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Use passive mode for FTP transfers]"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>

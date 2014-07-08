@@ -1,9 +1,9 @@
 package com.indexdata.masterkey.localindices.client;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
@@ -34,12 +34,12 @@ public class AbstractHarvestClient implements HarvestClient {
   }
 
   @Override
-  public HttpURLConnection createConnection(URL url) throws IOException {
-    HttpURLConnection conn ; 
+  public URLConnection createConnection(URL url) throws IOException {
+    URLConnection conn ; 
     if (proxy != null)
-	conn = (HttpURLConnection) url.openConnection(proxy);
+	conn = url.openConnection(proxy);
     else
-	conn = (HttpURLConnection) url.openConnection();
+	conn = url.openConnection();
     if (resource.getTimeout() != null) {
 	conn.setConnectTimeout(resource.getTimeout() * 1000); 
 	conn.setReadTimeout(resource.getTimeout() * 1000);

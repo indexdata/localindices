@@ -9,7 +9,6 @@ import javax.servlet.ServletContextListener;
 import org.apache.log4j.Logger;
 
 public class SenderFactory implements ServletContextListener {
-  
   static SimpleMailSender sender = null;
   static ServletContext ctx;
   
@@ -18,10 +17,11 @@ public class SenderFactory implements ServletContextListener {
     if (sender == null) {
       if (ctx != null) {
 	Properties props = (Properties) ctx.getAttribute("harvester.properties");
-	sender = new SimpleMailSender();
-	sender.setSmtpServer((String) props.getProperty("harvester.smtp.server"));
-	sender.setFrom((String) props.getProperty("harvester.smtp.from"));
-	sender.setRecievers((String) props.getProperty("harvester.smtp.to"));
+	String smtpServer = (String) props.getProperty("harvester.smtp.server");
+	String from = (String) props.getProperty("harvester.smtp.from");
+	String to = (String) props.getProperty("harvester.smtp.to");
+        String adminUrl = (String) props.getProperty("harvester.admin.url");
+	sender = new SimpleMailSender(from, to, smtpServer, adminUrl);
       }
       else 
 	Logger.getLogger(SenderFactory.class).error("Unable to get Servlet context");

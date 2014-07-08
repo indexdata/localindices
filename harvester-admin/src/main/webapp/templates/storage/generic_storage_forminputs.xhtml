@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"       
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
       <h5>General information: </h5>
@@ -15,16 +16,24 @@
         <h:panelGroup>
           <h:inputText id="storageName" value="#{storageController.storage.name}" size="30"
               required="true" requiredMessage="Please provide storage name!"/>
+          <id:helplink field="[Storage Engines][General information][Name]"></id:helplink>
           <h:message for="storageName" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Storage Description:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{storageController.storage.description}"/>
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="3" value="#{storageController.storage.description}"/>
+          <id:helplink field="[Storage Engines][General information][Storage Description]"/>
+        </h:panelGroup>
         <h:outputText value="Enabled:"/>
-        <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
+          <id:helplink field="[Storage Engines][General information][Enabled]"/>
+        </h:panelGroup>
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Custom Storage Class (optional):" styleClass="optionalInput" style="display: none;" />
         <h:panelGroup style="display: none;">
           <h:inputText id="storageClass" value="#{storageController.storage.customClass}" size="50" styleClass="optionalInput" />
+          <id:helplink field="[Storage Engines][General information][Custom Storage Class (optional)]"/>
           <h:message   for="storageClass" style="color: red;"/>
         </h:panelGroup>
       </h:panelGrid>

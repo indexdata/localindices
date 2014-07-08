@@ -1,57 +1,46 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
+import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
+import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
+import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
+import static com.indexdata.utils.TextUtils.joinPath;
+import com.indexdata.xml.filter.SplitContentHandler;
+import java.io.BufferedInputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.xml.transform.dom.DOMResult;
-
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.TurboMarcXmlWriter;
-
-import com.indexdata.masterkey.localindices.crawl.HTMLPage;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.job.BulkRecordHarvestJob;
-import com.indexdata.masterkey.localindices.harvest.job.MimeTypeCharSet;
-import com.indexdata.masterkey.localindices.harvest.job.RecordStorageConsumer;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
-import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
-import com.indexdata.utils.DateUtil;
-import com.indexdata.xml.filter.SplitContentHandler;
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.Proxy;
-
-import static com.indexdata.utils.TextUtils.joinPath;
-import java.io.BufferedInputStream;
+import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private Date lastRequested;
   private int splitAt = 1;
- 
-  public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,  
+
+  public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,
     Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
     super(resource, job, proxy, logger, dc);
-    this.lastRequested = lastRequested;
   }
 
   @Override
@@ -61,370 +50,338 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   @Override
   public XmlBulkResource getResource() {
-    return (XmlBulkResource) resource; 
+    return (XmlBulkResource) resource;
   }
-  
+
+  public int download(RemoteFile file) throws Exception {
+    int count = 0;
+    if (file.isDirectory()) {
+      RemoteFileIterator iterator = file.getIterator();
+      while (iterator.hasNext()) {
+        count += download(iterator.getNext());
+      }
+    } else {
+      try {
+        logger.info("Found harvestable file: "+file.getName());
+        storeAny(file, proposeCachePath());
+        count++;
+      } catch (IOException ex) {     
+        if (getResource().getAllowErrors()) {
+          logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.getMessage());
+          setErrors(getErrors() + (file.getAbsoluteName() + " "));
+        } else {
+          throw ex;
+        }
+      }
+    }
+    return count;
+  }
+
+  private String proposeCachePath() {
+    return resource.isCacheEnabled()
+      ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
+      : null;
+  }
+
   @Override
   public int download(URL url) throws Exception {
-    logger.info("Starting download - " + url.toString());
+    ClientTransportFactory factory = new ResourceClientTransportFactory(
+      (XmlBulkResource) resource, logger);
+    logger.info("Preparing retrieval of " + url);
     try {
-      HttpURLConnection conn = createConnection(url);
-      conn.setRequestMethod("GET");
-      if (getResource().getAllowCondReq() && (lastRequested != null)) {
-        String lastModified = 
-          DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
-        logger.info("Conditional request If-Modified-Since: "+lastModified);
-        conn.setRequestProperty("If-Modified-Since", lastModified);
-      }
-      conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
-      int responseCode = conn.getResponseCode();
-      if (responseCode == 200) {
-	String contentType = conn.getContentType();
-	if ("text/html".equals(contentType)) {
-	  return handleJumpPage(conn);
-	}
-	else {
-	  ReadStore readStore = prepareReadStore(conn.getInputStream(), 
-            getContentLength(conn), conn.getContentType(), conn.getContentEncoding(), 
-             resource.isCacheEnabled()
-              ? joinPath(diskCache.getJobPath(), diskCache.proposeName())
-              : null);
-	  readStore.readAndStore();
-	}
-      } else if (responseCode == 304) {//not-modified
-        logger.info("Content was not modified since '" + DateUtil.serialize(
-          lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
-        return 0;
-      } else {
-	if (getResource().getAllowErrors()) {
-	  setErrors(getErrors() + (url.toString() + " "));
-	  return 1;
-	}
-	else
-	  throw new Exception("Http connection failed. (" + responseCode + ")");
+      ClientTransport clientTransport = factory.lookup(url);
+      clientTransport.connect(url);
+      try {
+        RemoteFileIterator iterator = clientTransport.get(url);
+        if (iterator.hasNext()) {
+          while (iterator.hasNext()) {
+            RemoteFile rf = iterator.getNext();
+            if (rf.isDirectory()) {
+              if (getResource().getRecurse()) {
+                logger.info("Found subfolder '"+rf.getName()+"' and recursion is on.");
+                download(rf);
+              } else {
+                logger.info("Found subfolder '"+rf.getName()
+                  +"' but recursion is off, ignoring.");
+              }
+            } else {
+              download(rf);
+            }
+          }
+        } else {
+          getJob().setStatus(HarvestStatus.OK, "Found no files at "+url+ (getResource().getAllowCondReq() ? ", possibly due to filtering. " : ""));
+        }
+      } catch (ClientTransportError cte) {
+        if (getResource().getAllowErrors()) {
+          setErrors(getErrors() + (url.toString() + " "));
+          return 1;
+        } else {
+          throw cte;
+        }
+
       }
       // TODO HACK HACK HACK
       Thread.sleep(2000);
       logger.info("Finished - " + url.toString());
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
-      return 0; 
+      return 0;
     } catch (Exception ex) {
-      if (job.isKillSent())
-	  throw ex; 
-	if (getResource().getAllowErrors()) {
-	  logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
-	  setErrors(getErrors() + (url.toString() + " "));
-	  return 1;
-	}
-	throw ex;
+      if (job.isKillSent()) {
+        throw ex;
+      }
+      if (getResource().getAllowErrors()) {
+        logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
+        setErrors(getErrors() + (url.toString() + " "));
+        return 1;
+      }
+      throw ex;
     }
     return 0;
   }
-  
+
   public int download(File file) throws Exception {
     try {
-      ReadStore readStore = prepareReadStore(new FileInputStream(file), -1, null, null, null);
-      readStore.readAndStore();
+      storeAny(new LocalRemoteFile(file, logger), null);
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
     }
     return 0;
   }
-
-  private long getContentLength(HttpURLConnection conn) {
-    // conn.getContentLength() overruns at 2GB, since the interface returns a integer
-    long contentLength = -1;
-    try {
-      contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
-    } catch (Exception e) {
-      logger.error("Error parsing Content-Length: " + conn.getHeaderField("Content-Length"));
-      contentLength = -1;
-    }
-    return contentLength;
-  }
-
-  interface ReadStore {
-    void readAndStore() throws Exception;
-  }
   
-  class MarcReadStore implements ReadStore 
-  {
-    InputStream  input; 
-    boolean useTurboMarc = false;
-    // Default MARC-8 encoding, use setEncoding to override
-    String encoding = null;
-    StreamIterator iterator;
-    
-    public MarcReadStore(InputStream input, StreamIterator iterator) {
-      this.input = input;
-      this.iterator = iterator;
-    }    
-
-    public MarcReadStore(InputStream input, StreamIterator iterator, boolean useTurboMarc) {
-      this.input = input;
-      this.useTurboMarc = useTurboMarc;
-    }    
-
-    void setEncoding(String encoding) {
-      this.encoding = encoding;
-    }
-    
-    @Override
-    public void readAndStore() throws Exception {
-      try {
-        MarcStreamReader reader  = new MarcStreamReader(input, encoding);
-        reader.setBadIndicators(false);
-        while (iterator.hasNext()) {
-          store(reader, -1);      
-        }
-      } finally {
-        //failure to close the input stream will result in malformed cached data
-        //and leaking fds
-        input.close();
-      }
-    }
+  private void storeAny(RemoteFile file, String cacheFile) throws IOException {
+    storeAny(file, cacheFile, true);
   }
 
-  
-  class InputStreamReadStore implements ReadStore 
-  {
-    InputStream input; 
-    long contentLength;
-    StreamIterator iterator;
-    
-    public InputStreamReadStore(InputStream input, long contentLength, StreamIterator iterator) {
-      this.input = input;
-      this.contentLength = contentLength;
-      this.iterator = iterator;
-    }    
-    @Override
-    public void readAndStore() throws Exception {
-      NonClosableInputStream ncis = new NonClosableInputStream(input);
-      try {
-        while (iterator.hasNext())
-          store(ncis, contentLength);
-      } finally {
-        ncis.reallyClose();
-      }
-    }
-  }
-
-  class StreamIterator {
-    int once = 1; 
-    public boolean hasNext() throws IOException {
-      return once-- > 0;
-    }
-  }
-
-  class ZipStreamIterator extends StreamIterator {
-    ZipInputStream zip; 
-    public ZipStreamIterator(ZipInputStream input) {
-      zip = input;
-    }
-    public boolean hasNext() throws IOException {
-      ZipEntry zipEntry = zip.getNextEntry();
-      if (zipEntry != null) {
-  	@SuppressWarnings("unused")
-  	int method = zipEntry.getMethod();
-      }
-      return zipEntry != null;
-    }
-  }
-
-  private ReadStore prepareReadStore(InputStream isRaw, long contentLength, 
-    String contentType, String contentEncoding, String cacheFile) throws IOException {
-    // InputStream after possible Content-Encoding decoded.
-    InputStream isDec = handleContentEncoding(isRaw, contentEncoding);
-    StreamIterator streamIterator = new StreamIterator(); 
-    // Content is being decoded. Not the real length
-    if (isDec != isRaw)
-      contentLength = -1; 
-    // handle content type
-    if ("application/x-gzip".equals(contentType))
-      isDec = new GZIPInputStream(isDec);
-    else if ("application/zip".equals(contentType)) {
-      ZipInputStream zipInput = new ZipInputStream(isDec);
-      streamIterator = new ZipStreamIterator(zipInput);
-      isDec = zipInput;
-    }
+  private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
+    IOException {
     //buffer reads
-    isDec = new BufferedInputStream(isDec);
+    InputStream input = shouldBuffer 
+      ? new BufferedInputStream(file.getInputStream())
+      : file.getInputStream();
+    //if transport does not provide content type
+    //we attempt to deduce it
+    if (file.getContentType() == null) {
+      String cT = URLConnection.guessContentTypeFromStream(input);
+      if (cT == null) {
+        cT = URLConnection.guessContentTypeFromName(file.getName());
+        if (cT != null) {
+          logger.debug("Guessed content type from filename: "+cT);
+        }
+      } else {
+        logger.debug("Guessed content type from stream: "+cT);
+      }
+      file.setContentType(cT);
+    } else {
+      logger.debug("Content type provided by transport: "+file.getContentType());
+    }
+    MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
+    //missing, deduced or provided content type may not be enough
+    //we check the extension in this case anyway
+    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isPlainText() || mimeType.isGzip()) {
+      if (file.getName() != null) {
+        if (file.getName().endsWith(".zip")) {
+          file.setContentType("application/zip");
+        } else if (file.getName().endsWith(".tar")) {
+          file.setContentType("application/x-tar");
+        } else if (file.getName().endsWith("tar.gz")
+                || file.getName().endsWith(".tgz")) {
+          file.setContentType("application/x-gtar");
+        } else if (file.getName().endsWith(".gz")) {
+          file.setContentType("application/gzip");
+        } else {
+          //assume binary marc since it's close to impossible to rely on the marc dump extensions
+          file.setContentType("application/marc");
+        }
+        mimeType = new MimeTypeCharSet(file.getContentType());
+        logger.debug("Guessed content type from filename: "+file.getContentType());
+      }
+    }
+    /*
+    TODO detect binary marc:
+    0,1,2,3,4 digits
+    12,13,14,15,16 digits
+    20 - 4
+    21 - 5
+    */
+    //TODO RemoteFile abstraction is not good enough to make this clean
+    //some transports may deal with compressed files (e.g http) others may not
+    //if we end up with a compressed mimetype we need to decompress
+    if (mimeType.isZip()) {
+      logger.debug("Transport returned ZIP compressed file, expanding..");
+      ZipInputStream zis = new ZipInputStream(input);
+      try {
+        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
+          zis, null, logger);
+        int count = 0;
+        while (it.hasNext()) {
+          RemoteFile rf = it.getNext();
+          logger.info("Found harvestable file: "+rf.getName());
+          try {
+            storeAny(rf, proposeCachePath());
+          } catch (IOException ex) {
+            if (getResource().getAllowErrors()) {
+              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
+                getMessage());
+              setErrors(getErrors() + (file.getAbsoluteName() + " "));
+            } else {
+              throw ex;
+            }
+          }
+          count++;
+        }
+        if (count == 0) {
+          logger.debug("Found no files in the archive.");
+        }
+        return;
+      } finally {
+        //we need to close in case the iteration did not exhause all entries
+        zis.close();
+      }
+    } else if (mimeType.isTar()) {
+      logger.debug("Transport returned TAR archive file, expanding..");
+      if (mimeType.isTarGz()) {
+        logger.debug("TAR archive is GZIP compressed, decompressing..");
+        input = new GZIPInputStream(input);
+      }
+      TarArchiveInputStream tis = new TarArchiveInputStream(input);
+      try {
+        RemoteFileIterator it = new TarRemoteFileIterator(file.getURL(),
+          tis, null, logger);
+        int count = 0;
+        while (it.hasNext()) {
+          RemoteFile rf = it.getNext();
+          logger.info("Found harvestable file: "+rf.getName());
+          try {
+            storeAny(rf, proposeCachePath());
+          } catch (IOException ex) {
+            if (getResource().getAllowErrors()) {
+              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
+                getMessage());
+              setErrors(getErrors() + (file.getAbsoluteName() + " "));
+            } else {
+              throw ex;
+            }
+          }
+          count++;
+        }
+        if (count == 0) {
+          logger.debug("Found no files in the archive.");
+        }
+        return;
+      } finally {
+        //we need to close in case the iteration did not exhause all entries
+        tis.close();
+      }
+    } else if (mimeType.isGzip()) {
+      //it probably is a single-file pure gzip stream, in which case we assumed
+      //MARC or use the end-user override
+      //TODO we could auto-detect this
+      input = new GZIPInputStream(input);
+      file.setLength(-1);
+    }
+    // user mime-type override
+    if (getResource().getExpectedSchema() != null
+      && !getResource().getExpectedSchema().isEmpty()) {
+      logger.debug("Applying user content type override: "+getResource().getExpectedSchema());
+      mimeType = new MimeTypeCharSet(getResource().getExpectedSchema());
+    }
     //cache responses to filesystem
     if (cacheFile != null) {
-      isDec = new CachingInputStream(isDec, cacheFile);
+      input = new CachingInputStream(input, cacheFile);
     }
-    MimeTypeCharSet mimeCharset =  new MimeTypeCharSet(contentType);
-    // Expected type overrides content type
-    if (getResource().getExpectedSchema() != null)
-       mimeCharset =  new MimeTypeCharSet(getResource().getExpectedSchema());
-    
-    if (mimeCharset.isMimeType("application/marc") ||
-	mimeCharset.isMimeType("application/tmarc")) {
-      logger.info("Setting up Binary MARC reader ("  
-	  + (mimeCharset.getCharset() != null ? mimeCharset.getCharset() : "default") + ")"
-	  + (getResource().getExpectedSchema() != null ? 
-	      " Override by resource mime-type: " + getResource().getExpectedSchema() 
-	      : "Content-type: " + contentType));
-      
-      MarcReadStore readStore = new MarcReadStore(isDec, streamIterator);
-      String encoding = mimeCharset.getCharset();
-      if (encoding != null) 
-	readStore.setEncoding(encoding);
-      return readStore;
+    try {
+      if (mimeType.isMimeType("application/marc")) {
+        logger.debug("Setting up Binary MARC reader ("+mimeType+")");
+        storeMarc(input, mimeType.getCharset());
+      } else if (mimeType.isXML()) {
+        logger.debug("Setting up XML reader ("+mimeType+")");
+        storeXml(input);
+      } else {
+        logger.info("Ignoring file '"+file.getName()
+          +"' because of unsupported content-type '"+file.getContentType()+"'");
+      }
+    } finally {
+      //make sure the stream is closed!
+      input.close();
     }
-    
-    logger.info("Setting up InputStream reader. "
-	+ (contentType != null ? "Content-Type:" + contentType : ""));
-    return new InputStreamReadStore(isDec, contentLength, streamIterator);
   }
 
-  private InputStream handleContentEncoding(InputStream is, String contentEncoding) throws IOException 
-  {
-    if ("gzip".equals(contentEncoding))
-      return new GZIPInputStream(is);
-    if ("deflate".equalsIgnoreCase(contentEncoding))
-      return new InflaterInputStream(is, new Inflater(true));
-    return is;
-  }
-
-  private void store(MarcStreamReader reader, long contentLength) throws IOException {
+  private void storeMarc(InputStream input, String encoding) throws
+    IOException {
+    //encoding defaults to MARC-8 when null
+    MarcStreamReader reader = new MarcStreamReader(input, encoding);
+    reader.setBadIndicators(false);
+    boolean isTurboMarc = false;
+    //check what MARC output we want
+    MimeTypeCharSet mimeType = 
+      new MimeTypeCharSet(getResource().getOutputSchema());
+    if (mimeType.isMimeType("application/tmarc")) {
+      isTurboMarc = true;
+      logger.debug("MARC XML output type is TurboMarc");
+    } else {
+      logger.debug("MARC XML output type is MarcXML");
+    }
     long index = 0;
     MarcWriter writer;
-    MimeTypeCharSet mimetypeCharset = new MimeTypeCharSet(getResource().getOutputSchema());
-    boolean isTurboMarc = false;
-    if (mimetypeCharset.isMimeType("application/tmarc")) {
-    	isTurboMarc = true;
-    	logger.info("Setting up Binary MARC to TurboMarc converter");
-    }
-    else { 
-  	logger.info("Setting up Binary MARC to MarcXml converter");
- 	//writer = new MarcXmlWriter(output, true);
-    }
     RecordStorage storage = job.getStorage();
     while (reader.hasNext()) {
       try {
-	org.marc4j.marc.Record record = reader.next();
-	DOMResult result = new DOMResult(); 
-	if (isTurboMarc)
-	  writer = new TurboMarcXmlWriter(result);
-	else 
-	  writer = new MarcXmlWriter(result);
-	writer.write(record);
-	writer.close();
-	if (record.getLeader().getTypeOfRecord() == 'd')
-	  storage.delete(record.getControlNumber());
-	else
-	  storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.getNode()));
-	
-	if (job.isKillSent()) {
-	  // Close to end the pipe 
-	  writer.close();
-	  throw new IOException("Download interruted with a kill signal.");
-	}
+        org.marc4j.marc.Record record = reader.next();
+        DOMResult result = new DOMResult();
+        if (isTurboMarc) {
+          writer = new TurboMarcXmlWriter(result);
+        } else {
+          writer = new MarcXmlWriter(result);
+        }
+        writer.write(record);
+        writer.close();
+        if (record.getLeader().getTypeOfRecord() == 'd') {
+          storage.delete(record.getControlNumber());
+        } else {
+          storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.
+            getNode()));
+        }
+        if (job.isKillSent()) {
+          // Close to end the pipe 
+          writer.close();
+          throw new IOException("Download interruted with a kill signal.");
+        }
       } catch (MarcException e) {
-	logger.error("Got MarcException: " + e.getClass().getCanonicalName() + " " + e.getMessage(),e);
-	if (e.getCause() !=null)
-	  logger.error("Cause: " + e.getCause().getMessage(), e.getCause());
-	if (e.getCause() instanceof EOFException) {
-	  logger.warn("Received EOF when reading record # " + index);
-	}
-	break;
+        logger.error("Got MarcException: " + e.getClass().getCanonicalName()
+          + " " + e.getMessage(), e);
+        if (e.getCause() != null) {
+          logger.error("Cause: " + e.getCause().getMessage(), e.getCause());
+        }
+        if (e.getCause() instanceof EOFException) {
+          logger.warn("Received EOF when reading record # " + index);
+        }
+        break;
       }
-      if ((++index) % 1000 == 0)
-	logger.info("Marc record read: " + index);
+      if ((++index) % 1000 == 0) {
+        logger.info("MARC records read: " + index);
+      }
     }
-    //writer.close();
-
-    logger.info("Marc record read total: " + index);
+    logger.info("MARC records read: " + index);
   }
 
-  private void store(InputStream is, long contentLength) throws Exception {
+  private void storeXml(InputStream is) throws IOException {
     RecordStorage storage = job.getStorage();
-    SplitContentHandler handler = new SplitContentHandler(new RecordStorageConsumer(storage, job.getLogger()), 
-		getJob().getNumber(getResource().getSplitAt(), splitAt));
-    XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, handler);
-    xmlSplitter.processDataFromInputStream(is);
-  }
-
-  /* 
-   * Pipe is reading after decompression, so Content-Length does does not match total
-   * Any stream that doesn't support valid total should return -1 into. The ProgressLogger should adjust to this
-   * 
-   */
-  @SuppressWarnings("unused")
-  private void pipe(InputStream is, OutputStream os, long total) throws IOException {
-    int blockSize = 100*1024;
-    byte[] buf = new byte[blockSize];
-    TotalProgressLogger progress = new TotalProgressLogger(total);
-    for (int len = -1; (len = is.read(buf)) != -1;) {
-      os.write(buf, 0, len);
-      if (job.isKillSent()) {
-	throw new IOException("Download interruted with a kill signal.");
-      }
-      progress.progress(len);
-    }
-    progress.end();
-    
-    os.flush();
-  }
-
-  private int handleJumpPage(HttpURLConnection conn) throws Exception 
-  {
-    HTMLPage jp = new HTMLPage(handleContentEncoding(conn.getInputStream(), 
-      conn.getContentEncoding()), conn.getURL());
-    int results = 0;
-    for (URL link : jp.getLinks()) {
-      results += download(link);
-    }    
-    return results; 
-  }
-
-  class TotalProgressLogger {
-    long total;
-    long copied = 0;
-    long num = 0;
-    int logBlockNum = 1024; // how many blocks to log progress
-    String message = "Downloaded ";
-    private long lastPercent;
-
-    public TotalProgressLogger(long total) {
-      this.total = total;
-    }
-
-    void progress(int len) {
-      copied += len;
-      if (copied == total) {
-	message = "Download finished: ";
-      }
-      if (num % logBlockNum == 0 || copied == total) {
-	showProgress();
-      }
-      num++;
-    }
-    
-    protected void end() {
-	message = "Download finished: ";
-	showProgress();
-    }
-    protected void showProgress() {
-      
-      if (total != -1) {
-	long newPercent = Math.round((double) copied / (double) total * 100); 
-	if (lastPercent != newPercent)
-	  logger.info(message + copied + "/" + total + " bytes (" + newPercent + "%)");
-	lastPercent = newPercent;
-      }
-      else
-	logger.info(message + copied + " bytes");
+    SplitContentHandler handler = new SplitContentHandler(
+      new RecordStorageConsumer(storage, job.getLogger()),
+      getJob().getNumber(getResource().getSplitAt(), splitAt));
+    XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
+      handler, resource.isLaxParsing());
+    try {
+      xmlSplitter.processDataFromInputStream(is);
+    } catch (SAXException se) {
+      throw new IOException(se);
     }
   }
-
 
   public String getErrors() {
     return errors;
   }
-
 
   public void setErrors(String errors) {
     this.errors = errors;

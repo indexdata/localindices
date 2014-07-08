@@ -3,7 +3,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:ui="http://java.sun.com/jsf/facelets"
-        
+      xmlns:f="http://java.sun.com/jsf/core"
       xmlns:h="http://java.sun.com/jsf/html">
   <body>
     <ui:composition>
@@ -21,25 +21,26 @@
                        action="#{resourceController.reset}"/>
       <h:commandButton onclick="return confirm('This will delete the job and all harvested records. Are you sure?');" 
                        value="Delete Job and Records" 
-                       action="#{resourceController.saveAndPurge}"/>
+                       action="#{resourceController.deleteResource}">
+                       <f:param name="resourceId" value="#{resourceController.resource.id}" />
+      </h:commandButton>
       <br/>
       <h5>Status Info: </h5>
-      <h:outputText styleClass="item" value="Initially harvested: #{resourceController.resource.initiallyHarvested}"/>
+      <h:outputText styleClass="item" value="Initial harvest: #{resourceController.resource.initiallyHarvested}"/>
       <br/>
-      <h:outputText styleClass="item" value="Start time of last harvest: #{resourceController.resource.lastHarvestStarted}"/>
+      <h:outputText styleClass="item" value="Last harvest started: #{resourceController.resource.lastHarvestStarted}"/>
       <br/>
-      <h:outputText styleClass="item" value="Finish time of last harvest: #{resourceController.resource.lastHarvestFinished}"/> 
+      <h:outputText styleClass="item" value="Last harvest completed: #{resourceController.resource.lastHarvestFinished}"/> 
+      <br/>
+      <h:outputText styleClass="item" value="Records harvested: #{resourceController.resource.amountHarvested}" rendered="#{resourceController.resource.amountHarvested!= null}" /> 
       <br/>
       <h:outputLink target="_blank" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" > 
-        <h:outputText styleClass="item" value="View records: #{resourceController.storageUrl}" />
+        <h:outputText styleClass="item" value="View indexed records: #{resourceController.storageUrl}" />
       </h:outputLink>
-      <br/>
-      <h:outputText styleClass="item" value="Added: #{resourceController.resource.amountHarvested}" rendered="#{resourceController.resource.amountHarvested!= null}" /> 
       <br/>
       <div class="footer">
         <h:outputText value="Last Updated -- #{resourceController.resource.lastUpdated}"/>
       </div>
-
     </ui:composition>
   </body>
 </html>

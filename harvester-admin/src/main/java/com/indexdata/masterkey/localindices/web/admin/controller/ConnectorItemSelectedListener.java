@@ -6,10 +6,12 @@
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
 import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+
 import javax.faces.context.FacesContext;
 import javax.faces.event.AbortProcessingException;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.event.ValueChangeListener;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -17,6 +19,7 @@ import org.apache.log4j.Logger;
  * @author jakub
  */
 public class ConnectorItemSelectedListener implements ValueChangeListener {
+  @SuppressWarnings("unused")
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices.admin");
   
   
@@ -25,7 +28,7 @@ public class ConnectorItemSelectedListener implements ValueChangeListener {
     AbortProcessingException {
     ConnectorItem ci = (ConnectorItem) vce.getNewValue();
     //injection does not work for some reason
-    ResourceController rc = (ResourceController) FacesContext.getCurrentInstance().
+    JobController rc = (JobController) FacesContext.getCurrentInstance().
         getExternalContext().getSessionMap().get("resourceController");
     HarvestConnectorResource hcr = (HarvestConnectorResource) rc.getResource();
     hcr.setName(ci.getDisplayName());

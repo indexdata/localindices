@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.Proxy;
 import java.text.DateFormat;
@@ -48,10 +47,8 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
-import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 /**
@@ -120,130 +117,138 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @Override
   public void run() {
+    // Indicating a path that doesn't set subject and msg. Should not happen! 
+    String subject = "Error";
+    String msg = "Error";
     try {
-    if (logger == null) 
-      logger = new FileStorageJobLogger(this.getClass(), resource);
-    Integer recordLimit = resource.getRecordLimit();
-    resource.setMessage(null);
-    resource.setAmountHarvested(null);
-    setStatus(HarvestStatus.RUNNING);
-    String startResumptionToken = resource.getResumptionToken();
-    // in OAI date ranges are inclusive
-    Date now = new Date();
-    if (resource.getUntilDate() == null) {
-        resource.setUntilDate(now);
-    }
-    // we don't need to compare from/until dates, let the server fail it
-    try {
-      DiskCache dc = new DiskCache(resource.getId());
-      if (resource.isCacheEnabled()) {
-        dc.init();
+      if (logger == null)
+	logger = new FileStorageJobLogger(this.getClass(), resource);
+      Integer recordLimit = resource.getRecordLimit();
+      resource.setMessage(null);
+      resource.setAmountHarvested(null);
+      setStatus(HarvestStatus.RUNNING);
+      String startResumptionToken = resource.getResumptionToken();
+      // in OAI date ranges are inclusive
+      Date now = new Date();
+      if (resource.getUntilDate() == null) {
+	resource.setUntilDate(now);
       }
-      getStorage().begin();
-      getStorage().databaseStart(resource.getId().toString(), null);
-      harvest(resource.getUrl(), formatDate(resource.getFromDate()),
-	  formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
-	  resource.getOaiSetName(), resource.getResumptionToken(), dc);
-      getStorage().databaseEnd();
-
-      if (HarvestStatus.RUNNING == getStatus()) {
-	// This shouldn't be possible 
-	logger.warn("Got RUNNING state at job end.");
-	setStatus(HarvestStatus.OK);
-      }
-/*
-    } catch (ResponseParsingException e) {
-      if (!isKillSent()) {
-	setStatus(HarvestStatus.ERROR, e.getMessage());
-      
-      }
-*/      
-    } catch (StopException e) {
-      logger.info("Stop requested. Reason: " + e.getMessage());
-      
-    } catch (OaiPmhException e) {
-      if (!isKillSent()) {
-	setStatus(HarvestStatus.ERROR, e.getMessage());
-        // there's no way resumption token is valid if we get here
-        resource.setResumptionToken(null);
-	logOaiPmhException(e, e.getMessage());
-        logger.debug("Stack trace:", e);
-      }
-    } catch (IOException e) {
-      //when we get here the retry loop has already been exhausted
-      if (!isKillSent()) {
-	setStatus(HarvestStatus.ERROR, e.getMessage());
-	resource.setMessage(e.getMessage());
-        // The resumption token
-        if (resource.getClearRtOnError())
-          resource.setResumptionToken(null);
-	logger.log(Level.ERROR, e.getMessage());
-	logger.debug("Stack trace:", e);
-	return ;
-      }
-    } catch (Exception e) {
-      if (isKillSent()) {
-	logger.log(Level.INFO, "Shutting down.");
-      }
-      else {
-	String msg  =  e.getMessage() + (e.getCause() != null ? ": " + e.getCause().getMessage() : "");
-	logger.log(Level.ERROR, "Recieved " +  e.getClass().getSimpleName() + ": " + msg);
-	logger.debug("Stack trace:", e);
-	setStatus(HarvestStatus.ERROR, e.getMessage() + (e.getCause() != null ? ": " + e.getCause().getMessage() : ""));
-        if (resource.getClearRtOnError())
-          resource.setResumptionToken(null);
-        if (e instanceof StorageException) {
-          logger.warn("StorageException: No attempt to commit/rollback changes");
-          return;
-        }
-      }
-    }
-    // if there was no error we move the time marker
-    if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
+      // we don't need to compare from/until dates, let the server fail it
       try {
-	String subject = "OAI-PMH harvest finished. "; 
-	commit();
-	String msg = "Harvest finished with status " + getStatus() + ". ";
-	if (recordLimit == null || recordLimit <= 0) {
-	  resource.setFromDate(resource.getUntilDate());
-	  resource.setUntilDate(null);
-	  resource.setResumptionToken(null);
-	  if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */ 
-	    setStatus(HarvestStatus.FINISHED);
-	  if (resource.getFromDate() != null)
-	      msg += "Next from: " + resource.getFromDate() + ". ";
+	DiskCache dc = new DiskCache(resource.getId());
+	if (resource.isCacheEnabled()) {
+	  dc.init();
 	}
-	else {
-	  msg += "Test run of " + resource.getRecordLimit() + ".";
+	getStorage().begin();
+	getStorage().databaseStart(resource.getId().toString(), null);
+	harvest(resource.getUrl(), formatDate(resource.getFromDate()),
+	    formatDate(resource.getUntilDate()), resource.getMetadataPrefix(),
+	    resource.getOaiSetName(), resource.getResumptionToken(), dc);
+	getStorage().databaseEnd();
+
+	if (HarvestStatus.RUNNING == getStatus()) {
+	  // This shouldn't be possible
+	  logger.warn("Got RUNNING state at job end.");
+	  setStatus(HarvestStatus.OK);
+	}
+	/*
+	 * } catch (ResponseParsingException e) { if (!isKillSent()) {
+	 * setStatus(HarvestStatus.ERROR, e.getMessage());
+	 * 
+	 * }
+	 */
+      } catch (StopException e) {
+	logger.info("Stop requested. Reason: " + e.getMessage());
+
+      } catch (OaiPmhException e) {
+	if (!isKillSent()) {
+	  setStatus(HarvestStatus.ERROR, e.getMessage());
+	  // there's no way resumption token is valid if we get here
+	  resource.setResumptionToken(null);
+	  logOaiPmhException(e, e.getMessage());
+	  logger.debug("Stack trace:", e);
+	}
+      } catch (IOException e) {
+	// when we get here the retry loop has already been exhausted
+	if (!isKillSent()) {
+	  // Setup mail
+	  subject = "IOException: ";
+	  msg = e.getMessage();
+	  setStatus(HarvestStatus.ERROR, e.getMessage());
+	  resource.setMessage(e.getMessage());
+	  // The resumption token
+	  if (resource.getClearRtOnError())
+	    resource.setResumptionToken(null);
+	  logger.log(Level.ERROR, e.getMessage());
+	  logger.debug("Stack trace:", e);
+	  // Why would it bail out here? 
+	  // Should this also support partial? 
+	  
+	}
+      } catch (Exception e) {
+	if (isKillSent()) {
+	  logger.log(Level.INFO, "Shutting down.");
+	} else {
+	  // Mail 
+	  subject = "Exception: ";
+	  msg = e.getMessage() + (e.getCause() != null ? ": " + e.getCause().getMessage() : "");
+
+	  logger.log(Level.ERROR, "Recieved " + e.getClass().getSimpleName() + ": " + msg);
+	  logger.debug("Stack trace:", e);
+	  setStatus(HarvestStatus.ERROR, e.getMessage()
+	      + (e.getCause() != null ? ": " + e.getCause().getMessage() : ""));
+	  if (resource.getClearRtOnError())
+	    resource.setResumptionToken(null);
+	  if (e instanceof StorageException) {
+	    logger.warn("StorageException: No attempt to commit/rollback changes");
+	    return;
+	  }
+	}
+      }
+      // if there was no error we move the time marker
+      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN) {
+	try {
+	  subject = "OAI-PMH harvest finished. ";
+	  commit();
+	  msg = "Harvest finished with status " + getStatus() + ". ";
+	  if (recordLimit == null || recordLimit <= 0) {
+	    resource.setFromDate(resource.getUntilDate());
+	    resource.setUntilDate(null);
+	    resource.setResumptionToken(null);
+	    if (getStatus() == HarvestStatus.OK) /* Do not reset WARN state */
+	      setStatus(HarvestStatus.FINISHED);
+	    if (resource.getFromDate() != null)
+	      msg += "Next from: " + resource.getFromDate() + ". ";
+	  } else {
+	    msg += "Test run of " + resource.getRecordLimit() + ".";
+	    resource.setResumptionToken(startResumptionToken);
+	  }
+	  logger.log(Level.INFO, subject + msg);
+	} catch (Exception e) {
+	  subject = "Storage commit failed: ";
+	  msg = e.getMessage();
+	  logError(subject, msg);
 	  resource.setResumptionToken(startResumptionToken);
 	}
-	logger.log(Level.INFO, subject + msg);
-	mailMessage(subject, msg);
-      } catch (Exception e) {
-        String subject = "Storage commit failed: ";
-        String errorMessage = e.getMessage();
-	logError(subject, errorMessage);
-	resource.setResumptionToken(startResumptionToken);
-	mailMessage(subject, errorMessage);
-      }
-    } else {
-      logger.warn("Terminated with non-OK status: Job status " + getStatus());
-      // We do not want to override a ERROR message, but should reset a killed/running status. 
-      // Perhaps even leave killed, just be sure that we will start the job in this state. 
-      String subject = "OAI harvest stopped premature. ";
-      String msg = resource.getMessage(); 
-      boolean isError = false;
-      if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING)) {
-	msg = "Completed with status: " + getStatus().toString() + ". ";
-	setStatus(HarvestStatus.FINISHED, msg);
-      }
-      else {
-	setStatus(HarvestStatus.ERROR, msg);
-	isError = true;
-      }
-      try {
+      } else {
+	logger.warn("Terminated with non-OK status: Job status " + getStatus());
+	// We do not want to override a ERROR message, but should reset a
+	// killed/running status.
+	// Perhaps even leave killed, just be sure that we will start the job in
+	// this state.
+	subject = "OAI harvest stopped premature. ";
+	msg = resource.getMessage();
+	boolean isError = false;
+	if (getStatus().equals(HarvestStatus.KILLED) || getStatus().equals(HarvestStatus.RUNNING)) {
+	  msg = "Completed with status: " + getStatus().toString() + ". ";
+	  setStatus(HarvestStatus.FINISHED, msg);
+	} else {
+	  setStatus(HarvestStatus.ERROR, msg);
+	  isError = true;
+	}
+	try {
 	  if (resource.getKeepPartial()) {
-	    msg = msg + "Commiting up partial harvest as configured. ";
+	    msg = msg + " Commiting up partial harvest as configured. ";
 	    logger.log(Level.INFO, subject + msg);
 	    commit();
 	    // Persist resumption token
@@ -257,20 +262,19 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 		    + startResumptionToken : formatDate(resource.getFromDate()));
 	    logger.log(Level.INFO, msg);
 	  }
-	if (isError)
+	  if (isError)
+	    logError(subject, msg);
+	} catch (Exception ioe) {
+	  msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
+	  logger.debug("Stack trace:", ioe);
 	  logError(subject, msg);
-	mailMessage(subject, msg);
-      } catch (Exception ioe) {
-	msg = "Storage (partial) commit/rollback failed: " + ioe.getMessage();
-	logger.debug("Stack trace:", ioe);
-	logError(subject, msg);
-	mailMessage(subject, msg);
-	resource.setResumptionToken(startResumptionToken);
+	  resource.setResumptionToken(startResumptionToken);
+	}
       }
-    }
-    } catch(Exception e) {
+    } catch (Exception e) {
       logger.error("Unhandled Exception: " + e.getMessage());
     } finally {
+      mailMessage(subject, msg);
       shutdown();
     }
   }
@@ -459,19 +463,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     return df.format(date);
   }
 
-  @Override
-  public void setStorage(HarvestStorage storage) {
-    if (!(storage instanceof RecordStorage))
-      throw new RuntimeException("Requires a RecordStorage");
-    setStorage((RecordStorage) storage);
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    throw new RuntimeException("No implemented!");
-  }
-
-  @Override
+   @Override
   public Harvestable getHarvestable() {
     return resource;
   }

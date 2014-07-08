@@ -192,7 +192,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     final public void onError() {
       try {
         logger.info("Attempt at retrieving engine log for the failed invocation:");
-        logger.info(getLog());
+        String log = getLog();
+        logger.info(log);
+        errors.add("Engine log: " + log);
       } catch (Exception le) {
         logger.warn("Retrieving engine log failed.");
         logger.debug("Cause:", le);
@@ -371,7 +373,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       (params != null ? "?" + params : "");
     URL url = new URL(urlString);
     logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
-    HttpURLConnection conn = createConnection(url); 
+    HttpURLConnection conn = (HttpURLConnection) createConnection(url); 
     conn.setRequestMethod("POST");
     conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
     return conn; 

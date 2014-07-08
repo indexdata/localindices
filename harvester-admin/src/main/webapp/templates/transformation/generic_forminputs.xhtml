@@ -2,9 +2,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
-      xmlns:ui="http://java.sun.com/jsf/facelets"       
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <body>
     <ui:composition>
       <h5>General information: </h5>
@@ -15,14 +16,24 @@
         <h:panelGroup>
           <h:inputText id="transName" value="#{transformationController.transformation.name}" size="30"
              required="true" requiredMessage="Please provide a name for the transformation!"/>
+          <id:helplink field="[Transformation Pipelines][General information][Name]"/>
           <h:message for="transName" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Description:"/>
-        <h:inputTextarea cols="60" rows="3" value="#{transformationController.transformation.description}"/>
+        <h:panelGroup>
+          <h:inputTextarea cols="60" rows="3" value="#{transformationController.transformation.description}"/>
+          <id:helplink field="[Transformation Pipelines][General information][Description]"/>
+        </h:panelGroup>
         <h:outputText value="Enabled:"/>
-        <h:selectBooleanCheckbox value="#{transformationController.transformation.enabled}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{transformationController.transformation.enabled}"/>
+          <id:helplink field="[Transformation Pipelines][General information][Enabled]"/>
+        </h:panelGroup>
         <h:outputText value="Parallel (run each step in own thread):"/>
-        <h:selectBooleanCheckbox value="#{transformationController.transformation.parallel}"/>
+        <h:panelGroup>
+          <h:selectBooleanCheckbox value="#{transformationController.transformation.parallel}"/>
+          <id:helplink field="[Transformation Pipelines][General information][Parallel (run each step in own thread)]"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>

@@ -13,19 +13,17 @@
       <ui:define name="content">
         <h:form>
           <h:outputText value="Add new harvest job: " />
-          <h:commandLink styleClass="navigation" value="OAI-PMH"
-                         action="#{resourceController.prepareOaiPmhResourceToAdd}" />
+          <h:link styleClass="navigation" value="OAI-PMH" 
+                  outcome="new_OaiPmhResource"/>
           <h:outputText value=", " />
-          <h:commandLink styleClass="navigation" value="XML/MARC bulk"
-                         action="#{resourceController.prepareXmlBulkResourceToAdd}" />
+          <h:link styleClass="navigation" value="XML/MARC bulk" 
+                  outcome="new_XmlBulkResource"/>
           <h:outputText value=", "/>
-          <h:commandLink styleClass="navigation" value="Connector" 
-                         action="#{resourceController.prepareConnectorResourceToAdd}" />       
-<!--
+          <h:link styleClass="navigation" value="Connector" 
+                  outcome="new_HarvestConnectorResource"/>
           <h:outputText value=", "/>
-          <h:commandLink styleClass="navigation" value="WebCrawl" 
-                         action="#{resourceController.prepareWebCrawlResourceToAdd}" />       
--->
+          <h:link styleClass="navigation" value="Status" 
+                  outcome="new_StatusResource"/>
         </h:form>
         <h:panelGroup id="autoCheckbox">
           <h:selectBooleanCheckbox value="true" 
@@ -131,11 +129,10 @@
                 <f:facet name="header">
                   <h:outputText value="Actions" />
                 </f:facet>
-                <h:commandLink styleClass="action"
-                               action="#{resourceController.prepareResourceToEdit}">
+                <h:link styleClass="action" outcome="edit_#{item.jobClass}" >
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="Edit" alt="Edit" height="16" url="/images/edit.png" />
-                </h:commandLink>
+                </h:link>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
                                rendered="#{!item.running}">
@@ -161,11 +158,10 @@
                   <f:param name="action" value="stop" />
                   <h:graphicImage title="Stop" alt="Stop" height="16" url="/images/stop.png" />
                 </h:commandLink>
-                <h:commandLink styleClass="action"
-                               action="#{resourceController.viewJobLog}">
+                <h:link styleClass="action" outcome="harvester_log">
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
-                </h:commandLink>
+                </h:link>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.deleteResource}"
                                onclick="return confirm('Are you sure?');">

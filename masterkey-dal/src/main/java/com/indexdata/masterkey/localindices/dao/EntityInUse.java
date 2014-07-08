@@ -11,6 +11,10 @@ package com.indexdata.masterkey.localindices.dao;
  */
 public class EntityInUse extends Exception {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 2222684153147817050L;
   public final static String ERROR_MESSAGE = "entity in use";
   
   public EntityInUse(String message, Throwable cause) {

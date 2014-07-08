@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
+<h:head>
+  <title>Help</title>
+  <style type="text/css">
+   body { background: #ffffe0 }
+   h3 { text-align: center; }
+   h1 { color: #000040; background: #dcf3eb; padding: 0.25em 0.5em;
+  font-size: 150%; text-align: center;
+        corner-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+   ul.gappy li { margin-top: 1em }
+   .small { font-size: small }
+  </style>
+  
+</h:head>
+<h:body>
+ <f:metadata>
+   <!-- Either compound field -->
+   <f:viewParam name="field" value="#{contextHelp.field}"/>
+   <!-- Or area, section, label -->
+   <f:viewParam name="area" value="#{contextHelp.area}"/>
+   <f:viewParam name="section" value="#{contextHelp.section}"/>
+   <f:viewParam name="label" value="#{contextHelp.label}"/>
+ </f:metadata>
+ <f:loadBundle basename="contexthelp" var="help"/>
+ <h3><h:outputText value="#{contextHelp.sectionText}"/>:</h3><h1><h:outputText value="#{contextHelp.labelText}"/></h1>
+ <p><h:outputText value="#{help[contextHelp.field]}" escape="false"/></p>
+   <p style="text-align: center">
+   <input type="button" onclick="self.close()" value="OK"/>
+  </p>
+</h:body>
+</html>

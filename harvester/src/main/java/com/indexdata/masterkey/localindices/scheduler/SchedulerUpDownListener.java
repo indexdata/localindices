@@ -5,6 +5,9 @@
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Setting;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,13 +17,12 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -35,74 +37,70 @@ import org.apache.log4j.Logger;
  * @author jakub
  */
 public class SchedulerUpDownListener implements ServletContextListener {
-
+  private final static String DEFAULT_PROPERTIES = "/WEB-INF/harvester.properties";
+  private final static String USER_CONFIG_PATH_PARAM = "USER_CONFIG_PATH";
   private Thread th;
   private SchedulerThread st;
-  /*
-   * private StorageBackend storageBackend; private StorageBackend
-   * reindexStorageBackend;
-   */
+  private SettingDAO dao;
   private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
   public void contextInitialized(ServletContextEvent servletContextEvent) {
     logger.log(Level.INFO, "Harvester context is being initialized...");
     ServletContext ctx = servletContextEvent.getServletContext();
-    // load default, fallback settings
-    Properties props = null;
+    //load default settings, packaged in the war file
+    Properties props = new Properties();
+    InputStream is = null;
     try {
-      props = loadDefaults(ctx);
+        is = ctx.getResourceAsStream(DEFAULT_PROPERTIES);
+        props.load(is);
     } catch (IOException ex) {
       logger.log(Level.FATAL,
-	  "Default harvester properties missing from the archive, deployment aborted.");
-      return;
+	  "Cannot load '"+DEFAULT_PROPERTIES+"', harvester installation is unstable.");
+    } finally {
+      try {
+        if (is != null) is.close();
+      } catch (IOException ioe) {
+        logger.fatal("Unexpected stream closing failure", ioe);
+        is = null;
+      }
     }
-    // override with user settings, if any otherwise try to unpack the defaults
-    String userConfigPathName = "USER_CONFIG_PATH";
-    String configPath = ctx.getInitParameter(userConfigPathName);
+    //override with user configuration
+    String configPath = ctx.getInitParameter(USER_CONFIG_PATH_PARAM);
     if (configPath == null) {
-      logger.log(Level.WARN, userConfigPathName + " not specified, will use only defaults");
+      logger.log(Level.WARN, "Init param " + USER_CONFIG_PATH_PARAM 
+        + " not specified, will use defaults");
     } else {
       try {
-	FileInputStream userPropsFis = new FileInputStream(configPath);
-	props.load(userPropsFis);
-	userPropsFis.close();
+	is = new FileInputStream(configPath);
+	props.load(is);
       } catch (FileNotFoundException ex) {
-	FileOutputStream fos;
-	try {
-	  fos = new FileOutputStream(configPath);
-	  props.store(fos,
-	      "In order for the canges to cause effect, the harvester needs to be redeployed");
-	  fos.close();
-	} catch (FileNotFoundException ex2) {
-	  // very weird
-	  logger.log(Level.WARN, ex2);
-	} catch (IOException ioe) {
-	  logger.log(Level.WARN, ioe);
-	}
+        logger.warn("User config file '"+configPath+"' not found");
       } catch (IOException ioe) {
-	logger.log(Level.WARN, ioe);
+	logger.warn("Failed to load config from '"+configPath+"'", ioe);
+      } finally {
+        try {
+          if (is != null)
+            is.close();
+        } catch (IOException ioe) {
+          logger.fatal("Unexpected stream closing failure", ioe);
+          is = null;
+        }
       }
-      // TODO Updated Any RUNNING states to INTERRUPTED 
-      // We cannot just restarts the jobs. 
     }
-
-    /* Refactor for multiple backends and types of backends */
-    /*
-     * Disable ZebraStorage for now
-     * 
-     * String harvestDirPath = props.getProperty("harvester.dir");
-     * storageBackend = new ZebraStorageBackend(harvestDirPath, "idx");
-     * storageBackend.init(props); storageBackend.start();
-     */
-    /* TODO: re-index should be hidden behind the StorageBackend */
-    /*
-     * reindexStorageBackend = new ZebraStorageBackend(harvestDirPath, "reidx");
-     * reindexStorageBackend.init(props);
-     */
-    // load properties to a config
+    //read DB settings with prefix 'harvester.'
+    logger.debug("Attempting to read 'harvester.' settings from the DB...");
+    dao = new SettingDAOJPA();
+    String prefix = "harvester.";
+    List<Setting> settings = dao.retrieve(0, dao.getCount(prefix), prefix, false);
+    for (Setting setting : settings) {
+      logger.debug("Setting "+setting.getName()+"="+setting.getValue());
+      props.put(setting.getName(), setting.getValue());
+    }
+    //store raw props in the context
+    ctx.setAttribute("harvester.properties", props);
+    //prepare typed configuration
     @SuppressWarnings({ "rawtypes", "unchecked" })
     Map<String, Object> config = new HashMap(props);
-
     // http proxy settings
     String proxyHost = props.getProperty("harvester.http.proxyHost");
     if (proxyHost != null) {
@@ -116,10 +114,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
 	  proxyPort));
       config.put("harvester.http.proxy", proxy);
     }
-
     // put the config and scheduler in the context
     ctx.setAttribute("harvester.config", config);
-    ctx.setAttribute("harvester.properties", props);
     st = new SchedulerThread(config, props);
     th = new Thread(st, "SchedulerThread");
     th.start();
@@ -139,20 +135,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
       logger.log(Level.INFO, "Interrupting the scheduler...");
       th.interrupt();
     }
-    /*
-     * if (storageBackend != null) { logger.log(Level.INFO,
-     * "Shutting down Storage Backend..."); storageBackend.stop(); } if
-     * (reindexStorageBackend != null) { logger.log(Level.INFO,
-     * "Shutting down Storage Backend..."); reindexStorageBackend.stop(); }
-     */
     logger.log(Level.INFO, "Harvester context destroyed.");
-  }
-
-  private Properties loadDefaults(ServletContext ctx) throws IOException {
-    InputStream is = ctx.getResourceAsStream("/WEB-INF/harvester.properties");
-    Properties props = new Properties();
-    props.load(is);
-    return props;
   }
 
   @SuppressWarnings("unused")
@@ -166,21 +149,4 @@ public class SchedulerUpDownListener implements ServletContextListener {
     }
     return paramMap;
   }
-
-  /*
-   * Another idea.... Implement some callback. Code from re-index InitCallback
-   * reindexCallback = new InitCallback() { private ServletContext ctx; {
-   * this.ctx = getContext();
-   * 
-   * } private String harvestDirPath; public void
-   * setServletContext(ServletContext ctx) { this.ctx = ctx; };
-   * 
-   * public void init(StorageBackend backend) { String[] tokensRe =
-   * {"CONFIG_DIR", harvestDirPath, "HARVEST_DIR", harvestDirPath + "/reidx"};
-   * unpackResourceWithSubstitute(ctx, "/WEB-INF/zebra.cfg", harvestDirPath +
-   * "/zebra-reidx.cfg", tokensRe); unpackResourceWithSubstitute(ctx,
-   * "/WEB-INF/reindex.rb", harvestDirPath + "/reindex.rb", null);
-   * unpackResourceWithSubstitute(ctx, "/WEB-INF/addlexis.rb", harvestDirPath +
-   * "/addlexis.rb", null); } };
-   */
 }
