@@ -36,7 +36,7 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   }
 
   public StorageJobLogger(Class<? extends Object> loggerClass, Harvestable resource) {
-    String logFilename = HarvestableLog.getHarvesteableJobFilename(resource.getId(), null);
+    String logFilename = "/var/log/masterkey/harvester/job-" + resource.getId() + ".log";
     logger = Logger.getLogger(loggerClass.getName() + "JOB#" + resource.getId() );
     /*
     Appender appender = Logger.getRootLogger().getAppender("LOGFILE");

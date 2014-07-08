@@ -6,63 +6,87 @@
 
 package com.indexdata.masterkey.localindices.util;
 
+import com.indexdata.utils.ISOLikeDateParser;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.CharBuffer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Date;
+import org.apache.log4j.Logger;
 
 /**
  * 
  * @author jakub
  */
 public class HarvestableLog {
-  // log file
-  // TODO Should be configurable
-  private static String logDir = "/var/log/masterkey/harvester/";
+  private final String logDir;
+  private final long jobId;
+  private final String emptyMsg;
+  private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
+  private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
 
-  // not used but shows the concept of matching against the whole buffer
-  @SuppressWarnings("unused")
-  private static void readLines(Pattern lp, CharBuffer in, StringBuilder out) {
-    Matcher lm = lp.matcher(in); // Line matcher
-    int lines = 0;
-    while (lm.find()) {
-      lines++;
-      out.append(lm.group()); // The current line
-      if (lm.end() == in.limit())
-	break;
-    }
+  public HarvestableLog(String logDir, long jobId) {
+    this.logDir = logDir;
+    this.jobId = jobId;
+    this.emptyMsg = "--- WARNING: log file(s) for job " + jobId + " not found ---";
   }
 
-  // TODO return XML with infomation about number of pages.
-  public static String getHarvestableLog(long jobId, Long page) throws FileNotFoundException, IOException {
-    String logName = getHarvesteableJobFilename(jobId, page);
-    File logFile = new File(logName);
-    if (logFile.exists() && logFile.isFile()) {
-      BufferedReader r = new BufferedReader(new FileReader(logFile));
-      StringBuilder sb = new StringBuilder(10240);
-      String line;
-      while ((line = r.readLine()) != null) {
-	sb.append(line + "\n");
+  public String readLines(Date from) throws FileNotFoundException, IOException {
+    File[] candidates = getLogFiles(from);
+    if (candidates != null && candidates.length > 0) {
+      StringBuilder sb = new StringBuilder();
+      for (File candidate : candidates) {
+        if (candidate.exists() && candidate.isFile()) {
+          BufferedReader r = new BufferedReader(new FileReader(candidate));
+          String line;
+          while ((line = r.readLine()) != null) {
+            //first column is the ISO date
+            String dateStr = line.substring(0, dateFieldLength);
+            try {
+              Date date = ISOLikeDateParser.parse(dateStr);
+              if (date.after(from))
+                sb.append(line).append("\n");
+            } catch  (ParseException pe) {
+              logger.warn("Failed to parse date out of the following log line:" + line);
+            }
+          }
+          r.close();
+        }
       }
-      r.close();
       return sb.toString();
+    } else {
+      return emptyMsg;
     }
-    return "--- Warning: Log File " + logFile + " not found ---";
   }
 
-  public static String getHarvesteableJobFilename(long jobId, Long page) {
-    return logDir + "job-" + jobId + ".log" + (page != null ? "." + page : "");
+  private File[] getLogFiles(final Date from) {
+    File dir = new File(logDir);
+    if (!dir.isDirectory()) {
+      return null;
+    }
+    final String logPrefix = "job-" + jobId + ".log";
+    //candidate files must be updated after from date
+    File[] logs = dir.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File file) {
+        return file.getName().startsWith(logPrefix) &&
+          file.lastModified() >= from.getTime();
+      }
+    });
+    if (logs != null) Arrays.sort(logs);
+    return logs;
   }
 
-  public static String getLogDir() {
+  public String getLogDir() {
     return logDir;
   }
-
-  public static void setLogDir(String logDir) {
-    HarvestableLog.logDir = logDir;
+  
+  public long getJobId() {
+    return jobId;
   }
+  
 }
