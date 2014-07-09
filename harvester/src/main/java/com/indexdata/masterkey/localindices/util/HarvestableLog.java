@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import org.apache.log4j.Logger;
 
@@ -27,7 +28,7 @@ public class HarvestableLog {
   private final long jobId;
   private final String emptyMsg;
   private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
-  private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
 
   public HarvestableLog(String logDir, long jobId) {
     this.logDir = logDir;
@@ -41,17 +42,29 @@ public class HarvestableLog {
       StringBuilder sb = new StringBuilder();
       for (File candidate : candidates) {
         if (candidate.exists() && candidate.isFile()) {
+          logger.debug("Parsing logfile: "+candidate.getName());
           BufferedReader r = new BufferedReader(new FileReader(candidate));
           String line;
+          boolean passthrough = from == null;
           while ((line = r.readLine()) != null) {
             //first column is the ISO date
-            String dateStr = line.substring(0, dateFieldLength);
-            try {
-              Date date = ISOLikeDateParser.parse(dateStr);
-              if (date.after(from))
-                sb.append(line).append("\n");
-            } catch  (ParseException pe) {
-              logger.warn("Failed to parse date out of the following log line:" + line);
+            if (passthrough) {
+              //all following entries must be older, just pass them through
+              sb.append(line).append("\n");
+            } else {
+              //skip initial lines without timestamp
+              if (line.length() >= dateFieldLength) {
+                String dateStr = line.substring(0, dateFieldLength);
+                try {
+                  Date date = ISOLikeDateParser.parse(dateStr);
+                  if (date.after(from) || date.equals(from)) {
+                    passthrough = true;
+                    sb.append(line).append("\n");
+                  }
+                } catch  (ParseException pe) {
+                  //continue
+                }
+              } //continue
             }
           }
           r.close();
@@ -74,10 +87,10 @@ public class HarvestableLog {
       @Override
       public boolean accept(File file) {
         return file.getName().startsWith(logPrefix) &&
-          file.lastModified() >= from.getTime();
+          (from == null || file.lastModified() >= from.getTime());
       }
     });
-    if (logs != null) Arrays.sort(logs);
+    if (logs != null) Arrays.sort(logs, Collections.reverseOrder());
     return logs;
   }
 

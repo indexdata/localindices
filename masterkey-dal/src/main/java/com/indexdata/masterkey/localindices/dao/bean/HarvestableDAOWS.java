@@ -7,26 +7,28 @@
 package com.indexdata.masterkey.localindices.dao.bean;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.rest.client.ResourceConnector;
+import com.indexdata.utils.DateUtil;
+import com.indexdata.utils.DateUtil;
 import com.indexdata.utils.TextUtils;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -202,17 +204,29 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public InputStream getLog(long id) {
-        String logURL = serviceBaseURL + id + "/" + "log/";
+    public InputStream getLog(long id, Date from) throws DAOException {
+      String logURL = serviceBaseURL + id + "/" + "log/";
+      if (from != null) {
         try {
-            URL url = new URL(logURL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            return conn.getInputStream();
-        } catch (IOException ioe) {
-            logger.log(Level.DEBUG, ioe);
-            return null;
+          logURL += "?from=" +  
+            URLEncoder.encode(
+              DateUtil.serialize(from, DateUtil.DateTimeFormat.ISO),
+              "UTF-8");
+        } catch (Exception e) {
+          throw new DAOException("Cannot serialize 'from' argument", e);
         }
+      }
+      try {
+        logger.debug("GET "+logURL);
+        URL url = new URL(logURL);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        return conn.getInputStream();
+      } catch (FileNotFoundException fnf) {
+        throw new DAOException("Job log not found", fnf);
+      } catch (IOException ioe) {
+        throw new DAOException("Error when contacting log webservice", ioe);
+      }
     }
 
   @Override

@@ -28,6 +28,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -193,27 +194,17 @@ public class HarvestableResource {
       return error;
     }
   }
-
-  /**
-   * Entry point to the Harvestable log file.
-   * 
-   */
+  
   @Path("log/")
   @GET
   @Produces("text/plain")
-  public String getHarvestableLog() {
-    return getHarvestableLog(null);
-  }
-    /**
-   * Entry point to the Harvestable log file.
-   * 
-   */
-  @Path("log/{page}/")
-  @GET
-  @Produces("text/plain")
-  public String getHarvestableLog(@PathParam("from") String fromParam) {
+  public String getHarvestableLog(@QueryParam("from") String fromParam) {
     try {
-      Date from = ISOLikeDateParser.parse(fromParam);
+      Date from = fromParam == null || fromParam.isEmpty()
+        ? null
+        : ISOLikeDateParser.parse(fromParam);
+      //TODO read log path from config
+      logger.debug("Rquested logs for "+id+" from "+fromParam);
       HarvestableLog log = new HarvestableLog("/var/log/masterkey/harvester/", id);
       return log.readLines(from);
     } catch (FileNotFoundException fnf) {

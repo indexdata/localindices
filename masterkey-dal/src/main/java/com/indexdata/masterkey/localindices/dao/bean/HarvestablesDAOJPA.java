@@ -7,21 +7,19 @@
 package com.indexdata.masterkey.localindices.dao.bean;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import com.indexdata.utils.persistence.EntityUtil;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 
 /**
@@ -225,7 +223,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
-    public InputStream getLog(long id) {
+    public InputStream getLog(long id, Date from) throws DAOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

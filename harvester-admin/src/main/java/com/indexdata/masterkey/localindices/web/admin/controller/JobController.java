@@ -627,38 +627,38 @@ public class JobController {
 
   @SuppressWarnings("unused")
   public String viewJobLog() {
+    //we need the resource for metadata
+    resource = getResourceFromRequestParam();
+    //TODO this is redundant, clean up
     String strId = getRequestParam("resourceId");
     Long id = new Long(strId);
     setCurrentId(id);
 
-    StringBuilder sb = new StringBuilder(10240);
-    InputStream is = dao.getLog(id);
-    /* This check should no longer be in use: Implemented in the web service */ 
-    Reader tempReader;
-    if (is == null) {
-      tempReader = new StringReader("--- WARNING: No Job Log found ---"); 
+    InputStream is;
+    try {
+      is = dao.getLog(id, resource.getLastHarvestStarted());
+    } catch (DAOException ex) {
+      logger.error("Error retrieving logfile", ex);
+      return "failure";
     }
-    else 
-      tempReader = new InputStreamReader(is);
-    BufferedReader reader = new BufferedReader(tempReader);
+    
+    StringBuilder sb = new StringBuilder();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String line;
     try {
       while ((line = reader.readLine()) != null) {
 	sb.append(line).append("\n");
       }
     } catch (IOException e) {
-      logger.log(Level.ERROR, e);
+      logger.error("Error reading logfile", e);
     } finally {
       try {
-	if (is != null)
-	  is.close();
-      } catch (IOException e) {
-	logger.log(Level.ERROR, e);
+        is.close();
+      } catch (IOException ex) {
+        logger.warn("Error closing log stream", ex);
       }
     }
     jobLog = sb.toString();
-    //we need to retrieve the actual job as well to figure out the type and constuct edit link
-    resource = getResourceFromRequestParam();
     return "harvester_log";
 
   }

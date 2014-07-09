@@ -13,19 +13,18 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
-
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -160,7 +159,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     }
 
     @Override
-    public InputStream getLog(long id) {
+    public InputStream getLog(long id, Date from) throws DAOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
