@@ -625,20 +625,20 @@ public class JobController {
     }
   }
   
-  private Date lastEntry;
+  private Date logFrom;
   //TODO keep this in one place in case log format changes
   private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
   
   public void prepareJobLog() {
     resource = getResourceFromRequestParam();
-    lastEntry = resource.getLastHarvestStarted();
+    logFrom = resource.getLastHarvestStarted();
     fetchLogEntries();
   }
 
   public String fetchLogEntries() {
     InputStream is;
     try {
-      is = dao.getLog(resource.getId(), lastEntry);
+      is = dao.getLog(resource.getId(), logFrom);
     } catch (DAOException ex) {
       logger.error("Error retrieving logfile", ex);
       return "failure";
@@ -673,14 +673,16 @@ public class JobController {
           //we assume the same time zone as harvester admin
           //TODO ask the harvester for the time zone
           TimeZone tz = TimeZone.getDefault();
-          lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength), tz);
+          Date lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength), tz);
+          //add 1ms to avoid fetching duplicate entries
+          logFrom = new Date(lastEntry.getTime()+1);
         } catch (ParseException pe) {
           //it's possible that we are unlucky and the lastline does not have a timestamp
           //we assume current date
-          lastEntry = new Date();
+          logFrom = new Date();
         }
       } else {
-        lastEntry = new Date();
+        logFrom = new Date();
       }
     }
     latestLogEntries = sb.toString();
