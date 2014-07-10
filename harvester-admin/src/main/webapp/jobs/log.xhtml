@@ -9,7 +9,7 @@
       
     <f:metadata>
       <f:event type="preRenderView" 
-               listener="#{resourceController.viewJobLog}" />
+               listener="#{resourceController.prepareJobLog()}" />
     </f:metadata>
 
     <ui:composition template="/templates/master.xhtml">
@@ -20,29 +20,33 @@
           function goToBottom() {
             location.href = "#bottom";
           }
+          //capture jsf ajax events to retain old log entries
+          jsf.ajax.addOnEvent(function (data){});
         </script>  
         <h:form>
           <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
               <f:param name="resourceId" value="#{resourceController.resource.id}" />
           </h:link>
-          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
-            <f:param name="resourceId" value="#{resourceController.currentId}" />
+          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}">
+            <f:ajax render=":logView"/>
           </h:commandLink>
           <a class="navigation" href="#bottom">Bottom</a>
         </h:form>
         <a name="top"></a>
-        <div class="logview">
-          <pre><h:outputText value="#{resourceController.jobLog}" /></pre>
-        </div>
+        <h:form id="logView">
+          <div class="logview">
+            <pre><h:outputText value="#{resourceController.latestLogEntries}" /></pre>
+          </div>
+        </h:form>
         <a name="bottom"></a>
         <h:form>
             <h:link styleClass="navigation" value="Back to Harvest Jobs" outcome="list_resources" />
             <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
                 <f:param name="resourceId" value="#{resourceController.resource.id}" />
             </h:link>
-            <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.viewJobLog}">
-            <f:param name="resourceId" value="#{resourceController.currentId}" />
-          </h:commandLink>
+            <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}" >
+              <f:ajax render=":logView"/>
+            </h:commandLink>
           <a class="navigation" href="#top">Top</a>
         </h:form>
       </ui:define>

@@ -50,6 +50,8 @@ import com.indexdata.masterkey.localindices.entity.WebCrawlResource;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.utils.CronLine;
 import com.indexdata.utils.CronLineParseException;
+import com.indexdata.utils.ISOLikeDateParser;
+import java.text.ParseException;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -69,7 +71,7 @@ public class JobController {
   public final static String LONG_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
   @SuppressWarnings("rawtypes")
   private List resources;
-  private String jobLog;
+  private String latestLogEntries;
   Stack<String> backActions = new Stack<String>();
   String homeAction = "home";
   // </editor-fold>
@@ -624,30 +626,33 @@ public class JobController {
 	longDate = false;
     }
   }
-
-  @SuppressWarnings("unused")
-  public String viewJobLog() {
-    //we need the resource for metadata
+  
+  private Date lastEntry;
+  //TODO keep this in one place in case log format changes
+  private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
+  
+  public void prepareJobLog() {
     resource = getResourceFromRequestParam();
-    //TODO this is redundant, clean up
-    String strId = getRequestParam("resourceId");
-    Long id = new Long(strId);
-    setCurrentId(id);
+    lastEntry = resource.getLastHarvestStarted();
+    fetchLogEntries();
+  }
 
+  public String fetchLogEntries() {
     InputStream is;
     try {
-      is = dao.getLog(id, resource.getLastHarvestStarted());
+      is = dao.getLog(resource.getId(), lastEntry);
     } catch (DAOException ex) {
       logger.error("Error retrieving logfile", ex);
       return "failure";
     }
-    
     StringBuilder sb = new StringBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String line;
+    String lastLine = null;
     try {
       while ((line = reader.readLine()) != null) {
 	sb.append(line).append("\n");
+        lastLine = line;
       }
     } catch (IOException e) {
       logger.error("Error reading logfile", e);
@@ -658,13 +663,26 @@ public class JobController {
         logger.warn("Error closing log stream", ex);
       }
     }
-    jobLog = sb.toString();
+    //parse the last log date, this is more reliable than local time
+    if (lastLine != null) {
+      if (lastLine.length() > dateFieldLength) {
+        try {
+          lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength));
+        } catch (ParseException pe) {
+          //it's possible that we are unlucky and the lastline does not have a timestamp
+          //we assume current date
+          lastEntry = new Date();
+        }
+      } else {
+        lastEntry = new Date();
+      }
+    }
+    latestLogEntries = sb.toString();
     return "harvester_log";
-
   }
-
-  public String getjobLog() {
-    return jobLog;
+  
+  public String getLatestLogEntries() {
+    return latestLogEntries;
   }
 
   // </editor-fold>
@@ -762,14 +780,6 @@ public class JobController {
       logger.log(Level.FATAL, "Exception when updating Storage", ex);
       ex.printStackTrace();
     }
-  }
-
-  public Long getCurrentId() {
-    return currentId;
-  }
-
-  public void setCurrentId(Long currentId) {
-    this.currentId = currentId;
   }
 
   String[] logLevels = {"DEBUG", "INFO", "WARN", "ERROR"};

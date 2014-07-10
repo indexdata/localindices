@@ -14,7 +14,6 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableCon
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
 import com.indexdata.rest.client.ResourceConnector;
 import com.indexdata.utils.DateUtil;
-import com.indexdata.utils.DateUtil;
 import com.indexdata.utils.TextUtils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
