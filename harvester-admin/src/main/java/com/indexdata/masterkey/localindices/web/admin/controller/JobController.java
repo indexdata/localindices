@@ -6,32 +6,6 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Stack;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.model.DataModel;
-import javax.faces.model.ListDataModel;
-import javax.faces.model.SelectItem;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
@@ -51,7 +25,31 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.utils.CronLine;
 import com.indexdata.utils.CronLineParseException;
 import com.indexdata.utils.ISOLikeDateParser;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.TimeZone;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.DataModel;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
@@ -671,7 +669,11 @@ public class JobController {
     if (lastLine != null) {
       if (lastLine.length() > dateFieldLength) {
         try {
-          lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength));
+          //log entries are in the harvester local times zone
+          //we assume the same time zone as harvester admin
+          //TODO ask the harvester for the time zone
+          TimeZone tz = TimeZone.getDefault();
+          lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength), tz);
         } catch (ParseException pe) {
           //it's possible that we are unlucky and the lastline does not have a timestamp
           //we assume current date

@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.TimeZone;
 import org.apache.log4j.Logger;
 
 /**
@@ -54,7 +55,7 @@ public class HarvestableLog {
               if (line.length() >= dateFieldLength) {
                 String dateStr = line.substring(0, dateFieldLength);
                 try {
-                  Date date = ISOLikeDateParser.parse(dateStr);
+                  Date date = ISOLikeDateParser.parse(dateStr, TimeZone.getDefault());
                   if (date.after(from) || date.equals(from)) {
                     passthrough = true;
                     sb.append(line).append("\n");

@@ -208,7 +208,7 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
         try {
           logURL += "?from=" +  
             URLEncoder.encode(
-              DateUtil.serialize(from, DateUtil.DateTimeFormat.ISO),
+              DateUtil.serialize(from, DateUtil.DateTimeFormat.ISO_EXT),
               "UTF-8");
         } catch (Exception e) {
           throw new DAOException("Cannot serialize 'from' argument", e);
