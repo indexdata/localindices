@@ -26,14 +26,12 @@ import org.apache.log4j.Logger;
 public class HarvestableLog {
   private final String logDir;
   private final long jobId;
-  private final String emptyMsg;
   private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
   private final static Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
 
   public HarvestableLog(String logDir, long jobId) {
     this.logDir = logDir;
     this.jobId = jobId;
-    this.emptyMsg = "--- WARNING: log file(s) for job " + jobId + " not found ---";
   }
 
   public String readLines(Date from) throws FileNotFoundException, IOException {
@@ -72,14 +70,14 @@ public class HarvestableLog {
       }
       return sb.toString();
     } else {
-      return emptyMsg;
+      return null;
     }
   }
 
-  private File[] getLogFiles(final Date from) {
+  private File[] getLogFiles(final Date from) throws FileNotFoundException {
     File dir = new File(logDir);
     if (!dir.isDirectory()) {
-      return null;
+      throw new FileNotFoundException("Log directory not found: "+logDir);
     }
     final String logPrefix = "job-" + jobId + ".log";
     //candidate files must be updated after from date

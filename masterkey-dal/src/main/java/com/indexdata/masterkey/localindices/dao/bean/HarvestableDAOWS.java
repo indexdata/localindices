@@ -219,6 +219,11 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
         URL url = new URL(logURL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
+        int respCode = conn.getResponseCode();
+        if (respCode == 204) {
+          //no new entries
+          return null;
+        }
         return conn.getInputStream();
       } catch (FileNotFoundException fnf) {
         throw new DAOException("Job log not found", fnf);

@@ -206,7 +206,12 @@ public class HarvestableResource {
       //TODO read log path from config
       logger.debug("Rquested logs for "+id+" from "+fromParam);
       HarvestableLog log = new HarvestableLog("/var/log/masterkey/harvester/", id);
-      return log.readLines(from);
+      String lines = log.readLines(from);
+      if (lines == null) {
+        //no new data
+        throw new WebApplicationException(Response.Status.NO_CONTENT);
+      }
+      return lines;
     } catch (FileNotFoundException fnf) {
       throw new WebApplicationException(fnf);
     } catch (IOException io) {

@@ -645,6 +645,10 @@ public class JobController {
       logger.error("Error retrieving logfile", ex);
       return "failure";
     }
+    if (is == null) {
+      latestLogEntries = "";
+      return "harvester_log";
+    }
     StringBuilder sb = new StringBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String line;
