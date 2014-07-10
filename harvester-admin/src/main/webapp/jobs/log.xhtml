@@ -17,25 +17,48 @@
       <ui:param name="onload" value="goToBottom();" />
       <ui:define name="content">
         <script type="text/javascript">
+          //<![CDATA[
           function goToBottom() {
             location.href = "#bottom";
           }
-          //capture jsf ajax events to retain old log entries
-          jsf.ajax.addOnEvent(function (data){});
+           //TODO capture jsf ajax events to retain old log entries
+          jsf.ajax.addOnEvent(function (data) { 
+            if (data.status === "complete") { 
+              var doc = data.responseXML;
+              if (doc.firstChild.nodeName === "partial-response" 
+                      && doc.firstChild.firstChild.nodeName === "changes") {
+                //we are dealing with proper response
+                var changes = doc.firstChild.firstChild;
+                var update = changes.firstChild;
+                if (update.nodeName === "update") {
+                  changes.removeChild(update);
+                  var insert = doc.createElement("insert");
+                  insert.setAttribute("id", update.getAttribute("id"));
+                  changes.appendChild(insert);
+                  var after = doc.createElement("after");
+                  after.setAttribute("id", update.getAttribute("id"));
+                  insert.appendChild(after);
+                  after.appendChild(update.firstChild);
+                  debugger;
+                } 
+              } 
+            } 
+          });
+          //]]>
         </script>  
         <h:form>
           <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
               <f:param name="resourceId" value="#{resourceController.resource.id}" />
           </h:link>
           <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}">
-            <f:ajax render=":logView"/>
+            <f:ajax render=":logView:logEntries"/>
           </h:commandLink>
           <a class="navigation" href="#bottom">Bottom</a>
         </h:form>
         <a name="top"></a>
         <h:form id="logView">
           <div class="logview">
-            <pre><h:outputText value="#{resourceController.latestLogEntries}" /></pre>
+            <pre><h:outputText id="logEntries" value="#{resourceController.latestLogEntries}" /></pre>
           </div>
         </h:form>
         <a name="bottom"></a>
@@ -45,7 +68,7 @@
                 <f:param name="resourceId" value="#{resourceController.resource.id}" />
             </h:link>
             <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}" >
-              <f:ajax render=":logView"/>
+              <f:ajax render=":logView:logEntries"/>
             </h:commandLink>
           <a class="navigation" href="#top">Top</a>
         </h:form>
