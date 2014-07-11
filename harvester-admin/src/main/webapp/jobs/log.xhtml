@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"     
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
   <h:body>
       
     <f:metadata>
@@ -40,22 +41,28 @@
                   insert.appendChild(after);
                   after.appendChild(update.firstChild);
                 } 
-              } 
+              }
+              window.scrollTo(0,document.body.scrollHeight);
             } 
           });
           //]]>
-        </script>  
-        <h:form>
+        </script>
+        <h:panelGroup id="autoCheckbox">
+          <h:selectBooleanCheckbox value="true" 
+                                   onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
+        </h:panelGroup>
+        <h:form id="btnForm">
           <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
               <f:param name="resourceId" value="#{resourceController.resource.id}" />
           </h:link>
-          <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}">
+          <h:commandLink id="refreshBtn" styleClass="navigation" value="Refresh now">
             <f:ajax render=":logView:logEntries"/>
           </h:commandLink>
           <a class="navigation" href="#bottom">Bottom</a>
         </h:form>
         <a name="top"></a>
         <h:form id="logView">
+          <id:poll id="poll" interval="2000" timeout="3000" render="logView:logEntries" />
           <div class="logview">
             <pre><h:outputText id="logEntries" value="#{resourceController.latestLogEntries}" /></pre>
           </div>
@@ -66,7 +73,7 @@
             <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
                 <f:param name="resourceId" value="#{resourceController.resource.id}" />
             </h:link>
-            <h:commandLink styleClass="navigation" value="Refresh log" action="#{resourceController.fetchLogEntries()}" >
+            <h:commandLink id="refreshBtn2" styleClass="navigation" value="Refresh now" >
               <f:ajax render=":logView:logEntries"/>
             </h:commandLink>
           <a class="navigation" href="#top">Top</a>

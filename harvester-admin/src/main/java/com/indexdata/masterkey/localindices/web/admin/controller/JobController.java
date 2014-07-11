@@ -630,22 +630,22 @@ public class JobController {
   private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
   
   public void prepareJobLog() {
-    resource = getResourceFromRequestParam();
-    logFrom = resource.getLastHarvestStarted();
-    fetchLogEntries();
+    if (!FacesContext.getCurrentInstance().isPostback()) {
+      resource = getResourceFromRequestParam();
+      logFrom = resource.getLastHarvestStarted();
+    }
   }
 
-  public String fetchLogEntries() {
+  public String getLatestLogEntries() {
     InputStream is;
     try {
       is = dao.getLog(resource.getId(), logFrom);
     } catch (DAOException ex) {
       logger.error("Error retrieving logfile", ex);
-      return "failure";
+      return "Failure when retrieving the logfile: " + ex.getMessage();
     }
     if (is == null) {
-      latestLogEntries = "";
-      return "harvester_log";
+      return "";
     }
     StringBuilder sb = new StringBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -685,12 +685,7 @@ public class JobController {
         logFrom = new Date();
       }
     }
-    latestLogEntries = sb.toString();
-    return "harvester_log";
-  }
-  
-  public String getLatestLogEntries() {
-    return latestLogEntries;
+    return sb.toString();
   }
 
   // </editor-fold>
