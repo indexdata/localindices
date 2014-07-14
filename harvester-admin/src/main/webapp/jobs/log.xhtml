@@ -67,10 +67,6 @@
           }
           //]]>
         </script>
-        <h:panelGroup id="autoCheckbox">
-          <h:selectBooleanCheckbox value="true" 
-                                   onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
-        </h:panelGroup>
         <h:form id="btnForm">
           <h:link styleClass="navigation" outcome="edit_#{resourceController.resource.class.simpleName}" value="Go to Job">
               <f:param name="resourceId" value="#{resourceController.resource.id}" />
@@ -98,6 +94,10 @@
             </h:commandLink>
           <a class="navigation" href="#top">Top</a>
         </h:form>
+        <h:panelGroup id="autoCheckbox">
+          <h:selectBooleanCheckbox value="true" 
+                                   onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
+        </h:panelGroup>
       </ui:define>
     </ui:composition>
 
