@@ -42,9 +42,29 @@
                   after.appendChild(update.firstChild);
                 } 
               }
-              window.scrollTo(0,document.body.scrollHeight);
+              scrollToBottom();
             } 
           });
+          
+          var initialDelay = 10; //in ms
+          var delay = 1; //in milliseconds
+          var scrollAmount = 10; //in pixels
+          var interval = null;
+          
+          function animatedScroll() {
+            if (window.pageYOffset >= document.body.scrollHeight) {
+              if (interval !== null)
+                clearInterval(interval);
+            } else {            
+              window.scrollBy(0, scrollAmount);
+              if (interval === null)
+                interval = setInterval("animatedScroll()", delay);
+            }
+          }
+          
+          function scrollToBottom() {  
+            setTimeout("animatedScroll()", initialDelay);
+          }
           //]]>
         </script>
         <h:panelGroup id="autoCheckbox">
