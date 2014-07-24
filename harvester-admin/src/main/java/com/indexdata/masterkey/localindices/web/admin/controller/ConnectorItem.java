@@ -76,4 +76,17 @@ public class ConnectorItem implements Serializable {
     return fileName;
   }
   
+  /*
+   * Note: Spurious value change events can fire in the autocomplete
+   * component unless the ConnectorItem object in the select list
+   * evaluates as equal to its corresponding String representation
+   * in the component. 
+   */
+  public boolean equals(Object o) {
+    if (o instanceof ConnectorItem  || o instanceof String) {
+      return this.toString().equals(o.toString());
+    } else {
+      return false;
+    }
+  }
 }
