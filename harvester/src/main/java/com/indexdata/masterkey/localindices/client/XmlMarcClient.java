@@ -201,7 +201,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned TAR archive file, expanding..");
       if (mimeType.isTarGz()) {
         logger.debug("TAR archive is GZIP compressed, decompressing..");
-        input = new GZIPInputStream(input);
+        try {
+          input = new GZIPInputStream(input);
+        } catch (EOFException eof) {
+          logger.warn("Archive had unexpected end-of-file. Skipping " + file.getName());
+          input.close();
+          return;
+        }
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
       try {
