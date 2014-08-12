@@ -38,8 +38,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
-    splitDepth = getNumber(resource.getSplitAt(), splitDepth);
-    splitSize = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     initialStatus = HarvestStatus.valueOf(resource.getCurrentStatus());
     setStatus(initialStatus);

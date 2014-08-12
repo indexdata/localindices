@@ -43,8 +43,6 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
   boolean debug = false;
   boolean useParallel = false;
   AbstractTransformationRecordStorageProxy transformationStorage;
-  protected int splitSize = 1;
-  protected int splitDepth = 1;
   private boolean updated;
   private HarvestStatus runStatus;
   private HarvestStatus jobStatus;
