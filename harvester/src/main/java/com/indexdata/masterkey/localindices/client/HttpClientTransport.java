@@ -55,6 +55,9 @@ public class HttpClientTransport implements ClientTransport {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
     RemoteFileIteratorIterator itt = new RemoteFileIteratorIterator();
     for (URL link : jp.getLinks()) {
+      //TODO this will open hundred of sockets at once!
+      //and a single file retrieval failure may terminate the entire index handling
+      //see MKH-441
       ClientTransport client = clientTransportFactory.lookup(link);
       client.connect(link);
       //we only expect jump pages to be linked directly in the harvester
