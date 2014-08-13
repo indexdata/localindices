@@ -78,4 +78,8 @@ public class MimeTypeCharSet {
     return "text/html".equalsIgnoreCase(mimeType) || "application/xhtml+xml".equals(mimeType);
   }
   
+  public boolean isSGML() {
+    return "application/sgml".equals(mimeType) || "text/sgml".equals(mimeType);
+  }
+  
 }

@@ -241,10 +241,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
     } else if (mimeType.isGzip()) {
       input = new GZIPInputStream(input);
       file.setLength(-1);
+      String trimmedName = null;
       if (file.getName().endsWith(".gz")) {
-        String trimmedName = file.getName().substring(0, file.getName().length()-3);
-        mimeType = deduceMimeType(null, trimmedName, null);
+        trimmedName = file.getName().substring(0, file.getName().length()-3);
       }
+      //we need to bugger again to detect file type
+      input = new BufferedInputStream(input);
+      mimeType = deduceMimeType(input, trimmedName, null);
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
@@ -265,7 +268,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         storeXml(input);
       } else {
         logger.info("Ignoring file '"+file.getName()
-          +"' because of unsupported content-type '"+file.getContentType()+"'");
+          +"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
       //make sure the stream is closed!
@@ -284,30 +287,41 @@ public class XmlMarcClient extends AbstractHarvestClient {
     */
     //if transport does not provide content type
     //we attempt to deduce it
-    String guess;
-    if (contentTypeHint == null) {
-      String cT = input != null
+    String guess = null;
+    MimeTypeCharSet mimeType = new MimeTypeCharSet(contentTypeHint);
+    if (contentTypeHint != null) {
+      logger.debug("Content type provided by transport: "+contentTypeHint);
+    }
+    //first try the limited Java built-in content type detection
+    if (mimeType.isUndefined() || mimeType.isPlainText() || mimeType.isBinary()) {
+      guess = input != null
         ? URLConnection.guessContentTypeFromStream(input)
         : null;
-      if (cT == null) {
-        cT = fileName != null
+      if (guess == null) {
+        guess = fileName != null
           ? URLConnection.guessContentTypeFromName(fileName)
           : null;
-        if (cT != null) {
-          logger.debug("Guessed content type from filename: "+cT);
+        if (guess != null) {
+          logger.debug("Guessed content type from filename: "+guess);
         }
       } else {
-        logger.debug("Guessed content type from stream: "+cT);
+        logger.debug("Guessed content type from stream: "+guess);
       }
-      guess = cT;
-    } else {
-      logger.debug("Content type provided by transport: "+contentTypeHint);
-      guess = contentTypeHint;
     }
-    MimeTypeCharSet mimeType = new MimeTypeCharSet(guess);
-    //missing, deduced or provided content type may not be enough
+    if (guess != null) {
+      mimeType = new MimeTypeCharSet(guess);
+    }
+    //sgml/html docs can be treated with the XML-lax parser
+    if (resource.isLaxParsing() && (mimeType.isHTML() || mimeType.isSGML())) {
+      logger.debug("Overriding HTML/SGML with XML content type because lax parsing is on.");
+      mimeType = new MimeTypeCharSet("application/xml");
+    }
+    //missing and some deduced or provided content type may not be enough
     //we check the extension in this case anyway
-    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isPlainText() || mimeType.isGzip()) {
+    if (mimeType.isUndefined() 
+      || mimeType.isBinary() 
+      || mimeType.isPlainText()
+      || mimeType.isGzip()) {
       if (fileName != null) {
         if (fileName.endsWith(".zip")) {
           guess = "application/zip";
