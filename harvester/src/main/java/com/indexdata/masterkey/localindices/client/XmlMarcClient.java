@@ -204,8 +204,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
         try {
           input = new GZIPInputStream(input);
         } catch (EOFException eof) {
-          logger.warn("Archive had unexpected end-of-file. Skipping " + file.getName());
           input.close();
+          if (getResource().getAllowErrors()) {
+            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
+            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+          } else {
+            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
+          }
           return;
         }
       }
