@@ -44,15 +44,11 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   synchronized public void add(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
-    if (record.getValues().get("id") != null || record.getId() != null) { 
-      	SolrInputDocument document = createDocument(record);
-      	if (document != null)
-      	  docs.add(document);
-      	else
-      	  logger.warn( "Failed to convert Record to SolrDocument. Not adding: " + record);
-    }
+    SolrInputDocument document = createDocument(record);
+    if (document != null)
+      docs.add(document);
     else
-      	logger.warn( "No Id on Record. Not adding: " + record);
+      logger.warn( "Failed to convert record to SolrDocument. Not adding: " + record);
     if (limit != null && docs.size() >= limit)
       addRecords();
   }

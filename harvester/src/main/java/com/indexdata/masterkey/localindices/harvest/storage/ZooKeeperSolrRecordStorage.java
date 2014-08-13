@@ -49,7 +49,7 @@ public class ZooKeeperSolrRecordStorage extends BulkSolrRecordStorage {
       ClusterState state = stateReader.getClusterState();
       Set<String> nodes = state.getLiveNodes();
       logger.debug("Connected to cluster with following live nodes: " + nodes.size());
-      storageStatus = new SolrStorageStatus(server, databaseField + harvestable.getId());
+      storageStatus = new SolrStorageStatus(server, DATABASE_FIELD + harvestable.getId());
     } catch (Exception e) {
       e.printStackTrace();
       // throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
