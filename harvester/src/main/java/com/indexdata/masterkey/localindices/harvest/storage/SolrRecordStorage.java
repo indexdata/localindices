@@ -273,7 +273,11 @@ public class SolrRecordStorage implements RecordStorage {
 
   @Override
   synchronized public void add(Record record) {
-    add(createDocument(record));
+    SolrInputDocument doc = createDocument(record);
+    if (doc != null)
+      add(doc);
+    else
+      logger.warn("Failed to convert record to SolrDocument. Not adding: " + record);
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
