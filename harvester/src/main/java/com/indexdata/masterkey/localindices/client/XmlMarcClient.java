@@ -326,6 +326,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       is.reset();
       return false;
     }
+    is.reset();
     return true;
   }
 
