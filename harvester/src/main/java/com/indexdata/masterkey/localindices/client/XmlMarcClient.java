@@ -280,6 +280,54 @@ public class XmlMarcClient extends AbstractHarvestClient {
       input.close();
     }
   }
+  
+  private boolean isMarc(InputStream is) throws IOException {
+    // If we can't read ahead safely, just give up on guessing
+    if (!is.markSupported())
+        return false;
+    
+    is.mark(22);
+    int pos = 0;
+    //0-4
+    while (pos <= 4) {
+      int c = is.read();
+      if (c < '0' || c > '9') { //not digit
+        is.reset();
+        return false;
+      }
+      ++pos;
+    }
+    //5-11
+    while (pos < 12) {
+      is.read();
+      ++pos;
+    }
+    //12-16
+    while (pos <= 16) {
+      int c = is.read();
+      if (c < '0' || c > '9') { //not digit
+        is.reset();
+        return false;
+      }
+      ++pos;
+    }
+    //17-19
+    while (pos < 20) {
+      is.read();
+      ++pos;
+    }
+    //20
+    if (is.read() != '4') {
+      is.reset();
+      return false;
+    }
+    //21
+    if (is.read() != '5') {
+      is.reset();
+      return false;
+    }
+    return true;
+  }
 
   private MimeTypeCharSet deduceMimeType(InputStream input, String fileName, String contentTypeHint)
     throws IOException {
@@ -290,6 +338,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
       20 - 4
       21 - 5
     */
+    if (input != null)
+      logger.debug("is marc "+isMarc(input));
     //if transport does not provide content type
     //we attempt to deduce it
     String guess = null;
