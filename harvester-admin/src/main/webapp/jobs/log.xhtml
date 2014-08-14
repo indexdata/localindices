@@ -55,10 +55,15 @@
             if (window.pageYOffset >= document.body.scrollHeight) {
               if (interval !== null)
                 clearInterval(interval);
-            } else {            
-              window.scrollBy(0, scrollAmount);
-              if (interval === null)
-                interval = setInterval("animatedScroll()", delay);
+            } else {
+              if (window.autoUpdate != false) {
+                window.scrollBy(0, scrollAmount);
+                if (interval === null)
+                  interval = setInterval("animatedScroll()", delay);
+              } else {
+                clearInterval(interval);
+                interval = null;
+              }
             }
           }
           
