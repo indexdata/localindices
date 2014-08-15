@@ -244,15 +244,26 @@ public class XmlMarcClient extends AbstractHarvestClient {
         tis.close();
       }
     } else if (mimeType.isGzip()) {
-      input = new GZIPInputStream(input);
-      file.setLength(-1);
-      String trimmedName = null;
-      if (file.getName().endsWith(".gz")) {
-        trimmedName = file.getName().substring(0, file.getName().length()-3);
-      }
-      //we need to bugger again to detect file type
-      input = new BufferedInputStream(input);
-      mimeType = deduceMimeType(input, trimmedName, null);
+      try {
+        input = new GZIPInputStream(input);
+        file.setLength(-1);
+        String trimmedName = null;
+        if (file.getName().endsWith(".gz")) {
+          trimmedName = file.getName().substring(0, file.getName().length()-3);
+        }
+        //we need to bugger again to detect file type
+        input = new BufferedInputStream(input);
+        mimeType = deduceMimeType(input, trimmedName, null);
+      } catch (EOFException eof) {
+          input.close();
+          if (getResource().getAllowErrors()) {
+            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
+            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+          } else {
+            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
+          }
+          return;
+        }
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
