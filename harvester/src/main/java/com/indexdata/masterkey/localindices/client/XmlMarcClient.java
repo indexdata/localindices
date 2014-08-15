@@ -329,18 +329,27 @@ public class XmlMarcClient extends AbstractHarvestClient {
     is.reset();
     return true;
   }
+  
+  private boolean isMarkup(InputStream is) throws IOException {
+    if (!is.markSupported())
+      return false;
+    is.mark(2);
+    if (is.read() != '<') {
+      is.reset();
+      return false;
+    }
+    int startChar = is.read();
+    if (startChar != '?' && startChar != '!' && 
+      !Character.isLetter(startChar)) {
+      is.reset();
+      return false;
+    }
+    is.reset();
+    return true;
+  }
 
   private MimeTypeCharSet deduceMimeType(InputStream input, String fileName, String contentTypeHint)
-    throws IOException {
-    /*
-      TODO detect binary marc:
-      0,1,2,3,4 digits
-      12,13,14,15,16 digits
-      20 - 4
-      21 - 5
-    */
-    if (input != null)
-      logger.debug("is marc "+isMarc(input));
+    throws IOException { 
     //if transport does not provide content type
     //we attempt to deduce it
     String guess = null;
@@ -350,9 +359,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     //first try the limited Java built-in content type detection
     if (mimeType.isUndefined() || mimeType.isPlainText() || mimeType.isBinary()) {
-      guess = input != null
-        ? URLConnection.guessContentTypeFromStream(input)
-        : null;
+      if (input != null) {
+        guess = URLConnection.guessContentTypeFromStream(input);
+        if (guess == null) {
+          guess = isMarc(input)
+            ? "application/marc" 
+            : isMarkup(input)
+              ? "application/xml" //lucky assumption
+              : null;
+        }
+      }
       if (guess == null) {
         guess = fileName != null
           ? URLConnection.guessContentTypeFromName(fileName)
@@ -364,6 +380,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.debug("Guessed content type from stream: "+guess);
       }
     }
+    //reset mime-type to guess
     if (guess != null) {
       mimeType = new MimeTypeCharSet(guess);
     }
@@ -377,7 +394,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     if (mimeType.isUndefined() 
       || mimeType.isBinary() 
       || mimeType.isPlainText()
-      || mimeType.isGzip()) {
+      || mimeType.isGzip() /* tar or plain gzip */) {
       if (fileName != null) {
         if (fileName.endsWith(".zip")) {
           guess = "application/zip";
@@ -388,12 +405,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
           guess = "application/x-gtar";
         } else if (fileName.endsWith(".gz")) {
           guess = "application/gzip";
-        } else {
-          //assume binary marc since it's close to impossible to rely on the marc dump extensions
+        } else if (fileName.endsWith(".mrc") || fileName.endsWith(".marc")) {
           guess = "application/marc";
         }
-        mimeType = new MimeTypeCharSet(guess);
-        logger.debug("Guessed content type from filename: "+guess);
+        if (guess != null) {
+          mimeType = new MimeTypeCharSet(guess);
+          logger.debug("Guessed content type from filename: "+guess);
+        }
       }
     }
     return mimeType;
