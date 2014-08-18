@@ -68,7 +68,7 @@ Remaing settings include:
     Jakub: I mean there's a whole chapter on TPs in the manual, instead of putting more text here let's refer user to that section.
 -->
 
-* _Use lax parsing_: when enabled, harvester will attempt to parse malformed XML (missing closing tags, entities)
+* _Use lax parsing_: when enabled, harvester will attempt to parse malformed XML (missing closing tags, entities) or mark-up that is not strict XML, like HTML or SGML. Especially, when dealing with HTML or SGML documents, and this setting is disabled, the harvester will not even attempt to read those documents.  
 
 * _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
