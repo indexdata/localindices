@@ -396,9 +396,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
       mimeType = new MimeTypeCharSet(guess);
     }
     //sgml/html docs can be treated with the XML-lax parser
-    if (resource.isLaxParsing() && (mimeType.isHTML() || mimeType.isSGML())) {
-      logger.debug("Overriding HTML/SGML with XML content type because lax parsing is on.");
-      mimeType = new MimeTypeCharSet("application/xml");
+    if (mimeType.isHTML() || mimeType.isSGML()) {
+      if (resource.isLaxParsing()) {
+        logger.debug("Overriding HTML/SGML with XML content type because lax parsing is on.");
+        mimeType = new MimeTypeCharSet("application/xml");
+      } else {
+        logger.debug("HTML/SGML content type will not be harvested unless lax parsing is enabled");
+      }
     }
     //missing and some deduced or provided content type may not be enough
     //we check the extension in this case anyway
