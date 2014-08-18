@@ -36,7 +36,7 @@ import org.xml.sax.SAXException;
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private int splitAt = 1;
+  private final static int defaultSplitAt = 0;
 
   public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,
     Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
@@ -492,9 +492,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private void storeXml(InputStream is) throws IOException {
     RecordStorage storage = job.getStorage();
+    int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
+    logger.debug("XML splitting depth: "+splitAt);
     SplitContentHandler handler = new SplitContentHandler(
-      new RecordStorageConsumer(storage, job.getLogger()),
-      getJob().getNumber(getResource().getSplitAt(), splitAt));
+      new RecordStorageConsumer(storage, job.getLogger()), splitAt);
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
       handler, resource.isLaxParsing());
     try {
