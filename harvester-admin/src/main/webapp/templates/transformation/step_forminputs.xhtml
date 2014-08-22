@@ -8,32 +8,32 @@
   <body>
     <ui:composition>
       <h5>Transformation Steps:</h5>
-      <h:dataTable value="#{transformationController.transformationSteps}"
+      <h:dataTable value="#{transformationController.transformationStepAssociations}"
                    var="item"
                    columnClasses="right,left,center,left,center,center,center,center">
         <h:column>
           <f:facet name="header">
             <h:outputText value="ID" />
           </f:facet>
-          <h:outputText value="#{item.id}"></h:outputText>
+          <h:outputText value="#{item.step.id}"></h:outputText>
         </h:column>
         <h:column>
           <f:facet name="header">
             <h:outputText value="Name" />
           </f:facet>
-          <h:outputText value="#{item.name}"></h:outputText>
+          <h:outputText value="#{item.step.name}"></h:outputText>
         </h:column>
         <h:column>
           <f:facet name="header">
             <h:outputText value="In" />
           </f:facet>
-          <h:outputText value="#{item.inputFormat}"></h:outputText>
+          <h:outputText value="#{item.step.inputFormat}"></h:outputText>
         </h:column>
         <h:column>
           <f:facet name="header">
             <h:outputText value="Out" />
           </f:facet>
-          <h:outputText value="#{item.outputFormat}"></h:outputText>
+          <h:outputText value="#{item.step.outputFormat}"></h:outputText>
         </h:column>
         <h:column>
           <f:facet name="header">
