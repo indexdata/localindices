@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,6 +35,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String xpathNodes = "//pz:metadata";
   private String xpathStatus = "//pz:metadata[@type='status']";
   private String xpathId = "//pz:metadata[@type='id']";
+  Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
   
   public RecordDOMImpl(Record record) {
     if (record instanceof RecordDOM)
@@ -56,6 +58,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setId(id);
     setDatabase(database);
     setNode(node);
+    logger.debug("Node name "+node.getLocalName());
   }
 
   public void setNode(Node node) {
@@ -102,7 +105,11 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       } else {
         root = node.getOwnerDocument().getDocumentElement();
       }
-      return root.getTagName().equals("collection");
+      logger.debug("Root tag name is "+root.getTagName());
+      boolean isCollection = root.getTagName().equals("collection") 
+        || root.getTagName().equals("pz:collection");
+      logger.debug("isCollection = "+isCollection);
+      return isCollection;
     } else {
       return false;
     }
@@ -110,10 +117,15 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   
   public Collection<Record> getSubRecords() {
     if (!isCollection()) return null;
-    NodeList children = node.getChildNodes();
+    NodeList children = node.getNodeType() == Node.DOCUMENT_NODE
+      ? ((Document) node).getDocumentElement().getChildNodes()
+      : node.getChildNodes();
     List<Record> list = new ArrayList<Record>(children.getLength());
     for (int i=0; i<children.getLength(); i++) {
-      list.add(new RecordDOMImpl(null, null, children.item(i)));
+      Node child = children.item(i);
+      if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+      Element childElem = (Element) child;
+      list.add(new RecordDOMImpl(null, null, child));
     }
     return list;
   }
@@ -123,10 +135,14 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       return valueMap;
     valueMap.clear();
     try {
-      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext); 
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext);
+      logger.debug("Evaluating xpath from node name: "+node.getLocalName());
       NodeList nodeList = xpathHelper.evaluate(node, xpathNodes);
-      for (int index = 0; index < nodeList.getLength(); index++) 
+      logger.debug("Metadata nodes detected: "+nodeList.getLength());
+      for (int index = 0; index < nodeList.getLength(); index++) {
+        Node md = nodeList.item(index);
 	serializeNode(nodeList.item(index));
+      }
     } catch (XPathExpressionException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

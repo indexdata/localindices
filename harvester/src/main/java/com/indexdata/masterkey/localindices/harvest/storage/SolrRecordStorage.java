@@ -225,7 +225,9 @@ public class SolrRecordStorage implements RecordStorage {
   }
 
   protected SolrInputDocument createDocument(Record record) {
-    SolrInputDocument document = createDocument(record.getValues());
+    Map<String, Collection<Serializable>> values = record.getValues();
+    logger.debug("Size of solr fields "+values.size());
+    SolrInputDocument document = createDocument(values);
     if (record.getId() != null) {
       document.setField(ID_FIELD, database + "-" + record.getId());
     } else if (record.getValues().get(ID_FIELD) != null) {
