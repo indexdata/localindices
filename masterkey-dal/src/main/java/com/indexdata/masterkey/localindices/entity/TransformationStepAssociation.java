@@ -19,8 +19,7 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name="TRANSFORMATION_STEP", uniqueConstraints = @UniqueConstraint(columnNames = {
-    "TRANSFORMATION_ID", "STEP_ID" }))
+@Table(name="TRANSFORMATION_STEP")
 @NamedQueries({
     @NamedQuery(name = "tsa.findById", query = "SELECT o FROM TransformationStepAssociation o WHERE o.id = :id"),
     @NamedQuery(name = "tsa.findStepsByTransformationId", query = "SELECT o FROM TransformationStepAssociation o WHERE o.transformation.id = :id") })
@@ -36,10 +35,10 @@ public class TransformationStepAssociation implements Serializable, Cloneable {
   @Column(name = "POSITION")
   private int position;
   @ManyToOne
-  @JoinColumn(name = "TRANSFORMATION_ID", referencedColumnName = "ID")
+  @JoinColumn(name = "TRANSFORMATION_ID", nullable=false, referencedColumnName = "ID")
   private Transformation transformation;
   @ManyToOne
-  @JoinColumn(name = "STEP_ID", referencedColumnName = "ID")
+  @JoinColumn(name = "STEP_ID", nullable=false, referencedColumnName = "ID")
   private TransformationStep step;
 
   public TransformationStepAssociation() {

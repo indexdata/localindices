@@ -226,6 +226,18 @@ public class TransformationController {
     return new ListDataModel(steps);
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public DataModel<List<TransformationStepAssociation>> getTransformationStepAssociations() {
+    List<TransformationStepAssociation> steps = new LinkedList<TransformationStepAssociation>(); 
+    
+    /*
+     * stepDao . retrieveByTransformationId ( current . getId ( ) ) ;
+     */
+    if (current != null)
+      steps = (List<TransformationStepAssociation>) current.getStepAssociations();
+    return new ListDataModel(steps);
+  }
+  
   public String delete() {
     current = getResourceFromRequestParam();
     dao.delete(current);
@@ -332,7 +344,7 @@ public class TransformationController {
 
   private int lookupIndexByID(Long id) {
     for (int index = 0; index < current.getStepAssociations().size(); index++) {
-      if (current.getStepAssociations().get(index).getStep().getId().equals(id))
+      if (current.getStepAssociations().get(index).getId().equals(id))
 	return index;
     }
     return -1;
