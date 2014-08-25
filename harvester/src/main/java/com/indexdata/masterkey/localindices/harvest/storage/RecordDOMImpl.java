@@ -32,9 +32,9 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pzType = pzPrefix + ":" + typeName;
   private Node node = null;
   private NamespaceContext nsContext = new PzNamespaceContext();
-  private String xpathNodes = "//pz:metadata";
-  private String xpathStatus = "//pz:metadata[@type='status']";
-  private String xpathId = "//pz:metadata[@type='id']";
+  private String xpathNodes = ".//pz:metadata";
+  private String xpathStatus = ".//pz:metadata[@type='status']";
+  private String xpathId = ".//pz:metadata[@type='id']";
   Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
   
   public RecordDOMImpl(Record record) {
@@ -58,7 +58,6 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setId(id);
     setDatabase(database);
     setNode(node);
-    logger.debug("Node name "+node.getLocalName());
   }
 
   public void setNode(Node node) {
@@ -105,10 +104,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       } else {
         root = node.getOwnerDocument().getDocumentElement();
       }
-      logger.debug("Root tag name is "+root.getTagName());
       boolean isCollection = root.getTagName().equals("collection") 
         || root.getTagName().equals("pz:collection");
-      logger.debug("isCollection = "+isCollection);
       return isCollection;
     } else {
       return false;
@@ -136,9 +133,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     valueMap.clear();
     try {
       XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext);
-      logger.debug("Evaluating xpath from node name: "+node.getLocalName());
       NodeList nodeList = xpathHelper.evaluate(node, xpathNodes);
-      logger.debug("Metadata nodes detected: "+nodeList.getLength());
       for (int index = 0; index < nodeList.getLength(); index++) {
         Node md = nodeList.item(index);
 	serializeNode(nodeList.item(index));

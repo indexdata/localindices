@@ -43,16 +43,17 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
 
   synchronized public void add(Record record) {
     if (record.isCollection()) {
-      logger.debug("Record is a collection...");
       Collection<Record> subrecords = record.getSubRecords();
-      logger.debug("Collection size is "+subrecords.size());
-      for (Record rec : subrecords) {
-        createAndAdd(rec);
+      //if collection does include subrecord, "split" them programmatically
+      if (subrecords.size() > 1) {
+        for (Record rec : subrecords) {
+          createAndAdd(rec);
+        }
+        return;
       }
-    } else {
-      logger.debug("Record is not a collection.");
-      createAndAdd(record);
     }
+    createAndAdd(record);
+    
   }
   
   private void createAndAdd(Record record) {
