@@ -13,5 +13,9 @@ public interface Record {
   boolean isDeleted();
 
   Map<String, Collection<Serializable>> getValues();
+  
+  boolean isCollection();
+  
+  Collection<Record> getSubRecords();
 
 }

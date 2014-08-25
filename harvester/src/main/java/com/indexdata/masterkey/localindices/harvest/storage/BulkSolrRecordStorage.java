@@ -42,6 +42,21 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
   }
 
   synchronized public void add(Record record) {
+    if (record.isCollection()) {
+      Collection<Record> subrecords = record.getSubRecords();
+      //if collection does include subrecord, "split" them programmatically
+      if (subrecords.size() > 1) {
+        for (Record rec : subrecords) {
+          createAndAdd(rec);
+        }
+        return;
+      }
+    }
+    createAndAdd(record);
+    
+  }
+  
+  private void createAndAdd(Record record) {
     if (deleteIds.size() > 0)
       deleteRecords();
     SolrInputDocument document = createDocument(record);
@@ -50,7 +65,7 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     else
       logger.warn( "Failed to convert record to SolrDocument. Not adding: " + record);
     if (limit != null && docs.size() >= limit)
-      addRecords();
+      addRecords();    
   }
 
   synchronized public void delete(String id) {
