@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,9 +13,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.eclipse.persistence.oxm.annotations.XmlInverseReference;
 
 @Entity
 @Table(name="TRANSFORMATION_STEP")
@@ -52,7 +53,24 @@ public class TransformationStepAssociation implements Serializable, Cloneable {
     this.id = id;
   }
   
-  @XmlIDREF
+  private static class TransformationAdapter extends XmlAdapter<String, Transformation> {
+
+    @Override
+    public Transformation unmarshal(String v) throws Exception {
+      Long id = Long.parseLong(v);
+      Transformation t = new Transformation();
+      t.setId(id);
+      return t;
+    }
+
+    @Override
+    public String marshal(Transformation v) throws Exception {
+      return v.getStringId();
+    }
+    
+  }
+  
+  @XmlJavaTypeAdapter(TransformationAdapter.class)
   public Transformation getTransformation() {
     return transformation;
   }
@@ -61,13 +79,14 @@ public class TransformationStepAssociation implements Serializable, Cloneable {
     this.transformation = transformation;
   }
   
+  public TransformationStep getStep() {
+    return step;
+  }
+  
   public void setStep(TransformationStep step) {
     this.step = step;
   }
 
-  public TransformationStep getStep() {
-    return step;
-  }
 
   public void setPosition(int position) {
     this.position = position;
