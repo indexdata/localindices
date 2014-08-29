@@ -36,11 +36,13 @@ import org.xml.sax.SAXException;
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
+  private final Date lastFrom;
   private final static int defaultSplitAt = 0;
 
   public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,
     Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
     super(resource, job, proxy, logger, dc);
+    lastFrom = lastRequested;
   }
 
   @Override
@@ -91,6 +93,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     logger.info("Preparing retrieval of " + url);
     try {
       ClientTransport clientTransport = factory.lookup(url);
+      clientTransport.setFromDate(lastFrom);
       clientTransport.connect(url);
       try {
         RemoteFileIterator iterator = clientTransport.get(url);

@@ -24,6 +24,13 @@
               value="#{resourceController.resource.overwrite}" />
         <h:outputText value="Ask server for new files only (incremental):"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
+        <h:outputText value="Initial from date (if incremental, yyyy-MM-dd):"/>
+        <h:panelGroup>
+            <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8">
+                <f:convertDateTime pattern="yyyy-MM-dd" />
+            </h:inputText>
+            <h:message for="fromDate" style="color: red;" />
+        </h:panelGroup>
         <h:outputText value="Split XML at depth (zero/empty disables split):"/>
         <h:inputText value="#{resourceController.resource.splitAt}"/>
         <h:outputText value="Split files at number of records (zero/empty disables split):"/>

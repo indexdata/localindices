@@ -14,11 +14,10 @@ import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import java.util.zip.ZipInputStream;
 
 public class HttpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
-  private Date lastRequested;
+  private Date lastFrom;
   private HttpURLConnection conn;
   private Integer timeout;
   private final ClientTransportFactory clientTransportFactory;
@@ -59,6 +58,7 @@ public class HttpClientTransport implements ClientTransport {
       //and a single file retrieval failure may terminate the entire index handling
       //see MKH-441
       ClientTransport client = clientTransportFactory.lookup(link);
+      client.setFromDate(lastFrom);
       client.connect(link);
       //we only expect jump pages to be linked directly in the harvester
       //otherwise we would need to protect against back-links, cycles, etc
@@ -75,13 +75,13 @@ public class HttpClientTransport implements ClientTransport {
     if (conn == null)
       throw new ClientTransportError("HTTP client must be initialized with a call to #connect");
     conn.setRequestMethod("GET");
-    if (lastRequested != null) {
+    if (lastFrom != null) {
       try {
-      String lastModified = DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
+      String lastModified = DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT);
       logger.info("Conditional request If-Modified-Since: " + lastModified);
       conn.setRequestProperty("If-Modified-Since", lastModified);
       } catch (ParseException pe) {
-	logger.error("Failed to parse last modified date: " + lastRequested);
+	logger.error("Failed to parse last modified date: " + lastFrom);
       }
     }
     conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
@@ -115,9 +115,9 @@ public class HttpClientTransport implements ClientTransport {
     } else if (responseCode == 304) {// not-modified
       try {
 	logger.info("Content was not modified since '"
-	    + DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
+	    + DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
       } catch (ParseException pe) {
-	throw new RuntimeException("Failed to parse Date: " + lastRequested, pe);
+	throw new RuntimeException("Failed to parse Date: " + lastFrom, pe);
       }
       return new EmptyRemoteFileIterator();
     } else {
@@ -137,14 +137,6 @@ public class HttpClientTransport implements ClientTransport {
     return contentLength;
   }
 
-  public Date getLastRequested() {
-    return lastRequested;
-  }
-
-  public void setLastRequested(Date lastRequested) {
-    this.lastRequested = lastRequested;
-  }
-
   public Integer getTimeout() {
     return timeout;
   }
@@ -156,7 +148,7 @@ public class HttpClientTransport implements ClientTransport {
 
   @Override
   public void setFromDate(Date date) {
-    lastRequested = date;
+    lastFrom = date;
   }
 
   @Override
