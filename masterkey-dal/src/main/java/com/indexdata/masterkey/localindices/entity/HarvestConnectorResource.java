@@ -30,10 +30,6 @@ public class HarvestConnectorResource extends Harvestable {
   private Setting connectorEngineUrlSetting;
   @ManyToOne(optional = true)
   private Setting connectorRepoUrlSetting;
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date fromDate;
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date untilDate;
   private String resumptionToken;
   private String isPersistence;
   private Long sleep;
@@ -63,23 +59,6 @@ public class HarvestConnectorResource extends Harvestable {
   public void setConnectorRepoUrlSetting(Setting connectorRepoUrlSetting) {
     this.connectorRepoUrlSetting = connectorRepoUrlSetting;
   }
-
-  public Date getFromDate() {
-    return fromDate;
-  }
-
-  public void setFromDate(Date date) {
-    this.fromDate = date;
-  }
-
-  public Date getUntilDate() {
-    return untilDate;
-  }
-  
-  public void setUntilDate(Date date) {
-    this.untilDate = date;
-  }
-
   
   public String getResumptionToken() {
     return resumptionToken;
