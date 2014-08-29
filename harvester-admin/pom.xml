@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>2.6.9-SNAPSHOT</version>
+    <version>2.6.9</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>harvester-admin</artifactId>
