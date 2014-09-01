@@ -52,19 +52,42 @@ public class HttpClientTransport implements ClientTransport {
   private RemoteFileIterator handleJumpPage(HttpURLConnection conn) throws IOException, URISyntaxException, ClientTransportError 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
-    RemoteFileIteratorIterator itt = new RemoteFileIteratorIterator();
-    for (URL link : jp.getLinks()) {
-      //TODO this will open hundred of sockets at once!
-      //and a single file retrieval failure may terminate the entire index handling
-      //see MKH-441
-      ClientTransport client = clientTransportFactory.lookup(link);
-      client.setFromDate(lastFrom);
-      client.connect(link);
-      //we only expect jump pages to be linked directly in the harvester
-      //otherwise we would need to protect against back-links, cycles, etc
-      client.setRecursive(false);
-      RemoteFileIterator iter = client.get(link);
-      itt.add(iter);
+    InitializingRemoteFileIteratorIterator itt = new InitializingRemoteFileIteratorIterator();
+    for (final URL link : jp.getLinks()) {
+      //wrap the actual iterator in a delayed initialization proxy
+      NotInitializedRemoteFileIterator it = new NotInitializedRemoteFileIterator() {
+        RemoteFileIterator iterator;
+        @Override
+        public void init() throws IOException {
+          try {
+            ClientTransport client = clientTransportFactory.lookup(link);
+            client.setFromDate(lastFrom);
+            client.connect(link);
+            //we only expect jump pages to be linked directly in the harvester
+            //otherwise we would need to protect against back-links, cycles, etc
+            client.setRecursive(false);
+            iterator = client.get(link);
+          } catch (ClientTransportError cte) {
+            throw new IOException(cte);
+          }
+        }
+
+        @Override
+        public boolean isInitialized() {
+          return iterator != null;
+        }
+
+        @Override
+        public boolean hasNext() throws IOException {
+          return iterator.hasNext();
+        }
+
+        @Override
+        public RemoteFile getNext() throws IOException {
+          return iterator.getNext();
+        }
+      };
+      itt.add(it);
     }    
     return itt;
   }
