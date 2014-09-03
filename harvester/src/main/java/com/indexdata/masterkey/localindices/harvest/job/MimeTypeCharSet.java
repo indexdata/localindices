@@ -82,4 +82,12 @@ public class MimeTypeCharSet {
     return "application/sgml".equals(mimeType) || "text/sgml".equals(mimeType);
   }
   
+  public boolean isCSV() {
+    return "text/csv".equals(mimeType)
+      || "application/csv".equals(mimeType);
+  }
+  
+  public boolean isTSV() {
+    return "text/tab-separated-values".equals(mimeType);
+  }
 }

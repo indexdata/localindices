@@ -47,8 +47,12 @@ public class CSVConverter {
       withIgnoreSurroundingSpaces(true).
       withRecordSeparator("\r\n").
       withQuote('"');
-    format = containsHeader ? format.withHeader() : format;
-    
+    format = containsHeader ? format.withHeader() : format; 
+  }
+  
+  public String getFormatString() {
+    return "charset="+charset+"; delimiter="+delimiter
+      +"; header=" + (containsHeader ? "yes" : "no");
   }
   
   public void processViaDOM(InputStream is, MessageConsumer mc, boolean split) throws UnsupportedEncodingException, IOException {

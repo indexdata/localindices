@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.csv.CSVConverter;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
@@ -12,6 +13,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import static com.indexdata.utils.TextUtils.joinPath;
+import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 import java.io.BufferedInputStream;
 import java.io.EOFException;
@@ -21,7 +23,10 @@ import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.xml.transform.dom.DOMResult;
@@ -285,6 +290,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
       } else if (mimeType.isXML()) {
         logger.debug("Setting up XML reader ("+mimeType+")");
         storeXml(input);
+      } else if (mimeType.isCSV() || mimeType.isTSV()) {
+        logger.debug("Setting up CSV-to-XML converter");
+        storeCSV(input);
       } else {
         logger.info("Ignoring file '"+file.getName()
           +"' because of unsupported content-type '"+mimeType+"'");
@@ -425,6 +433,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
           guess = "application/gzip";
         } else if (fileName.endsWith(".mrc") || fileName.endsWith(".marc")) {
           guess = "application/marc";
+        } else if (fileName.endsWith(".csv")) {
+          guess = "text/csv";
+        } else if (fileName.endsWith(".tsv") || fileName.endsWith(".tab")) {
+          guess = "text/tab-separated-values";
         }
         if (guess != null) {
           mimeType = new MimeTypeCharSet(guess);
@@ -508,6 +520,20 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
+  private void storeCSV(InputStream input) throws IOException {
+    MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
+    try {
+      CSVConverter converter = new CSVConverter("");
+      int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
+      boolean split = splitAt > 0;
+      logger.debug("Converting CSV-to-XML using: '"
+        +converter.getFormatString()
+        +(split ? "' and splitting rows" : "' and not splitting rows"));
+      converter.processViaDOM(input, mc, split);
+    } catch (ParseException ex) {
+      throw new IOException(ex);
+    }
+  }
   public String getErrors() {
     return errors;
   }
@@ -515,4 +541,5 @@ public class XmlMarcClient extends AbstractHarvestClient {
   public void setErrors(String errors) {
     this.errors = errors;
   }
+
 }
