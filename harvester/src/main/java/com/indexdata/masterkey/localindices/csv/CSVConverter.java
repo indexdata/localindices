@@ -12,9 +12,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.csv.CSVFormat;
@@ -31,6 +33,7 @@ public class CSVConverter {
   private String charset = "iso-8859-1";
   private char delimiter = ',';
   private boolean containsHeader = true;
+  private String headerLine;
   private CSVFormat format;
 
   public CSVConverter(String configuration) throws ParseException {
@@ -40,14 +43,26 @@ public class CSVConverter {
       charset = params.get("charset");
     if (params.containsKey("delimiter"))
       delimiter = params.get("delimiter").charAt(0);
-    if (params.containsKey("header"))
-      containsHeader = "yes".equalsIgnoreCase(params.get("header"));
+    if (params.containsKey("containsHeader"))
+      containsHeader = "yes".equalsIgnoreCase(params.get("containsHeader"));
+    if (params.containsKey("headerLine"))
+      headerLine = params.get("headerLine");
+    //default format does not handle headers
     format = CSVFormat.newFormat(delimiter).
       withIgnoreEmptyLines(true).
       withIgnoreSurroundingSpaces(true).
-      withRecordSeparator("\r\n").
       withQuote('"');
-    format = containsHeader ? format.withHeader() : format; 
+    //we use specified format to parse the header line itself
+    String[] headerNames = headerLine != null 
+      ? parseHeaderNames(headerLine, format)
+      : null;
+    format = containsHeader 
+      ? headerLine == null 
+        ? format.withHeader()
+        : format.withSkipHeaderRecord(true).withHeader(headerNames)
+      : headerLine == null
+        ? format
+        : format.withHeader(headerNames);
   }
   
   public String getFormatString() {
@@ -60,7 +75,7 @@ public class CSVConverter {
     CSVParser parser = format.parse(reader);
     Document doc = split ? null : XmlUtils.newDoc("rows");
     Map<Integer, String> headers = null;
-    if (containsHeader) {
+    if (containsHeader || headerLine != null) {
       //invert the weird header map
       Map<String, Integer> headerMap = parser.getHeaderMap();
       headers = new HashMap<Integer, String>(headerMap.size());
@@ -80,7 +95,7 @@ public class CSVConverter {
       }
       for (int i=0; i<r.size(); i++) {
         Element fieldE = doc.createElement("field");
-        if (containsHeader) {
+        if (containsHeader || headerLine != null) {
           String name = headers.get(i);
           //one indexed
           name = name != null ? name : String.valueOf(i+1);
@@ -99,6 +114,25 @@ public class CSVConverter {
     //sent whole doc
     if (!split) {
       mc.accept(doc);
+    }
+  }
+
+  private String[] parseHeaderNames(String headerLine, CSVFormat format) throws ParseException {
+    try {
+      StringReader sr = new StringReader(headerLine);
+      CSVParser parser = format.parse(sr);
+      List<CSVRecord> lines = parser.getRecords();
+      if (lines.size() > 0) {
+        CSVRecord headerRecord = lines.get(0);
+        String[] headers = new String[headerRecord.size()];
+        for (int i=0; i<headerRecord.size(); i++) {
+          headers[i] = headerRecord.get(i);
+        }
+        return headers;
+      }
+      return new String[0];
+    } catch (IOException ioe) {
+      throw new ParseException("Can't parse header configuration", 0);
     }
   }
   

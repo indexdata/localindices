@@ -36,6 +36,12 @@ public class CSVConverterTest {
     + " but because it is in quote, the comma's are not interpreted as delimiters\"\n" +
     "BarTitle, Bar Name, \"http://bar.com\", \"Another Description\"";
   
+  private static String csvWithHeaders2 = 
+    "Label,Name,URL,Description\n" +
+    "FooTitle, Foo Name, \"http://foo.com\", \"Some description, with coma's,"
+    + " but because it is in quote, the comma's are not interpreted as delimiters\"\n" +
+    "BarTitle, Bar Name, \"http://bar.com\", \"Another Description\"";
+  
   private static String xmlCsvWithHeadersNoSplit =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rows><row>"
     + "<field name=\"Title\">FooTitle</field>"
@@ -140,7 +146,7 @@ public class CSVConverterTest {
   public void testProcessViaDOMWithoutHeadersSplit() throws Exception {
     MessageConsumer mc = new TestConsumer(xmlCsvWithoutHeadersSplit1, xmlCsvWithoutHeadersSplit2);
     boolean split = true;
-    CSVConverter instance = new CSVConverter("header=no");
+    CSVConverter instance = new CSVConverter("containsHeader=no");
     InputStream is = new ByteArrayInputStream(csvWithoutHeaders.getBytes("iso-8859-1"));
     instance.processViaDOM(is, mc, split);
   }
@@ -158,7 +164,25 @@ public class CSVConverterTest {
   public void testProcessViaDOMWithoutHeadersNoSplit() throws Exception {
     MessageConsumer mc = new TestConsumer(xmlCsvWithoutHeadersNoSplit);
     boolean split = false;
-    CSVConverter instance = new CSVConverter("header=no");
+    CSVConverter instance = new CSVConverter("containsHeader=no");
+    InputStream is = new ByteArrayInputStream(csvWithoutHeaders.getBytes("iso-8859-1"));
+    instance.processViaDOM(is, mc, split);
+  }
+  
+  @Test
+  public void testProcessViaDOMOverrideHeader() throws Exception {
+    MessageConsumer mc = new TestConsumer(xmlCsvWithHeadersNoSplit);
+    boolean split = false;
+    CSVConverter instance = new CSVConverter("headerLine=Title,Name,URL,Description");
+    InputStream is = new ByteArrayInputStream(csvWithHeaders2.getBytes("iso-8859-1"));
+    instance.processViaDOM(is, mc, split);
+  }
+  
+  @Test
+  public void testProcessViaDOMSpecifyHeader() throws Exception {
+    MessageConsumer mc = new TestConsumer(xmlCsvWithHeadersNoSplit);
+    boolean split = false;
+    CSVConverter instance = new CSVConverter("containsHeader=no; headerLine=Title,Name,URL,Description");
     InputStream is = new ByteArrayInputStream(csvWithoutHeaders.getBytes("iso-8859-1"));
     instance.processViaDOM(is, mc, split);
   }
