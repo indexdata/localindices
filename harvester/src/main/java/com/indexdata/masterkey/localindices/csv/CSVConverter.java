@@ -67,7 +67,8 @@ public class CSVConverter {
   
   public String getFormatString() {
     return "charset="+charset+"; delimiter="+delimiter
-      +"; header=" + (containsHeader ? "yes" : "no");
+      +"; containsHeader=" + (containsHeader ? "yes" : "no")
+      + (headerLine != null ? "; headerLine="+headerLine : "");
   }
   
   public void processViaDOM(InputStream is, MessageConsumer mc, boolean split) throws UnsupportedEncodingException, IOException {

@@ -523,7 +523,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void storeCSV(InputStream input) throws IOException {
     MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
     try {
-      CSVConverter converter = new CSVConverter("");
+      CSVConverter converter = new CSVConverter(
+        getResource().getCsvConfiguration() != null ? getResource().getCsvConfiguration() : "");
       int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
       boolean split = splitAt > 0;
       logger.debug("Converting CSV-to-XML using: '"

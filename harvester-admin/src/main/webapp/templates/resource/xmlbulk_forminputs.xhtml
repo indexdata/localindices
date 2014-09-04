@@ -43,6 +43,8 @@
         <h:selectBooleanCheckbox value="#{resourceController.resource.recurse}"/>
         <h:outputText value="Use passive mode for FTP transfers"/>
         <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
+        <h:outputText value="CSV parser configuration:"/>
+        <h:inputText value="#{resourceController.resource.csvConfiguration}"/>
       </h:panelGrid>
     </ui:composition>
   </body>

@@ -32,6 +32,7 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private boolean recursionLevels;
   @Column(nullable=false)
   private boolean passiveMode;
+  private String csvConfiguration;
 
   public XmlBulkResource() {
   }
@@ -120,6 +121,14 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 
   public void setPassiveMode(boolean passiveMode) {
     this.passiveMode = passiveMode;
+  }
+
+  public String getCsvConfiguration() {
+    return csvConfiguration;
+  }
+
+  public void setCsvConfiguration(String csvConfiguration) {
+    this.csvConfiguration = csvConfiguration;
   }
   
 }
