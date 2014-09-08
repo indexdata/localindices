@@ -12,15 +12,15 @@ import org.apache.commons.net.ftp.FTPFileFilter;
 
 public class FtpRemoteFileIterator implements RemoteFileIterator {
   private final StorageJobLogger logger;
-  private final FTPClient client;
+  private final FtpClientTransport transport;
   private final URL parent;
   private final List<FTPFile> files = new LinkedList<FTPFile>();
   private FTPFileFilter filter = null;
   private int index = 0;
   
-  public FtpRemoteFileIterator(FTPClient client, URL parent, FTPFile[] files, FTPFileFilter filter,
+  public FtpRemoteFileIterator(FtpClientTransport transport, URL parent, FTPFile[] files, FTPFileFilter filter,
     StorageJobLogger logger) {
-    this.client = client;
+    this.transport = transport;
     this.parent = parent;
     this.logger = logger;
     this.filter = filter;
@@ -39,10 +39,10 @@ public class FtpRemoteFileIterator implements RemoteFileIterator {
   public synchronized RemoteFile getNext() throws IOException {
     FTPFile file = files.get(index++);   
     if (file.isDirectory()) {
-      return new FtpRemoteDirectory(parent, file, client, filter, logger);
+      return new FtpRemoteDirectory(parent, transport, file, filter, logger);
     }
     else 
-      return new FtpRemoteFile(parent, file, client, logger);
+      return new FtpRemoteFile(parent, file, transport, logger);
   }
 
 }

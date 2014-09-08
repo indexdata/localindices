@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-import com.sun.research.ws.wadl.Resource;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -19,17 +18,30 @@ public class FtpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
   private Date fromDate;
   private FTPClient client = null;
-  private boolean isRecursive;
   private final boolean usePassive;
+  private URL ftpUrl = null;
 
   public FtpClientTransport(StorageJobLogger logger, boolean usePassive) {
     this.logger = logger;
     this.usePassive = usePassive;
   }
 
+  public void reconnect (int wait_ms) throws IOException {
+    try {
+      Thread.sleep(wait_ms);
+    } catch (InterruptedException ie) {
+      //
+    }
+    connect(ftpUrl);
+    login(ftpUrl.getUserInfo());
+  }
+  
   @Override
   public void connect(URL ftpUrl) throws IOException {
-    client = new FTPClient();
+    if (client == null) {
+      client = new FTPClient();
+      this.ftpUrl = ftpUrl;  
+    }
     String host = ftpUrl.getHost();
     int port = (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort());
     try {
@@ -81,6 +93,10 @@ public class FtpClientTransport implements ClientTransport {
       throw new IOException("Could not log in to FTP server: No user info provided with FTP URL.");
     }
   }
+  
+  public FTPClient getClient () {
+    return client;
+  }
 
   @Override
   public synchronized RemoteFileIterator get(URL url) throws IOException,
@@ -94,7 +110,7 @@ public class FtpClientTransport implements ClientTransport {
       path = path.substring(1);
     }
     logger.info("Retrieving file list for " + path + (fromDate != null ? " with timestamps after " + fromDate : ""));
-    
+
     FTPFileFilter filter = (fromDate != null ? new FTPDateFilter(fromDate) : FTPFileFilters.ALL);
     FTPFile[] files =  client.listFiles(path,filter); 
 
@@ -103,7 +119,7 @@ public class FtpClientTransport implements ClientTransport {
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
-    return new FtpRemoteFileIterator(client, url, files, filter, logger);
+    return new FtpRemoteFileIterator(this, url, files, filter, logger);
   }
 
   @Override
@@ -118,9 +134,7 @@ public class FtpClientTransport implements ClientTransport {
 
   @Override
   public void setRecursive(boolean isRecursive) {
-    this.isRecursive = isRecursive;
+    // not applicable for this transport
   }
-  
-  
 
 }

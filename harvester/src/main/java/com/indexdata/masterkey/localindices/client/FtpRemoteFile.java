@@ -12,16 +12,16 @@ import org.apache.commons.net.ftp.FTPFile;
 public class FtpRemoteFile extends RemoteFile {
   private final StorageJobLogger logger;
   private final FTPFile file; 
-  private final FTPClient client;
   private final String rootRelPath;
   private FtpInputStream ftpInputStream;
+  private final FtpClientTransport transport;
   
-  public FtpRemoteFile(URL parent, FTPFile file, FTPClient client, 
+  public FtpRemoteFile(URL parent, FTPFile file, FtpClientTransport transport, 
     StorageJobLogger logger) throws MalformedURLException, IOException {
     super(new URL(parent, basename(file.getName())), logger);
-    this.file = file;
-    this.client = client; 
+    this.file = file;    
     this.logger = logger;
+    this.transport = transport;
     //FTP needs root relative paths!
     if (getAbsoluteName().startsWith("/")) {
       rootRelPath = getAbsoluteName().substring(1);
@@ -37,8 +37,10 @@ public class FtpRemoteFile extends RemoteFile {
   
   @Override
   public synchronized InputStream getInputStream() throws IOException {
-    if (ftpInputStream != null)
-      return ftpInputStream;
+    // TODO: Still Needed?!? Makes app hang after reconnect.
+    //if (ftpInputStream != null)
+    //  return ftpInputStream;
+    FTPClient client = ((FtpClientTransport)transport).getClient();
     client.setFileType(FTP.BINARY_FILE_TYPE);
     InputStream data = client.retrieveFileStream(rootRelPath);
     if (data == null) {

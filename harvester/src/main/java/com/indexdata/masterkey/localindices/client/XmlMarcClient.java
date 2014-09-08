@@ -70,13 +70,18 @@ public class XmlMarcClient extends AbstractHarvestClient {
     } else {
       try {
         logger.info("Found harvestable file: "+file.getName());
-        storeAny(file, proposeCachePath());
-        count++;
-      } catch (IOException ex) {     
+        boolean iosuccess = storeAny(file, proposeCachePath());
+        if (iosuccess) {
+          count++;
+        } else {
+          count = -1;
+        }
+      } catch (IOException ex) {
         if (getResource().getAllowErrors()) {
           logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.getMessage());
           logger.debug("Cause", ex);
           setErrors(getErrors() + (file.getAbsoluteName() + " "));
+          count = -1;
         } else {
           throw ex;
         }
@@ -114,7 +119,20 @@ public class XmlMarcClient extends AbstractHarvestClient {
                   +"' but recursion is off, ignoring.");
               }
             } else {
-              download(rf);
+              int filesDownloaded = download(rf);
+              if (filesDownloaded == -1) {
+                logger.info("IO problem occured during download/store. Attempting reconnect in 10 seconds.");
+                // TODO: check type!!!
+                // TODO: honor allow-errors setting
+                // TODO: make retry pause and # retry attempts configurable?
+                try {
+                  ((FtpClientTransport)clientTransport).reconnect(10000);
+                  download(rf);
+                } catch (IOException e) {
+                  logger.error("Attempt to reconnect failed: " + e.getMessage());
+                  throw new ClientTransportError("Attempt to reconnect failed: " + e.getMessage());
+                }
+              }
             }
           }
         } else {
@@ -159,12 +177,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
     return 0;
   }
   
-  private void storeAny(RemoteFile file, String cacheFile) throws IOException {
-    storeAny(file, cacheFile, true);
+  private boolean storeAny(RemoteFile file, String cacheFile) throws IOException {
+    return storeAny(file, cacheFile, true);
   }
 
-  private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
+  private boolean storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
     IOException {
+    boolean iosuccessful = true;
     //buffer reads
     InputStream input = shouldBuffer 
       ? new BufferedInputStream(file.getInputStream())
@@ -191,6 +210,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 getMessage());
               logger.debug("Cause", ex);
               setErrors(getErrors() + (file.getAbsoluteName() + " "));
+              iosuccessful = false;
             } else {
               throw ex;
             }
@@ -200,7 +220,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
-        return;
+        return iosuccessful;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         zis.close();
@@ -216,10 +236,11 @@ public class XmlMarcClient extends AbstractHarvestClient {
           if (getResource().getAllowErrors()) {
             logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
             setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+            iosuccessful=false;
           } else {
             throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
           }
-          return;
+          return iosuccessful;
         }
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
@@ -237,6 +258,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
               logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
                 getMessage());
               setErrors(getErrors() + (file.getAbsoluteName() + " "));
+              iosuccessful=false;
             } else {
               throw ex;
             }
@@ -246,7 +268,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
-        return;
+        return iosuccessful;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         tis.close();
@@ -267,10 +289,11 @@ public class XmlMarcClient extends AbstractHarvestClient {
           if (getResource().getAllowErrors()) {
             logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
             setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+            iosuccessful=false;
           } else {
             throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
           }
-          return;
+          return iosuccessful;
         }
     }
     // user mime-type override
@@ -298,9 +321,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
           +"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
-      //make sure the stream is closed!
-      input.close();
+      logger.debug("StoreAny: Closing input stream.");
+      try {
+        input.close();
+        logger.debug("StoreAny: Input stream closed.");
+      } catch (IOException e) {
+        iosuccessful = false;
+        logger.error("IO error when attempting to close download stream.");
+     }
     }
+    return iosuccessful;
   }
   
   private boolean isMarc(InputStream is) throws IOException {

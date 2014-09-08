@@ -10,15 +10,15 @@ import org.apache.commons.net.ftp.FTPFileFilter;
 
 public class FtpRemoteDirectory extends RemoteFile { 
   private final FTPFile directory;
-  private final FTPClient client;
   private final FTPFileFilter filter;
+  private final FtpClientTransport transport;
   
-  public FtpRemoteDirectory(URL parent, 
-    FTPFile file, FTPClient client, FTPFileFilter filter, StorageJobLogger logger) throws MalformedURLException, IOException {
+  public FtpRemoteDirectory(URL parent, FtpClientTransport transport, 
+    FTPFile file, FTPFileFilter filter, StorageJobLogger logger) throws MalformedURLException, IOException {
     super(new URL(parent, basename(file.getName()) + "/"), logger);
+    this.transport = transport;
     this.directory = file;
     this.filter = filter;
-    this.client = client;
   }
 
   @Override
@@ -28,6 +28,7 @@ public class FtpRemoteDirectory extends RemoteFile {
   
   @Override
   public FtpRemoteFileIterator getIterator () {
+    FTPClient client = ((FtpClientTransport) transport).getClient();
     String path = url.getPath();
     if (path.startsWith("/")) {
       path = path.substring(1);
@@ -44,7 +45,7 @@ public class FtpRemoteDirectory extends RemoteFile {
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
-    return new FtpRemoteFileIterator(client, url, files, filter, logger); 
+    return new FtpRemoteFileIterator(transport, url, files, filter, logger); 
   }
 
   @Override
