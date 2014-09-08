@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.commons.net.ftp.FTPFile;
 
 public class FtpRemoteFile extends RemoteFile {
@@ -36,7 +37,7 @@ public class FtpRemoteFile extends RemoteFile {
   }
   
   @Override
-  public synchronized InputStream getInputStream() throws IOException {
+  public synchronized InputStream getInputStream() throws FTPConnectionClosedException, IOException {
     // TODO: Still Needed?!? Makes app hang after reconnect.
     //if (ftpInputStream != null)
     //  return ftpInputStream;

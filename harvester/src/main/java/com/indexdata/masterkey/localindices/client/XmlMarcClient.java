@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -31,6 +32,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.xml.transform.dom.DOMResult;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcWriter;
@@ -60,7 +62,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     return (XmlBulkResource) resource;
   }
 
-  public int download(RemoteFile file) throws Exception {
+  public int download(RemoteFile file) throws IOException {
     int count = 0;
     if (file.isDirectory()) {
       RemoteFileIterator iterator = file.getIterator();
@@ -68,24 +70,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
         count += download(iterator.getNext());
       }
     } else {
-      try {
-        logger.info("Found harvestable file: "+file.getName());
-        boolean iosuccess = storeAny(file, proposeCachePath());
-        if (iosuccess) {
-          count++;
-        } else {
-          count = -1;
-        }
-      } catch (IOException ex) {
-        if (getResource().getAllowErrors()) {
-          logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.getMessage());
-          logger.debug("Cause", ex);
-          setErrors(getErrors() + (file.getAbsoluteName() + " "));
-          count = -1;
-        } else {
-          throw ex;
-        }
-      }
+      logger.info("Found harvestable file: "+file.getName());
+      storeAny(file, proposeCachePath());
+      count++;
     }
     return count;
   }
@@ -115,22 +102,64 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 logger.info("Found subfolder '"+rf.getName()+"' and recursion is on.");
                 download(rf);
               } else {
-                logger.info("Found subfolder '"+rf.getName()
-                  +"' but recursion is off, ignoring.");
+                logger.info("Found subfolder '"+rf.getName()+"' but recursion is off, ignoring.");
               }
             } else {
-              int filesDownloaded = download(rf);
-              if (filesDownloaded == -1) {
-                logger.info("IO problem occured during download/store. Attempting reconnect in 10 seconds.");
-                // TODO: check type!!!
-                // TODO: honor allow-errors setting
-                // TODO: make retry pause and # retry attempts configurable?
-                try {
-                  ((FtpClientTransport)clientTransport).reconnect(10000);
-                  download(rf);
-                } catch (IOException e) {
-                  logger.error("Attempt to reconnect failed: " + e.getMessage());
-                  throw new ClientTransportError("Attempt to reconnect failed: " + e.getMessage());
+              try {
+                download(rf);
+              } catch (FTPConnectionClosedException fcce) {
+                if (getResource().getAllowErrors()) {
+                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + fcce.getMessage());
+                  logger.debug("Cause", fcce);
+                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+                  logger.info("Connection lost. Attempting reconnect in 10 seconds.");
+                    try {
+                      ((FtpClientTransport)clientTransport).reconnect(10000);
+                      download(rf);
+                    } catch (IOException ioe) {
+                      logger.error("Second download attempt failed: " + ioe.getMessage());
+                      if (getResource().getAllowErrors()) {
+                        logger.error(getErrors() + (rf.getAbsoluteName() + " "));
+                        setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
+                      } else {
+                        throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
+                      }
+                    }
+                } else {
+                  throw fcce;
+                }
+              } catch (SocketException se) {
+                if (getResource().getAllowErrors()) {
+                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + se.getMessage());
+                  logger.debug("Cause", se);
+                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+                  if (clientTransport instanceof FtpClientTransport) {
+                    logger.info("Connection aborted. Attempting reconnect in 10 seconds.");
+                      try {
+                        ((FtpClientTransport)clientTransport).reconnect(10000);
+                        download(rf);
+                      } catch (IOException ioe) {
+                        logger.error("Second download attempt failed: " + ioe.getMessage());
+                        if (getResource().getAllowErrors()) {
+                          logger.error(getErrors() + (rf.getAbsoluteName() + " "));
+                          setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
+                        } else {
+                          throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
+                        }
+                      }
+                   } 
+                } else {
+                  throw se;
+                }
+              } catch (Exception e) {
+                logger.info("Problem occured during download/store: " + e.getMessage());
+                logger.info("Cause: " + e.getCause());
+                if (getResource().getAllowErrors()) {
+                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + e.getMessage());
+                  logger.debug("Cause", e);
+                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+                } else {
+                  throw e;
                 }
               }
             }
@@ -140,7 +169,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         }
       } catch (ClientTransportError cte) {
         if (getResource().getAllowErrors()) {
-          setErrors(getErrors() + (url.toString() + " "));
+          setErrors("ClientTransportError, " + getErrors() + (url.toString() + " "));
           return 1;
         } else {
           throw cte;
@@ -177,13 +206,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
     return 0;
   }
   
-  private boolean storeAny(RemoteFile file, String cacheFile) throws IOException {
-    return storeAny(file, cacheFile, true);
+  private void storeAny(RemoteFile file, String cacheFile) throws IOException {
+    storeAny(file, cacheFile, true);
   }
 
-  private boolean storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
-    IOException {
-    boolean iosuccessful = true;
+  private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
+    EOFException, FTPConnectionClosedException, IOException  {
     //buffer reads
     InputStream input = shouldBuffer 
       ? new BufferedInputStream(file.getInputStream())
@@ -196,31 +224,17 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned ZIP compressed file, expanding..");
       ZipInputStream zis = new ZipInputStream(input);
       try {
-        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),
-          zis, null, logger);
+        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),zis, null, logger);
         int count = 0;
         while (it.hasNext()) {
           RemoteFile rf = it.getNext();
           logger.info("Found harvestable file: "+rf.getName());
-          try {
-            storeAny(rf, proposeCachePath());
-          } catch (IOException ex) {
-            if (getResource().getAllowErrors()) {
-              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
-                getMessage());
-              logger.debug("Cause", ex);
-              setErrors(getErrors() + (file.getAbsoluteName() + " "));
-              iosuccessful = false;
-            } else {
-              throw ex;
-            }
-          }
+          storeAny(rf, proposeCachePath());
           count++;
         }
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
-        return iosuccessful;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         zis.close();
@@ -229,19 +243,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned TAR archive file, expanding..");
       if (mimeType.isTarGz()) {
         logger.debug("TAR archive is GZIP compressed, decompressing..");
-        try {
-          input = new GZIPInputStream(input);
-        } catch (EOFException eof) {
-          input.close();
-          if (getResource().getAllowErrors()) {
-            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
-            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
-            iosuccessful=false;
-          } else {
-            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
-          }
-          return iosuccessful;
-        }
+        input = new GZIPInputStream(input);
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
       try {
@@ -251,30 +253,17 @@ public class XmlMarcClient extends AbstractHarvestClient {
         while (it.hasNext()) {
           RemoteFile rf = it.getNext();
           logger.info("Found harvestable file: "+rf.getName());
-          try {
-            storeAny(rf, proposeCachePath());
-          } catch (IOException ex) {
-            if (getResource().getAllowErrors()) {
-              logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
-                getMessage());
-              setErrors(getErrors() + (file.getAbsoluteName() + " "));
-              iosuccessful=false;
-            } else {
-              throw ex;
-            }
-          }
+          storeAny(rf, proposeCachePath());
           count++;
         }
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
-        return iosuccessful;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         tis.close();
       }
     } else if (mimeType.isGzip()) {
-      try {
         input = new GZIPInputStream(input);
         file.setLength(-1);
         String trimmedName = null;
@@ -284,17 +273,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //we need to bugger again to detect file type
         input = new BufferedInputStream(input);
         mimeType = deduceMimeType(input, trimmedName, null);
-      } catch (EOFException eof) {
-          input.close();
-          if (getResource().getAllowErrors()) {
-            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
-            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
-            iosuccessful=false;
-          } else {
-            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
-          }
-          return iosuccessful;
-        }
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
@@ -317,20 +295,14 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.debug("Setting up CSV-to-XML converter");
         storeCSV(input, mimeType);
       } else {
-        logger.info("Ignoring file '"+file.getName()
-          +"' because of unsupported content-type '"+mimeType+"'");
+        logger.info("Ignoring file '"+file.getName()+"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
       logger.debug("StoreAny: Closing input stream.");
-      try {
-        input.close();
-        logger.debug("StoreAny: Input stream closed.");
-      } catch (IOException e) {
-        iosuccessful = false;
-        logger.error("IO error when attempting to close download stream.");
-     }
+      // Attempting to close input stream. If the connection was lost, an FTPConnectionClosedException will be thrown 
+      input.close();
+      logger.debug("StoreAny: Input stream closed.");
     }
-    return iosuccessful;
   }
   
   private boolean isMarc(InputStream is) throws IOException {
@@ -525,6 +497,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         }
         if (e.getCause() instanceof EOFException) {
           logger.warn("Received EOF when reading record # " + index);
+          throw e;
         }
         break;
       }
