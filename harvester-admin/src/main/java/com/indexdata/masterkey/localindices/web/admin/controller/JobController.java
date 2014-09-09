@@ -650,11 +650,19 @@ public class JobController {
     StringBuilder sb = new StringBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String line;
-    String lastLine = null;
+    Date lastLineDate = null;
     try {
       while ((line = reader.readLine()) != null) {
 	sb.append(line).append("\n");
-        lastLine = line;
+        if (line.length() > dateFieldLength) { //possibly a line with a date
+          //TODO assuming admin and engine have the same timezon
+          TimeZone tz = TimeZone.getDefault();
+          try {
+            lastLineDate = ISOLikeDateParser.parse(line.substring(0,dateFieldLength), tz);
+          } catch (ParseException pe) {
+            //parsing failed, probably not a date
+          }
+        }
       }
     } catch (IOException e) {
       logger.error("Error reading logfile", e);
@@ -665,25 +673,11 @@ public class JobController {
         logger.warn("Error closing log stream", ex);
       }
     }
-    //parse the last log date, this is more reliable than local time
-    if (lastLine != null) {
-      if (lastLine.length() > dateFieldLength) {
-        try {
-          //log entries are in the harvester local times zone
-          //we assume the same time zone as harvester admin
-          //TODO ask the harvester for the time zone
-          TimeZone tz = TimeZone.getDefault();
-          Date lastEntry = ISOLikeDateParser.parse(lastLine.substring(0,dateFieldLength), tz);
-          //add 1ms to avoid fetching duplicate entries
-          logFrom = new Date(lastEntry.getTime()+1);
-        } catch (ParseException pe) {
-          //it's possible that we are unlucky and the lastline does not have a timestamp
-          //we assume current date
-          logFrom = new Date();
-        }
-      } else {
-        logFrom = new Date();
-      }
+    //did we manage to parse out a date?
+    if (lastLineDate != null) {
+      logger.info("Date of the last log line:"+lastLineDate);
+      //move the from marker, otherwise keep the old value
+      logFrom = new Date(lastLineDate.getTime()+1);
     }
     return sb.toString();
   }
