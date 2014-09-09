@@ -27,7 +27,7 @@ public class FtpRemoteDirectory extends RemoteFile {
   }
   
   @Override
-  public FtpRemoteFileIterator getIterator () {
+  public FtpRemoteFileIterator getIterator () throws IOException {
     FTPClient client = ((FtpClientTransport) transport).getClient();
     String path = url.getPath();
     if (path.startsWith("/")) {
@@ -39,6 +39,7 @@ public class FtpRemoteDirectory extends RemoteFile {
       files = client.listFiles(path, filter);
     } catch (IOException e) {
       logger.error("Could not browse FTP directory due to " + e.getMessage());
+      throw e;
     }
     if (files == null || files.length==0) {
       logger.warn("Did not find any files at " + path);

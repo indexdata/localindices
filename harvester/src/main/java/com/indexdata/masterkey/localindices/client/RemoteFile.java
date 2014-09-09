@@ -81,7 +81,7 @@ public class RemoteFile  {
     return url.getPath();
   }
 
-  public RemoteFileIterator getIterator() {
+  public RemoteFileIterator getIterator() throws IOException {
     return null;
   }
   

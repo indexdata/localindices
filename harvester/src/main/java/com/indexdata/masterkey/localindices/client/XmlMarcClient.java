@@ -97,41 +97,42 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (iterator.hasNext()) {
           while (iterator.hasNext()) {
             RemoteFile rf = iterator.getNext();
-            if (rf.isDirectory()) {
-              if (getResource().getRecurse()) {
-                logger.info("Found subfolder '"+rf.getName()+"' and recursion is on.");
-                download(rf);
+            try {
+              if (rf.isDirectory()) {
+                if (getResource().getRecurse()) {
+                  logger.info("Found subfolder '"+rf.getName()+"' and recursion is on.");
+                  download(rf);
+                } else {
+                  logger.info("Found subfolder '"+rf.getName()+"' but recursion is off, ignoring.");
+                }
               } else {
-                logger.info("Found subfolder '"+rf.getName()+"' but recursion is off, ignoring.");
+                  download(rf);
               }
-            } else {
-              try {
-                download(rf);
-              } catch (FTPConnectionClosedException fcce) {
-                if (getResource().getAllowErrors() && !job.isKillSent()) {
-                  retryFtpDownload(clientTransport, rf, fcce);
-                } else {
-                  throw fcce;
-                }
-              } catch (SocketException se) {
-                if (getResource().getAllowErrors() && !job.isKillSent() && clientTransport instanceof FtpClientTransport) {
-                  retryFtpDownload(clientTransport, rf, se);
-                } else {
-                  throw se;
-                } 
-              } catch (Exception e) {
-                if (job.isKillSent()) throw e;
-                logger.info("Problem occured during download/store: " + e.getMessage());
-                logger.info("Cause: " + e.getCause());
-                if (getResource().getAllowErrors()) {
-                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + e.getMessage());
-                  logger.debug("Cause", e);
-                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
-                } else {
-                  throw e;
-                }
+            } catch (FTPConnectionClosedException fcce) {
+              if (getResource().getAllowErrors() && !job.isKillSent()) {
+                retryFtpDownload(clientTransport, rf, fcce);
+              } else {
+                throw fcce;
+              }
+            } catch (SocketException se) {
+              if (getResource().getAllowErrors() && !job.isKillSent() && clientTransport instanceof FtpClientTransport) {
+                retryFtpDownload(clientTransport, rf, se);
+              } else {
+                throw se;
+              } 
+            } catch (Exception e) {
+              if (job.isKillSent()) throw e;
+              logger.info("Problem occured during download/store: " + e.getMessage());
+              logger.info("Cause: " + e.getCause());
+              if (getResource().getAllowErrors()) {
+                logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + e.getMessage());
+                logger.debug("Cause", e);
+                setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+              } else {
+                throw e;
               }
             }
+
           }
         } else {
           getJob().setStatus(HarvestStatus.OK, "Found no files at "+url+ (getResource().getAllowCondReq() ? ", possibly due to filtering. " : ""));
