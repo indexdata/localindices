@@ -109,49 +109,15 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 download(rf);
               } catch (FTPConnectionClosedException fcce) {
                 if (getResource().getAllowErrors() && !job.isKillSent()) {
-                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + fcce.getMessage());
-                  logger.debug("Cause", fcce);
-                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
-                  logger.info("Connection lost. Attempting reconnect in 10 seconds.");
-                  try {
-                    ((FtpClientTransport)clientTransport).reconnect(10000);
-                    download(rf);
-                  } catch (IOException ioe) {
-                    if (!job.isKillSent()) {
-                      logger.error("Second download attempt failed: " + ioe.getMessage());
-                      if (getResource().getAllowErrors()) {
-                        logger.error(getErrors() + (rf.getAbsoluteName() + " "));
-                        setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
-                      } else {
-                        throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
-                      }
-                    }
-                  }
+                  retryFtpDownload(clientTransport, rf, fcce);
                 } else {
                   throw fcce;
                 }
               } catch (SocketException se) {
-                if (getResource().getAllowErrors() && !job.isKillSent()) {
-                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + se.getMessage());
-                  logger.debug("Cause", se);
-                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
-                  if (clientTransport instanceof FtpClientTransport) {
-                    logger.info("Connection aborted. Attempting reconnect in 10 seconds.");
-                      try {
-                        ((FtpClientTransport)clientTransport).reconnect(10000);
-                        download(rf);
-                      } catch (IOException ioe) {
-                        if (!job.isKillSent()) {
-                          logger.error("Second download attempt failed: " + ioe.getMessage());
-                          if (getResource().getAllowErrors()) {
-                            logger.error(getErrors() + (rf.getAbsoluteName() + " "));
-                            setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
-                          } else {
-                            throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
-                          }
-                        }
-                      }
-                   } 
+                if (getResource().getAllowErrors() && !job.isKillSent() && clientTransport instanceof FtpClientTransport) {
+                  retryFtpDownload(clientTransport, rf, se);
+                } else {
+                  throw se;
                 } 
               } catch (Exception e) {
                 if (job.isKillSent()) throw e;
@@ -177,7 +143,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
         } else {
           throw cte;
         }
-
       }
       // TODO HACK HACK HACK
       Thread.sleep(2000);
@@ -525,6 +490,41 @@ public class XmlMarcClient extends AbstractHarvestClient {
       throw new IOException(se);
     }
   }
+  
+  /**
+   * Reconnects to a FTP server and retries download of a file.
+   *  
+   * To be invoked in case a FTP connection dropped while downloading the file.
+   * 
+   * If reconnecting fails or another IO error occurs during this download attempt, the 
+   * file is skipped (if allow-errors is on) or a ClientTransporError is thrown.
+   * 
+   * @param clientTransport
+   * @param rf
+   * @param ex
+   * @throws ClientTransportError
+   */
+  private void retryFtpDownload(ClientTransport clientTransport, RemoteFile rf, IOException ex) throws ClientTransportError {
+    logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + ex.getMessage());
+    logger.debug("Cause", ex);
+    setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+    logger.info("Connection lost. Attempting reconnect in 10 seconds.");
+    try {
+      ((FtpClientTransport)clientTransport).reconnect(10000);
+      download(rf);
+    } catch (IOException ioe) {
+      if (!job.isKillSent()) {
+        logger.error("Second download attempt failed: " + ioe.getMessage());
+        if (getResource().getAllowErrors()) {
+          logger.error(getErrors() + (rf.getAbsoluteName() + " "));
+          setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
+        } else {
+          throw new ClientTransportError("Attempt to reconnect and download failed: " + ioe.getMessage());
+        }
+      }
+    }
+  }
+
 
   private void storeCSV(InputStream input, MimeTypeCharSet mt) throws IOException {
     MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
