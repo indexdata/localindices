@@ -193,7 +193,7 @@ The parser configuration is expressed in a semicolon delimited key/value list, l
 
 * `containsHeader`: default `"yes"`, specifies if the first line in the files contains the header line
 
-* `headerLine`: no default, allows to override or specify headers, the format need to match the data format, e.g `headers="title,author,description"`
+* `headerLine`: no default, allows to override or specify headers, format is a comma-separated list  e.g `headers="title,author,description"`
 
 
 ##### Connector Specific Information: \

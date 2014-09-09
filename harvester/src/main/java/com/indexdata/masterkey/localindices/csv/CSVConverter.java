@@ -70,7 +70,7 @@ public class CSVConverter {
       withQuote('"');
     //we use specified format to parse the header line itself
     String[] headerNames = headerLine != null 
-      ? parseHeaderNames(headerLine, format)
+      ? parseHeaderNames(headerLine, CSVFormat.DEFAULT)
       : null;
     format = containsHeader 
       ? headerLine == null 
