@@ -30,23 +30,39 @@ import org.w3c.dom.Element;
  * @author jakub
  */
 public class CSVConverter {
-  private String charset = "iso-8859-1";
-  private char delimiter = ',';
-  private boolean containsHeader = true;
-  private String headerLine;
+  private final String charset;
+  private final char delimiter;
+  private final boolean containsHeader;
+  private final String headerLine;
   private CSVFormat format;
-
+  
   public CSVConverter(String configuration) throws ParseException {
+    this("iso-8859-1", ',', configuration);
+  }
+  
+  public CSVConverter(String defaultCharset, char defaultDelimiter, String configuration) throws ParseException {
+    this(defaultCharset, defaultDelimiter, true, configuration);
+  }
+
+  protected CSVConverter(
+    String defaultCharset, 
+    char defaultDelimiter,
+    boolean defaultContainsHeader,
+    String configuration) throws ParseException {
     ContentTypeParameters parser = new ContentTypeParameters();
     Map<String, String> params = parser.parse(configuration);
-    if (params.containsKey("charset"))
-      charset = params.get("charset");
-    if (params.containsKey("delimiter"))
-      delimiter = params.get("delimiter").charAt(0);
-    if (params.containsKey("containsHeader"))
-      containsHeader = "yes".equalsIgnoreCase(params.get("containsHeader"));
-    if (params.containsKey("headerLine"))
-      headerLine = params.get("headerLine");
+    charset = params.containsKey("charset")
+      ? params.get("charset")
+      : defaultCharset;
+    delimiter = params.containsKey("delimiter")
+      ? params.get("delimiter").charAt(0)
+      : defaultDelimiter;
+    containsHeader = params.containsKey("containsHeader")
+      ? "yes".equalsIgnoreCase(params.get("containsHeader"))
+      : true;
+    headerLine = params.containsKey("headerLine") 
+      ? params.get("headerLine")
+      : null;
     //default format does not handle headers
     format = CSVFormat.newFormat(delimiter).
       withIgnoreEmptyLines(true).

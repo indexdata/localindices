@@ -292,7 +292,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         storeXml(input);
       } else if (mimeType.isCSV() || mimeType.isTSV()) {
         logger.debug("Setting up CSV-to-XML converter");
-        storeCSV(input);
+        storeCSV(input, mimeType);
       } else {
         logger.info("Ignoring file '"+file.getName()
           +"' because of unsupported content-type '"+mimeType+"'");
@@ -520,10 +520,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
-  private void storeCSV(InputStream input) throws IOException {
+  private void storeCSV(InputStream input, MimeTypeCharSet mt) throws IOException {
     MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
     try {
-      CSVConverter converter = new CSVConverter(
+      char defaultDelim = mt.isTSV() ? '\t' : ',';
+      String defaultCharset = mt.getCharset() != null ? mt.getCharset() : "iso-8859-1";
+      CSVConverter converter = new CSVConverter(defaultCharset, defaultDelim,
         getResource().getCsvConfiguration() != null ? getResource().getCsvConfiguration() : "");
       int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
       boolean split = splitAt > 0;
