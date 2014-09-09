@@ -108,15 +108,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
               try {
                 download(rf);
               } catch (FTPConnectionClosedException fcce) {
-                if (getResource().getAllowErrors()) {
+                if (getResource().getAllowErrors() && !job.isKillSent()) {
                   logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + fcce.getMessage());
                   logger.debug("Cause", fcce);
                   setErrors(getErrors() + (rf.getAbsoluteName() + " "));
                   logger.info("Connection lost. Attempting reconnect in 10 seconds.");
-                    try {
-                      ((FtpClientTransport)clientTransport).reconnect(10000);
-                      download(rf);
-                    } catch (IOException ioe) {
+                  try {
+                    ((FtpClientTransport)clientTransport).reconnect(10000);
+                    download(rf);
+                  } catch (IOException ioe) {
+                    if (!job.isKillSent()) {
                       logger.error("Second download attempt failed: " + ioe.getMessage());
                       if (getResource().getAllowErrors()) {
                         logger.error(getErrors() + (rf.getAbsoluteName() + " "));
@@ -125,11 +126,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
                         throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
                       }
                     }
+                  }
                 } else {
                   throw fcce;
                 }
               } catch (SocketException se) {
-                if (getResource().getAllowErrors()) {
+                if (getResource().getAllowErrors() && !job.isKillSent()) {
                   logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + se.getMessage());
                   logger.debug("Cause", se);
                   setErrors(getErrors() + (rf.getAbsoluteName() + " "));
@@ -139,19 +141,20 @@ public class XmlMarcClient extends AbstractHarvestClient {
                         ((FtpClientTransport)clientTransport).reconnect(10000);
                         download(rf);
                       } catch (IOException ioe) {
-                        logger.error("Second download attempt failed: " + ioe.getMessage());
-                        if (getResource().getAllowErrors()) {
-                          logger.error(getErrors() + (rf.getAbsoluteName() + " "));
-                          setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
-                        } else {
-                          throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
+                        if (!job.isKillSent()) {
+                          logger.error("Second download attempt failed: " + ioe.getMessage());
+                          if (getResource().getAllowErrors()) {
+                            logger.error(getErrors() + (rf.getAbsoluteName() + " "));
+                            setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
+                          } else {
+                            throw new ClientTransportError("Attempt to reconnect failed: " + ioe.getMessage());
+                          }
                         }
                       }
                    } 
-                } else {
-                  throw se;
-                }
+                } 
               } catch (Exception e) {
+                if (job.isKillSent()) throw e;
                 logger.info("Problem occured during download/store: " + e.getMessage());
                 logger.info("Cause: " + e.getCause());
                 if (getResource().getAllowErrors()) {
@@ -298,10 +301,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.info("Ignoring file '"+file.getName()+"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
-      logger.debug("StoreAny: Closing input stream.");
-      // Attempting to close input stream. If the connection was lost, an FTPConnectionClosedException will be thrown 
-      input.close();
-      logger.debug("StoreAny: Input stream closed.");
+        // Attempting to close input stream. If the connection was lost, an FTPConnectionClosedException will be thrown
+        logger.debug("StoreAny: Closing input stream.");
+        input.close();
+        logger.debug("StoreAny: Input stream closed.");
     }
   }
   
