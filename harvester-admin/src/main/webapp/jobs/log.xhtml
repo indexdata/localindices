@@ -22,7 +22,8 @@
           function goToBottom() {
             location.href = "#bottom";
           }
-           //TODO capture jsf ajax events to retain old log entries
+          var counter = 0;
+          //TODO capture jsf ajax events to retain old log entries
           jsf.ajax.addOnEvent(function (data) { 
             if (data.status === "complete") { 
               var doc = data.responseXML;
@@ -37,13 +38,22 @@
                   insert.setAttribute("id", update.getAttribute("id"));
                   changes.appendChild(insert);
                   var after = doc.createElement("after");
-                  after.setAttribute("id", update.getAttribute("id"));
+                  var prev = counter > 0 ? "-" + (counter-1) : "";
+                  after.setAttribute("id", update.getAttribute("id") + prev);
+                  //vile hack to change the id of the updated thing
                   insert.appendChild(after);
-                  after.appendChild(update.firstChild);
+                  var html = update.firstChild.nodeValue;
+                  var tmp = document.createElement("span");
+                  tmp.innerHTML = html;
+                  tmp.firstChild.setAttribute("id", update.getAttribute("id") + "-" + counter);
+                  var cdata = doc.createCDATASection(tmp.innerHTML);
+                  after.appendChild(cdata);
+                  counter++;
                 } 
               }
               scrollToBottom();
-            } 
+            }
+            //debugger;
           });
           
           var initialDelay = 10; //in ms
@@ -85,7 +95,9 @@
         <h:form id="logView">
           <id:poll id="poll" interval="2000" timeout="3000" render="logView:logEntries" />
           <div class="logview">
-            <pre><h:outputText id="logEntries" value="#{resourceController.latestLogEntries}" /></pre>
+            <pre>
+              <h:outputText id="logEntries" value="#{resourceController.latestLogEntries}" />
+            </pre>
           </div>
         </h:form>
         <a name="bottom"></a>
