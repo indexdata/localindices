@@ -267,12 +267,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.info("Ignoring file '"+file.getName()+"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
-        logger.debug("Store: Closing input stream.");
         // NOTE: If this was a FTP download and the FTP connection was lost, a
         //       FTPConnectionClosedException will be thrown here.
         //       This exception is used when deciding whether to attempt a reconnect.
+        //       See download(URL url)
         input.close();
-        logger.debug("Store: Input stream closed.");
+        logger.debug("StoreAny: Input stream closed.");
     }
   }
   

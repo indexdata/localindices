@@ -38,9 +38,6 @@ public class FtpRemoteFile extends RemoteFile {
   
   @Override
   public synchronized InputStream getInputStream() throws FTPConnectionClosedException, IOException {
-    // TODO: Still Needed?!? Makes app hang after reconnect.
-    //if (ftpInputStream != null)
-    //  return ftpInputStream;
     FTPClient client = ((FtpClientTransport)transport).getClient();
     client.setFileType(FTP.BINARY_FILE_TYPE);
     InputStream data = client.retrieveFileStream(rootRelPath);
