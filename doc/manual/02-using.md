@@ -68,7 +68,7 @@ Remaing settings include:
     Jakub: I mean there's a whole chapter on TPs in the manual, instead of putting more text here let's refer user to that section.
 -->
 
-* _Use lax parsing_: when enabled, harvester will attempt to parse malformed XML (missing closing tags, entities)
+* _Use lax parsing_: when enabled, harvester will attempt to parse malformed XML (missing closing tags, entities) or mark-up that is not strict XML, like HTML or SGML. Especially, when dealing with HTML or SGML documents, and this setting is disabled, the harvester will not even attempt to read those documents.  
 
 * _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
@@ -160,7 +160,7 @@ The XML/MARC specific settings look like this:
 ```
 * _Split at number of records_: The Harvester tries to imply streaming parsing where possible, but many XSL Transformations will not support this. Attempting to transform millions of records will be too memory consuming, so breaking the resource into chunks of 1000 records seems to be a reasonable option. Enter into this field the number of records to be contained in each chunk. 
 
-* _MIME-type override_: The Harvester detects the type (XML vs MARC binary) from the MIME-type and file extension. It is also able to deal with compressed archives (zip, tar, gzip), in some rare case it may be required to provide the content type manually (e.g if it's missing or wrong), the format is:
+* _MIME-type override_: The Harvester detects the type (XML, binary MARC, CSV) from the MIME-type file contents and extension. It is also able to deal with compressed archives (zip, tar, gzip), in some rare case it may be required to provide the content type manually (e.g if it's missing or it's wrong), the format is:
 ```
     MIME-type [; optional character encoding].
 ```
@@ -172,6 +172,29 @@ The XML/MARC specific settings look like this:
 
 
 * _Use passive mode for FTP transfers_: When set passive, instead of active, mode is used for FTP connections. If harvester is running within a restricted firewall that blocks FTP active mode connections, enabling this setting might help. It might be, however, necessary to align this mode with what FTP server expects.
+
+* _CSV parser configuration_: the harvester will detect (either by MIME-type or by file extension) and attempt to parse CSV (comma separated values) files into an XML representation for further processing. The XML representation of each data row looks as follows:
+
+
+```
+<row>
+  <field name="column name or number">field value</field>
+  ...
+</row>
+```
+
+Unless the _split at depth_ option is set to > 0, all rows will be parsed into a single XML document and wrapped with an additional `<rows>` root element. For large CSV files it may be a good idea to set the _split at depth_ to 1.
+
+The parser configuration is expressed in a semicolon delimited key/value list, like so: `key1=value1; key2=value2`. List of supported options is as follows:
+
+* `charset`: default `"iso-8859-1"`, specifies the character encoding of the files
+
+* `delimiter`: default `","` for CSV and `"\t"` for TSV, specifies the field delimiter used in the files
+
+* `containsHeader`: default `"yes"`, specifies if the first line in the files contains the header line
+
+* `headerLine`: no default, allows to override or specify headers, format is a comma-separated list  e.g `headers="title,author,description"`
+
 
 ##### Connector Specific Information: \
 

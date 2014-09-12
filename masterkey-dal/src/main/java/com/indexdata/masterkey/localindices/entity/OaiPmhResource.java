@@ -32,10 +32,6 @@ public class OaiPmhResource extends Harvestable implements Serializable {
   private String schemaURI;
   // resumption token
   private String resumptionToken;
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date fromDate;
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date untilDate;
   private String dateFormat;
   @Column(nullable = false)
   protected Boolean clearRtOnError = false;
@@ -51,22 +47,6 @@ public class OaiPmhResource extends Harvestable implements Serializable {
 
   public void setDateFormat(String dateFormat) {
     this.dateFormat = dateFormat;
-  }
-
-  public Date getFromDate() {
-    return fromDate;
-  }
-
-  public void setFromDate(Date fromDate) {
-    this.fromDate = fromDate;
-  }
-
-  public Date getUntilDate() {
-    return untilDate;
-  }
-
-  public void setUntilDate(Date untilDate) {
-    this.untilDate = untilDate;
   }
 
   public String getUrl() {

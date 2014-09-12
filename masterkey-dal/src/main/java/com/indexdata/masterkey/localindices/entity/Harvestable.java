@@ -110,6 +110,11 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private String json = null;
   @Column(nullable=false)
   private boolean laxParsing = false;
+  //moved from OaiPmhResource to facilitate manual increments
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date fromDate;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date untilDate;
   
   public String getDescription() {
     return description;
@@ -450,6 +455,22 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public boolean isLaxParsing() {
     return laxParsing;
+  }
+  
+  public Date getFromDate() {
+    return fromDate;
+  }
+
+  public void setFromDate(Date fromDate) {
+    this.fromDate = fromDate;
+  }
+  
+  public Date getUntilDate() {
+    return untilDate;
+  }
+
+  public void setUntilDate(Date untilDate) {
+    this.untilDate = untilDate;
   }
   
 }

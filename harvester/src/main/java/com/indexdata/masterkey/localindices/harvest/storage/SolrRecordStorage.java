@@ -29,8 +29,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus.Transa
 
 public class SolrRecordStorage implements RecordStorage {
   Collection<String> deleteIds = new LinkedList<String>();
-  private String idField = "id";
-  protected String databaseField = "database";
+  private final static String ID_FIELD = "id";
+  protected final static String DATABASE_FIELD = "database";
   private String database;
   @SuppressWarnings("unused")
   private Map<String, String> databaseProperties;
@@ -97,7 +97,7 @@ public class SolrRecordStorage implements RecordStorage {
       server.setParser(new XMLResponseParser());
       this.server = server;
       
-      storageStatus = new SolrStorageStatus(server, databaseField + ":" + harvestable.getId());
+      storageStatus = new SolrStorageStatus(server, DATABASE_FIELD + ":" + harvestable.getId());
     } catch (Exception e) {
       throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
     }
@@ -111,7 +111,7 @@ public class SolrRecordStorage implements RecordStorage {
       storage = harvestable.getStorage();
     }
     logger = new FileStorageJobLogger(SolrRecordStorage.class, storage);
-    storageStatus = new SolrStorageStatus(server, databaseField + ":" + harvestable.getId());
+    storageStatus = new SolrStorageStatus(server, DATABASE_FIELD + ":" + harvestable.getId());
   }
 
   @Override
@@ -161,7 +161,7 @@ public class SolrRecordStorage implements RecordStorage {
 	begin();
       }
       if (!delayedPurge || commit == true) {
-	String query = databaseField + ":" + database;
+	String query = DATABASE_FIELD + ":" + database;
 	UpdateResponse response = server.deleteByQuery(query);
 	logger.info("UpdateResponse on delete(" + query + "): " + response.getStatus() + " " + response.getResponse());
 	if (commit) {
@@ -195,7 +195,7 @@ public class SolrRecordStorage implements RecordStorage {
 	throw new IOException("No database configured or transaction id set");
       }
       String hasIdString = (hasId ? "" : "!");
-      String query = databaseField + ":" + database + " AND " + hasIdString + transactionIdField  + ":" + transactionId.getTime();
+      String query = DATABASE_FIELD + ":" + database + " AND " + hasIdString + transactionIdField  + ":" + transactionId.getTime();
       UpdateResponse response = server.deleteByQuery(query);
       logger.info("UpdateResponse on delete (" + query + "): " + response.getStatus() + " " + response.getResponse());
     } catch (SolrServerException e) {
@@ -225,20 +225,17 @@ public class SolrRecordStorage implements RecordStorage {
   }
 
   protected SolrInputDocument createDocument(Record record) {
-    
-    SolrInputDocument document = createDocument(record.getValues());
-    if (idField != null) {
-      // TODO prioritize Record.getId() vs "id" after transformation
-      if (record.getId() != null)
-	document.setField(idField, database + "-" + record.getId());
-      else if (record.getValues().get(idField) != null) {
-	document.setField(idField, database + record.getValues().get(idField).toString());
-      }
-      else 
-	logger.error("Failed to get Record Id for record: " + record);
+    Map<String, Collection<Serializable>> values = record.getValues();
+    SolrInputDocument document = createDocument(values);
+    if (record.getId() != null) {
+      document.setField(ID_FIELD, database + "-" + record.getId());
+    } else if (record.getValues().get(ID_FIELD) != null) {
+      document.setField(ID_FIELD, database + record.getValues().get(ID_FIELD).toString());
+    } else { 
+      logger.error("Failed to get Record Id for record: " + record);
+      return null;
     }
-    if (databaseField != null)
-      document.setField(databaseField, database);
+    document.setField(DATABASE_FIELD, database);
     
     if (transactionId  != null) {
       document.setField(transactionIdField, transactionId.getTime());
@@ -277,7 +274,11 @@ public class SolrRecordStorage implements RecordStorage {
 
   @Override
   synchronized public void add(Record record) {
-    add(createDocument(record));
+    SolrInputDocument doc = createDocument(record);
+    if (doc != null)
+      add(doc);
+    else
+      logger.warn("Failed to convert record to SolrDocument. Not adding: " + record);
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -301,8 +302,8 @@ public class SolrRecordStorage implements RecordStorage {
   @Override
   public Record get(String id) {
     ModifiableSolrParams params = new ModifiableSolrParams();
-    params.set(idField, id);
-    params.set(databaseField, database);
+    params.set(ID_FIELD, id);
+    params.set(DATABASE_FIELD, database);
 
     try {
       QueryResponse response = server.query(params);
@@ -347,19 +348,11 @@ public class SolrRecordStorage implements RecordStorage {
   }
 
   public String getIdField() {
-    return idField;
-  }
-
-  public void setIdField(String idField) {
-    this.idField = idField;
+    return ID_FIELD;
   }
 
   public String getDatabaseField() {
-    return databaseField;
-  }
-
-  public void setDatabaseField(String databaseField) {
-    this.databaseField = databaseField;
+    return DATABASE_FIELD;
   }
 
   public String getDatabase() {

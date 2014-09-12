@@ -35,6 +35,13 @@
           <h:selectBooleanCheckbox value="#{resourceController.resource.allowCondReq}"/>
           <id:helplink field="[Harvest Jobs][XML bulk specific information][Ask server for new files only (incremental)]"/>
         </h:panelGroup>
+        <h:outputText value="Initial from date (if incremental, yyyy-MM-dd):"/>
+        <h:panelGroup>
+            <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8">
+                <f:convertDateTime pattern="yyyy-MM-dd" />
+            </h:inputText>
+            <h:message for="fromDate" style="color: red;" />
+        </h:panelGroup>
         <h:outputText value="Split XML at depth (zero/empty disables split):"/>
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.splitAt}"/>
@@ -65,6 +72,8 @@
           <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>
           <id:helplink field="[Harvest Jobs][XML bulk specific information][Use passive mode for FTP transfers]"/>
         </h:panelGroup>
+        <h:outputText value="CSV parser configuration:"/>
+        <h:inputText value="#{resourceController.resource.csvConfiguration}" size="90"/>
       </h:panelGrid>
     </ui:composition>
   </body>

@@ -1,24 +1,24 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import ORG.oclc.oai.harvester2.verb.XPathHelper;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-
-import ORG.oclc.oai.harvester2.verb.XPathHelper;
 
 public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pz2Namespace = "http://www.indexdata.com/pazpar2/1.0";
@@ -32,9 +32,10 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pzType = pzPrefix + ":" + typeName;
   private Node node = null;
   private NamespaceContext nsContext = new PzNamespaceContext();
-  private String xpathNodes = "//pz:metadata";
-  private String xpathStatus = "//pz:metadata[@type='status']";
-  private String xpathId = "//pz:metadata[@type='id']";
+  private String xpathNodes = ".//pz:metadata";
+  private String xpathStatus = ".//pz:metadata[@type='status']";
+  private String xpathId = ".//pz:metadata[@type='id']";
+  Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
   
   public RecordDOMImpl(Record record) {
     if (record instanceof RecordDOM)
@@ -92,15 +93,51 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     }
   }
 
+  @Override
+  public boolean isCollection() {
+    if (node != null) {
+      Element root;
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        root = (Element) node;
+      } else if (node.getNodeType() == Node.DOCUMENT_NODE) {
+        root = ((Document) node).getDocumentElement();
+      } else {
+        root = node.getOwnerDocument().getDocumentElement();
+      }
+      boolean isCollection = root.getTagName().equals("collection") 
+        || root.getTagName().equals("pz:collection");
+      return isCollection;
+    } else {
+      return false;
+    }
+  }
+  
+  public Collection<Record> getSubRecords() {
+    if (!isCollection()) return null;
+    NodeList children = node.getNodeType() == Node.DOCUMENT_NODE
+      ? ((Document) node).getDocumentElement().getChildNodes()
+      : node.getChildNodes();
+    List<Record> list = new ArrayList<Record>(children.getLength());
+    for (int i=0; i<children.getLength(); i++) {
+      Node child = children.item(i);
+      if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+      Element childElem = (Element) child;
+      list.add(new RecordDOMImpl(null, null, child));
+    }
+    return list;
+  }
+  
   public Map<String, Collection<Serializable>> getValues() {
     if (node == null) 
       return valueMap;
     valueMap.clear();
     try {
-      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext); 
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext);
       NodeList nodeList = xpathHelper.evaluate(node, xpathNodes);
-      for (int index = 0; index < nodeList.getLength(); index++) 
+      for (int index = 0; index < nodeList.getLength(); index++) {
+        Node md = nodeList.item(index);
 	serializeNode(nodeList.item(index));
+      }
     } catch (XPathExpressionException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

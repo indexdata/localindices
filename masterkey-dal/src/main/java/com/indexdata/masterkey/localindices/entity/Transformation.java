@@ -9,7 +9,6 @@ package com.indexdata.masterkey.localindices.entity;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;

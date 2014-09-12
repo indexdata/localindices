@@ -1,8 +1,10 @@
 package com.indexdata.masterkey.localindices.client;
 
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.net.URL;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,9 +46,6 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     if (resource.getTimeout() != null) {
       transport.setTimeout(1000*resource.getTimeout());
     }
-    //transport.setCompressedFormat(resource.getExpectedSchema());
-    if (resource.getAllowCondReq())
-      transport.setFromDate(resource.getLastHarvestFinished());
     return transport;
   }
 

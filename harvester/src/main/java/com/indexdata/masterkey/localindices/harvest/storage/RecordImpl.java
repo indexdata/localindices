@@ -68,4 +68,14 @@ public class RecordImpl implements Record {
     record.append("]");
     return record.toString();
   }
+
+  @Override
+  public boolean isCollection() {
+    return false;
+  }
+  
+  @Override
+  public Collection<Record> getSubRecords() {
+    return null;
+  }
 }

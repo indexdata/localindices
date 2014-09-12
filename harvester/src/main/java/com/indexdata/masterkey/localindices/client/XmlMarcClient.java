@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.csv.CSVConverter;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
@@ -12,6 +13,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
 import static com.indexdata.utils.TextUtils.joinPath;
+import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 import java.io.BufferedInputStream;
 import java.io.EOFException;
@@ -21,7 +23,10 @@ import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.xml.transform.dom.DOMResult;
@@ -36,11 +41,13 @@ import org.xml.sax.SAXException;
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
   private String errors = errorText;
-  private int splitAt = 1;
+  private final Date lastFrom;
+  private final static int defaultSplitAt = 0;
 
   public XmlMarcClient(XmlBulkResource resource, BulkRecordHarvestJob job,
     Proxy proxy, StorageJobLogger logger, DiskCache dc, Date lastRequested) {
     super(resource, job, proxy, logger, dc);
+    lastFrom = lastRequested;
   }
 
   @Override
@@ -68,6 +75,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       } catch (IOException ex) {     
         if (getResource().getAllowErrors()) {
           logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.getMessage());
+          logger.debug("Cause", ex);
           setErrors(getErrors() + (file.getAbsoluteName() + " "));
         } else {
           throw ex;
@@ -90,6 +98,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     logger.info("Preparing retrieval of " + url);
     try {
       ClientTransport clientTransport = factory.lookup(url);
+      clientTransport.setFromDate(lastFrom);
       clientTransport.connect(url);
       try {
         RemoteFileIterator iterator = clientTransport.get(url);
@@ -132,6 +141,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
       if (getResource().getAllowErrors()) {
         logger.warn(errorText + url.toString() + ". Error: " + ex.getMessage());
+        logger.debug("Cause", ex);
         setErrors(getErrors() + (url.toString() + " "));
         return 1;
       }
@@ -159,51 +169,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     InputStream input = shouldBuffer 
       ? new BufferedInputStream(file.getInputStream())
       : file.getInputStream();
-    //if transport does not provide content type
-    //we attempt to deduce it
-    if (file.getContentType() == null) {
-      String cT = URLConnection.guessContentTypeFromStream(input);
-      if (cT == null) {
-        cT = URLConnection.guessContentTypeFromName(file.getName());
-        if (cT != null) {
-          logger.debug("Guessed content type from filename: "+cT);
-        }
-      } else {
-        logger.debug("Guessed content type from stream: "+cT);
-      }
-      file.setContentType(cT);
-    } else {
-      logger.debug("Content type provided by transport: "+file.getContentType());
-    }
-    MimeTypeCharSet mimeType = new MimeTypeCharSet(file.getContentType());
-    //missing, deduced or provided content type may not be enough
-    //we check the extension in this case anyway
-    if (mimeType.isUndefined() || mimeType.isBinary() || mimeType.isPlainText() || mimeType.isGzip()) {
-      if (file.getName() != null) {
-        if (file.getName().endsWith(".zip")) {
-          file.setContentType("application/zip");
-        } else if (file.getName().endsWith(".tar")) {
-          file.setContentType("application/x-tar");
-        } else if (file.getName().endsWith("tar.gz")
-                || file.getName().endsWith(".tgz")) {
-          file.setContentType("application/x-gtar");
-        } else if (file.getName().endsWith(".gz")) {
-          file.setContentType("application/gzip");
-        } else {
-          //assume binary marc since it's close to impossible to rely on the marc dump extensions
-          file.setContentType("application/marc");
-        }
-        mimeType = new MimeTypeCharSet(file.getContentType());
-        logger.debug("Guessed content type from filename: "+file.getContentType());
-      }
-    }
-    /*
-    TODO detect binary marc:
-    0,1,2,3,4 digits
-    12,13,14,15,16 digits
-    20 - 4
-    21 - 5
-    */
+    MimeTypeCharSet mimeType = deduceMimeType(input, file.getName(), file.getContentType());
     //TODO RemoteFile abstraction is not good enough to make this clean
     //some transports may deal with compressed files (e.g http) others may not
     //if we end up with a compressed mimetype we need to decompress
@@ -223,6 +189,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
             if (getResource().getAllowErrors()) {
               logger.warn(errorText + file.getAbsoluteName() + ". Error: " + ex.
                 getMessage());
+              logger.debug("Cause", ex);
               setErrors(getErrors() + (file.getAbsoluteName() + " "));
             } else {
               throw ex;
@@ -242,7 +209,18 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned TAR archive file, expanding..");
       if (mimeType.isTarGz()) {
         logger.debug("TAR archive is GZIP compressed, decompressing..");
-        input = new GZIPInputStream(input);
+        try {
+          input = new GZIPInputStream(input);
+        } catch (EOFException eof) {
+          input.close();
+          if (getResource().getAllowErrors()) {
+            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
+            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+          } else {
+            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
+          }
+          return;
+        }
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
       try {
@@ -274,11 +252,26 @@ public class XmlMarcClient extends AbstractHarvestClient {
         tis.close();
       }
     } else if (mimeType.isGzip()) {
-      //it probably is a single-file pure gzip stream, in which case we assumed
-      //MARC or use the end-user override
-      //TODO we could auto-detect this
-      input = new GZIPInputStream(input);
-      file.setLength(-1);
+      try {
+        input = new GZIPInputStream(input);
+        file.setLength(-1);
+        String trimmedName = null;
+        if (file.getName().endsWith(".gz")) {
+          trimmedName = file.getName().substring(0, file.getName().length()-3);
+        }
+        //we need to bugger again to detect file type
+        input = new BufferedInputStream(input);
+        mimeType = deduceMimeType(input, trimmedName, null);
+      } catch (EOFException eof) {
+          input.close();
+          if (getResource().getAllowErrors()) {
+            logger.warn(errorText + file.getAbsoluteName()  + " Archive had unexpected end-of-file. Skipping. ");
+            setErrors(getErrors() + (file.getAbsoluteName() + " Archive had unexpected end-of-file."));
+          } else {
+            throw new EOFException(getErrors() + file.getAbsoluteName() + " had unexpected end-of-file.");
+          }
+          return;
+        }
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
@@ -297,14 +290,161 @@ public class XmlMarcClient extends AbstractHarvestClient {
       } else if (mimeType.isXML()) {
         logger.debug("Setting up XML reader ("+mimeType+")");
         storeXml(input);
+      } else if (mimeType.isCSV() || mimeType.isTSV()) {
+        logger.debug("Setting up CSV-to-XML converter");
+        storeCSV(input, mimeType);
       } else {
         logger.info("Ignoring file '"+file.getName()
-          +"' because of unsupported content-type '"+file.getContentType()+"'");
+          +"' because of unsupported content-type '"+mimeType+"'");
       }
     } finally {
       //make sure the stream is closed!
       input.close();
     }
+  }
+  
+  private boolean isMarc(InputStream is) throws IOException {
+    // If we can't read ahead safely, just give up on guessing
+    if (!is.markSupported())
+        return false;
+    
+    is.mark(22);
+    int pos = 0;
+    //0-4
+    while (pos <= 4) {
+      int c = is.read();
+      if (c < '0' || c > '9') { //not digit
+        is.reset();
+        return false;
+      }
+      ++pos;
+    }
+    //5-11
+    while (pos < 12) {
+      is.read();
+      ++pos;
+    }
+    //12-16
+    while (pos <= 16) {
+      int c = is.read();
+      if (c < '0' || c > '9') { //not digit
+        is.reset();
+        return false;
+      }
+      ++pos;
+    }
+    //17-19
+    while (pos < 20) {
+      is.read();
+      ++pos;
+    }
+    //20
+    if (is.read() != '4') {
+      is.reset();
+      return false;
+    }
+    //21
+    if (is.read() != '5') {
+      is.reset();
+      return false;
+    }
+    is.reset();
+    return true;
+  }
+  
+  private boolean isMarkup(InputStream is) throws IOException {
+    if (!is.markSupported())
+      return false;
+    is.mark(2);
+    if (is.read() != '<') {
+      is.reset();
+      return false;
+    }
+    int startChar = is.read();
+    if (startChar != '?' && startChar != '!' && 
+      !Character.isLetter(startChar)) {
+      is.reset();
+      return false;
+    }
+    is.reset();
+    return true;
+  }
+
+  private MimeTypeCharSet deduceMimeType(InputStream input, String fileName, String contentTypeHint)
+    throws IOException { 
+    //if transport does not provide content type
+    //we attempt to deduce it
+    String guess = null;
+    MimeTypeCharSet mimeType = new MimeTypeCharSet(contentTypeHint);
+    if (contentTypeHint != null) {
+      logger.debug("Content type provided by transport: "+contentTypeHint);
+    }
+    //first try the limited Java built-in content type detection
+    if (mimeType.isUndefined() || mimeType.isPlainText() || mimeType.isBinary()) {
+      if (input != null) {
+        guess = URLConnection.guessContentTypeFromStream(input);
+        if (guess == null) {
+          guess = isMarc(input)
+            ? "application/marc" 
+            : isMarkup(input)
+              ? "application/xml" //lucky assumption
+              : null;
+        }
+      }
+      if (guess == null) {
+        guess = fileName != null
+          ? URLConnection.guessContentTypeFromName(fileName)
+          : null;
+        if (guess != null) {
+          logger.debug("Guessed content type from filename: "+guess);
+        }
+      } else {
+        logger.debug("Guessed content type from stream: "+guess);
+      }
+    }
+    //reset mime-type to guess
+    if (guess != null) {
+      mimeType = new MimeTypeCharSet(guess);
+    }
+    //sgml/html docs can be treated with the XML-lax parser
+    if (mimeType.isHTML() || mimeType.isSGML()) {
+      if (resource.isLaxParsing()) {
+        logger.debug("Overriding HTML/SGML with XML content type because lax parsing is on.");
+        mimeType = new MimeTypeCharSet("application/xml");
+      } else {
+        logger.debug("HTML/SGML content type will not be harvested unless lax parsing is enabled");
+      }
+    }
+    //missing and some deduced or provided content type may not be enough
+    //we check the extension in this case anyway
+    if (mimeType.isUndefined() 
+      || mimeType.isBinary() 
+      || mimeType.isPlainText()
+      || mimeType.isGzip() /* tar or plain gzip */) {
+      if (fileName != null) {
+        if (fileName.endsWith(".zip")) {
+          guess = "application/zip";
+        } else if (fileName.endsWith(".tar")) {
+          guess = "application/x-tar";
+        } else if (fileName.endsWith(".tar.gz")
+          || fileName.endsWith(".tgz")) {
+          guess = "application/x-gtar";
+        } else if (fileName.endsWith(".gz")) {
+          guess = "application/gzip";
+        } else if (fileName.endsWith(".mrc") || fileName.endsWith(".marc")) {
+          guess = "application/marc";
+        } else if (fileName.endsWith(".csv")) {
+          guess = "text/csv";
+        } else if (fileName.endsWith(".tsv") || fileName.endsWith(".tab")) {
+          guess = "text/tab-separated-values";
+        }
+        if (guess != null) {
+          mimeType = new MimeTypeCharSet(guess);
+          logger.debug("Guessed content type from filename: "+guess);
+        }
+      }
+    }
+    return mimeType;
   }
 
   private void storeMarc(InputStream input, String encoding) throws
@@ -367,9 +507,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private void storeXml(InputStream is) throws IOException {
     RecordStorage storage = job.getStorage();
+    int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
+    logger.debug("XML splitting depth: "+splitAt);
     SplitContentHandler handler = new SplitContentHandler(
-      new RecordStorageConsumer(storage, job.getLogger()),
-      getJob().getNumber(getResource().getSplitAt(), splitAt));
+      new RecordStorageConsumer(storage, job.getLogger()), splitAt);
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
       handler, resource.isLaxParsing());
     try {
@@ -379,6 +520,23 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
   }
 
+  private void storeCSV(InputStream input, MimeTypeCharSet mt) throws IOException {
+    MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
+    try {
+      char defaultDelim = mt.isTSV() ? '\t' : ',';
+      String defaultCharset = mt.getCharset() != null ? mt.getCharset() : "iso-8859-1";
+      CSVConverter converter = new CSVConverter(defaultCharset, defaultDelim,
+        getResource().getCsvConfiguration() != null ? getResource().getCsvConfiguration() : "");
+      int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
+      boolean split = splitAt > 0;
+      logger.debug("Converting CSV-to-XML using: '"
+        +converter.getFormatString()
+        +(split ? "' and splitting rows" : "' and not splitting rows"));
+      converter.processViaDOM(input, mc, split);
+    } catch (ParseException ex) {
+      throw new IOException(ex);
+    }
+  }
   public String getErrors() {
     return errors;
   }
@@ -386,4 +544,5 @@ public class XmlMarcClient extends AbstractHarvestClient {
   public void setErrors(String errors) {
     this.errors = errors;
   }
+
 }

@@ -3,6 +3,7 @@ package ORG.oclc.oai.harvester2.verb;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -66,6 +67,35 @@ public class TestXPath extends TestCase {
 
     
 
+  }
+  
+  private static class OaiDcNamescpaceCtx extends OaiPmhNamespaceContext {
+
+    @Override
+    public String getNamespaceURI(String prefix) {
+      if ("dc".equals(prefix)) {
+        return "http://purl.org/dc/elements/1.1/";
+      }
+      return super.getNamespaceURI(prefix);
+    }
+    
+  }
+  
+  public void testDoubleSlash() throws UnsupportedEncodingException, ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+    XPathHelper<NodeList> helper = new XPathHelper<NodeList>(XPathConstants.NODESET, new OaiDcNamescpaceCtx());
+    ByteArrayInputStream buffer = new ByteArrayInputStream(xmlWithNamespace.getBytes("UTF-8"));
+    Document doc = readXML(buffer);
+    //find titles anywhere in the context
+    NodeList list = helper.evaluate(doc, "//dc:title");
+    assertEquals("Wrong number of dc:title nodes", 10, list.getLength()); 
+    //find title in each record
+    NodeList recs = doc.getElementsByTagName("record");
+    assertEquals("Wrong number of record nodes", 10, list.getLength());
+    for (int i=0; i<recs.getLength(); i++) {
+      Node rec = recs.item(i);
+      list = helper.evaluate(rec, ".//dc:title");
+      assertEquals("Wrong number of dc:title nodes within record", 1, list.getLength());
+    }
   }
 
   

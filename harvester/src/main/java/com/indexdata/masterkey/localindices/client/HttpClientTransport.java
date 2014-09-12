@@ -14,11 +14,10 @@ import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import java.util.zip.ZipInputStream;
 
 public class HttpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
-  private Date lastRequested;
+  private Date lastFrom;
   private HttpURLConnection conn;
   private Integer timeout;
   private final ClientTransportFactory clientTransportFactory;
@@ -53,15 +52,42 @@ public class HttpClientTransport implements ClientTransport {
   private RemoteFileIterator handleJumpPage(HttpURLConnection conn) throws IOException, URISyntaxException, ClientTransportError 
   {
     HTMLPage jp = new HTMLPage(handleContentEncoding(conn), conn.getURL());
-    RemoteFileIteratorIterator itt = new RemoteFileIteratorIterator();
-    for (URL link : jp.getLinks()) {
-      ClientTransport client = clientTransportFactory.lookup(link);
-      client.connect(link);
-      //we only expect jump pages to be linked directly in the harvester
-      //otherwise we would need to protect against back-links, cycles, etc
-      client.setRecursive(false);
-      RemoteFileIterator iter = client.get(link);
-      itt.add(iter);
+    InitializingRemoteFileIteratorIterator itt = new InitializingRemoteFileIteratorIterator();
+    for (final URL link : jp.getLinks()) {
+      //wrap the actual iterator in a delayed initialization proxy
+      NotInitializedRemoteFileIterator it = new NotInitializedRemoteFileIterator() {
+        RemoteFileIterator iterator;
+        @Override
+        public void init() throws IOException {
+          try {
+            ClientTransport client = clientTransportFactory.lookup(link);
+            client.setFromDate(lastFrom);
+            client.connect(link);
+            //we only expect jump pages to be linked directly in the harvester
+            //otherwise we would need to protect against back-links, cycles, etc
+            client.setRecursive(false);
+            iterator = client.get(link);
+          } catch (ClientTransportError cte) {
+            throw new IOException(cte);
+          }
+        }
+
+        @Override
+        public boolean isInitialized() {
+          return iterator != null;
+        }
+
+        @Override
+        public boolean hasNext() throws IOException {
+          return iterator.hasNext();
+        }
+
+        @Override
+        public RemoteFile getNext() throws IOException {
+          return iterator.getNext();
+        }
+      };
+      itt.add(it);
     }    
     return itt;
   }
@@ -72,13 +98,13 @@ public class HttpClientTransport implements ClientTransport {
     if (conn == null)
       throw new ClientTransportError("HTTP client must be initialized with a call to #connect");
     conn.setRequestMethod("GET");
-    if (lastRequested != null) {
+    if (lastFrom != null) {
       try {
-      String lastModified = DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT);
+      String lastModified = DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT);
       logger.info("Conditional request If-Modified-Since: " + lastModified);
       conn.setRequestProperty("If-Modified-Since", lastModified);
       } catch (ParseException pe) {
-	logger.error("Failed to parse last modified date: " + lastRequested);
+	logger.error("Failed to parse last modified date: " + lastFrom);
       }
     }
     conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
@@ -112,9 +138,9 @@ public class HttpClientTransport implements ClientTransport {
     } else if (responseCode == 304) {// not-modified
       try {
 	logger.info("Content was not modified since '"
-	    + DateUtil.serialize(lastRequested, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
+	    + DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
       } catch (ParseException pe) {
-	throw new RuntimeException("Failed to parse Date: " + lastRequested, pe);
+	throw new RuntimeException("Failed to parse Date: " + lastFrom, pe);
       }
       return new EmptyRemoteFileIterator();
     } else {
@@ -134,14 +160,6 @@ public class HttpClientTransport implements ClientTransport {
     return contentLength;
   }
 
-  public Date getLastRequested() {
-    return lastRequested;
-  }
-
-  public void setLastRequested(Date lastRequested) {
-    this.lastRequested = lastRequested;
-  }
-
   public Integer getTimeout() {
     return timeout;
   }
@@ -153,7 +171,7 @@ public class HttpClientTransport implements ClientTransport {
 
   @Override
   public void setFromDate(Date date) {
-    lastRequested = date;
+    lastFrom = date;
   }
 
   @Override

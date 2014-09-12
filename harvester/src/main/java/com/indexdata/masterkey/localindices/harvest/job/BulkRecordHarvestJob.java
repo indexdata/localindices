@@ -38,8 +38,6 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
-    splitDepth = getNumber(resource.getSplitAt(), splitDepth);
-    splitSize = getNumber(resource.getSplitSize(), splitSize);
     this.resource.setMessage(null);
     initialStatus = HarvestStatus.valueOf(resource.getCurrentStatus());
     setStatus(initialStatus);
@@ -145,7 +143,20 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
-    Date lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestFinished();
+    Date lastDate = null;
+    if (resource.getAllowCondReq()) {
+      //conditonal request are enabled, manual override takes precedence and
+      //gets cleaned-up
+      lastDate = resource.getFromDate();
+      resource.setFromDate(null);
+      //when no manual override, use the last completion date
+      if (lastDate == null) {
+        lastDate = initialStatus == HarvestStatus.ERROR 
+          || initialStatus == HarvestStatus.WARN 
+          ? null 
+          : resource.getLastHarvestFinished();
+      }
+    }
     XmlMarcClient client = new XmlMarcClient(resource, this, proxy, logger, dc, lastDate);
     for (String item : list) {
       try {
