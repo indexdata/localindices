@@ -204,6 +204,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
+        return;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         zis.close();
@@ -228,6 +229,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (count == 0) {
           logger.debug("Found no files in the archive.");
         }
+        return;
       } finally {
         //we need to close in case the iteration did not exhause all entries
         tis.close();
@@ -519,8 +521,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
       if (!job.isKillSent()) {
         logger.error("Second download attempt failed: " + ioe.getMessage());
         if (getResource().getAllowErrors()) {
-          logger.error(getErrors() + (rf.getAbsoluteName() + " "));
-          setErrors(getErrors() + (rf.getAbsoluteName() + ". Failed to download in two attempts"));
+          logger.error(getErrors() + ". Failed to download in two attempts");
+          setErrors(getErrors() + ". Failed to download in two attempts");
         } else {
           throw new ClientTransportError("Attempt to reconnect and download failed: " + ioe.getMessage());
         }
