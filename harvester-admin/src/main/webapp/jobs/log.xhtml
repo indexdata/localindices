@@ -51,7 +51,7 @@
                   counter++;
                 } 
               }
-              scrollToBottom();
+              initiateScroll();
             }
             //debugger;
           });
@@ -60,13 +60,18 @@
           var delay = 1; //in milliseconds
           var scrollAmount = 10; //in pixels
           var interval = null;
+          var autoScroll = true;
+          
+          function initiateScroll() {
+            setTimeout("animatedScroll()", initialDelay);
+          }
           
           function animatedScroll() {
             if (window.pageYOffset >= document.body.scrollHeight) {
               if (interval !== null)
                 clearInterval(interval);
             } else {
-              if (window.autoUpdate != false) {
+              if (window.autoUpdate !== false && autoScroll !== false) {
                 window.scrollBy(0, scrollAmount);
                 if (interval === null)
                   interval = setInterval("animatedScroll()", delay);
@@ -76,10 +81,26 @@
               }
             }
           }
-          
-          function scrollToBottom() {  
-            setTimeout("animatedScroll()", initialDelay);
-          }
+         
+         //catch user scroll (mouse, scrollbar, keyboard) and disable autoScroll
+         //to allow inspecting logs, if the page is scrolled to the bottom again
+         //re-enable auto scroll
+         var lastScroll = 0;
+         window.onscroll = function (e) {
+           //true down, false up
+           var dir = window.pageYOffset > lastScroll;
+           lastScroll = window.pageYOffset;
+           if (dir === false) {//up
+             //disable auto scroll right away
+             autoScroll = false;
+             return;
+           } else { //down
+             //reached end?
+             var isEnd = (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
+             if (isEnd) autoScroll = true;
+             return;
+           }
+         }
           //]]>
         </script>
         <h:form id="btnForm">
