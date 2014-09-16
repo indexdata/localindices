@@ -68,7 +68,7 @@
           }
           
           function animatedScroll() {
-            if (window.pageYOffset >= document.body.scrollHeight) {
+            if (getScrollXY()[1] >= document.body.scrollHeight) {
               if (interval !== null)
                 clearInterval(interval);
             } else {
@@ -89,15 +89,15 @@
          var lastScroll = 0;
          window.onscroll = function (e) {
            //true down, false up
-           var dir = window.pageYOffset > lastScroll;
-           lastScroll = window.pageYOffset;
+           var dir = getScrollXY()[1] > lastScroll;
+           lastScroll = getScrollXY()[1];
            if (dir === false) {//up
              //disable auto scroll right away
              autoScroll = false;
              return;
            } else { //down
              //reached end?
-             var isEnd = getDocHeight() <= getScrollXY()[1] + window.innerHeight;
+             var isEnd = getDocHeight() <= getScrollXY()[1] + getWinHeight();
              if (isEnd) autoScroll = true;
              return;
            }
@@ -136,6 +136,15 @@
             D.body.offsetHeight, D.documentElement.offsetHeight,
             D.body.clientHeight, D.documentElement.clientHeight
             );
+        }
+        
+        function getWinHeight() {
+          var w = window,
+            d = document,
+            e = d.documentElement,
+            g = d.getElementsByTagName('body')[0],
+            y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+          return y;
         }
           //]]>
         </script>
