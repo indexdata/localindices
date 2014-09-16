@@ -27,10 +27,11 @@
           jsf.ajax.addOnEvent(function (data) { 
             if (data.status === "complete") { 
               var doc = data.responseXML;
-              if (doc.firstChild.nodeName === "partial-response" 
-                      && doc.firstChild.firstChild.nodeName === "changes") {
+              var root = doc.documentElement;
+              if (root.nodeName === "partial-response" 
+                      && root.firstChild.nodeName === "changes") {
                 //we are dealing with proper response
-                var changes = doc.firstChild.firstChild;
+                var changes = root.firstChild;
                 var update = changes.firstChild;
                 if (update.nodeName === "update") {
                   changes.removeChild(update);
