@@ -68,9 +68,9 @@
           }
           
           function animatedScroll() {
-            if (getScrollXY()[1] >= document.body.scrollHeight) {
-              if (interval !== null)
-                clearInterval(interval);
+            if (window.isBottom()) {
+              clearInterval(interval);
+              interval = null;
             } else {
               if (window.autoUpdate !== false && autoScroll !== false) {
                 window.scrollBy(0, scrollAmount);
@@ -97,8 +97,7 @@
              return;
            } else { //down
              //reached end?
-             var isEnd = getDocHeight() <= getScrollXY()[1] + getWinHeight();
-             if (isEnd) autoScroll = true;
+             if (isBottom()) autoScroll = true;
              return;
            }
          };
@@ -107,6 +106,10 @@
           if (window.console && window.console.log) {
             window.console.log(msg);
          }
+        }
+        
+        function isBottom() {
+          return getDocHeight() <= getScrollXY()[1] + getWinHeight();
         }
          
         function getScrollXY() {
