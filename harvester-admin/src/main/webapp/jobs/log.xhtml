@@ -45,9 +45,9 @@
                   insert.appendChild(after);
                   var html = update.firstChild.nodeValue;
                   var tmp = document.createElement("span");
-                  tmp.innerHTML = html;
-                  tmp.firstChild.setAttribute("id", update.getAttribute("id") + "-" + counter);
-                  var cdata = doc.createCDATASection(tmp.innerHTML);
+                  tmp.innerHTML = "<pre>" + html + "</pre>"; //prevent IE8 from stripping new lines
+                  tmp.firstChild.firstChild.setAttribute("id", update.getAttribute("id") + "-" + counter);
+                  var cdata = doc.createCDATASection(tmp.firstChild.innerHTML);
                   after.appendChild(cdata);
                   counter++;
                 } 
