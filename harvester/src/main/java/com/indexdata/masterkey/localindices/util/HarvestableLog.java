@@ -85,12 +85,19 @@ public class HarvestableLog {
     File[] logs = dir.listFiles(new FileFilter() {
       @Override
       public boolean accept(File file) {
+        //File#lastModified either trims or sets rubbish ms values before Java 8
+        //so we need to trim both dates
         return file.getName().startsWith(logPrefix) &&
-          (from == null || file.lastModified() >= from.getTime());
+          (from == null || trim(file.lastModified(), 1000L) 
+          >= trim(from.getTime(), 1000L));
       }
     });
     if (logs != null) Arrays.sort(logs, Collections.reverseOrder());
     return logs;
+  }
+  
+  private static long trim(long i, long place) {
+    return (i / place) * place;
   }
 
   public String getLogDir() {
