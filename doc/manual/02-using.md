@@ -149,6 +149,8 @@ The XML/MARC specific settings look like this:
 
 * _Ask server for new files only_: ask the server if the files are modified before attempting a harvest, relies on proper timestamp handling on the server side. It's usually safe to have this enabled as servers are eager to update the modification date, even in cases when the files themselves don't change. Enabling this setting may significantly shorten harvest times.
 
+* _Initial from date_: allows to specify the initial _from_ harvest date when _ask server for new files only_ option is checked. When filled out, files older than the specified value will be only harvested. 
+
 * _Split XML at depth_: For XML data. This should usually be set to 1 for XML feeds, if we want to harvest the record elements in the data structured like:
 
 ```
