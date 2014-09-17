@@ -41,6 +41,7 @@
                 <f:convertDateTime pattern="yyyy-MM-dd" />
             </h:inputText>
             <h:message for="fromDate" style="color: red;" />
+            <id:helplink field="[Harvest Jobs][XML bulk specific information][Initial from date]"/>
         </h:panelGroup>
         <h:outputText value="Split XML at depth (zero/empty disables split):"/>
         <h:panelGroup>
@@ -73,7 +74,10 @@
           <id:helplink field="[Harvest Jobs][XML bulk specific information][Use passive mode for FTP transfers]"/>
         </h:panelGroup>
         <h:outputText value="CSV parser configuration:"/>
-        <h:inputText value="#{resourceController.resource.csvConfiguration}" size="90"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.csvConfiguration}" size="90"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][CSV parser configuration]"/>
+        </h:panelGroup>
       </h:panelGrid>
     </ui:composition>
   </body>
