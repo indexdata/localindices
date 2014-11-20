@@ -6,21 +6,6 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.apache.log4j.Logger;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -33,6 +18,19 @@ import com.indexdata.torus.Records;
 import com.indexdata.torus.layer.KeyValue;
 import com.indexdata.torus.layer.SearchableTypeLayer;
 import com.indexdata.utils.DateUtil;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import javax.xml.bind.annotation.XmlRootElement;
+import org.apache.log4j.Logger;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * Converter to TORUS records of type searchable.
@@ -190,6 +188,16 @@ public class SearchablesConverter extends Records {
 	layer.getDynamicElements().add(new KeyValue("originalUri", entity.getOriginalUri()));
       if (entity.getJson() != null)
 	layer.getDynamicElements().add(new KeyValue("json", entity.getJson()));
+      if (entity.getLastUpdated() == null && entity.getLastHarvestFinished() != null) {
+        layer.getDynamicElements().add(new KeyValue("lastModified", DateUtil.serialize(entity.getLastHarvestFinished())));
+      } else if (entity.getLastUpdated() != null && entity.getLastHarvestFinished() == null) {
+        layer.getDynamicElements().add(new KeyValue("lastModified", DateUtil.serialize(entity.getLastUpdated())));
+      } else if (entity.getLastUpdated() != null && entity.getLastHarvestFinished() != null) {
+        Date older = entity.getLastUpdated().before(entity.getLastHarvestFinished())
+          ? entity.getLastUpdated()
+          : entity.getLastHarvestFinished();
+        layer.getDynamicElements().add(new KeyValue("lastModified", DateUtil.serialize(older)));
+      }
       if (entity.getInitiallyHarvested() != null)
         layer.getDynamicElements().add(new KeyValue("originDate", DateUtil.serialize(entity.getInitiallyHarvested())));
       layers.add(layer);
