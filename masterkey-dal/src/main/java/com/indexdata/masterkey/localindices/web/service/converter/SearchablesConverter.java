@@ -147,6 +147,7 @@ public class SearchablesConverter extends Records {
       layer.setLayerName("final");
       layer.setName(entity.getName());
       layer.setServiceProvider(entity.getServiceProvider());
+      layer.getDynamicElements().add(new KeyValue("targetOrigin", "harvester"));
 
       if (entity.isOpenAccess()) {
 	layer.setOpenAccess(entity.isOpenAccess() ? "1" : null);
