@@ -32,6 +32,7 @@ import com.indexdata.torus.Record;
 import com.indexdata.torus.Records;
 import com.indexdata.torus.layer.KeyValue;
 import com.indexdata.torus.layer.SearchableTypeLayer;
+import com.indexdata.utils.DateUtil;
 
 /**
  * Converter to TORUS records of type searchable.
@@ -189,6 +190,8 @@ public class SearchablesConverter extends Records {
 	layer.getDynamicElements().add(new KeyValue("originalUri", entity.getOriginalUri()));
       if (entity.getJson() != null)
 	layer.getDynamicElements().add(new KeyValue("json", entity.getJson()));
+      if (entity.getInitiallyHarvested() != null)
+        layer.getDynamicElements().add(new KeyValue("originDate", DateUtil.serialize(entity.getInitiallyHarvested())));
       layers.add(layer);
       record.setLayers(layers);
       records.add(record);
