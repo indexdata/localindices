@@ -1,10 +1,8 @@
 package com.indexdata.masterkey.localindices.client;
 
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.net.URL;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 

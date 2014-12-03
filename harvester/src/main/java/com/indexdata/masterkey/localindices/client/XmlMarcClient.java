@@ -1,5 +1,9 @@
 package com.indexdata.masterkey.localindices.client;
 
+import com.indexdata.masterkey.localindices.client.filefilters.CompositeEntryFilter;
+import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
+import com.indexdata.masterkey.localindices.client.filefilters.EntryFilterExcludePattern;
+import com.indexdata.masterkey.localindices.client.filefilters.EntryFilterIncludePattern;
 import com.indexdata.masterkey.localindices.csv.CSVConverter;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.cache.CachingInputStream;
@@ -26,8 +30,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.xml.transform.dom.DOMResult;
@@ -186,6 +188,10 @@ public class XmlMarcClient extends AbstractHarvestClient {
       ? new BufferedInputStream(file.getInputStream())
       : file.getInputStream();
     MimeTypeCharSet mimeType = deduceMimeType(input, file.getName(), file.getContentType());
+
+    EntryFilter excludefilter = new EntryFilterExcludePattern(((XmlBulkResource) resource).getExcludeFilePattern(),logger);
+    EntryFilter includefilter = new EntryFilterIncludePattern(((XmlBulkResource) resource).getIncludeFilePattern(),logger);
+    EntryFilter entryFilter = new CompositeEntryFilter(excludefilter,includefilter);
     //TODO RemoteFile abstraction is not good enough to make this clean
     //some transports may deal with compressed files (e.g http) others may not
     //if we end up with a compressed mimetype we need to decompress
@@ -193,7 +199,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.debug("Transport returned ZIP compressed file, expanding..");
       ZipInputStream zis = new ZipInputStream(input);
       try {
-        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),zis, null, logger);
+        RemoteFileIterator it = new ZipRemoteFileIterator(file.getURL(),zis, null, logger, entryFilter);
         int count = 0;
         while (it.hasNext()) {
           RemoteFile rf = it.getNext();
@@ -217,8 +223,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
       try {
+        
         RemoteFileIterator it = new TarRemoteFileIterator(file.getURL(),
-          tis, null, logger);
+          tis, null, logger, entryFilter);
         int count = 0;
         while (it.hasNext()) {
           RemoteFile rf = it.getNext();

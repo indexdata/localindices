@@ -68,6 +68,16 @@
           <h:selectBooleanCheckbox value="#{resourceController.resource.recurse}"/>
           <id:helplink field="[Harvest Jobs][XML bulk specific information][Recurse into subfolders]"/>
         </h:panelGroup>
+        <h:outputText value="Include files (regular expression):"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.includeFilePattern}" size="90"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Include files (regular expression)]"/>
+        </h:panelGroup>
+        <h:outputText value="Exclude files (regular expression):"/>
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.excludeFilePattern}" size="90"/>
+          <id:helplink field="[Harvest Jobs][XML bulk specific information][Exclude files (regular expression)]"/>
+        </h:panelGroup>
         <h:outputText value="Use passive mode for FTP transfers"/>
         <h:panelGroup>
           <h:selectBooleanCheckbox value="#{resourceController.resource.passiveMode}"/>

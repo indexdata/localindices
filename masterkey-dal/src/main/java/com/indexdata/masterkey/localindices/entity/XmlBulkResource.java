@@ -30,6 +30,8 @@ public class XmlBulkResource extends Harvestable implements Serializable {
   private boolean allowCondReq;
   @Column(nullable=false)
   private boolean recursionLevels;
+  private String includeFilePattern;
+  private String excludeFilePattern;
   @Column(nullable=false)
   private boolean passiveMode;
   private String csvConfiguration;
@@ -109,6 +111,22 @@ public class XmlBulkResource extends Harvestable implements Serializable {
 
   public void setRecurse(boolean recursionLevels) {
     this.recursionLevels = recursionLevels;
+  }
+
+  public String getExcludeFilePattern() {
+    return excludeFilePattern;
+  }
+
+  public void setExcludeFilePattern(String excludeFilePattern) {
+    this.excludeFilePattern = excludeFilePattern;
+  }
+
+  public String getIncludeFilePattern() {
+    return includeFilePattern;
+  }
+
+  public void setIncludeFilePattern(String includeFilePattern) {
+    this.includeFilePattern = includeFilePattern;
   }
 
   public void reset() {

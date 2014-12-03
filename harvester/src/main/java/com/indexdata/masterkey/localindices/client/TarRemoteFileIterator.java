@@ -1,25 +1,34 @@
 package com.indexdata.masterkey.localindices.client;
 
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.URL;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+
+import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
+import com.indexdata.masterkey.localindices.client.filefilters.TarEntryFilteringInfo;
+import com.indexdata.masterkey.localindices.client.filefilters.ZipEntryFilteringInfo;
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class TarRemoteFileIterator implements RemoteFileIterator {
   private final StorageJobLogger logger;
   private final URL url;
   private final TarArchiveInputStream tar;
-  private TarArchiveEntry tarEntry;
+  private TarArchiveEntry tarEntry = null;
   private final String contentType;
   private boolean closed = false;
+  private EntryFilter filter = null;
   
-  public TarRemoteFileIterator(URL url, TarArchiveInputStream tar, String contentType, StorageJobLogger logger) throws IOException {
+  public TarRemoteFileIterator(URL url, TarArchiveInputStream tar, String contentType, StorageJobLogger logger, EntryFilter filter) throws IOException {
     this.tar = tar;
     this.url = url; 
     this.contentType = contentType;
-    this.tarEntry = tar.getNextTarEntry();
+    this.filter = filter;
+    this.tarEntry = getNextAcceptedEntry(tar, filter);
     if (tarEntry == null) {
       closed = true;
       tar.close();
@@ -32,7 +41,7 @@ public class TarRemoteFileIterator implements RemoteFileIterator {
     if (closed) return false;
     if (tarEntry == null) {
       //signaled by getNext() to retrieve
-      tarEntry = tar.getNextTarEntry();
+      this.tarEntry = getNextAcceptedEntry(tar, filter);
       if (tarEntry == null) {
         closed = true;
         tar.close();
@@ -50,7 +59,7 @@ public class TarRemoteFileIterator implements RemoteFileIterator {
     if (closed) return null;
     //we have signaled to next to fetch more but next wasn't called
     if (tarEntry == null) {
-      tarEntry = tar.getNextTarEntry();
+      this.tarEntry = getNextAcceptedEntry(tar, filter);
       if (tarEntry == null) {
         closed = true;
         tar.close();
@@ -65,6 +74,15 @@ public class TarRemoteFileIterator implements RemoteFileIterator {
     tarEntry = null;
     return file;
   }
+  
+  private TarArchiveEntry getNextAcceptedEntry(TarArchiveInputStream tar, EntryFilter filter) throws IOException {
+    TarArchiveEntry tarEntry = null;
+    do {
+      tarEntry = tar.getNextTarEntry();
+    } while (tarEntry != null && !filter.accept(new TarEntryFilteringInfo(tarEntry)));
+    return tarEntry;
+  }
+
 
 
 }
