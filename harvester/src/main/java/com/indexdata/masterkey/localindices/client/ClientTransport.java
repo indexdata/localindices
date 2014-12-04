@@ -9,5 +9,7 @@ public interface ClientTransport {
   public RemoteFileIterator get(URL url) throws IOException, ClientTransportError;
   public void setTimeout(Integer seconds);
   public void setFromDate(Date date);
+  public void setExcludeFilePattern(String fileNamePattern);
+  public void setIncludeFilePattern(String fileNamePattern);
   public void setRecursive(boolean isRecursive);
 }

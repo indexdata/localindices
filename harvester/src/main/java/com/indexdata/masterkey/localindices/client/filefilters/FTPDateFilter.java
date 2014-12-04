@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.client;
+package com.indexdata.masterkey.localindices.client.filefilters;
 
 import java.util.Date;
 

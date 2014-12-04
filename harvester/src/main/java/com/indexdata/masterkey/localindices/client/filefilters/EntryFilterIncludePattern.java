@@ -17,7 +17,7 @@ public class EntryFilterIncludePattern implements EntryFilter {
   @Override
   public boolean accept(ItemFilteringInfo info) {
     if (pattern != null && pattern.length()>0) {
-      logger.debug("Include pattern: " + pattern + ", file name: "+info.getName() + ", matches?: " + info.getName().matches(pattern));
+      logger.debug("Include pattern " + pattern + (info.getName().matches(pattern) ? " will include " : " will filter out ") + " "+ info.getName());
       return info.getName().matches(pattern);
     } else {
       return true;

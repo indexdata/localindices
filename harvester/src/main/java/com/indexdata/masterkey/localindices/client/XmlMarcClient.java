@@ -93,6 +93,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
     try {
       ClientTransport clientTransport = factory.lookup(url);
       clientTransport.setFromDate(lastFrom);
+      clientTransport.setIncludeFilePattern(getResource().getIncludeFilePattern());
+      clientTransport.setExcludeFilePattern(getResource().getExcludeFilePattern());
       clientTransport.connect(url);
       try {
         RemoteFileIterator iterator = clientTransport.get(url);

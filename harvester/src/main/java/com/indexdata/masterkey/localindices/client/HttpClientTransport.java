@@ -18,6 +18,8 @@ import java.util.zip.InflaterInputStream;
 public class HttpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
   private Date lastFrom;
+  private String includeFilePattern;
+  private String excludeFilePattern;
   private HttpURLConnection conn;
   private Integer timeout;
   private final ClientTransportFactory clientTransportFactory;
@@ -62,6 +64,8 @@ public class HttpClientTransport implements ClientTransport {
           try {
             ClientTransport client = clientTransportFactory.lookup(link);
             client.setFromDate(lastFrom);
+            client.setIncludeFilePattern(includeFilePattern);
+            client.setExcludeFilePattern(excludeFilePattern);
             client.connect(link);
             //we only expect jump pages to be linked directly in the harvester
             //otherwise we would need to protect against back-links, cycles, etc
@@ -177,6 +181,15 @@ public class HttpClientTransport implements ClientTransport {
   @Override
   public void setRecursive(boolean isRecursive) {
     this.isRecursive = isRecursive;
+  }
+  @Override
+  public void setExcludeFilePattern(String fileNamePattern) {
+    this.excludeFilePattern = fileNamePattern;
+  }
+
+  @Override
+  public void setIncludeFilePattern(String fileNamePattern) {
+    this.includeFilePattern = fileNamePattern;
   }
  
 }

@@ -1,7 +1,5 @@
 package com.indexdata.masterkey.localindices.client;
 
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
@@ -9,17 +7,27 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.StringTokenizer;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPFileFilter;
 import org.apache.commons.net.ftp.FTPFileFilters;
 
+import com.indexdata.masterkey.localindices.client.filefilters.FTPDateFilter;
+import com.indexdata.masterkey.localindices.client.filefilters.FTPFileFilterComposite;
+import com.indexdata.masterkey.localindices.client.filefilters.FTPFileFilterExcludePattern;
+import com.indexdata.masterkey.localindices.client.filefilters.FTPFileFilterIncludePattern;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 public class FtpClientTransport implements ClientTransport {
   private final StorageJobLogger logger;
   private Date fromDate;
+  private String includeFilePattern = null;
+  private String excludeFilePattern = null;
   private FTPClient client = null;
   private final boolean usePassive;
   private URL ftpUrl = null;
+  private static String DEFAULT_INCLUDE = ".*\\.[Zz][Ii][Pp]|.*\\.[Tt][Aa][Rr]|.*\\.[Gg][Zz]|";
 
   public FtpClientTransport(StorageJobLogger logger, boolean usePassive) {
     this.logger = logger;
@@ -109,17 +117,28 @@ public class FtpClientTransport implements ClientTransport {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    logger.info("Retrieving file list for " + path + (fromDate != null ? " with timestamps after " + fromDate : ""));
 
-    FTPFileFilter filter = (fromDate != null ? new FTPDateFilter(fromDate) : FTPFileFilters.ALL);
-    FTPFile[] files =  client.listFiles(path,filter); 
+    FTPFileFilter dateFilter = (fromDate != null ? new FTPDateFilter(fromDate) : FTPFileFilters.ALL);
+    FTPFileFilter excludeFilter = (excludeFilePattern != null ? new FTPFileFilterExcludePattern(excludeFilePattern) : FTPFileFilters.ALL);
+    FTPFileFilter includeFilter = (includeFilePattern != null ? new FTPFileFilterIncludePattern(DEFAULT_INCLUDE+includeFilePattern) : FTPFileFilters.ALL);
+    FTPFileFilterComposite fileFilter = new FTPFileFilterComposite(dateFilter,includeFilter,excludeFilter);
+
+    logger.info("Retrieving file list for " + path + 
+        (fromDate != null ? " with timestamps after " + fromDate : "") + 
+        (includeFilePattern != null ? " Including only: " + DEFAULT_INCLUDE+includeFilePattern : "") +
+        (excludeFilePattern != null ? " Excluding: " + excludeFilePattern : ""));
+
+    FTPFile[] files =  client.listFiles(path,fileFilter); 
 
     if (files.length==0) {
-      logger.warn("Did not find any files at " + path);
+      logger.warn("Did not find any files at " + path + 
+          (fromDate != null ? " with timestamps after " + fromDate : "") +
+          (includeFilePattern != null ? " Including only: " + DEFAULT_INCLUDE+includeFilePattern : "") +
+          (excludeFilePattern != null ? " Excluding: " + excludeFilePattern : ""));
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
-    return new FtpRemoteFileIterator(this, url, files, filter, logger);
+    return new FtpRemoteFileIterator(this, url, files, fileFilter, logger);
   }
 
   @Override
@@ -136,5 +155,13 @@ public class FtpClientTransport implements ClientTransport {
   public void setRecursive(boolean isRecursive) {
     // not applicable for this transport
   }
+  public void setExcludeFilePattern (String fileNamePattern) {
+    this.excludeFilePattern = fileNamePattern;
+  }
+  
+  public void setIncludeFilePattern (String fileNamePattern) {
+    this.includeFilePattern = fileNamePattern;
+  }
+
 
 }
