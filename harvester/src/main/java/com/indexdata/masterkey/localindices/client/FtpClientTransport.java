@@ -119,22 +119,22 @@ public class FtpClientTransport implements ClientTransport {
     }
 
     FTPFileFilter dateFilter = (fromDate != null ? new FTPDateFilter(fromDate) : FTPFileFilters.ALL);
-    FTPFileFilter excludeFilter = (excludeFilePattern != null ? new FTPFileFilterExcludePattern(excludeFilePattern) : FTPFileFilters.ALL);
-    FTPFileFilter includeFilter = (includeFilePattern != null ? new FTPFileFilterIncludePattern(DEFAULT_INCLUDE+includeFilePattern) : FTPFileFilters.ALL);
+    FTPFileFilter excludeFilter = (getExcludeFilePattern() != null ? new FTPFileFilterExcludePattern(getExcludeFilePattern()) : FTPFileFilters.ALL);
+    FTPFileFilter includeFilter = (getIncludeFilePattern() != null ? new FTPFileFilterIncludePattern(DEFAULT_INCLUDE+includeFilePattern) : FTPFileFilters.ALL);
     FTPFileFilterComposite fileFilter = new FTPFileFilterComposite(dateFilter,includeFilter,excludeFilter);
 
     logger.info("Retrieving file list for " + path + 
         (fromDate != null ? " with timestamps after " + fromDate : "") + 
-        (includeFilePattern != null ? " Including only: " + DEFAULT_INCLUDE+includeFilePattern : "") +
-        (excludeFilePattern != null ? " Excluding: " + excludeFilePattern : ""));
+        (getIncludeFilePattern() != null ? " Including only: " + DEFAULT_INCLUDE+getIncludeFilePattern() : "") +
+        (getExcludeFilePattern() != null ? " Excluding: " + getExcludeFilePattern() : ""));
 
     FTPFile[] files =  client.listFiles(path,fileFilter); 
 
     if (files.length==0) {
       logger.warn("Did not find any files at " + path + 
           (fromDate != null ? " with timestamps after " + fromDate : "") +
-          (includeFilePattern != null ? " Including only: " + DEFAULT_INCLUDE+includeFilePattern : "") +
-          (excludeFilePattern != null ? " Excluding: " + excludeFilePattern : ""));
+          (getIncludeFilePattern() != null ? " Including only: " + DEFAULT_INCLUDE+getIncludeFilePattern() : "") +
+          (getExcludeFilePattern() != null ? " Excluding: " + getExcludeFilePattern() : ""));
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
@@ -161,6 +161,17 @@ public class FtpClientTransport implements ClientTransport {
   
   public void setIncludeFilePattern (String fileNamePattern) {
     this.includeFilePattern = fileNamePattern;
+  }
+  
+  private String getExcludeFilePattern () {
+    if (excludeFilePattern == null || excludeFilePattern.length()==0) return null;
+    else return excludeFilePattern;
+  }
+  
+  private String getIncludeFilePattern () {
+    if (includeFilePattern == null || includeFilePattern.length()==0) return null;
+    else return includeFilePattern;
+
   }
 
 
