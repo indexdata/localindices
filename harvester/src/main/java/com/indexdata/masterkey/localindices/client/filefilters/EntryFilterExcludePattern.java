@@ -13,7 +13,7 @@ public class EntryFilterExcludePattern implements EntryFilter {
   }
   
   @Override
-  public boolean accept(ItemFilteringInfo info) {
+  public boolean accept(EntryFilteringInfo info) {
     if (pattern != null && pattern.length()>0) {
       logger.debug("Exclude pattern " + pattern + (info.getName().matches(pattern) ? " will exclude " : " would keep ") + " "+ info.getName());
       return ! (info.getName().matches(pattern));

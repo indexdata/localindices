@@ -2,6 +2,6 @@ package com.indexdata.masterkey.localindices.client.filefilters;
 
 public interface EntryFilter {
 
-  public boolean accept(ItemFilteringInfo info);
+  public boolean accept(EntryFilteringInfo info);
   
 }

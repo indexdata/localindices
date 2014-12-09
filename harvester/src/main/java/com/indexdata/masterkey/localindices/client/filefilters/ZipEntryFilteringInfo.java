@@ -3,7 +3,7 @@ package com.indexdata.masterkey.localindices.client.filefilters;
 import java.util.Date;
 import java.util.zip.ZipEntry;
 
-public class ZipEntryFilteringInfo implements ItemFilteringInfo {
+public class ZipEntryFilteringInfo implements EntryFilteringInfo {
 
   ZipEntry entry = null;
   

@@ -17,7 +17,7 @@ public class CompositeEntryFilter implements EntryFilter {
   }
 
   @Override
-  public boolean accept(ItemFilteringInfo info) {
+  public boolean accept(EntryFilteringInfo info) {
     for (EntryFilter filter : filters) {
       if (! filter.accept(info)) {
         return false;

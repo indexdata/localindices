@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 
-public class TarEntryFilteringInfo implements ItemFilteringInfo {
+public class TarEntryFilteringInfo implements EntryFilteringInfo {
 
   TarArchiveEntry entry = null;
   public TarEntryFilteringInfo(TarArchiveEntry entry) {
