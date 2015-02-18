@@ -101,8 +101,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           finalException = ue;
           return false;
         } catch (StopException e) {
-          logger.info("Received Stop Exception. Reason: " + e.getMessage());
-          return true; 
+          logger.info("Received Stop Request: " + e.getMessage());
+          finalException = e;
+          return false; 
         } catch (Exception e) {
           boolean retry = tried <= maxRetries;
           logger.warn("Invoking task '"+toString()+"' failed ('"+e.getMessage()+"'), "
@@ -161,6 +162,10 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           onError();
           throw new Unrecoverable(ni2);
         }
+      } catch (StopException e) {
+        logger.info("Running task was stopped - " + e.getMessage());
+        logger.debug("Cause:", e);
+        throw e;
       } catch (Exception e) { //everything but non-initialized
         logger.warn("Running task failed - " + e.getMessage());
         logger.debug("Cause:", e);
@@ -279,9 +284,12 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           harvest(linkToken);
         }
       };
-      boolean success = invoker.invoke();
-      if (!success) {
-        if (getResource().getAllowErrors()) {
+      boolean completed = invoker.invoke();
+      if (!completed) {
+        if (invoker.finalException instanceof StopException) {
+          // Legitimately stopped at record limit
+          break;
+        } else if (getResource().getAllowErrors()) {
           errors.add("link token '"+linkToken+"' failed with '"
             +invoker.finalException.getMessage()+"'");
           if (invoker.finalException instanceof Unrecoverable) {
@@ -289,8 +297,10 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
             throw invoker.finalException;
           }
           continue;
+        } else {
+          // No excuse, re-throw
+          throw invoker.finalException;
         }
-        else throw invoker.finalException;
       }
     }
     if (job.isKillSent()) {
