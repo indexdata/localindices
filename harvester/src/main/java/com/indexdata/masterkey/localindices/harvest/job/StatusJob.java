@@ -66,7 +66,10 @@ public class StatusJob extends AbstractRecordHarvestJob {
       String logLine = String.format("%8s \t %-45s \t %-8s \t %-10s \t %-8s", "Id", "Job name" , "Status", "Message", "Amount");
       mailMesssage.append(logLine).append("\n\n");
       for (HarvestableBrief brief : harvestables) {
-	logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d", brief.getId(), brief.getName(), brief.getCurrentStatus(), brief.getMessage(), (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : -1));
+	logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d", 
+          brief.getId(), brief.getName(), brief.getCurrentStatus(), 
+          (brief.getMessage() != null ? brief.getMessage() : "No message"), 
+          (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0));
 	logger.info(logLine);
 	mailMesssage.append(logLine).append("\n");
 	setStatus(HarvestStatus.OK);
