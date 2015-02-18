@@ -213,13 +213,14 @@ public class SearchablesConverter extends Records {
     Map<String, Object> map = new HashMap<String, Object>();
     if (entity.getJson() != null) {
       JSONParser reader = new JSONParser();
-      try {
-	Object object = reader.parse(entity.getJson());
-	if (object instanceof Map)
-	  map = (Map<String, Object>) object;
-      } catch (ParseException e) {
-	// TODO Auto-generated catch block
-	e.printStackTrace();
+      if (entity.getJson() != null && !entity.getJson().isEmpty()) {
+        try {
+          Object object = reader.parse(entity.getJson());
+          if (object instanceof Map)
+            map = (Map<String, Object>) object;
+        } catch (ParseException e) {
+          logger.warn("Can't parse json config for the job", e);
+        }
       }
     }
 
