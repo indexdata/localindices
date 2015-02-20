@@ -280,4 +280,8 @@ public class MultiFileStorage implements RecordStorage {
     // TODO Auto-generated method stub
   }
 
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+
 } // MultiFileStorage

@@ -143,4 +143,8 @@ public class SingleFileStorage implements RecordStorage {
     }
   }
 
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+   
 }

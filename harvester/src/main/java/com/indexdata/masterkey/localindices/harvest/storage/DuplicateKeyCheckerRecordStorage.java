@@ -129,4 +129,9 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   public void shutdown() {
     // TODO Auto-generated method stub
   }
+
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+  
 }

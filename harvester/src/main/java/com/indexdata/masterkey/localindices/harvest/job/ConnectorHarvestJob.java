@@ -58,16 +58,19 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
       setStatus(HarvestStatus.RUNNING);
-      RecordStorage storage = getStorage(); 
+      RecordStorage storage = getStorage();
+      if (resource.getStorageBatchLimit() != null) {
+        storage.setBatchLimit(resource.getStorageBatchLimit());
+      }
       storage.setOverwriteMode(resource.getOverwrite());
       storage.begin();
-      
       storage.databaseStart(resource.getId().toString(), null);
       if (resource.getOverwrite())
           storage.purge(false);
       HarvestConnectorClient client = new HarvestConnectorClient(resource, this, proxy, logger, null);
       // The client will build it's URLs 
       client.download(null);
+      logger.info("Harvest finsished, committing...");
       if (getStatus() == HarvestStatus.RUNNING)
 	setStatus(HarvestStatus.OK);
       //if we have accumulated errors, warn
@@ -85,12 +88,13 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       subject = "Harvest Job completed: ";
       msg = mailMesssage.toString();
     } catch (Exception e) {
+      logger.info("Received an error '"+e.getMessage()+"', handling");
       if (isKillSent()) {
 	if (resource.getAllowErrors()) 
 	  try { 
 	    logger.log(Level.INFO, "Harvest Job killed. Commiting partial due to Allow Errors");
 	    commit();
-	    return ; 
+	    return; 
 	  } catch (Exception ioe) {
 	    subject = "Job stopped: Commit failed: ";
 	    msg = ioe.getMessage();

@@ -212,4 +212,9 @@ public class ThreadedTransformationRecordStorageProxy extends AbstractTransforma
     this.errors = errors;
   }
 
+  @Override
+  public void setBatchLimit(int limit) {
+    getTarget().setBatchLimit(limit);
+  }
+  
 }

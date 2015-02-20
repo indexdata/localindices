@@ -159,4 +159,8 @@ public class FileStorage implements RecordStorage {
     }
   }
 
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+
 }

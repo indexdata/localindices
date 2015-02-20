@@ -139,4 +139,12 @@ public class BulkSolrRecordStorage extends SolrRecordStorage {
     }
     super.commit();
   }
+
+  @Override
+  public void setBatchLimit(int limit) {
+    if (limit > 0) this.limit = limit;
+    logger.info("Setting batch limit to "+this.limit);
+  }
+  
+  
 }

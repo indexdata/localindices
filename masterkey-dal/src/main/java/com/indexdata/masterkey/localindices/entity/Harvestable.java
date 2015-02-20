@@ -115,6 +115,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private Date fromDate;
   @Temporal(TemporalType.TIMESTAMP)
   private Date untilDate;
+  @Column(nullable=true)
+  private Integer storageBatchLimit = null; 
   
   public String getDescription() {
     return description;
@@ -471,6 +473,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setUntilDate(Date untilDate) {
     this.untilDate = untilDate;
+  }
+
+  public Integer getStorageBatchLimit() {
+    return storageBatchLimit;
+  }
+
+  public void setStorageBatchLimit(Integer storageBatchLimit) {
+    this.storageBatchLimit = storageBatchLimit;
   }
   
 }

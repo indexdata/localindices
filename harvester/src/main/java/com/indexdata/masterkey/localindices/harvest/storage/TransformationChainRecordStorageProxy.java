@@ -81,4 +81,9 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
     return getTarget().getContentHandler();
   }
 
+  @Override
+  public void setBatchLimit(int limit) {
+    getTarget().setBatchLimit(limit);
+  }
+  
 }
