@@ -43,7 +43,7 @@ public class AbstractHarvestClient implements HarvestClient {
     if (resource.getTimeout() != null) {
 	conn.setConnectTimeout(resource.getTimeout() * 1000); 
 	conn.setReadTimeout(resource.getTimeout() * 1000);
-	logger.info("Configured client connection/read timeout to " + resource.getTimeout());
+	logger.debug("Configured client connection/read timeout to " + resource.getTimeout());
     }
     return conn; 
   }
