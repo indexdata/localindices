@@ -222,10 +222,17 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   
   private String processEngineParams(String queryString) {
     Map<String, String> params = parseQueryStringSafe(queryString);
-    if (!params.containsKey("logmodule"))
+    if (!params.containsKey("logmodules"))
       params.put("logmodules", "runtime");
     if (!params.containsKey("loglevel")) {
       params.put("loglevel", "INFO");
+    }
+    if (!params.containsKey("timeout")) {
+      //make the engine timeout follow socket (client) timeout, in case
+      //socket timeout is more than default
+      if (resource.getTimeout() > 60) {
+        params.put("timeout", Integer.toString(resource.getTimeout() - 10));
+      }
     }
     try {
       return TextUtils.serializeParams(params);
