@@ -45,6 +45,7 @@ import com.indexdata.utils.XmlUtils;
 
 import static com.indexdata.utils.TextUtils.parseQueryString;
 import java.util.HashMap;
+import org.apache.commons.io.input.CountingInputStream;
 
 public class HarvestConnectorClient extends AbstractHarvestClient {
   private String sessionId;
@@ -497,14 +498,38 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     pzRecord.setDatabase(getResource().getId().toString());
     job.getStorage().add(pzRecord);
   }
+  
+  private class LogOnCloseIS extends CountingInputStream {
+    private boolean closed = false;
+
+    public LogOnCloseIS(InputStream in) {
+      super(in);
+    }
+
+    @Override
+    public void close() throws IOException {
+      super.close();
+      closed = true;
+      logger.info("Read " + getByteCount() + " bytes read from input");
+    }
+    
+    public boolean isClosed() {
+      return closed;
+    }
+    
+  }
 
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
-    Reader reader = new InputStreamReader(inputStream, "UTF-8");
+    LogOnCloseIS logIs = new LogOnCloseIS(inputStream);
+    Reader reader = new InputStreamReader(logIs, "UTF-8");
     JSONParser parser = new JSONParser();
     //parse results
     Object object = parser.parse(reader, containerFactory);
+    if (!logIs.isClosed()) {
+      logger.info("Input not closed after parsing,  read: "+logIs.getByteCount());
+    }
     if (object instanceof Map) {
       Map json = (Map) object;
       Object recordsObj = json.get("results");
