@@ -174,9 +174,9 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   }
 
   private void printLogMessageOnNPE (Object message) {
-    System.out.println("* This NullPointerException occurred while attempting to log this message: ");
-    System.out.println("*   \"" + message + "\"");
-    System.out.println("* (The NPE itself was likely due to the context being reloaded while logging.)");
+    System.out.println("* This NullPointerException occurred while attempting to log this message: \n" +
+                       "*   \"" + message + "\"\n" +
+                       "* (The NPE itself was likely due to the context being reloaded while logging.)");
   }
   
   public void close() {
