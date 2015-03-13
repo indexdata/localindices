@@ -83,6 +83,10 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
         for (String error : client.getErrors()) 
           mailMesssage.append(error).append("\n");
       }
+      //harvest client does not set any status, but storage chaing might
+      else if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
+        mailMesssage = new StringBuffer("Problems: "+getHarvestable().getMessage());
+      }
       else 
 	setStatus(HarvestStatus.FINISHED);
       subject = "Harvest Job completed: ";

@@ -7,6 +7,7 @@ import javax.xml.transform.TransformerConfigurationException;
 
 import com.indexdata.masterkey.localindices.client.StopException;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import com.indexdata.masterkey.localindices.harvest.job.RecordHarvestJob;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.messaging.BlockingMessageQueue;
@@ -117,6 +118,12 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   
   @Override
   public void commit() throws IOException {
+    if (count == 0) {
+      //if the job was apparently succesfull, change the status
+      if (job.getStatus().equals(HarvestStatus.OK)) {
+        job.setStatus(HarvestStatus.WARN, "No records harvested");
+      }
+    }
     super.commit();
   }
 
