@@ -64,7 +64,7 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   public void addAppender(Appender logAppender) 
   {
     if (logger.getAppender(logAppender.getName()) == null)
-	logger.addAppender(logAppender);
+      logger.addAppender(logAppender);
   }
 
   public void removeAppender(Appender logAppender) {
@@ -80,74 +80,103 @@ public abstract class StorageJobLogger implements LocalIndicesLogger {
   }
 
   void debug(StackTraceElement[] stackTrace) {
-    for (int index = 0 ; index < stackTrace.length; index++)
-      logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + stackTrace[index].toString(), null);
+    for (int index = 0; index < stackTrace.length; index++)
+      doLog(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + stackTrace[index].toString(), null);
   }
 
   public void debug(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + msg, null);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.DEBUG, getIdentify() + msg, null);
   }
 
   public void warnIfNotExpectedResponse(String actual, String expected) {
     if (actual.indexOf(expected) < 0) {
-      logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + "Unexpected response '" + actual + "' does not contain '" + expected + "'", null);
+      doLog(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + "Unexpected response '" + actual + "' does not contain '" + expected + "'", null);
     }
   }
-
+  
   public void warn(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, null);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, null);
   }
 
   public void warn(String msg, Throwable t) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, t);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.WARN, getIdentify() + msg, t);
   }
 
   public void info(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.INFO, getIdentify() + msg, null);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.INFO, getIdentify() + msg, null);
   }
 
   public void error(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.ERROR, getIdentify() + msg, null);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.ERROR, getIdentify() + msg, null);
   }
 
   public void fatal(String msg) {
-    logger.log(StorageJobLogger.class.getCanonicalName(), Level.FATAL, getIdentify() + msg, null);
-    // System.exit(1);
+    doLog(StorageJobLogger.class.getCanonicalName(), Level.FATAL, getIdentify() + msg, null);
   }
 
   @Override
   public void debug(String msg, Throwable t) {
-    logger.debug( getIdentify() + msg, t);
+    doLog(Level.DEBUG, getIdentify() + msg, t);
   }
 
   @Override
   public void info(String msg, Throwable t) {
-    logger.info( getIdentify() + msg, t);
+    doLog(Level.INFO, getIdentify() + msg, t);
   }
 
   @Override
   public void error(String msg, Throwable t) {
-    logger.error( getIdentify() + msg, t);
+    doLog(Level.ERROR, getIdentify() + msg, t);
   }
 
   @Override
   public void fatal(String msg, Throwable t) {
-    logger.fatal( getIdentify() + msg, t);
+    doLog(Level.FATAL, getIdentify() + msg, t);
   }
 
   @Override
   public void log(Level level, String msg) {
-    logger.log( level, getIdentify() + msg);
+    doLog(level, getIdentify() + msg);
   }
 
   @Override
   public void log(Level level, String msg, Throwable t) {
-    logger.log( level, getIdentify() + msg, t);
+    doLog(level, getIdentify() + msg, t);
   }
 
   @Override
   public void log(Level level, Throwable t) {
-    logger.log( level, getIdentify(), t);
+    doLog(level, getIdentify(), t);
+  }
+  
+  private void doLog(String callerFQCN, Level level, Object message, Throwable t) {
+    try {
+      logger.log(callerFQCN, level, message, t);
+    } catch (NullPointerException npe) {
+      printLogMessageOnNPE(message);
+    }
+  }
+
+  private void doLog(Level level, Object message, Throwable t) {
+    try {
+      logger.log(level, message, t);
+    } catch (NullPointerException npe) {
+      printLogMessageOnNPE(message);
+    }
+  }
+  
+  private void doLog(Level level, String msg) {
+    try {
+      logger.log( level, msg);
+    } catch (NullPointerException npe) {
+      printLogMessageOnNPE(msg);
+    }
+  }
+
+  private void printLogMessageOnNPE (Object message) {
+    System.out.println("* This NullPointerException occurred while attempting to log this message: ");
+    System.out.println("*   \"" + message + "\"");
+    System.out.println("* (The NPE itself was likely due to the context being reloaded while logging.)");
   }
   
   public void close() {
