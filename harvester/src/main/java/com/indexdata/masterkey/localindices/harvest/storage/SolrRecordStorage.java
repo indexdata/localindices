@@ -424,4 +424,8 @@ public class SolrRecordStorage implements RecordStorage {
     this.waitFlush = waitFlush;
   }
 
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+  
 }

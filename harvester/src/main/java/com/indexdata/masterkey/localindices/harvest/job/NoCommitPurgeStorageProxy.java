@@ -47,4 +47,11 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   public void shutdown() throws IOException {
     getTarget().shutdown();
   }
+
+  @Override
+  public void setBatchLimit(int limt) {
+    getTarget().setBatchLimit(limt);
+  }
+  
+  
 }

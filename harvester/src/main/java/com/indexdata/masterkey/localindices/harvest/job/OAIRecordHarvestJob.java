@@ -139,6 +139,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 	if (resource.isCacheEnabled()) {
 	  dc.init();
 	}
+        if (resource.getStorageBatchLimit() != null) {
+          getStorage().setBatchLimit(resource.getStorageBatchLimit());
+        }
 	getStorage().begin();
 	getStorage().databaseStart(resource.getId().toString(), null);
 	harvest(resource.getUrl(), formatDate(resource.getFromDate()),

@@ -73,7 +73,11 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
       getStorage().setLogger(logger);
-      
+      logger.info("Batch limit "+resource.getStorageBatchLimit());
+      if (resource.getStorageBatchLimit() != null) {
+        logger.info("Type of the record storage "+getStorage().getClass().getCanonicalName());
+        getStorage().setBatchLimit(resource.getStorageBatchLimit());
+      }
       // This is different from old behavior. All insert is now done in one commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);

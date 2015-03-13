@@ -124,4 +124,9 @@ public class ConsoleRecordStorage implements RecordStorage {
   public void shutdown() throws IOException{
     message("Closing/shutdown ConsoleStorage");
   }
+
+  @Override
+  public void setBatchLimit(int limt) {
+  }
+  
 }

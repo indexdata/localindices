@@ -79,5 +79,12 @@ public interface RecordStorage  {
   DatabaseContenthandler getContentHandler();
   
   // Some storages needs to close resources/shutdown connections. 
-  void shutdown() throws IOException; 
+  void shutdown() throws IOException;
+  
+  /**
+   * Sets number of record stored within a single batch.
+   * 
+   * @param limit 
+   */
+  void setBatchLimit(int limit);
 }

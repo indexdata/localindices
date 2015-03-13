@@ -122,4 +122,9 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
     super.shutdown();
   }
 
+  @Override
+  public void setBatchLimit(int limit) {
+    getTarget().setBatchLimit(limit);
+  }
+
 }

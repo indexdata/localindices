@@ -124,6 +124,12 @@
           <id:helplink field="[Harvest Jobs][General information][Storage]"/>
           <h:message for="storageList" style="color: red;" />
         </h:panelGroup>
+        <h:outputText value="Storage batch limit:" />
+        <h:panelGroup>
+          <h:inputText value="#{resourceController.resource.storageBatchLimit}"
+                     size="10" />
+          <id:helplink field="[Harvest Jobs][General information][Storage batch limit]"/>
+        </h:panelGroup>
         <h:outputText value="Stored records:"
                       rendered="#{resourceController.storageUrl != null}" />
         <h:panelGroup rendered="#{resourceController.storageUrl != null}">
