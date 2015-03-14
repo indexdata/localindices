@@ -147,6 +147,51 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }    
     }
 
+    @Override
+    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString) {
+      EntityManager em = getEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      // Communication errors with the persistence Layer will now just look like 0 records exists.
+      // But at least our Scheduler wont stop running.
+      List<Harvestable> hables = null;
+      try {
+          tx.begin();
+          String orderBy = "o.name";
+          List<AllowedSortKey> sks =  AllowedSortKey.fromString(sortKey);
+          if (sks != null && !sks.isEmpty()) {
+            orderBy = "";
+            String sep = "";
+            for (AllowedSortKey sk : sks) {
+              orderBy += sep + sk.getOrderExpression();
+              sep = ", ";
+            }
+          }
+          orderBy += (asc ? " ASC" : " DESC");
+          String qs = "select object(o) from Harvestable as o where o.currentStatus like '%"+filterString+"%' order by "
+            + orderBy;
+          Query q = em.createQuery(qs);
+          q.setMaxResults(max);
+          q.setFirstResult(start);
+          hables = q.getResultList();
+          tx.commit();
+      } catch (Exception ex) {
+          logger.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
+          try {
+              tx.rollback();
+          } catch (Exception e) {
+              logger.log(Level.DEBUG, e);
+          }
+          // Some sort of analysis on the exception is required. 
+          // Temporary should either ignored or throw as Interrupted
+          // Fatals should be re-thrown.  
+          // For now every one is logged but otherwise ignored. 
+      } finally {
+          em.close();
+      }
+      return hables;
+    }
+
+
     @SuppressWarnings("unchecked")
     @Override
     public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc) {
@@ -170,7 +215,6 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             orderBy += (asc ? " ASC" : " DESC");
             String qs = "select object(o) from Harvestable as o order by "
               + orderBy;
-            //logger.debug("About to execute query "+qs);
             Query q = em.createQuery(qs);
             q.setMaxResults(max);
             q.setFirstResult(start);
@@ -216,6 +260,20 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         }
         return hrefs;
     }
+    
+    @Override
+    public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString) {
+        List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
+        List<Harvestable> list = retrieve(start, max, sortKey, asc, filterString);
+        if (list == null)
+          return null;
+        for (Harvestable hable : list) {
+            HarvestableBrief href = new HarvestableBrief(hable);
+            hrefs.add(href);
+        }
+        return hrefs;
+    }
+
 
     @Override
     public Harvestable retrieveFromBrief(HarvestableBrief href) {
@@ -236,7 +294,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
   public void resetCache(long id) throws DAOException {
     throw new UnsupportedOperationException("DiskCache removal must be performed through the web service.");
   }
-    
-    
+
+
 
 }

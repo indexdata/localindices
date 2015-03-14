@@ -49,6 +49,9 @@
                              rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" >
                 <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
+              <h:inputText id="filter" value="#{resourceController.filter}" size="50">
+               <f:ajax render="jobForm:pagerPanel jobForm:jobList"/>
+              </h:inputText>
               </h:panelGroup>
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"

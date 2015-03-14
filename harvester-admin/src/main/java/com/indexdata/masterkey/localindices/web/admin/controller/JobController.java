@@ -78,6 +78,8 @@ public class JobController {
   private int firstItem = 0;
   private int batchSize = 20;
   private int itemCount = -1;
+  private String filterString = "";
+  private boolean filterChanged = false;
   private String sortKey = "name";
   private boolean isAsc = true;
   private Long currentId;
@@ -365,6 +367,17 @@ public class JobController {
     return "list_resources";
   }
   
+  public void setFilter(String filterString) {
+    logger.debug("Setting filter to " + filterString);
+    if (!this.filterString.equals(filterString)) filterChanged=true;
+    this.filterString = filterString;
+  }
+  
+  public String getFilter () {
+    logger.debug("Getting filter: " + filterString);
+    return filterString;
+  }
+  
   public boolean isDescending() {
     return !isAsc;
   }
@@ -536,11 +549,16 @@ public class JobController {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public DataModel getResources() {
     // check if new request
-    HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
+                  HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (resources == null || req.getAttribute("listRequestSeen") == null) {
+    if (resources == null || req.getAttribute("listRequestSeen") == null || filterChanged) {
       req.setAttribute("listRequestSeen", "yes");
-      resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
+      filterChanged = false;
+      if (filterString.length()>0) {
+        resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc, filterString);
+      } else {
+        resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
+      }
     }
     return new ListDataModel(resources);
   }

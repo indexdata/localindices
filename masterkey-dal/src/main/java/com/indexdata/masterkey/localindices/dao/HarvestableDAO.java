@@ -6,10 +6,12 @@
 
 package com.indexdata.masterkey.localindices.dao;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 
 /**
  *
@@ -19,4 +21,6 @@ public interface HarvestableDAO extends CommonDAO<Harvestable, HarvestableBrief>
 	public InputStream getLog(long id, Date from) throws DAOException;
 	public InputStream reset(long id);
         public void resetCache(long id) throws DAOException;
+  List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString);
+  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString);
 }

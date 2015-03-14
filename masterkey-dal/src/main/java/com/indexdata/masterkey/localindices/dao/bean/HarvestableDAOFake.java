@@ -184,5 +184,17 @@ public class HarvestableDAOFake implements HarvestableDAO {
   public void resetCache(long id) throws DAOException {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
+
+  @Override
+  public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString) {
+    // TODO Auto-generated method stub
+    return null;
+  }
  
 }
