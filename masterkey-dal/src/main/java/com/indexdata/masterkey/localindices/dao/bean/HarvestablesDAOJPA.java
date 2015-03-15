@@ -13,6 +13,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBri
 import com.indexdata.utils.persistence.EntityUtil;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -28,6 +29,14 @@ import org.apache.log4j.Logger;
  */
 public class HarvestablesDAOJPA implements HarvestableDAO {
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
+
+  private final static List<String> filterByColumns = Arrays.asList(
+              "name",
+              "description",
+              "technicalNotes",
+              "contactNotes",
+              "serviceProvider",
+              "currentStatus");
 
   @Override
   public List<Harvestable> retrieve(int start, int max) {
@@ -167,7 +176,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             }
           }
           orderBy += (asc ? " ASC" : " DESC");
-          String qs = "select object(o) from Harvestable as o where o.currentStatus like '%"+filterString+"%' order by "
+          String whereClause = getFilteringWhereClause(filterString,filterByColumns,"o");
+          String qs = "select object(o) from Harvestable as o " + whereClause + " order by "
             + orderBy;
           Query q = em.createQuery(qs);
           q.setMaxResults(max);
@@ -295,6 +305,33 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     throw new UnsupportedOperationException("DiskCache removal must be performed through the web service.");
   }
 
+  /**
+   * Constructs where clause that would look for 'filterString' in any of the listed columns.
+   * @param filterString 
+   * @param columns
+   * @param tableAlias
+   * @return " where concat( [alias].[cols-1], '||', [alias].[cols-2], ...) like '%[filterString]%' " 
+   */
+  private String getFilteringWhereClause(String filterString, List<String> columns, String tableAlias) {
+    StringBuffer expr = new StringBuffer("");
+    if (filterString != null && filterString.length()>0 && columns != null && columns.size()>0) {
+      int i = 0;
+      expr.append(" where ");
+      for (String column : filterByColumns) {
+        if (i++==0) expr.append("concat(");
+        else expr.append(",'||',");
+        if (tableAlias != null && tableAlias.length()>0) {
+          expr.append(tableAlias);
+          expr.append(".");
+        }
+        expr.append(column);
+      }
+      expr.append(") like '%");
+      expr.append(filterString);
+      expr.append("%'");
+    }
+    return expr.toString();
+  }
 
 
 }
