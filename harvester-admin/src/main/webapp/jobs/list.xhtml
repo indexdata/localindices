@@ -49,10 +49,13 @@
                              rendered="#{resourceController.lastItem  &lt; resourceController.itemCount}" >
                 <f:ajax render="jobForm:pagerPanel jobForm:jobList" />
               </h:commandLink>
-              <h:inputText id="filter" value="#{resourceController.filter}" size="50">
-               <f:ajax render="jobForm:pagerPanel jobForm:jobList"/>
-              </h:inputText>
               </h:panelGroup>
+              <span style="float:right; display:inline-block; padding-left:25px; padding-right:25px;">
+                Filter: <h:inputText id="filter" value="#{resourceController.filter}" size="25"> 
+                <f:ajax render="jobForm:pagerPanel jobForm:jobList"/>
+                </h:inputText>&nbsp;&nbsp;
+                <id:helplink field="[Harvest_Jobs][Jobs list][Filter]"/>
+              </span>
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
                          var="item"
