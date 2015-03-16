@@ -240,6 +240,24 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
         }
         
     }
+    
+    @Override
+    public int getCount(String filterString) {
+      String url = serviceBaseURL + "?start=0&max=0&filter="+filterString;
+      try {
+          ResourceConnector<HarvestablesConverter> harvestablesConnector =
+                  new ResourceConnector<HarvestablesConverter>(
+                  new URL(url),
+                  "com.indexdata.masterkey.localindices.entity" +
+                  ":com.indexdata.masterkey.localindices.web.service.converter");
+          HarvestablesConverter hc = harvestablesConnector.get();
+          return hc.getCount();
+      } catch (Exception male) {
+          logger.log(Level.DEBUG, male);
+          return 0;
+      }
+    }
+
 
     @Override
     public InputStream getLog(long id, Date from) throws DAOException {
@@ -311,6 +329,7 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
       throw new DAOException("Undefined error when removing the job cache");
     }
   }
+
 
 
 }

@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -79,7 +81,9 @@ public class JobController {
   private int batchSize = 20;
   private int itemCount = -1;
   private String filterString = "";
-  private boolean filterChanged = false;
+  @SuppressWarnings("serial")
+  private Map<String,Boolean> filterUpdate = new HashMap<String,Boolean>() {{put("list", false);
+                                                                             put("count", false);}};
   private String sortKey = "name";
   private boolean isAsc = true;
   private Long currentId;
@@ -339,9 +343,10 @@ public class JobController {
   public int getItemCount() {
     HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (itemCount == -1 || req.getAttribute("countRequestSeenFlag") == null) {
+    if (itemCount == -1 || req.getAttribute("countRequestSeenFlag") == null && filterUpdate.get("count")) {
       req.setAttribute("countRequestSeenFlag", "yes");
-      itemCount = dao.getCount();
+      filterUpdate.put("count",false);
+      itemCount = dao.getCount(filterString);
     }
     return itemCount;
   }
@@ -368,13 +373,14 @@ public class JobController {
   }
   
   public void setFilter(String filterString) {
-    logger.debug("Setting filter to " + filterString);
-    if (!this.filterString.equals(filterString)) filterChanged=true;
+    if (!this.filterString.equals(filterString)) {
+      filterUpdate.put("list", true);
+      filterUpdate.put("count", true);
+    }
     this.filterString = filterString;
   }
   
   public String getFilter () {
-    logger.debug("Getting filter: " + filterString);
     return filterString;
   }
   
@@ -551,9 +557,9 @@ public class JobController {
     // check if new request
                   HttpServletRequest req = (HttpServletRequest) FacesContext.getCurrentInstance()
 	.getExternalContext().getRequest();
-    if (resources == null || req.getAttribute("listRequestSeen") == null || filterChanged) {
+    if (resources == null || req.getAttribute("listRequestSeen") == null || filterUpdate.get("list")) {
       req.setAttribute("listRequestSeen", "yes");
-      filterChanged = false;
+      filterUpdate.put("list", false);
       if (filterString.length()>0) {
         resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc, filterString);
       } else {

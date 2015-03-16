@@ -196,5 +196,11 @@ public class HarvestableDAOFake implements HarvestableDAO {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public int getCount(String filterString) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
  
 }

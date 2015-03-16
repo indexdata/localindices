@@ -259,6 +259,18 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     }
 
     @Override
+    public int getCount(String filterString) {
+        EntityManager em = getEntityManager();
+        try {
+            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + getFilteringWhereClause(filterString, filterByColumns, "o")).getSingleResult()).intValue();
+            return count;
+        } finally {
+            em.close();
+        }    
+    }
+
+
+    @Override
     public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         List<Harvestable> list = retrieve(start, max, sortKey, asc);

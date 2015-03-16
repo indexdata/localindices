@@ -81,7 +81,7 @@ public class HarvestablesResource {
     else
       entities = dao.retrieve(start, max, sortKey, isAsc, filterString);
     return new HarvestablesConverter(entities, context.getAbsolutePath(), start, max,
-	dao.getCount());
+	dao.getCount(filterString));
   }
 
   /**

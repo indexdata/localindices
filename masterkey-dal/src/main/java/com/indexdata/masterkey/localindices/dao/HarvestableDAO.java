@@ -23,4 +23,5 @@ public interface HarvestableDAO extends CommonDAO<Harvestable, HarvestableBrief>
         public void resetCache(long id) throws DAOException;
   List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString);
   public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString);
+  public int getCount(String filterString);
 }
