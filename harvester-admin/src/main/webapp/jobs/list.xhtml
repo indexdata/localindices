@@ -22,14 +22,14 @@
           <h:link styleClass="navigation" value="Connector" 
                   outcome="new_HarvestConnectorResource"/>
           <h:outputText value=", "/>
-          <h:link styleClass="navigation" value="Status" 
+          <h:link styleClass="navigation" value="Status"
                   outcome="new_StatusResource"/>
         </h:form>
         <h:panelGroup id="autoCheckbox">
-          <h:selectBooleanCheckbox value="true" 
+          <h:selectBooleanCheckbox value="true"
             onchange="window.autoUpdate = this.checked;" >Auto-update</h:selectBooleanCheckbox>
         </h:panelGroup>
-        <h:form id="jobForm"> 
+        <h:form id="jobForm">
           <h:panelGroup id="jobTable">
             <div id="pager">
               <h:panelGroup id="pagerPanel">
@@ -51,10 +51,11 @@
               </h:commandLink>
               </h:panelGroup>
               <span style="float:right; display:inline-block; padding-left:25px; padding-right:25px;">
-                Filter: <h:inputText id="filter" value="#{resourceController.filter}" size="25"> 
-                <f:ajax render="jobForm:pagerPanel jobForm:jobList"/>
+                Filter: <h:inputText id="filter" value="#{resourceController.filter}" size="25"
+                onkeypress="if (event.keyCode == 13) {this.blur(); return false;}">
+                <f:ajax render=":jobForm:pagerPanel :jobForm:jobList"/>
                 </h:inputText>&nbsp;&nbsp;
-                <id:helplink field="[Harvest_Jobs][Jobs list][Filter]"/>
+                <id:helplink field="[Harvest Jobs][Jobs list][Filter]"/>
               </span>
             </div>
             <h:dataTable id="jobList" width="100%" value="#{resourceController.resources}"
@@ -64,7 +65,7 @@
               <h:column headerClass="resourcename">
                 <f:facet name="header">
                   <h:commandLink action="#{resourceController.sortByName}">
-                    <h:outputText value="&#187;" 
+                    <h:outputText value="&#187;"
                                   rendered="#{resourceController.sortKey == 'name'}" />
                     <h:outputText value="Name"/>
                     <h:outputText value="&#8595;" rendered="#{resourceController.sortKey == 'name' and resourceController.descending}" />
