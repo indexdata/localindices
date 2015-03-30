@@ -60,21 +60,34 @@ public class StatusJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     try {
       
-      StringBuffer mailMesssage = new StringBuffer("");
+      StringBuffer mailMessage = new StringBuffer("");
       List<HarvestableBrief> harvestables = dao.retrieveBriefs(0,dao.getCount());
       logger.info(subject);
+      mailMessage.append("<table><tr><td colspan='4'><h1>").append(subject).append("</h1></td></tr>");
+      mailMessage.append("<tr><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
+      for (HarvestableBrief brief : harvestables) {
+        mailMessage.append("<tr><td  style='vertical-align:top;'>").append(brief.getName()).append(" ("+ brief.getId() +")")
+        .append("</td><td style='vertical-align:top;'>")  
+        .append(brief.getCurrentStatus()).append("</td><td style='vertical-align:top; font-style:italic; padding:2px 15px;'>")
+        .append(brief.getMessage() != null ? brief.getMessage() : "No message").append("</td><td style='text-align:right; vertical-align:top;'>")
+        .append(brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0).append("</td></tr>\n");
+      }
+      mailMessage.append("</table>");
+
+      /*
       String logLine = String.format("%8s \t %-45s \t %-8s \t %-10s \t %-8s", "Id", "Job name" , "Status", "Message", "Amount");
       mailMesssage.append(logLine).append("\n\n");
       for (HarvestableBrief brief : harvestables) {
-	logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d", 
-          brief.getId(), brief.getName(), brief.getCurrentStatus(), 
-          (brief.getMessage() != null ? brief.getMessage() : "No message"), 
+       logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d",
+          brief.getId(), brief.getName(), brief.getCurrentStatus(),
+          (brief.getMessage() != null ? brief.getMessage() : "No message"),
           (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0));
-	logger.info(logLine);
-	mailMesssage.append(logLine).append("\n");
-	setStatus(HarvestStatus.OK);
+       logger.info(logLine);
+       mailMesssage.append(logLine).append("\n");
       }
-      msg = mailMesssage.toString();
+     */
+     setStatus(HarvestStatus.OK);
+      msg = mailMessage.toString();
     } catch (Exception e) {
       if (isKillSent()) {
 	String logMessage = "Status Job killed.";
@@ -98,6 +111,11 @@ public class StatusJob extends AbstractRecordHarvestJob {
       
       shutdown();
     }
+  }
+  
+  @Override
+  protected String getMessageContentType() {
+    return "text/html; charset=UTF-8";
   }
 
   @Override

@@ -165,10 +165,10 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       try {
         String recipients = harvestable.getMailAddress();
         if (recipients != null && !recipients.isEmpty())
-          sender.send(recipients, msg);
+          sender.send(recipients, msg, getMessageContentType()); 
         else if (sender.getDefaultRecipients() != null 
           && !sender.getDefaultRecipients().isEmpty())
-          sender.send(msg);
+          sender.send(msg, getMessageContentType()); 
         else
           logger.warn("No default or custom recipients specified,"
             + " notification will not be sent");
@@ -178,6 +178,10 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
         logger.debug("Cause: ", ne);
       }
     }
+  }
+  
+  protected String getMessageContentType () {
+    return "text/plain; charset=UTF-8";
   }
 
   protected boolean shouldSend(HarvestStatus mailLevel, HarvestStatus status) {

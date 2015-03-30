@@ -15,7 +15,11 @@ public class SimpleMailSender implements Sender {
   private final String defaultRecipients;
   private final String smtpServer;
   private final String adminUrl;
-
+  private Properties additionalProperties = null;
+  private String debug = null;
+  private String ssl = null;
+  private String portStr = null;
+  
   public SimpleMailSender(String from, String defaultRecipients,
     String smtpServer, String adminUrl) {
     this.defaultFrom = from;
@@ -23,13 +27,29 @@ public class SimpleMailSender implements Sender {
     this.smtpServer = smtpServer;
     this.adminUrl = adminUrl;
   }
+  
+  public SimpleMailSender(String from, String defaultRecipients,
+      String smtpServer, String adminUrl, Properties properties) {
+      this.defaultFrom = from;
+      this.defaultRecipients = defaultRecipients;
+      this.smtpServer = smtpServer;
+      this.adminUrl = adminUrl;
+      if (properties != null) {
+        this.additionalProperties = properties;
+        debug = additionalProperties.getProperty("harvester.smtp.debug");
+        ssl = additionalProperties.getProperty("harvester.smtp.ssl");
+        portStr = additionalProperties.getProperty("harvester.smtp.port");
+      }
+    }
+
  
-  private static void sendViaSMTP(String smtpServer, String recipients, String from,
-    String subject, String body) throws NotificationException {
+  private void sendViaSMTP(String smtpServer, String recipients, String from,
+    String subject, String body, String contentType) throws NotificationException {
     try {
       Properties props = System.getProperties();
       // -- Attaching to default Session, or we could start a new one --
       props.put("mail.smtp.host", smtpServer);
+      if (debug != null && debug.equals("true")) props.put("mail.debug", "true");
       Session session = Session.getDefaultInstance(props, null);
       // -- Create a new message --
       Message msg = new MimeMessage(session);
@@ -43,12 +63,32 @@ public class SimpleMailSender implements Sender {
       // ,InternetAddress.parse(cc, false));
       // -- Set the subject and body text --
       msg.setSubject(subject);
-      msg.setText(body);
+      msg.setContent(body, contentType);
       // -- Set some other header information --
       msg.setHeader("X-Mailer", "IndexData Harvester");
       msg.setSentDate(new Date());
-      // -- Send the message --
-      Transport.send(msg);
+      if (ssl != null && ssl.equals("true")) {
+        Transport transport = session.getTransport("smtps");
+        if (additionalProperties.get("harvester.smtp.username") != null) {
+          String username = additionalProperties.getProperty("harvester.smtp.username");
+          String password = additionalProperties.getProperty("harvester.smtp.password");
+          int port = 465;
+          if (portStr != null) {
+            try { port = Integer.parseInt(portStr);
+            } catch (NumberFormatException e) { /* keep default port */ }
+          }
+          transport.connect(smtpServer,port,username,password);
+        } else {
+          transport.connect();
+        }
+        msg.saveChanges();
+        // -- Send the message --
+        transport.sendMessage(msg, msg.getAllRecipients());
+        transport.close();
+      } else {
+        // -- Send the message --
+        Transport.send(msg);
+      }
     } catch (MessagingException e) {
       throw new NotificationException("Unable to send notification (smtp="
         + smtpServer+" to="+recipients+" from="+from+"): "
@@ -57,18 +97,18 @@ public class SimpleMailSender implements Sender {
   }
 
   @Override
-  public void send(Notification notification) throws NotificationException {
+  public void send(Notification notification, String contentType) throws NotificationException {
     sendViaSMTP(smtpServer, defaultRecipients, defaultFrom, 
       notification.getStatus() + ": "+ notification.getSubject(), 
-      notification.getMesage());
+      notification.getMesage(), contentType);
   }
 
   @Override
-  public void send(String recipients, Notification notification) throws
+  public void send(String recipients, Notification notification, String contentType) throws
     NotificationException {
     sendViaSMTP(smtpServer, recipients, defaultFrom, 
       notification.getStatus() + ": "+notification.getSubject(),
-      notification.getMesage());
+      notification.getMesage(), contentType);
   }
 
   @Override
