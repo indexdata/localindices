@@ -134,10 +134,13 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
       StringBuilder buffer = new StringBuilder();
       if (sender.getAdminUrl() != null && !sender.getAdminUrl().isEmpty()) {
         String jobLink = 
-          TextUtils.joinPath(sender.getAdminUrl(), "jobs", "log.xhtml")
-          + "?resourceId="+ getHarvestable().getId() + "#bottom";
-        buffer.append("For details see: ").append(jobLink).append("\n")
-          .append("\n");
+            TextUtils.joinPath(sender.getAdminUrl(), "jobs", "log.xhtml")
+            + "?resourceId="+ getHarvestable().getId() + "#bottom";
+        if (getMessageContentType().contains("html")) {
+          buffer.append("For details see: <a href='" + jobLink + "'>Status Job #"+getHarvestable().getId()+"</a>\n");
+        } else {
+          buffer.append("For details see: ").append(jobLink).append("\n").append("\n");
+        }
       } else {
         buffer.append("(please configure 'harvester.admin.url' setting in "
           + "the Settings tab to include a link to the job log in this e-mail)\n\n");
