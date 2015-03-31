@@ -59,7 +59,6 @@ public class StatusJob extends AbstractRecordHarvestJob {
     resource.setMailLevel("OK");
     setStatus(HarvestStatus.RUNNING);
     try {
-      
       StringBuffer mailMessage = new StringBuffer("");
       List<HarvestableBrief> harvestables = dao.retrieveBriefs(0,dao.getCount());
       logger.info(subject);
@@ -71,44 +70,32 @@ public class StatusJob extends AbstractRecordHarvestJob {
         .append(brief.getCurrentStatus()).append("</td><td style='vertical-align:top; font-style:italic; padding:2px 15px;'>")
         .append(brief.getMessage() != null ? brief.getMessage() : "No message").append("</td><td style='text-align:right; vertical-align:top;'>")
         .append(brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0).append("</td></tr>\n");
+
+        logger.info(String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d",
+            brief.getId(), brief.getName(), brief.getCurrentStatus(),
+            (brief.getMessage() != null ? brief.getMessage() : "No message"),
+            (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0)));
       }
       mailMessage.append("</table>");
-
-      /*
-      String logLine = String.format("%8s \t %-45s \t %-8s \t %-10s \t %-8s", "Id", "Job name" , "Status", "Message", "Amount");
-      mailMesssage.append(logLine).append("\n\n");
-      for (HarvestableBrief brief : harvestables) {
-       logLine = String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d",
-          brief.getId(), brief.getName(), brief.getCurrentStatus(),
-          (brief.getMessage() != null ? brief.getMessage() : "No message"),
-          (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0));
-       logger.info(logLine);
-       mailMesssage.append(logLine).append("\n");
-      }
-     */
-     setStatus(HarvestStatus.OK);
       msg = mailMessage.toString();
+      setStatus(HarvestStatus.OK);
     } catch (Exception e) {
       if (isKillSent()) {
-	String logMessage = "Status Job killed.";
- 	logger.log(Level.WARN, logMessage);
-	setStatus(HarvestStatus.WARN, logMessage);
+        String logMessage = "Status Job killed.";
+        logger.log(Level.WARN, logMessage);
+        setStatus(HarvestStatus.WARN, logMessage);
       }
       subject = "Status Job failed: " + e.getMessage();
       logger.log(Level.ERROR, subject , e);
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       e.printStackTrace(new PrintStream(baos));
-      try {
-	msg = baos.toString("UTF-8");
-      } catch (UnsupportedEncodingException e1) {
-	// TODO Auto-generated catch block
-	e1.printStackTrace();
-      }
+      try { 
+        msg = baos.toString("UTF-8");
+      } catch (UnsupportedEncodingException e1) { e1.printStackTrace(); }
     }
     finally {
       mailMessage(subject, msg);
       setStatus(HarvestStatus.FINISHED);
-      
       shutdown();
     }
   }
