@@ -48,6 +48,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   protected String description;
   // renamed v1
   protected String serviceProvider;
+  protected String customer;
   // renamed v1
   @Column(length = 4096)
   protected String technicalNotes;
@@ -212,6 +213,14 @@ public abstract class Harvestable implements Serializable, Cloneable {
 
   public void setServiceProvider(String serviceProvider) {
     this.serviceProvider = serviceProvider;
+  }
+  
+  public String getCustomer() {
+    return customer;
+  }
+  
+  public void setCustomer(String customer) {
+    this.customer = customer;
   }
 
   public Date getInitiallyHarvested() {
