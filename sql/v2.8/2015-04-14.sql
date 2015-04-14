@@ -1,0 +1,1 @@
+alter table `HARVESTABLE` add column `CUSTOMER` varchar(1024) NULL;
