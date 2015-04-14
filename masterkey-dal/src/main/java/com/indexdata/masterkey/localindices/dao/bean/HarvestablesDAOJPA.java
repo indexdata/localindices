@@ -36,6 +36,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
               "technicalNotes",
               "contactNotes",
               "serviceProvider",
+              "customer",
               "currentStatus");
 
   @Override

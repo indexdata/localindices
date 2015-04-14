@@ -35,6 +35,12 @@
                      size="30" />
           <id:helplink field="[Harvest Jobs][General information][Service Provider]"/>
         </h:panelGroup>
+        <h:outputText value="Customer:" />
+        <h:panelGroup>
+          <h:inputText id="customer" 
+                     value="#{resourceController.resource.customer}" size="80" />
+          <id:helplink field="[Harvest Jobs][General information][Customer]"/>
+        </h:panelGroup>
         <h:outputText value="Open Access resource:" />
         <h:selectBooleanCheckbox
           value="#{resourceController.resource.openAccess}" />
