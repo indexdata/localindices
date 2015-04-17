@@ -11,7 +11,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Level;
 
@@ -60,22 +63,19 @@ public class StatusJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.RUNNING);
     try {
       StringBuffer mailMessage = new StringBuffer("");
-      List<HarvestableBrief> harvestables = dao.retrieveBriefs(0,dao.getCount());
+      List<Harvestable> harvestables = dao.retrieve(0,dao.getCount());
+      Set<String> customers =getCustomers(harvestables);
+      logger.info(getCustomers(harvestables).toString());
       logger.info(subject);
-      mailMessage.append("<table><tr><td colspan='4'><h1>").append(subject).append("</h1></td></tr>");
-      mailMessage.append("<tr><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
-      for (HarvestableBrief brief : harvestables) {
-        mailMessage.append("<tr><td  style='vertical-align:top;'>").append(brief.getName()).append(" ("+ brief.getId() +")")
-        .append("</td><td style='vertical-align:top;'>")  
-        .append(brief.getCurrentStatus()).append("</td><td style='vertical-align:top; font-style:italic; padding:2px 15px;'>")
-        .append(brief.getMessage() != null ? brief.getMessage() : "No message").append("</td><td style='text-align:right; vertical-align:top;'>")
-        .append(brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0).append("</td></tr>\n");
-
-        logger.info(String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d",
-            brief.getId(), brief.getName(), brief.getCurrentStatus(),
-            (brief.getMessage() != null ? brief.getMessage() : "No message"),
-            (brief.getAmountHarvested() != null ? brief.getAmountHarvested() : 0)));
+      for (String customer : customers) {
+        mailMessage.append("<table><tr><td colspan='4'><h1>").append(customer).append("</h1></td></tr>");
+        mailMessage.append("<tr><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
+        appendHarvestables(mailMessage, getHarvestablesByCustomer(harvestables, customer));
+        mailMessage.append("</table>");
       }
+      mailMessage.append("<table><tr><td colspan='4'><h1>Not assigned to customer</h1></td></tr>");
+      mailMessage.append("<tr><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
+      appendHarvestables(mailMessage, getHarvestablesByCustomer(harvestables, null));
       mailMessage.append("</table>");
       msg = mailMessage.toString();
       setStatus(HarvestStatus.OK);
@@ -116,6 +116,49 @@ public class StatusJob extends AbstractRecordHarvestJob {
 
   public void setJobThread(Thread jobThread) {
     this.jobThread = jobThread;
+  }
+
+  private Set<String> getCustomers (List<Harvestable> harvestables) {
+    Set<String> customers = new TreeSet<String>();
+    for (Harvestable harvestable : harvestables) {
+      String customerField = harvestable.getCustomer();
+      if (customerField != null && customerField.length()>0) {
+        customerField = customerField.trim();
+        customers.addAll(Arrays.asList(customerField.split("[ ]?,[ ]?")));
+      }
+    }
+    return customers;
+  }
+  
+  private void appendHarvestables(StringBuffer mailMessage, List<Harvestable> harvestables) {
+    for (Harvestable harvestable : harvestables) {
+      mailMessage.append("<tr><td  style='vertical-align:top;'>").append(harvestable.getName()).append(" ("+ harvestable.getId() +")")
+      .append("</td><td style='vertical-align:top;'>")  
+      .append(harvestable.getCurrentStatus()).append("</td><td style='vertical-align:top; font-style:italic; padding:2px 15px;'>")
+      .append(harvestable.getMessage() != null ? harvestable.getMessage() : "No message").append("</td><td style='text-align:right; vertical-align:top;'>")
+      .append(harvestable.getAmountHarvested() != null ? harvestable.getAmountHarvested() : 0).append("</td></tr>\n");
+
+      logger.info(String.format("%8d \t %-45s \t %-8s \t %-10s \t %-8d",
+          harvestable.getId(), harvestable.getName(), harvestable.getCurrentStatus(),
+          (harvestable.getMessage() != null ? harvestable.getMessage() : "No message"),
+          (harvestable.getAmountHarvested() != null ? harvestable.getAmountHarvested() : 0)));
+    }
+  }
+  
+  private List<Harvestable> getHarvestablesByCustomer (List<Harvestable> harvestables, String customer) {
+    List<Harvestable> harvestablesFiltered = new ArrayList<Harvestable>();
+    for (Harvestable harvestable : harvestables) {
+      if (customer == null) {
+        if (harvestable.getCustomer() == null || harvestable.getCustomer().trim().length()==0) {
+          harvestablesFiltered.add(harvestable);
+        }
+      } else {
+        if (harvestable.getCustomer() != null && harvestable.getCustomer().contains(customer)) {
+          harvestablesFiltered.add(harvestable);
+        }
+      }
+    }
+    return harvestablesFiltered;
   }
 
 }
