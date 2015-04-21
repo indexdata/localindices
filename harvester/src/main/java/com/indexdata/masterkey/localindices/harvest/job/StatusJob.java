@@ -193,7 +193,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
     }
 
     // Appends generated matrices to the message
-    message.append("<h3>Stats</h3>");
+    message.append("<h3>Number of jobs by harvest-status</h3>");
     message.append("<table cellspacing='10px'>");
     message.append("<tr><th style='width:120px; text-align:left;'>By customer</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
     for (String customer : statusByCustomer.getYLabels()) {
