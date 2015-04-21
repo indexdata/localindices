@@ -137,7 +137,7 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
             TextUtils.joinPath(sender.getAdminUrl(), "jobs", "log.xhtml")
             + "?resourceId="+ getHarvestable().getId() + "#bottom";
         if (getMessageContentType().contains("html")) {
-          buffer.append("For details see: <a href='" + jobLink + "'>Status Job #"+getHarvestable().getId()+"</a>\n");
+          // buffer.append("For details see: <a href='" + jobLink + "'>Status Job #"+getHarvestable().getId()+"</a>\n");
         } else {
           buffer.append("For details see: ").append(jobLink).append("\n").append("\n");
         }

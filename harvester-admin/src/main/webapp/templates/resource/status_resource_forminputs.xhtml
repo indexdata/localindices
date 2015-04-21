@@ -48,7 +48,19 @@
 				</h:panelGrid>
 	         <h:message class="error" for="schedule" id="scheduleError" style="color: red;" />
 			</h:panelGroup>
-
+      <h:outputText value="Filter, comma-separated list of customer tags:" />
+      <h:panelGroup>
+        <h:inputText id="customerFilter"
+          value="#{resourceController.resource.customer}" size="30"
+          required="false" />
+        <h:message for="customer" style="color: red;" />
+      </h:panelGroup>
+      <h:outputText value="Filter, comma-separated list of contact tags:" />
+      <h:panelGroup>
+        <h:inputText id="contactFilter"
+          value="#{resourceController.resource.contactNotes}" size="30"
+          required="false" />
+      </h:panelGroup>
 			<h:outputText value="Status job enabled:" />
 			<h:selectBooleanCheckbox
 				value="#{resourceController.resource.enabled}" />
