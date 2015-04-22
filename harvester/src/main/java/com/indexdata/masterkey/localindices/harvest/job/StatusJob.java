@@ -87,7 +87,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
 
       // Write jobs list by customer (and filtered as specified).
       mailMessage.append("<h3>All jobs sorted by customer:</h3>");
-      mailMessage.append("<table>");
+      mailMessage.append("<table cellpadding='2px' border='1'>");
       mailMessage.append("<tr><th>Customer</th><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
       for (String customer : customers) {
         appendHarvestables(mailMessage, getHarvestablesByCustomer(harvestables, customer), customer);
@@ -131,9 +131,9 @@ public class StatusJob extends AbstractRecordHarvestJob {
       // Skip this status job itself in report
       if (harvestable instanceof StatusResource) 
         continue;
-      if  ((!hasContactFilter() || contains(harvestable.getContactNotes(),getContactFilterTags(),true))
+      if  ((!hasContactFilter() || stringContainsItem(harvestable.getContactNotes(),getContactFilterTags(),true))
            && 
-           (!hasCustomerFilter() || overlaps(harvestable.getCustomer(),getCustomerFilterTags(),true)))
+           (!hasCustomerFilter() || hasItemMatch(harvestable.getCustomer(),getCustomerFilterTags(),true)))
         filteredList.add(harvestable);
     }
     return filteredList;
@@ -173,7 +173,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
       if (customerField != null && customerField.length()>0) {
         for (String customer : customerField.trim().split("[ ]?,[ ]?")) {
           if (hasCustomerFilter()) {
-            if (getCustomerFilterTags().contains(customer)) {
+            if (hasItemMatch(getCustomerFilterTags(), Arrays.asList(customer),true)) {
               statusByCustomer.addObservation(customer, harvestable.getCurrentStatus());
             }
           } else {
@@ -193,8 +193,9 @@ public class StatusJob extends AbstractRecordHarvestJob {
     }
 
     // Appends generated matrices to the message
-    message.append("<h3>Number of jobs by harvest-status</h3>");
-    message.append("<table cellspacing='10px'>");
+    message.append("<table><tr><td colspan='2'><h3>Number of jobs by harvest-status</h3></td></tr>");
+    message.append("<tr><td valign='top' width='50%'>");
+    message.append("<table cellpadding='2px' border='1'>");
     message.append("<tr><th style='width:120px; text-align:left;'>By customer</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
     for (String customer : statusByCustomer.getYLabels()) {
       message.append("<tr>");
@@ -205,8 +206,8 @@ public class StatusJob extends AbstractRecordHarvestJob {
       message.append("</tr>");
     }
     message.append("</table>");
-
-    message.append("<table cellspacing='10px'>");
+    message.append("</td><td valign='top' width='50%'>");
+    message.append("<table cellpadding='2px' border='1'>");
     message.append("<tr><th style='width:120px; text-align:left;'>By contact</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
     for (String contact : statusByContact.getYLabels()) {
       message.append("<tr><td>").append(contact).append("</td>")
@@ -216,6 +217,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
       message.append("</tr>");
     }
     message.append("</table>");
+    message.append("</td></tr></table>");
   }
 
   /** 
@@ -237,7 +239,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
         if (hasCustomerFilter()) {
           List<String> customersIntersect = new ArrayList<String>();
           for (String customerTag : harvestablesCustomerTags) {
-            if (overlaps(customerTag,getCustomerFilterTags(),true)) 
+            if (hasItemMatch(customerTag,getCustomerFilterTags(),true)) 
               customersIntersect.add(customerTag);
           }
           customers.addAll(customersIntersect);
@@ -338,7 +340,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * @param ignoreCase
    * @return
    */
-  private boolean overlaps (List<String> lista, List<String> listb, boolean ignoreCase) {
+  private boolean hasItemMatch (List<String> lista, List<String> listb, boolean ignoreCase) {
     if (lista != null && lista.size()>0 && listb!=null && listb.size()>0) 
       for (String itema : lista) 
         for (String itemb : listb) 
@@ -361,7 +363,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * @return
    */
   @SuppressWarnings("unused")
-  private boolean overlaps (String commaSepStringA, String commaSepStringB, boolean ignoreCase) {
+  private boolean hasItemMatch (String commaSepStringA, String commaSepStringB, boolean ignoreCase) {
     List<String> listA = null;
     List<String> listB = null;
     if (commaSepStringA != null && commaSepStringA.length()>0) {
@@ -370,7 +372,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
     if (commaSepStringB != null && commaSepStringB.length()>0) {
       listB = Arrays.asList(commaSepStringB.split("[ ]?,[ ]?"));
     }
-    return overlaps(listA,listB,ignoreCase);
+    return hasItemMatch(listA,listB,ignoreCase);
   }
 
   /**
@@ -381,12 +383,12 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * @param ignoreCase
    * @return
    */
-  private boolean overlaps (String commaSepStringA, List<String> listB, boolean ignoreCase) {
+  private boolean hasItemMatch (String commaSepStringA, List<String> listB, boolean ignoreCase) {
     List<String> listA = null;
     if (commaSepStringA != null && commaSepStringA.length()>0) {
       listA = Arrays.asList(commaSepStringA.split("[ ]?,[ ]?"));
     }
-    return overlaps(listA,listB,ignoreCase);
+    return hasItemMatch(listA,listB,ignoreCase);
   }
   
   /**
@@ -397,7 +399,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * @param ignoreCase
    * @return
    */
-  private boolean contains(String string, List<String> list, boolean ignoreCase) {
+  private boolean stringContainsItem(String string, List<String> list, boolean ignoreCase) {
     for (String str : list) {
       if (ignoreCase) {
         if (string.toLowerCase().trim().contains(str.toLowerCase().trim()))
