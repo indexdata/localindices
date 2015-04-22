@@ -47,7 +47,7 @@ public class StatsMatrix {
   }
   
   public int getCount(String yLabel, String xLabel) {
-    return getCountsAcross(yLabel).getCount(xLabel);
+    return (matrix.get(yLabel) != null ? getCountsAcross(yLabel).getCount(xLabel) : 0);
   }
   public SortedSet<String> getXLabels () {
     Set<String> xlabels = new TreeSet<String>();

@@ -197,24 +197,26 @@ public class StatusJob extends AbstractRecordHarvestJob {
     message.append("<table><tr><td colspan='2'><h3>Number of jobs by harvest-status</h3></td></tr>");
     message.append("<tr><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By usage tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
+    message.append("<tr><th style='width:120px; text-align:left;'>By usage tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th><th style='width:70px;'>Running</th></tr>");
     for (String usageLabel : statusByUsage.getYLabels()) {
       message.append("<tr>");
       message.append("<td>"+usageLabel+"</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"ERROR")+ "</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"OK")   + "</td>")
-      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"NEW")  + "</td>");
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"NEW")  + "</td>")
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"RUNNING")  + "</td>");
       message.append("</tr>");
     }
     message.append("</table>");
     message.append("</td><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By mngmt tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
-    for (String contact : statusByMngmt.getYLabels()) {
-      message.append("<tr><td>").append(contact).append("</td>")
-       .append("<td align='right'>" + statusByMngmt.getCount(contact,"ERROR")+ "</td>")
-       .append("<td align='right'>" + statusByMngmt.getCount(contact,"OK")   + "</td>")
-       .append("<td align='right'>" + statusByMngmt.getCount(contact,"NEW")  + "</td>");
+    message.append("<tr><th style='width:120px; text-align:left;'>By mngmt tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th><th style='width:70px;'>Running</th></tr>");
+    for (String mgmtTag : statusByMngmt.getYLabels()) {
+      message.append("<tr><td>").append(mgmtTag).append("</td>")
+       .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"ERROR")+ "</td>")
+       .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"OK")   + "</td>")
+       .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"NEW")  + "</td>")
+       .append("<td align='right'>" + statusByUsage.getCount(mgmtTag,"RUNNING")  + "</td>");
       message.append("</tr>");
     }
     message.append("</table>");
