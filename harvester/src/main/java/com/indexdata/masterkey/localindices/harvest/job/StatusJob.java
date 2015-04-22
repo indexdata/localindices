@@ -168,10 +168,9 @@ public class StatusJob extends AbstractRecordHarvestJob {
     StatsMatrix statusByMngmt = new StatsMatrix();
     
     for (Harvestable harvestable : harvestables) {
-      // Builds usage-by-status matrix
+      // Builds status-by-usage matrix
       String usedByCommaString = harvestable.getUsedBy();
       if (usedByCommaString != null && usedByCommaString.length()>0) {
-        // TODO: simplify?
         for (String usageTag : usedByCommaString.trim().split("[ ]?,[ ]?")) {
           if (hasUsedByFilter()) {
             if (hasItemMatch(getUsedByFilterTags(), Arrays.asList(usageTag),true)) {
@@ -184,7 +183,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
       } else {
         statusByUsage.addObservation("[No tag]",harvestable.getCurrentStatus());
       }
-      // Builds admins-by-status matrix
+      // Builds status-by-admin matrix
       String managedBy = harvestable.getManagedBy();
       if (managedBy != null && managedBy.length()>0) {
         statusByMngmt.addObservation(managedBy.substring(0, Math.min(70, managedBy.length()-1)).trim(), harvestable.getCurrentStatus());
@@ -197,11 +196,18 @@ public class StatusJob extends AbstractRecordHarvestJob {
     message.append("<table><tr><td colspan='2'><h3>Number of jobs by harvest-status</h3></td></tr>");
     message.append("<tr><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By usage tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th><th style='width:70px;'>Running</th></tr>");
+    message.append("<tr><th style='width:120px; text-align:left;'>By usage tags</th>");
+    message.append("<th style='width:65px;'>Errors</th>")
+    .append("<th style='width:65px;'>Warnings</th>")
+    .append("<th style='width:65px;'>Okay</th>")
+    .append("<th style='width:65px;'>New jobs</th>")
+    .append("<th style='width:65px;'>Running</th>")
+    .append("</tr>");
     for (String usageLabel : statusByUsage.getYLabels()) {
       message.append("<tr>");
       message.append("<td>"+usageLabel+"</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"ERROR")+ "</td>")
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"WARN") + "</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"OK")   + "</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"NEW")  + "</td>")
       .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"RUNNING")  + "</td>");
@@ -210,10 +216,17 @@ public class StatusJob extends AbstractRecordHarvestJob {
     message.append("</table>");
     message.append("</td><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By mngmt tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th><th style='width:70px;'>Running</th></tr>");
+    message.append("<tr><th style='width:120px; text-align:left;'>By mngmt tags</th>");
+    message.append("<th style='width:65px;'>Errors</th>")
+           .append("<th style='width:65px;'>Warnings</th>")
+           .append("<th style='width:65px;'>Okay</th>")
+           .append("<th style='width:65px;'>New jobs</th>")
+           .append("<th style='width:65px;'>Running</th>")
+           .append("</tr>");
     for (String mgmtTag : statusByMngmt.getYLabels()) {
       message.append("<tr><td>").append(mgmtTag).append("</td>")
        .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"ERROR")+ "</td>")
+       .append("<td align='right'>" + statusByUsage.getCount(mgmtTag,"WARN") + "</td>")
        .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"OK")   + "</td>")
        .append("<td align='right'>" + statusByMngmt.getCount(mgmtTag,"NEW")  + "</td>")
        .append("<td align='right'>" + statusByUsage.getCount(mgmtTag,"RUNNING")  + "</td>");
