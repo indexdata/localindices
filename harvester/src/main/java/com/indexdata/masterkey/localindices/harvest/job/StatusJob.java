@@ -131,7 +131,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
       // Skip this status job itself in report
       if (harvestable instanceof StatusResource) 
         continue;
-      if  ((!hasManagedByFilter() || stringContainsItem(harvestable.getManagedBy(),getAdminFilterTags(),true))
+      if  ((!hasManagedByFilter() || stringContainsItem(harvestable.getManagedBy(),getManagedByFilterTags(),true))
            && 
            (!hasUsedByFilter() || hasItemMatch(harvestable.getUsedBy(),getUsedByFilterTags(),true)))
         filteredList.add(harvestable);
@@ -183,10 +183,19 @@ public class StatusJob extends AbstractRecordHarvestJob {
       } else {
         statusByUsage.addObservation("[No tag]",harvestable.getCurrentStatus());
       }
+
       // Builds status-by-admin matrix
-      String managedBy = harvestable.getManagedBy();
-      if (managedBy != null && managedBy.length()>0) {
-        statusByMngmt.addObservation(managedBy.substring(0, Math.min(70, managedBy.length()-1)).trim(), harvestable.getCurrentStatus());
+      String managedByCommaString = harvestable.getManagedBy();
+      if (managedByCommaString != null && managedByCommaString.length()>0) {
+        for (String mngmtTag : managedByCommaString.trim().split("[ ]?,[ ]?")) {
+          if (hasManagedByFilter()) {
+            if (hasItemMatch(getManagedByFilterTags(),Arrays.asList(mngmtTag),true)) {
+              statusByMngmt.addObservation(mngmtTag, harvestable.getCurrentStatus());
+            }
+          } else {
+            statusByMngmt.addObservation(mngmtTag, harvestable.getCurrentStatus());
+          }
+        }
       } else {
         statusByMngmt.addObservation("[No tag]",harvestable.getCurrentStatus());
       }
@@ -336,7 +345,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * Gets list of tags in specified contact filter for this status job
    * @return
    */
-  private List<String> getAdminFilterTags() {
+  private List<String> getManagedByFilterTags() {
     return Arrays.asList(statusJob.getManagedBy().trim().split("[ ]?,[ ]?")); 
   }
   
