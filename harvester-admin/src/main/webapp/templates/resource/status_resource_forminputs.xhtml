@@ -4,7 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ui="http://java.sun.com/jsf/facelets"
 	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core">
+	xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:id="http://java.sun.com/jsf/composite/indexdata">
 <body>
 	<ui:composition>
 
@@ -53,12 +54,14 @@
         <h:inputText id="usedByFilter"
           value="#{resourceController.resource.usedBy}" size="80"
           required="false" />
+          <id:helplink field="[Harvest Jobs][Status_specific_information][Filter, comma separated list of usage tags]"/>
       </h:panelGroup>
       <h:outputText value="Filter, comma-separated list of admin tags:" />
       <h:panelGroup>
         <h:inputText id="managedByFilter"
           value="#{resourceController.resource.managedBy}" size="80"
           required="false" />
+          <id:helplink field="[Harvest Jobs][Status_specific_information][Filter, comma-separated list of admin tags]"/>
       </h:panelGroup>
 			<h:outputText value="Status job enabled:" />
 			<h:selectBooleanCheckbox
