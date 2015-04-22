@@ -36,7 +36,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
               "technicalNotes",
               "contactNotes",
               "serviceProvider",
-              "customer",
+              "usedBy",
+              "managedBy",
               "currentStatus");
 
   @Override
@@ -334,10 +335,12 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
         if (i++==0) expr.append("concat(");
         else expr.append(",'||',");
         if (tableAlias != null && tableAlias.length()>0) {
+          expr.append("COALESCE(");
           expr.append(tableAlias);
           expr.append(".");
         }
         expr.append(column);
+        expr.append(", '')");
       }
       expr.append(") like '%");
       expr.append(filterString);

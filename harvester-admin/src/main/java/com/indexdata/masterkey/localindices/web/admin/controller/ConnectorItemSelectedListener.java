@@ -32,7 +32,7 @@ public class ConnectorItemSelectedListener implements ValueChangeListener {
         getExternalContext().getSessionMap().get("resourceController");
     HarvestConnectorResource hcr = (HarvestConnectorResource) rc.getResource();
     hcr.setName(ci.getDisplayName());
-    hcr.setContactNotes(ci.getAuthor());
+    hcr.setManagedBy(ci.getAuthor());
     hcr.setTechnicalNotes(ci.getNote());
   }
   

@@ -69,31 +69,31 @@ public class StatusJob extends AbstractRecordHarvestJob {
     try {
       StringBuffer mailMessage = new StringBuffer("");
       // Info on the filtering applied for this job
-      if (hasCustomerFilter() || hasContactFilter()) {
+      if (hasUsedByFilter() || hasManagedByFilter()) {
         mailMessage.append("Filtered by: ");
-        if (hasCustomerFilter()) mailMessage.append(" Customer(s): " + statusJob.getCustomer());
-        if (hasContactFilter()) mailMessage.append(" Contact(s): " + statusJob.getContactNotes());
+        if (hasUsedByFilter()) mailMessage.append(" Usage tags: " + statusJob.getUsedBy());
+        if (hasManagedByFilter()) mailMessage.append(" Admin tags: " + statusJob.getManagedBy());
       }
       List<Harvestable> allHarvestables = dao.retrieve(0,dao.getCount());
       // Filter harvestables by criteria specified on the status job
       List<Harvestable> harvestables = applyStatusJobFilters(allHarvestables);
 
-      // Write status matrices by customer and by contacts
+      // Write status matrices by usedBy tags and by contacts
       appendStats(mailMessage,harvestables);
 
-      // Get all customer tags present on any harvestables 
+      // Get all usedBy tags present on any harvestables 
       // (after filtering, if any) 
-      Set<String> customers = getCustomers(harvestables);
+      Set<String> usedByTags = getUsedByTags(harvestables);
 
-      // Write jobs list by customer (and filtered as specified).
-      mailMessage.append("<h3>All jobs sorted by customer:</h3>");
+      // Write jobs list by usedBy tags (and filtered as specified).
+      mailMessage.append("<h3>All jobs sorted by usage:</h3>");
       mailMessage.append("<table cellpadding='2px' border='1'>");
-      mailMessage.append("<tr><th>Customer</th><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
-      for (String customer : customers) {
-        appendHarvestables(mailMessage, getHarvestablesByCustomer(harvestables, customer), customer);
+      mailMessage.append("<tr><th>Usage</th><th width='33%'>Job</th><th>Status</th><th>Message</th><th>Amount</th></tr>");
+      for (String usedByTag : usedByTags) {
+        appendHarvestables(mailMessage, getHarvestablesByUsedByTag(harvestables, usedByTag), usedByTag);
       }
-      // Write jobs not tagged with any customer
-      appendHarvestables(mailMessage, getHarvestablesByCustomer(harvestables, null), "[No cust.]");
+      // Write jobs not tagged 
+      appendHarvestables(mailMessage, getHarvestablesByUsedByTag(harvestables, null), "[No tag]");
       mailMessage.append("</table>");
       msg = mailMessage.toString();
       setStatus(HarvestStatus.OK);
@@ -131,9 +131,9 @@ public class StatusJob extends AbstractRecordHarvestJob {
       // Skip this status job itself in report
       if (harvestable instanceof StatusResource) 
         continue;
-      if  ((!hasContactFilter() || stringContainsItem(harvestable.getContactNotes(),getContactFilterTags(),true))
+      if  ((!hasManagedByFilter() || stringContainsItem(harvestable.getManagedBy(),getAdminFilterTags(),true))
            && 
-           (!hasCustomerFilter() || hasItemMatch(harvestable.getCustomer(),getCustomerFilterTags(),true)))
+           (!hasUsedByFilter() || hasItemMatch(harvestable.getUsedBy(),getUsedByFilterTags(),true)))
         filteredList.add(harvestable);
     }
     return filteredList;
@@ -158,37 +158,38 @@ public class StatusJob extends AbstractRecordHarvestJob {
   }
   
   /**
-   * Write status matrices by customer tags and by contact tags
+   * Write status matrices by usage tags and by contact tags
    * 
    * @param message
    * @param harvestables
    */
   private void appendStats(StringBuffer message, List<Harvestable> harvestables) {
-    StatsMatrix statusByCustomer = new StatsMatrix();
-    StatsMatrix statusByContact = new StatsMatrix();
+    StatsMatrix statusByUsage = new StatsMatrix();
+    StatsMatrix statusByMngmt = new StatsMatrix();
     
     for (Harvestable harvestable : harvestables) {
-      // Builds customer-by-status matrix
-      String customerField = harvestable.getCustomer();
-      if (customerField != null && customerField.length()>0) {
-        for (String customer : customerField.trim().split("[ ]?,[ ]?")) {
-          if (hasCustomerFilter()) {
-            if (hasItemMatch(getCustomerFilterTags(), Arrays.asList(customer),true)) {
-              statusByCustomer.addObservation(customer, harvestable.getCurrentStatus());
+      // Builds usage-by-status matrix
+      String usedByCommaString = harvestable.getUsedBy();
+      if (usedByCommaString != null && usedByCommaString.length()>0) {
+        // TODO: simplify?
+        for (String usageTag : usedByCommaString.trim().split("[ ]?,[ ]?")) {
+          if (hasUsedByFilter()) {
+            if (hasItemMatch(getUsedByFilterTags(), Arrays.asList(usageTag),true)) {
+              statusByUsage.addObservation(usageTag, harvestable.getCurrentStatus());
             }
           } else {
-            statusByCustomer.addObservation(customer, harvestable.getCurrentStatus());
+            statusByUsage.addObservation(usageTag, harvestable.getCurrentStatus());
           }
         }
       } else {
-        statusByCustomer.addObservation("[No cust.]",harvestable.getCurrentStatus());
+        statusByUsage.addObservation("[No tag]",harvestable.getCurrentStatus());
       }
-      // Builds contactNotes-by-status matrix
-      String contactNotes = harvestable.getContactNotes();
-      if (contactNotes != null && contactNotes.length()>0) {
-        statusByContact.addObservation(contactNotes.substring(0, Math.min(70, contactNotes.length()-1)).trim(), harvestable.getCurrentStatus());
+      // Builds admins-by-status matrix
+      String managedBy = harvestable.getManagedBy();
+      if (managedBy != null && managedBy.length()>0) {
+        statusByMngmt.addObservation(managedBy.substring(0, Math.min(70, managedBy.length()-1)).trim(), harvestable.getCurrentStatus());
       } else {
-        statusByContact.addObservation("[No contact]",harvestable.getCurrentStatus());
+        statusByMngmt.addObservation("[No tag]",harvestable.getCurrentStatus());
       }
     }
 
@@ -196,24 +197,24 @@ public class StatusJob extends AbstractRecordHarvestJob {
     message.append("<table><tr><td colspan='2'><h3>Number of jobs by harvest-status</h3></td></tr>");
     message.append("<tr><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By customer</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
-    for (String customer : statusByCustomer.getYLabels()) {
+    message.append("<tr><th style='width:120px; text-align:left;'>By usage tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
+    for (String usageLabel : statusByUsage.getYLabels()) {
       message.append("<tr>");
-      message.append("<td>"+customer+"</td>")
-      .append("<td align='right'>" + statusByCustomer.getCount(customer,"ERROR")+ "</td>")
-      .append("<td align='right'>" + statusByCustomer.getCount(customer,"OK")   + "</td>")
-      .append("<td align='right'>" + statusByCustomer.getCount(customer,"NEW")  + "</td>");
+      message.append("<td>"+usageLabel+"</td>")
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"ERROR")+ "</td>")
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"OK")   + "</td>")
+      .append("<td align='right'>" + statusByUsage.getCount(usageLabel,"NEW")  + "</td>");
       message.append("</tr>");
     }
     message.append("</table>");
     message.append("</td><td valign='top' width='50%'>");
     message.append("<table cellpadding='2px' border='1'>");
-    message.append("<tr><th style='width:120px; text-align:left;'>By contact</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
-    for (String contact : statusByContact.getYLabels()) {
+    message.append("<tr><th style='width:120px; text-align:left;'>By mngmt tags</th><th style='width:70px;'>Errors</th><th style='width:70px;'>Okay</th><th style='width:70px;'>New jobs</th></tr>");
+    for (String contact : statusByMngmt.getYLabels()) {
       message.append("<tr><td>").append(contact).append("</td>")
-       .append("<td align='right'>" + statusByContact.getCount(contact,"ERROR")+ "</td>")
-       .append("<td align='right'>" + statusByContact.getCount(contact,"OK")   + "</td>")
-       .append("<td align='right'>" + statusByContact.getCount(contact,"NEW")  + "</td>");
+       .append("<td align='right'>" + statusByMngmt.getCount(contact,"ERROR")+ "</td>")
+       .append("<td align='right'>" + statusByMngmt.getCount(contact,"OK")   + "</td>")
+       .append("<td align='right'>" + statusByMngmt.getCount(contact,"NEW")  + "</td>");
       message.append("</tr>");
     }
     message.append("</table>");
@@ -221,34 +222,34 @@ public class StatusJob extends AbstractRecordHarvestJob {
   }
 
   /** 
-   * Gets all customer tags occurring in any of the harvestables (except status jobs),
+   * Gets all usedBy tags occurring in any of the harvestables (except status jobs),
    * but filtered down to only those also present in the current status job's 
-   * customer tag filter (if any). 
+   * usage tag filter (if any). 
    *  
    * @param harvestables
    * @return
    */
-  private Set<String> getCustomers (List<Harvestable> harvestables) {
-    Set<String> customers = new TreeSet<String>();
+  private Set<String> getUsedByTags (List<Harvestable> harvestables) {
+    Set<String> usageTags = new TreeSet<String>();
     for (Harvestable harvestable : harvestables) {
       if (harvestable instanceof StatusResource) continue;
-      String customerField = harvestable.getCustomer();
-      if (customerField != null && customerField.length()>0) {
-        customerField = customerField.trim();
-        List<String> harvestablesCustomerTags = Arrays.asList(customerField.split("[ ]?,[ ]?"));
-        if (hasCustomerFilter()) {
-          List<String> customersIntersect = new ArrayList<String>();
-          for (String customerTag : harvestablesCustomerTags) {
-            if (hasItemMatch(customerTag,getCustomerFilterTags(),true)) 
-              customersIntersect.add(customerTag);
+      String usedByCommaString = harvestable.getUsedBy();
+      if (usedByCommaString != null && usedByCommaString.length()>0) {
+        usedByCommaString = usedByCommaString.trim();
+        List<String> harvestableUsageTags = Arrays.asList(usedByCommaString.split("[ ]?,[ ]?"));
+        if (hasUsedByFilter()) {
+          List<String> tagListsIntersect = new ArrayList<String>();
+          for (String usedByTag : harvestableUsageTags) {
+            if (hasItemMatch(usedByTag,getUsedByFilterTags(),true)) 
+              tagListsIntersect.add(usedByTag);
           }
-          customers.addAll(customersIntersect);
+          usageTags.addAll(tagListsIntersect);
         } else {
-          customers.addAll(harvestablesCustomerTags);
+          usageTags.addAll(harvestableUsageTags);
         }
       }
     }
-    return customers;
+    return usageTags;
   }
 
   /**
@@ -278,21 +279,21 @@ public class StatusJob extends AbstractRecordHarvestJob {
   }
   
   /**
-   * Gets all harvestables (after overall filtering) that are tagged by 'customer'
+   * Gets all harvestables (after overall filtering) that are tagged by 'usedBy'
    *  
    * @param harvestables
-   * @param customer
+   * @param usedBy
    * @return
    */
-  private List<Harvestable> getHarvestablesByCustomer (List<Harvestable> harvestables, String customer) {
+  private List<Harvestable> getHarvestablesByUsedByTag (List<Harvestable> harvestables, String usageTag) {
     List<Harvestable> harvestablesFiltered = new ArrayList<Harvestable>();
     for (Harvestable harvestable : harvestables) {
-      if (customer == null) {
-        if (harvestable.getCustomer() == null || harvestable.getCustomer().trim().length()==0) {
+      if (usageTag == null) {
+        if (harvestable.getUsedBy() == null || harvestable.getUsedBy().trim().length()==0) {
           harvestablesFiltered.add(harvestable);
         }
       } else {
-        if (harvestable.getCustomer() != null && harvestable.getCustomer().contains(customer)) {
+        if (harvestable.getUsedBy() != null && harvestable.getUsedBy().contains(usageTag)) {
           harvestablesFiltered.add(harvestable);
         }
       }
@@ -301,35 +302,35 @@ public class StatusJob extends AbstractRecordHarvestJob {
   }
   
   /**
-   * Returns true if a customer filter was specified for this status job
+   * Returns true if a usage tag filter was specified for this status job
    * @return
    */
-  private boolean hasCustomerFilter() {
-    return (statusJob.getCustomer()!=null & statusJob.getCustomer().trim().length()>0);
+  private boolean hasUsedByFilter() {
+    return (statusJob.getUsedBy()!=null && statusJob.getUsedBy().trim().length()>0);
   }
   
   /**
    * Returns true if a contact tag filter was specified for this status job
    * @return
    */
-  private boolean hasContactFilter() {
-    return (statusJob.getContactNotes()!=null & statusJob.getContactNotes().trim().length()>0);
+  private boolean hasManagedByFilter() {
+    return (statusJob.getManagedBy()!=null && statusJob.getManagedBy().trim().length()>0);
   }
   
   /**
    * Gets list of tags in specified contact filter for this status job
    * @return
    */
-  private List<String> getContactFilterTags() {
-    return Arrays.asList(statusJob.getContactNotes().trim().split("[ ]?,[ ]?")); 
+  private List<String> getAdminFilterTags() {
+    return Arrays.asList(statusJob.getManagedBy().trim().split("[ ]?,[ ]?")); 
   }
   
   /**
-   * Gets list of tags in specified customer filter for this status job
+   * Gets list of tags in specified usage tag filter for this status job
    * @return
    */
-  private List<String> getCustomerFilterTags() {
-    return Arrays.asList(statusJob.getCustomer().trim().split("[ ]?,[ ]?")); 
+  private List<String> getUsedByFilterTags() {
+    return Arrays.asList(statusJob.getUsedBy().trim().split("[ ]?,[ ]?")); 
   }
   
   /**
@@ -400,16 +401,17 @@ public class StatusJob extends AbstractRecordHarvestJob {
    * @return
    */
   private boolean stringContainsItem(String string, List<String> list, boolean ignoreCase) {
-    for (String str : list) {
-      if (ignoreCase) {
-        if (string.toLowerCase().trim().contains(str.toLowerCase().trim()))
-          return true;
-      } else {
-        if (string.trim().contains(str.trim()))
-          return true;
+    if (string != null && list !=null && list.size()>0) {
+      for (String str : list) {
+        if (ignoreCase) {
+          if (string.toLowerCase().trim().contains(str.toLowerCase().trim()))
+            return true;
+        } else {
+          if (string.trim().contains(str.trim()))
+            return true;
+        }
       }
     }
     return false;
   }
-
 }
