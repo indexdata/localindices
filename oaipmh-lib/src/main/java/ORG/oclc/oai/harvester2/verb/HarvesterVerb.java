@@ -83,6 +83,7 @@ public abstract class HarvesterVerb {
   private int httpTimeout   = 60;   // secs
   private String baseURL;
   private String requestURL;
+  private String redirectedURL;
   private Document doc = null;
   private String schemaLocation = null;
   private InputStreamWrapper isw = new IdentityInputStreamWrapper();
@@ -261,6 +262,15 @@ public abstract class HarvesterVerb {
   }
 
   /**
+   * Get the OAI request URL for this response in case the request was redirected
+   * @return redirected request URL or null if no redirect occured
+   */
+  public String getRedirectedURL() {
+    return redirectedURL;
+  }
+ 
+
+  /**
    * Mock object creator (for unit testing purposes)
    */
   public HarvesterVerb() {
@@ -325,15 +335,18 @@ public abstract class HarvesterVerb {
    * @throws TransformerException
    */
   public void harvest(String parameters, Proxy proxy, String encodingOverride)
-    throws IOException, ParserConfigurationException, TransformerException, ResponseParsingException 
-    {
+    throws IOException, ParserConfigurationException, TransformerException, ResponseParsingException {
     if (baseURL != null)
       this.requestURL = baseURL + parameters;
     else 
       this.requestURL = parameters;
-    logger.log(Level.INFO, "Request URL: " + requestURL);
-    InputStream in = null;
     URL url = new URL(requestURL);
+    performRequest(url, proxy, encodingOverride);
+  }
+  
+  private void performRequest(URL url, Proxy proxy, String encodingOverride) throws IOException, ParserConfigurationException, TransformerException {
+    logger.log(Level.INFO, "Request URL: " + url);
+    InputStream in = null;
     HttpURLConnection con = null;
     int responseCode = 0;
     boolean retry;
@@ -362,6 +375,17 @@ public abstract class HarvesterVerb {
         logger.log(Level.WARN, requestURL, e);
         responseCode = -1;
       }
+      //handle redirects manually since cross-protocol redirects are not handled
+      if (isRedirect(responseCode)) {
+        String redirectTo = con.getHeaderField("Location");
+        if (redirectTo != null) {
+          logger.log(Level.DEBUG, "Got a redirect ("+responseCode+") to "+redirectTo);
+          this.redirectedURL = redirectTo;
+          performRequest(new URL(redirectTo), proxy, encodingOverride);
+          return;
+        }
+      }
+      
       //for some responses the server will tell us when to retry
       //for others we'll use the defaults
       if (isRetry(responseCode)) {
@@ -396,15 +420,15 @@ public abstract class HarvesterVerb {
         "Could not read HTTP response code. Bad URL?");
     }
 
-    //stop for non-recoverable HTTP client/server errrors
-    if (responseCode >= 400 && responseCode < 600) {
+    //stop for non-recoverable HTTP client/server errrors and unhandled redirects
+    if (responseCode >= 300 && responseCode < 600) {
       String statusMessage = null;
       try {
         statusMessage = con.getResponseMessage();
       } catch (IOException ioe) {
         statusMessage = "<couldn't parse status message>";
       }
-      throw new HttpErrorException(responseCode, statusMessage, requestURL);
+      throw new HttpErrorException(responseCode, statusMessage, url.toString());
     }
 
     String contentEncoding = con.getHeaderField("Content-Encoding");
@@ -496,6 +520,12 @@ public abstract class HarvesterVerb {
       sb.append(tokenizer.nextToken());
     }
     return sb.toString();
+  }
+  
+  private boolean isRedirect(int responseCode) {
+    return responseCode == HttpURLConnection.HTTP_MOVED_PERM
+      || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+      || responseCode == HttpURLConnection.HTTP_SEE_OTHER;
   }
 
   private boolean isRetry(int responseCode) {
