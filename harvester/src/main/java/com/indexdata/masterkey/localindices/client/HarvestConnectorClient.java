@@ -234,6 +234,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
         params.put("timeout", Integer.toString(resource.getTimeout() - 10));
       }
     }
+    if (!params.containsKey("proxy")) {
+      params.put("proxy", getResource().getProxy());
+    }
     try {
       return TextUtils.serializeParams(params);
     } catch (UnsupportedEncodingException ex) {
@@ -365,7 +368,6 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     }
     addField(jsonObj, "username", getResource().getUsername());
     addField(jsonObj, "password", getResource().getPassword());
-    addField(jsonObj, "proxy",    getResource().getProxy());
     writeJSON(jsonObj, conn);
     executeConnection(conn);
   }
@@ -546,19 +548,6 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       logger.debug("Sleeping " + sleep + " before next request...");
       Thread.sleep(getResource().getSleep());
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  public JSONObject createInitRequest(String username, String password, String proxyip) 
-  {
-    JSONObject request = new JSONObject();
-    if (username != null)
-      request.put("username", username);
-    if (password != null) 
-      request.put("password", password);
-    if (proxyip != null)
-      request.put("proxyip", proxyip);
-    return request;
   }
 
   @SuppressWarnings("unchecked")

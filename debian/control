@@ -8,7 +8,7 @@ Homepage: http://www.indexdata.dk/masterkey/harvester
 
 Package: masterkey-harvester-engine
 Architecture: all
-Depends:openjdk-6-jre-headless|openjdk-6-jre|openjdk-6-jdk, ${misc:Depends}
+Depends:java7-runtime|java7-runtime-headless, ${misc:Depends}
 Description: Harvester Engine, part of the MasterKey suite 
  provides a OAI-PMH and XML bulk harvesting, transformations 
  using pipelines of XSL Transformations into indexes like Solr.

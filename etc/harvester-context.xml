@@ -18,5 +18,6 @@
     maxActive="100" maxIdle="30" maxWait="10000" 
     type="javax.sql.DataSource" 
     url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" 
+    validationQuery = "SELECT 1"  validationInterval = "60000" testOnBorrow = "true"
     />
 </Context>
