@@ -549,19 +549,6 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createInitRequest(String username, String password, String proxyip) 
-  {
-    JSONObject request = new JSONObject();
-    if (username != null)
-      request.put("username", username);
-    if (password != null) 
-      request.put("password", password);
-    if (proxyip != null)
-      request.put("proxyip", proxyip);
-    return request;
-  }
-
-  @SuppressWarnings("unchecked")
   public JSONObject createHarvestRequest(Object linkToken) throws ParseException 
   {
     JSONObject request = new JSONObject();
