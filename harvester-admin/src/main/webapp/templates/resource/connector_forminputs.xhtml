@@ -83,17 +83,19 @@
         </h:panelGroup>
         <h:outputText value="Harvest from (yyyy-MM-dd):" styleClass="optionalInput"/>
         <h:panelGroup>
-          <h:inputText value="#{resourceController.resource.fromDate}" size="8" styleClass="optionalInput">
+          <h:inputText id="fromDate" value="#{resourceController.resource.fromDate}" size="8" styleClass="optionalInput">
             <f:convertDateTime pattern="yyyy-MM-dd" />
           </h:inputText>
           <id:helplink field="[Harvest Jobs][Connector specific information][Harvest from (yyyy-MM-dd)]"/>
+          <h:message for="fromDate" style="color: red;" />
         </h:panelGroup>
         <h:outputText value="Harvest until (yyyy-MM-dd):" styleClass="optionalInput"/>
         <h:panelGroup>
-          <h:inputText value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
+          <h:inputText id="untilDate" value="#{resourceController.resource.untilDate}" size="8" styleClass="optionalInput">
             <f:convertDateTime pattern="yyyy-MM-dd" />
           </h:inputText>
           <id:helplink field="[Harvest Jobs][Connector specific information][Harvest until (yyyy-MM-dd)]"/>
+          <h:message for="untilDate" style="color: red;" />
         </h:panelGroup>
         <h:outputText value="Start token (incremental harvest):" styleClass="optionalInput"/>
         <h:panelGroup>
