@@ -234,6 +234,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
         params.put("timeout", Integer.toString(resource.getTimeout() - 10));
       }
     }
+    if (!params.containsKey("proxy")) {
+      params.put("proxy", getResource().getProxy());
+    }
     try {
       return TextUtils.serializeParams(params);
     } catch (UnsupportedEncodingException ex) {
@@ -365,7 +368,6 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     }
     addField(jsonObj, "username", getResource().getUsername());
     addField(jsonObj, "password", getResource().getPassword());
-    addField(jsonObj, "proxy",    getResource().getProxy());
     writeJSON(jsonObj, conn);
     executeConnection(conn);
   }
