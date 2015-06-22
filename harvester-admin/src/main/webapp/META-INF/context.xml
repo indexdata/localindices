@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/harvester-admin" antiJARLocking="true">
-
+<Context 
+  antiJARLocking="true" 
+  crossContext="true" 
+  path="/harvester-admin" 
+  reloadable="true">
   <!-- maxActive: Maximum number of dB connections in pool. Make sure you
   configure your mysqld max_connections large enough to handle
   all of your db connections. Set to -1 for no limit.
@@ -23,13 +26,16 @@
   mm.mysql JDBC Driver will automatically reconnect if mysqld closed the
   connection.  mysqld by default closes idle connections after 8 hours.
   -->
+  <Resources allowLinking="true"/>
   <Resource 
     auth="Container" 
     driverClassName="com.mysql.jdbc.Driver" 
     maxActive="100" maxIdle="30" maxWait="10000" 
+    maxTotal="100" maxWaitMillis="10000" 
     name="localindicesDS" 
+    username="localidxadm"
     password="localidxadmpass" 
-    type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" username="localidxadm"
-    />
+    type="javax.sql.DataSource" 
+    url="jdbc:mysql://localhost:3306/localindices?autoReconnect=true" 
+  />
 </Context>
-
