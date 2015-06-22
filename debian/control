@@ -2,7 +2,7 @@ Source: masterkey-harvester
 Section: misc
 Priority: extra
 Maintainer: Index Data <info@indexdata.com>
-Build-Depends: debhelper (>= 5), openjdk-7-jdk, maven2, unzip
+Build-Depends: debhelper (>= 5), openjdk-7-jdk, maven, unzip
 Standards-Version: 3.9.5
 Homepage: http://www.indexdata.dk/masterkey/harvester
 
