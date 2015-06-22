@@ -2,9 +2,9 @@
 
 case "$1" in
     configure|upgrade)
-	chown -R tomcat6:adm /var/log/masterkey/harvester
+	chown -R tomcat8:adm /var/log/masterkey/harvester
 	chmod g+rs /var/log/masterkey/harvester
-	chown -R tomcat6:adm /var/cache/harvester/
+	chown -R tomcat8:adm /var/cache/harvester/
 	chmod g+rs /var/cache/harvester/
         ;;
 

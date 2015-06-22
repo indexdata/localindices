@@ -2,8 +2,8 @@
 
 case "$1" in
     purge)
-	rm -f /etc/tomcat6/Catalina/localhost/harvester.xml
-	rm -f /etc/tomcat6/policy.d/05harvester.policy
+	rm -f /etc/tomcat7/Catalina/localhost/harvester.xml
+	rm -f /etc/tomcat7/policy.d/05harvester.policy
         ;;
     remove)
 	;;

@@ -124,10 +124,9 @@
   </dependencies>
   <repositories>
     <repository>
-      <id>maven.indexdata.com</id>
+      <id>id-maven-repo</id>
       <name>Indexdata Maven Repository</name>
       <url>http://maven.indexdata.com/</url>
-      <layout>default</layout>
     </repository>
   </repositories>
   <pluginRepositories>
