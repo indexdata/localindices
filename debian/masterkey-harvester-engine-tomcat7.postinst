@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+case "$1" in
+    configure|upgrade)
+	chown -R tomcat7:adm /var/log/masterkey/harvester
+	chmod g+rs /var/log/masterkey/harvester
+	chown -R tomcat7:adm /var/cache/harvester/
+	chmod g+rs /var/cache/harvester/
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
