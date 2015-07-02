@@ -159,6 +159,7 @@
                 </h:commandLink>
                 <h:commandLink styleClass="action"
                                action="#{resourceController.prepareResourceToRun}"
+                               onclick="return confirm('Stop job? (#{item.name})');"
                                rendered="#{item.running}">
                   <f:ajax render=":jobForm:jobTable"/> 
                   <f:param name="resourceId" value="#{item.id}" />
