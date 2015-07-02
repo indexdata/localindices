@@ -72,6 +72,7 @@
                     <f:ajax render=":jobForm:jobList"/>
                   </h:commandLink>
                 </f:facet>
+                <h:graphicImage styleClass="jobType" title="#{item.jobClass}" alt="#{item.jobClass}" height="16" url="/images/#{item.jobClass}.png" />
                 <h:outputText value="#{item.name}"></h:outputText>
               </h:column>
               <h:column headerClass="status">

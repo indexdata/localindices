@@ -238,3 +238,7 @@ td.stepformat {
 img {
   border-width: 0px;
 }
+
+.jobType {
+  margin-right: .4em;
+}
