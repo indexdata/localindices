@@ -171,6 +171,9 @@
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
                 </h:link>
+                <h:outputLink styleClass="action" value="#{item.storageUrl}" >
+                  <h:graphicImage title="SOLR" alt="SOLR" height="16" url="/images/solr.png" />
+                </h:outputLink>
               </h:column>
               <h:column headerClass="statusmessage">
                 <f:facet name="header">

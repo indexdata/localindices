@@ -35,6 +35,7 @@ public class HarvestableBrief implements Comparable<Object> {
   /* Resource uri */
   private URI uri;
   private String jobClass;
+  private String storageUrl;
 
   public HarvestableBrief() {
   }
@@ -56,6 +57,7 @@ public class HarvestableBrief implements Comparable<Object> {
     enabled = entity.getEnabled();
     lastUpdated = entity.getLastUpdated();
     jobClass = entity.getClass().getSimpleName();
+    storageUrl = entity.getStorage().getUrl();
   }
 
   /**
@@ -223,5 +225,12 @@ public class HarvestableBrief implements Comparable<Object> {
   public void setJobClass(String jobClass) {
     this.jobClass = jobClass;
   }
+  
+  public String getStorageUrl() {
+    return storageUrl;
+  }
 
+  public void setStorageUrl(String storageUrl) {
+    this.storageUrl = storageUrl;
+  }
 }
