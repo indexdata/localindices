@@ -45,21 +45,32 @@
         <h:outputText value="Connector (type for suggestion):"  styleClass="required"/>
         <h:panelGroup>
           <id:autoComplete id="connector" value="#{resourceController.resource.connector}"
-                             itemsSource="#{connectorItemsSource.itemsSource}"
-                             completionItems="#{connectorItemsSource.selectItems}"
-                             completionItemConverter="objectConverter"
-                             itemSelectedListenerType="#{connectorItemSelectedListener}"
-                             required="true" 
-                             requiredMessage="Please provide the Connector filename!"
-                             render=":jobForm:resourceName :jobForm:contactNotes :jobForm:managedBy :jobForm:technicalNotes"/>
+                           itemsSource="#{connectorItemsSource.itemsSource}"
+                           completionItems="#{connectorItemsSource.selectItems}"
+                           completionItemConverter="objectConverter"
+                           itemSelectedListenerType="#{connectorItemSelectedListener}"
+                           required="true" 
+                           requiredMessage="Please provide the Connector filename!"
+                           render=":jobForm:resourceName :jobForm:contactNotes :jobForm:managedBy :jobForm:technicalNotes"/>
           <id:helplink field="[Harvest Jobs][Connector specific information][Connector (type for suggestion)]"/>
           <h:message for="connector:input" style="color: red;"/>
         </h:panelGroup>
         <h:outputText value="Overwrite with each run (non-incremental):" />
         <h:panelGroup>
           <h:selectBooleanCheckbox
-          value="#{resourceController.resource.overwrite}" />
+            id="overwrite"
+            value="#{resourceController.resource.overwrite}" />
           <id:helplink field="[Harvest Jobs][Connector specific information][Overwrite with each run (non-incremental)]"/>
+          <script>
+            //<![CDATA[
+            indexdata.validator.register("overwrite", function () {
+              if (window.document.getElementById("jobForm:overwrite").checked) {
+                indexdata.validator.confirm('"Overwrite with each run" is selected; existing data will be overwritten on the next run.');
+              }
+              return true;
+            });
+            //]]>
+          </script>
         </h:panelGroup>
         <h:outputText value="User Name:" styleClass="optionalInput"/>
         <h:panelGroup>
