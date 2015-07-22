@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindicies.entity;
+package com.indexdata.masterkey.localindices.entity;
 
 import java.io.PrintStream;
 
@@ -8,7 +8,7 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
-import com.indexdata.masterkey.localindicies.entity.TestDAOs.EntityTester;
+import com.indexdata.masterkey.localindices.entity.TestDAOs.EntityTester;
 
 public class TransformationStepAssociationTestHelper implements
 		EntityTester<TransformationStepAssociation> {

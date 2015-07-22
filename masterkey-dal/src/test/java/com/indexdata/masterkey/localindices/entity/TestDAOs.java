@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindicies.entity;
+package com.indexdata.masterkey.localindices.entity;
 
 import java.io.IOException;
 import java.io.PrintStream;

@@ -12,7 +12,6 @@
   <name>masterkey-dal</name>
   <url>http://maven.apache.org</url>
   <build>
-    <testSourceDirectory>src/main/test2</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

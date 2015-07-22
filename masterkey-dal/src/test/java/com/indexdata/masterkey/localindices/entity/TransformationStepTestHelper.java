@@ -1,10 +1,10 @@
-package com.indexdata.masterkey.localindicies.entity;
+package com.indexdata.masterkey.localindices.entity;
 
 import java.io.PrintStream;
 
 import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
-import com.indexdata.masterkey.localindicies.entity.TestDAOs.EntityTester;
+import com.indexdata.masterkey.localindices.entity.TestDAOs.EntityTester;
 
 public class TransformationStepTestHelper implements
 		EntityTester<TransformationStep> {
