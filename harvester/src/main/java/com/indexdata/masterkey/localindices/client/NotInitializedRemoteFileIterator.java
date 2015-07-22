@@ -5,7 +5,7 @@ import com.indexdata.masterkey.localindices.client.RemoteFileIterator;
 import java.io.IOException;
 
 /*
- * Copyright (c) 1995-2014, Index Datassss
+ * Copyright (c) 1995-2014, Index Data
  * All rights reserved.
  * See the file LICENSE for details.
  */
