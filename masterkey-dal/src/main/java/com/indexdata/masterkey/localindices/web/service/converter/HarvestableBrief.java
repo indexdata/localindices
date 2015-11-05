@@ -57,7 +57,7 @@ public class HarvestableBrief implements Comparable<Object> {
     enabled = entity.getEnabled();
     lastUpdated = entity.getLastUpdated();
     jobClass = entity.getClass().getSimpleName();
-    storageUrl = entity.getStorage().getUrl();
+    storageUrl = (entity.getStorage() == null ? null : entity.getStorage().getUrl());
   }
 
   /**
