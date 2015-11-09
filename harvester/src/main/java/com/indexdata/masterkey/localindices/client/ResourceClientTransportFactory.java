@@ -9,32 +9,30 @@ import java.util.Map;
 public class ResourceClientTransportFactory implements ClientTransportFactory {
   private final XmlBulkResource resource;
   private final StorageJobLogger logger;
-  
+
   Map<String, ClientTransport> clientMap = new HashMap<String, ClientTransport>();
-  
+
   public ResourceClientTransportFactory(XmlBulkResource resource, StorageJobLogger logger) {
     this.resource = resource;
     this.logger = logger;
   }
-  
+
   @Override
   public ClientTransport lookup(URL url) throws ClientTransportError {
-    
-    ClientTransport transport = null; 
+
+    ClientTransport transport = null;
     if ("http".equals(url.getProtocol())) {
       transport = new HttpClientTransport(this, logger);
-    }
-    else if (url.getProtocol().equals("ftp")) {
+    } else if (url.getProtocol().equals("ftp")) {
       String authority = url.getAuthority();
       if (authority != null) {
-	transport = clientMap.get(authority);
-	if (transport == null) {
-	  transport = new FtpClientTransport(logger, resource.getPassiveMode());
-	  clientMap.put(authority, transport);
-	}
-      }
-      else
-	throw new ClientTransportError("No Authority on ftp url: " + url);
+        transport = clientMap.get(authority);
+        if (transport == null) {
+          transport = new FtpClientTransport(logger, resource.getPassiveMode());
+          clientMap.put(authority, transport);
+        }
+      } else
+        throw new ClientTransportError("No Authority on ftp url: " + url);
     }
 
     if (transport == null) {
@@ -42,7 +40,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
     }
     transport.setRecursive(true);
     if (resource.getTimeout() != null) {
-      transport.setTimeout(1000*resource.getTimeout());
+      transport.setTimeout(1000 * resource.getTimeout());
     }
     return transport;
   }

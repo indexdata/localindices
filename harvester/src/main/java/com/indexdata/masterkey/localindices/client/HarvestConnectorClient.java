@@ -21,7 +21,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -48,8 +47,8 @@ import java.util.HashMap;
 
 public class HarvestConnectorClient extends AbstractHarvestClient {
   private String sessionId;
-  List <Object> linkTokens = new LinkedList<Object>();
-  List <String> errors = new ArrayList<String>();
+  List<Object> linkTokens = new LinkedList<Object>();
+  List<String> errors = new ArrayList<String>();
   HttpURLConnectionFactory connectionFactory;
   final private String engineParams;
 
@@ -61,9 +60,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   public List<String> getErrors() {
     return errors;
   }
-  
-  //command pattern starts
-  
+
+  // command pattern starts
+
   public class Unrecoverable extends Exception {
 
     /**
@@ -74,9 +73,9 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     public Unrecoverable(Throwable cause) {
       super(cause);
     }
-    
+
   }
-  
+
   abstract class RetryInvoker {
     final int maxRetries;
     Exception finalException;
@@ -84,11 +83,11 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     public RetryInvoker(int maxRetries) {
       this.maxRetries = maxRetries;
     }
-    
+
     abstract void onInvoke() throws Exception, Unrecoverable;
-    
-    public abstract String toString(); //force
-    
+
+    public abstract String toString(); // force
+
     boolean invoke() {
       int tried = 0;
       while (true) {
@@ -97,17 +96,17 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           onInvoke();
           return true;
         } catch (Unrecoverable ue) {
-          logger.warn("Invoking task '"+toString()+"' failed with unretriable error, giving up task");
+          logger.warn("Invoking task '" + toString() + "' failed with unretriable error, giving up task");
           finalException = ue;
           return false;
         } catch (StopException e) {
           logger.info("Received Stop Request: " + e.getMessage());
           finalException = e;
-          return false; 
+          return false;
         } catch (Exception e) {
           boolean retry = tried <= maxRetries;
-          logger.warn("Invoking task '"+toString()+"' failed ('"+e.getMessage()+"'), "
-            + (retry ? "retrying "+tried+" of "+maxRetries : "giving up task"));
+          logger.warn("Invoking task '" + toString() + "' failed ('" + e.getMessage() + "'), "
+              + (retry ? "retrying " + tried + " of " + maxRetries : "giving up task"));
           logger.debug("Task failure details: ", e);
           if (!retry) {
             finalException = e;
@@ -116,12 +115,13 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
         }
       }
     }
-    
+
     void invokeOrFail() throws Exception {
-      if (!invoke()) throw finalException;
+      if (!invoke())
+        throw finalException;
     }
   }
-  
+
   public class NotInitialized extends Exception {
 
     /**
@@ -132,27 +132,27 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     public NotInitialized(String message) {
       super(message);
     }
-    
+
   }
-  
+
   public abstract class InitializeRetryInvoker extends RetryInvoker {
 
     public InitializeRetryInvoker(int maxRetries) {
       super(maxRetries);
     }
-    
+
     public abstract void onInit() throws Exception;
-    
+
     public abstract void onPerform() throws Exception, NotInitialized;
-    
+
     public abstract void onError();
-    
+
     @Override
     public void onInvoke() throws Exception {
       try {
         onPerform();
       } catch (NotInitialized ni) {
-        logger.warn("Engine session dead, '"+ni.getMessage()+"' trying to initialize..");
+        logger.warn("Engine session dead, '" + ni.getMessage() + "' trying to initialize..");
         try {
           onInit();
           onPerform();
@@ -166,7 +166,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
         logger.info("Running task was stopped - " + e.getMessage());
         logger.debug("Cause:", e);
         throw e;
-      } catch (Exception e) { //everything but non-initialized
+      } catch (Exception e) { // everything but non-initialized
         logger.warn("Running task failed - " + e.getMessage());
         logger.debug("Cause:", e);
         onError();
@@ -174,15 +174,15 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       }
     }
   }
-  
-  //command pattern ends, implementation starts
-  
+
+  // command pattern ends, implementation starts
+
   abstract class HarvestInvoker extends InitializeRetryInvoker {
 
     public HarvestInvoker(int maxRetries) {
       super(maxRetries);
     }
-    
+
     @Override
     final public void onInit() throws Exception {
       createSession();
@@ -192,7 +192,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
 
     @Override
     public abstract void onPerform() throws Exception, NotInitialized;
-    
+
     @Override
     final public void onError() {
       try {
@@ -210,16 +210,15 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     final public String toString() {
       return "harvest";
     }
-    
+
   }
-  
-  public HarvestConnectorClient(HarvestConnectorResource resource, 
-    ConnectorHarvestJob job,
-    Proxy proxy, StorageJobLogger logger, DiskCache diskCache) {
+
+  public HarvestConnectorClient(HarvestConnectorResource resource, ConnectorHarvestJob job, Proxy proxy, StorageJobLogger logger,
+      DiskCache diskCache) {
     super(resource, job, proxy, logger, diskCache);
     engineParams = processEngineParams(resource.getEngineParameters());
   }
-  
+
   private String processEngineParams(String queryString) {
     Map<String, String> params = parseQueryStringSafe(queryString);
     if (!params.containsKey("logmodules"))
@@ -228,8 +227,8 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       params.put("loglevel", "INFO");
     }
     if (!params.containsKey("timeout")) {
-      //make the engine timeout follow socket (client) timeout, in case
-      //socket timeout is more than default
+      // make the engine timeout follow socket (client) timeout, in case
+      // socket timeout is more than default
       if (resource.getTimeout() > 60) {
         params.put("timeout", Integer.toString(resource.getTimeout() - 10));
       }
@@ -245,7 +244,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       return "";
     }
   }
-  
+
   private Map<String, String> parseQueryStringSafe(String queryString) {
     if (queryString == null || queryString.isEmpty())
       return new HashMap<String, String>(0);
@@ -268,12 +267,11 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     public Map createObjectContainer() {
       return new LinkedHashMap();
     }
-                        
+
   };
-  
+
   @Override
-  public int download(URL url) throws Exception 
-  {
+  public int download(URL url) throws Exception {
     logger.log(Level.INFO, "Starting - " + getResource());
     createSession();
     uploadConnector(getResource().getConnectorUrl());
@@ -281,8 +279,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     new HarvestInvoker(getResource().getRetryCount()) {
       @Override
       public void onPerform() throws Exception {
-        harvest(getResource().getResumptionToken(), getResource().getFromDate(),
-          getResource().getUntilDate());
+        harvest(getResource().getResumptionToken(), getResource().getFromDate(), getResource().getUntilDate());
       }
     }.invokeOrFail();
     while (!job.isKillSent() && !linkTokens.isEmpty()) {
@@ -300,8 +297,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
           // Legitimately stopped at record limit
           break;
         } else if (getResource().getAllowErrors()) {
-          errors.add("link token '"+linkToken+"' failed with '"
-            +invoker.finalException.getMessage()+"'");
+          errors.add("link token '" + linkToken + "' failed with '" + invoker.finalException.getMessage() + "'");
           if (invoker.finalException instanceof Unrecoverable) {
             logger.warn("Unrecoverable condition met, harvest terminated.");
             throw invoker.finalException;
@@ -314,29 +310,27 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       }
     }
     if (job.isKillSent()) {
-      logger.log(Level.WARN, "Client stopping premature due to kill signal.\n"); 
-    }
-    else {
+      logger.log(Level.WARN, "Client stopping premature due to kill signal.\n");
+    } else {
       logger.log(Level.INFO, "Finished - " + getResource());
     }
     return 0;
-}
-  
+  }
+
   private void uploadConnector(String connUrl) throws Exception {
-    //fetch from the repo
+    // fetch from the repo
     HttpMethod hm = null;
-    try { 
-      logger.info("Fetching harvesting connector from "+connUrl);
+    try {
+      logger.info("Fetching harvesting connector from " + connUrl);
       HttpClient hc = new HttpClient();
       URI connUri = new URI(connUrl);
       if (connUri.getUserInfo() != null) {
-        hc.getState().setCredentials(AuthScope.ANY,
-          new UsernamePasswordCredentials(connUri.getUserInfo()));
+        hc.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(connUri.getUserInfo()));
       }
       hm = new GetMethod(connUrl);
       int res = hc.executeMethod(hm);
       if (res != 200) {
-        throw new Exception("Fetching connector from the repo failed - status "+res);
+        throw new Exception("Fetching connector from the repo failed - status " + res);
       }
       Document connector = XmlUtils.parse(hm.getResponseBodyAsStream());
       HttpURLConnection cfwsConn = createConnection("load_cf", null);
@@ -349,10 +343,10 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     } catch (URISyntaxException ue) {
       throw new Exception("Fetching connector from the repo failed", ue);
     } finally {
-      if (hm != null) hm.releaseConnection();
+      if (hm != null)
+        hm.releaseConnection();
     }
   }
-  
 
   private void init() throws Exception {
     HttpURLConnection conn = createConnection("run_task_opt/init", null);
@@ -360,8 +354,8 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     JSONParser parser = new JSONParser();
     JSONObject jsonObj = new JSONObject();
     try {
-     if (initData != null && !initData.equals(""))
-       jsonObj = (JSONObject) parser.parse(initData);
+      if (initData != null && !initData.equals(""))
+        jsonObj = (JSONObject) parser.parse(initData);
     } catch (ParseException pe) {
       logger.error("Failed to parse init data");
       throw new Exception("Failed to parse init data", pe);
@@ -374,7 +368,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
 
   @SuppressWarnings("unchecked")
   private void addField(JSONObject jsonObj, String fieldname, String value) {
-    if (value != null && !value.equals("")) 
+    if (value != null && !value.equals(""))
       jsonObj.put(fieldname, value);
   }
 
@@ -386,25 +380,23 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   }
 
   private HttpURLConnection createConnection(String task, String params) throws Exception {
-    String urlString = getResource().getUrl() + 
-      (sessionId != null ? "/" + sessionId : "") + 
-      (task != null ? "/" + task : "") +
-      (params != null ? "?" + params : "");
+    String urlString = getResource().getUrl() + (sessionId != null ? "/" + sessionId : "") + (task != null ? "/" + task : "")
+        + (params != null ? "?" + params : "");
     URL url = new URL(urlString);
-    logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task ) + " on " + url);
-    HttpURLConnection conn = (HttpURLConnection) createConnection(url); 
+    logger.log(Level.INFO, (task == null ? "Creating new session" : "Running " + task) + " on " + url);
+    HttpURLConnection conn = (HttpURLConnection) createConnection(url);
     conn.setRequestMethod("POST");
     conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-    return conn; 
+    return conn;
   }
-  
-  
+
   /**
    * HUC is very rigid to use -- 404s will throw FileNotFound when retrieving
    * the response code and so will 5xx.
+   * 
    * @param conn
    * @return
-   * @throws Exception 
+   * @throws Exception
    */
   @SuppressWarnings("resource")
   private int executeConnection(HttpURLConnection conn) throws Exception {
@@ -414,31 +406,31 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       StringBuilder sb = new StringBuilder();
       read(is, sb, "UTF-8", " ");
       String content = sb.toString();
-      if (resp == 400 && content.equals("no such session")) //dead session
+      if (resp == 400 && content.equals("no such session")) // dead session
         throw new NotInitialized("400 - no such session");
-      throw new Exception("Response code "+resp+" - '"+content+"'");
+      throw new Exception("Response code " + resp + " - '" + content + "'");
     }
     return resp;
   }
-  
+
   String currentDateFormat = "yyyy-MM-dd";
+
   private String formatDate(Date date) {
     if (date == null)
       return null;
     return new SimpleDateFormat(currentDateFormat).format(date);
   }
-  
+
   private void harvest(Object linkToken) throws Exception {
-    JSONObject jsonObj = createHarvestRequest(linkToken);    
-    if (jsonObj == null) 
+    JSONObject jsonObj = createHarvestRequest(linkToken);
+    if (jsonObj == null)
       throw new Exception("Error creating JSON harvest request object");
     harvest(jsonObj);
   }
-  
+
   private void harvest(String startToken, Date startDate, Date endDate) throws Exception {
-    JSONObject jsonObj = createHarvestRequest(startToken, 
-      startDate, endDate);    
-    if (jsonObj == null) 
+    JSONObject jsonObj = createHarvestRequest(startToken, startDate, endDate);
+    if (jsonObj == null)
       throw new Exception("Error creating JSON harvest request object");
     harvest(jsonObj);
   }
@@ -448,8 +440,8 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     writeJSON(request, conn);
     executeConnection(conn);
     parseHarvestResponse(conn.getInputStream(), conn.getContentLength());
-}
-	
+  }
+
   private String getLog() throws Exception {
     HttpURLConnection conn = createConnection("log", "clear=1");
     JSONObject jsonObj = new JSONObject();
@@ -457,87 +449,88 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     executeConnection(conn);
     return read(conn);
   }
-  
+
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void storeRecord(JSONObject record) throws IOException {
     Map<String, Collection<Serializable>> mapValues = new LinkedHashMap<String, Collection<Serializable>>();
     RecordImpl pzRecord = new RecordImpl(mapValues);
-    for (Object keyObj: record.keySet()) {
+    for (Object keyObj : record.keySet()) {
       if (keyObj instanceof String) {
-	String key = (String) keyObj;
-	Object obj = record.get(key); 
+        String key = (String) keyObj;
+        Object obj = record.get(key);
 
-	Collection<Serializable> collection = new LinkedList<Serializable>();
-	if (obj instanceof String) {
-	  collection.add((String) obj);
-	  mapValues.put(key, collection);
-	} else if (obj instanceof Collection<?>) {
-	  collection = (Collection<Serializable>) obj;
-	  /*
-	  for (Serializable value: (List<Serializable>) obj) {
-	    collection.add(value);
-	  }
-	  */
-	  mapValues.put(key, collection);
-	} else if (obj instanceof Map) {
-	  //TODO flatten objects correctly
-	  JSONObject jsonObject = new JSONObject();
-	  jsonObject.putAll((Map) obj);
-	  collection.add(jsonObject.toJSONString());
-	  mapValues.put(key, collection);
-	} else {
-	  logger.warn("Unhandled value type: " + keyObj.getClass().toString());
-	}
-	/* Generate key based on database and (id or url) 
-	 * Id take precedence over url */ 
-	if ("id".equals(key) || ("url".equals(key) && pzRecord.getId() == null)) {
-	  String firstValue = (String) collection.iterator().next();
-	  pzRecord.setId(getResource().getId().toString() + "-" + firstValue);
-	}
+        Collection<Serializable> collection = new LinkedList<Serializable>();
+        if (obj instanceof String) {
+          collection.add((String) obj);
+          mapValues.put(key, collection);
+        } else if (obj instanceof Collection<?>) {
+          collection = (Collection<Serializable>) obj;
+          /*
+           * for (Serializable value: (List<Serializable>) obj) {
+           * collection.add(value); }
+           */
+          mapValues.put(key, collection);
+        } else if (obj instanceof Map) {
+          // TODO flatten objects correctly
+          JSONObject jsonObject = new JSONObject();
+          jsonObject.putAll((Map) obj);
+          collection.add(jsonObject.toJSONString());
+          mapValues.put(key, collection);
+        } else {
+          logger.warn("Unhandled value type: " + keyObj.getClass().toString());
+        }
+        /*
+         * Generate key based on database and (id or url) Id take precedence
+         * over url
+         */
+        if ("id".equals(key) || ("url".equals(key) && pzRecord.getId() == null)) {
+          String firstValue = (String) collection.iterator().next();
+          pzRecord.setId(getResource().getId().toString() + "-" + firstValue);
+        }
       }
     }
     pzRecord.setDatabase(getResource().getId().toString());
     job.getStorage().add(pzRecord);
   }
 
-
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void parseHarvestResponse(InputStream inputStream, int contentLength) throws Exception {
     Reader reader = new InputStreamReader(inputStream, "UTF-8");
     JSONParser parser = new JSONParser();
-    //parse results
+    // parse results
     Object object = parser.parse(reader, containerFactory);
     if (object instanceof Map) {
       Map json = (Map) object;
       Object recordsObj = json.get("results");
       if (recordsObj instanceof List) {
-	List records = (List) recordsObj;
-	for (Object recordObj: records) {
-	  if (recordObj instanceof Map) {
-	    Map record = (Map) recordObj;
+        List records = (List) recordsObj;
+        for (Object recordObj : records) {
+          if (recordObj instanceof Map) {
+            Map record = (Map) recordObj;
             JSONObject recordJSON = new JSONObject();
             recordJSON.putAll(record);
-	    storeRecord(recordJSON);
-	  }
-	}
+            storeRecord(recordJSON);
+          }
+        }
       }
-      //parse links
+      // parse links
       Object linkTokensItem = json.get("links");
       if (linkTokensItem instanceof List) {
-	List linkTokens = (List) linkTokensItem;
-	for (Object linkTokenItem: linkTokens) {
-          this.linkTokens.add(linkTokenItem); //we don't care what JSON type it is
-	  logger.debug("link token received: " + linkTokenItem);
-	}
+        List linkTokens = (List) linkTokensItem;
+        for (Object linkTokenItem : linkTokens) {
+          this.linkTokens.add(linkTokenItem); // we don't care what JSON type it
+                                              // is
+          logger.debug("link token received: " + linkTokenItem);
+        }
       }
-      //parse and remember starttoken
+      // parse and remember starttoken
       Object startTokenItem = json.get("start");
       if (startTokenItem instanceof String) {
-        getResource().setResumptionToken("{\"start\": \""+(String) startTokenItem+"\"}");
+        getResource().setResumptionToken("{\"start\": \"" + (String) startTokenItem + "\"}");
       } else if (startTokenItem instanceof List) {
-        getResource().setResumptionToken("{\"start\": "+JSONArray.toJSONString((List)startTokenItem)+"}");
+        getResource().setResumptionToken("{\"start\": " + JSONArray.toJSONString((List) startTokenItem) + "}");
       } else if (startTokenItem instanceof Map) {
-        getResource().setResumptionToken("{\"start\": "+JSONObject.toJSONString((Map)startTokenItem)+"}");
+        getResource().setResumptionToken("{\"start\": " + JSONObject.toJSONString((Map) startTokenItem) + "}");
       }
     }
   }
@@ -551,19 +544,16 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createHarvestRequest(Object linkToken) throws ParseException 
-  {
+  public JSONObject createHarvestRequest(Object linkToken) throws ParseException {
     JSONObject request = new JSONObject();
     if (linkToken != null) {
       request.put("link", linkToken);
     }
     return request;
   }
-  
+
   @SuppressWarnings("unchecked")
-  public JSONObject createHarvestRequest(String startToken, Date startDate, Date endDate) 
-    throws ParseException 
-  {
+  public JSONObject createHarvestRequest(String startToken, Date startDate, Date endDate) throws ParseException {
     JSONObject request = new JSONObject();
     if (startToken != null && !startToken.isEmpty()) {
       JSONParser p = new JSONParser();
@@ -571,7 +561,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       Map sT = (Map) p.parse(startToken, containerFactory);
       request.putAll(sT);
     }
-    if (startDate != null) 
+    if (startDate != null)
       request.put("startdate", formatDate(startDate));
     if (endDate != null)
       request.put("enddate", formatDate(endDate));
@@ -579,12 +569,11 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject createDetailRequest(String detailToken)
-  {
+  public JSONObject createDetailRequest(String detailToken) {
     JSONObject request = new JSONObject();
     if (detailToken == null)
       throw new RuntimeException("Missing parameter detailtoken");
-     request.put("detailtoken", detailToken);
+    request.put("detailtoken", detailToken);
     return request;
   }
 
@@ -597,31 +586,30 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       Map json = (Map) object;
       Object id = json.get("id");
       if (id instanceof Number) {
-	Number number = (Number) id;
-	sessionId = number.toString();
+        Number number = (Number) id;
+        sessionId = number.toString();
       }
     }
     return sessionId;
   }
 
-  private void writeJSON(JSONObject request, HttpURLConnection conn) throws
-    IOException, UnsupportedEncodingException {
+  private void writeJSON(JSONObject request, HttpURLConnection conn) throws IOException, UnsupportedEncodingException {
     String jsonStr = request.toJSONString();
     byte[] postData = jsonStr.getBytes("UTF-8");
     conn.setDoOutput(true);
     conn.setRequestProperty("Content-Length", "" + postData.length);
-    logger.debug("Task input: "+jsonStr);
+    logger.debug("Task input: " + jsonStr);
     conn.getOutputStream().write(postData);
     conn.getOutputStream().flush();
   }
-  
+
   private String read(HttpURLConnection conn) throws IOException {
     InputStream in = conn.getInputStream();
     StringBuilder sb = new StringBuilder();
     read(in, sb, "UTF-8", "\n");
     return sb.toString();
   }
-  
+
   private void read(InputStream in, StringBuilder sb, String encoding, String sepString) throws IOException {
     InputStreamReader is = new InputStreamReader(in, encoding);
     BufferedReader br = new BufferedReader(is);
@@ -632,8 +620,7 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
       sep = sepString;
     }
   }
-  
-  
+
   @SuppressWarnings("unused")
   private String readNLastLines(HttpURLConnection conn, int numLines) throws IOException {
     InputStream in = conn.getInputStream();
@@ -643,12 +630,12 @@ public class HarvestConnectorClient extends AbstractHarvestClient {
     String[] lines = new String[numLines];
     int i = 0;
     while ((read = br.readLine()) != null) {
-        lines[i] = read;
-        i = ++i % numLines;
+      lines[i] = read;
+      i = ++i % numLines;
     }
     StringBuilder sb = new StringBuilder();
-    for (int j=i; j<numLines+i; j++) {
-      sb.append(lines[j%numLines]).append("\n");
+    for (int j = i; j < numLines + i; j++) {
+      sb.append(lines[j % numLines]).append("\n");
     }
     return sb.toString();
   }

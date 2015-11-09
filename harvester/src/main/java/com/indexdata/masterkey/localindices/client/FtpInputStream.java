@@ -7,26 +7,28 @@ import java.io.InputStream;
 import org.apache.commons.net.ftp.FTPClient;
 
 public class FtpInputStream extends InputStream {
+  @SuppressWarnings("unused")
   private final StorageJobLogger logger;
-  FTPClient client; 
+  FTPClient client;
   InputStream input;
   long length;
+
   public FtpInputStream(InputStream data, long length, FTPClient client, StorageJobLogger logger) {
     input = data;
     this.client = client;
     this.length = length;
     this.logger = logger;
   }
-  
+
   @Override
   public int read() throws IOException {
     try {
       length--;
       return input.read();
     } catch (IOException ioe) {
-      //TODO map to EOF
+      // TODO map to EOF
       if (length <= 0)
-	throw new EOFException("All bytes read");
+        throw new EOFException("All bytes read");
       throw ioe;
     }
   }
