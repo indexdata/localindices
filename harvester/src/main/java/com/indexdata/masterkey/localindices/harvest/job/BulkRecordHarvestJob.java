@@ -29,11 +29,10 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   @SuppressWarnings("unused")
   private List<URL> urls = new ArrayList<URL>();
   private XmlBulkResource resource;
-  //private RecordStorage transformationStorage;
+  // private RecordStorage transformationStorage;
   private Proxy proxy;
   private String errors;
   private HarvestStatus initialStatus;
-  
 
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -73,17 +72,18 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setMessage(null);
       resource.setAmountHarvested(null);
       getStorage().setLogger(logger);
-      logger.info("Batch limit "+resource.getStorageBatchLimit());
+      logger.info("Batch limit " + resource.getStorageBatchLimit());
       if (resource.getStorageBatchLimit() != null) {
-        logger.info("Type of the record storage "+getStorage().getClass().getCanonicalName());
+        logger.info("Type of the record storage " + getStorage().getClass().getCanonicalName());
         getStorage().setBatchLimit(resource.getStorageBatchLimit());
       }
-      // This is different from old behavior. All insert is now done in one commit.
+      // This is different from old behavior. All insert is now done in one
+      // commit.
       getStorage().begin();
       getStorage().databaseStart(resource.getId().toString(), null);
       DiskCache dc = new DiskCache(resource.getId());
-      if (resource.isCacheEnabled()) 
-	dc.init();
+      if (resource.isCacheEnabled())
+        dc.init();
       if (resource.getOverwrite()) {
         getStorage().purge(false);
         if (resource.isCacheEnabled() && !resource.isDiskRun())
@@ -98,30 +98,27 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       subject = "Completed: ";
       msg = "OK";
       if (getStatus() == HarvestStatus.RUNNING)
-	setStatus(HarvestStatus.OK);
+        setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
-	subject = "Harvest status: " + getStatus().toString() ;
-	msg = getHarvestable().getMessage();
-	logError(subject, msg);
+        subject = "Harvest status: " + getStatus().toString();
+        msg = getHarvestable().getMessage();
+        logError(subject, msg);
       }
 
-      if ( getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN || 
-	 ((getStatus() == HarvestStatus.ERROR || getStatus() == HarvestStatus.KILLED) && getHarvestable().getAllowErrors())) 
-      {
-	if ((getStatus() == HarvestStatus.ERROR || getStatus() == HarvestStatus.KILLED)) {
-	  logger.info("Commiting records on error/kill status due to checked 'Allow Errors'.");
-	}
-	transformationStorage.databaseEnd();
+      if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN
+          || ((getStatus() == HarvestStatus.ERROR || getStatus() == HarvestStatus.KILLED) && getHarvestable().getAllowErrors())) {
+        if ((getStatus() == HarvestStatus.ERROR || getStatus() == HarvestStatus.KILLED)) {
+          logger.info("Commiting records on error/kill status due to checked 'Allow Errors'.");
+        }
+        transformationStorage.databaseEnd();
         commit();
-        //commit can also cause soft errors
-        if (getStatus() == HarvestStatus.WARN
-          || getStatus() == HarvestStatus.ERROR) {
+        // commit can also cause soft errors
+        if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
           msg = getHarvestable().getMessage();
         } else {
           setStatus(HarvestStatus.FINISHED);
         }
-      }
-      else {
+      } else {
         transformationStorage.databaseEnd();
         transformationStorage.rollback();
       }
@@ -129,18 +126,17 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       setStatus(HarvestStatus.ERROR, e.getMessage());
       logger.error("Failed. " + e.getMessage(), e);
       try {
-	if (e instanceof StorageException) {
-	  logger.info("No attempt to rollback due to StorageException");
-	  subject = "Storage Error";
-	  msg = e.getMessage();
-	}
-	else {
-	  msg = "Failed to complete job, rolling back...";
-	  subject = "Error";
-	  getStorage().rollback();
-	}
+        if (e instanceof StorageException) {
+          logger.info("No attempt to rollback due to StorageException");
+          subject = "Storage Error";
+          msg = e.getMessage();
+        } else {
+          msg = "Failed to complete job, rolling back...";
+          subject = "Error";
+          getStorage().rollback();
+        }
       } catch (Exception ioe) {
-	msg += " Roll-back failed: " + ioe.getMessage();  
+        msg += " Roll-back failed: " + ioe.getMessage();
         logger.error(msg);
       }
       subject = "Harvest failed";
@@ -155,16 +151,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
     Date lastDate = null;
     if (resource.getAllowCondReq()) {
-      //conditonal request are enabled, manual override takes precedence and
-      //gets cleaned-up
+      // conditonal request are enabled, manual override takes precedence and
+      // gets cleaned-up
       lastDate = resource.getFromDate();
       resource.setFromDate(null);
-      //when no manual override, use the last completion date
+      // when no manual override, use the last completion date
       if (lastDate == null) {
-        lastDate = initialStatus == HarvestStatus.ERROR 
-          || initialStatus == HarvestStatus.WARN 
-          ? null 
-          : resource.getLastHarvestFinished();
+        lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestFinished();
       }
     }
     XmlMarcClient client = new XmlMarcClient(resource, this, proxy, logger, dc, lastDate);
@@ -178,13 +171,13 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         if (noErrors > 0) {
           setStatus(HarvestStatus.WARN, client.getErrors());
         }
-        
+
       } catch (Exception e) {
-	if (isKillSent()) {
-	  logger.info("Job killed. Stopping.");
-	  return;
-	}
-	if (resource.getAllowErrors()) {
+        if (isKillSent()) {
+          logger.info("Job killed. Stopping.");
+          return;
+        }
+        if (resource.getAllowErrors()) {
           if (errors == null) {
             errors = "Failed to harvest: ";
           }

@@ -8,7 +8,6 @@ import org.apache.log4j.PatternLayout;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.util.HarvestableLog;
 
 
 public abstract class StorageJobLogger implements LocalIndicesLogger {
