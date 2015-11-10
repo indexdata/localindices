@@ -1,14 +1,14 @@
 package com.indexdata.masterkey.localindices.client;
 
-import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
-import com.indexdata.masterkey.localindices.client.filefilters.TarEntryFilteringInfo;
-import com.indexdata.masterkey.localindices.client.filefilters.ZipEntryFilteringInfo;
-import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
+import com.indexdata.masterkey.localindices.client.filefilters.ZipEntryFilteringInfo;
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 public class ZipRemoteFileIterator implements RemoteFileIterator {
   private final StorageJobLogger logger;

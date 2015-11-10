@@ -2,15 +2,12 @@ package com.indexdata.masterkey.localindices.client;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
 import com.indexdata.masterkey.localindices.client.filefilters.TarEntryFilteringInfo;
-import com.indexdata.masterkey.localindices.client.filefilters.ZipEntryFilteringInfo;
 import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
