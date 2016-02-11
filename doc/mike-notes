@@ -11,7 +11,8 @@ have been a misconceived attempt to fork the source so it can work
 with Solr 3.
 
 Tne lui-solr package contains its own WAR files for Solr, so there is
-on need to install Solr separately.
+on need to install Solr separately. (I don't understand why we're
+doing this. Why not just depend on a Solr package?)
 
 The localindices code can run against several different backends. But
 one of them (plain files) is mostly a proof-of-concept, not intended
@@ -29,4 +30,15 @@ What I want to know:
 	harvester into it, what you need installed before you start,
 	all that kind of thing. Basically, everything I need to know
 	to run it all locally and start making changes.
+
+It seems as though the expected way to use lui-solr is by building a
+Debian package and installing it. But the NEWS file is out of date
+with respect to the version number in IDMETA, and there is no Debian
+changelog, so it's hard to know the status of this code.
+
+The lui-solr model makes several fields special. These include, but
+may not be limited to:
+* database -- sub-database identifier
+* database_name -- corresponding sub-database name
+* id -- unique key, used to know when updates are provided
 
