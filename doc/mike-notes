@@ -1,0 +1,32 @@
+The complete harvester setup consists of two git modules:
+* lui-solr -- configuration for Solr to hold harvested records.
+* localindices -- the harvester software, including its control panel.
+
+(The lui-solr module is in /pub/ but localindices is in
+/private/. That doesn't make a great deal of sense, but it doesn't
+matter much.)
+
+There is also a lui-solr3 module, which can be ignored. It seems to
+have been a misconceived attempt to fork the source so it can work
+with Solr 3.
+
+Tne lui-solr package contains its own WAR files for Solr, so there is
+on need to install Solr separately.
+
+The localindices code can run against several different backends. But
+one of them (plain files) is mostly a proof-of-concept, not intended
+for use in real life. Another (Zebra) is deprecated. So for almost all
+purposes, Solr (as configured by lui-solr) will be used.
+
+Compilation is managed by Maven, so should be possible without using
+an IDE. Deployment is by copying the WAR file into Tomcat's live area:
+we may add Maven rules to run under Jetty.
+
+What I want to know:
+
+	How to get a lui-solr flavoured Solr running, how to change
+	the schema for an existing Solr database, how to plumb the
+	harvester into it, what you need installed before you start,
+	all that kind of thing. Basically, everything I need to know
+	to run it all locally and start making changes.
+
