@@ -1,4 +1,11 @@
+Running the Index Data harvester
+================================
+
+Overview
+--------
+
 The complete harvester setup consists of two git modules:
+
 * lui-solr -- configuration for Solr to hold harvested records.
 * localindices -- the harvester software, including its control panel.
 
@@ -10,9 +17,16 @@ There is also a lui-solr3 module, which can be ignored. It seems to
 have been a misconceived attempt to fork the source so it can work
 with Solr 3.
 
+*What I want to know:*
+How to get a lui-solr flavoured Solr running, how to change the schema
+for an existing Solr database, how to plumb the harvester into it,
+what you need installed before you start, all that kind of
+thing. Basically, everything I need to know to run it all locally and
+start making changes.
+
 
 lui-solr
-========
+--------
 
 Tne lui-solr package contains its own WAR files for Solr, so there is
 on need to install Solr separately. (I don't understand why we're
@@ -26,14 +40,6 @@ purposes, Solr (as configured by lui-solr) will be used.
 Compilation is managed by Maven, so should be possible without using
 an IDE. Deployment is by copying the WAR file into Tomcat's live area:
 we may add Maven rules to run under Jetty.
-
-What I want to know:
-
-	How to get a lui-solr flavoured Solr running, how to change
-	the schema for an existing Solr database, how to plumb the
-	harvester into it, what you need installed before you start,
-	all that kind of thing. Basically, everything I need to know
-	to run it all locally and start making changes.
 
 It seems as though the expected way to use lui-solr is by building a
 Debian package and installing it. But the NEWS file is out of date
@@ -61,4 +67,11 @@ set of obsolete config files which were used for running against Solr
 Zookeeper is somehow involved with starting the LUI Solr instance: see
 lui-solr/etc/init.d/indexdata-solr-zookeeper. But John says this is
 just Dennis's experiments, not used in production.
+
+
+localindices
+------------
+
+(To be written)
+
 
