@@ -50,7 +50,9 @@ we may add Maven rules to run under Jetty.
 It seems as though the expected way to use `lui-solr` is by building a
 Debian package and installing it. But the NEWS file is out of date
 with respect to the version number in IDMETA, and there is no Debian
-changelog, so it's hard to know the status of this code.
+changelog, so it's hard to know the status of this code. The Debian
+control file seems a bit confused over whether the packages are named
+`masterkey-lui-solr` or `masterkey-lui-solr4`.
 
 The RPM specification file for `lui-solr` seems to be outdated: for
 example, it refers to `etc/solr-tomcat-context.xml` which doesn't exist
