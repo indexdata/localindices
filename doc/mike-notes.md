@@ -88,6 +88,30 @@ Zookeeper is somehow involved with starting the LUI Solr instance: see
 `lui-solr/etc/init.d/indexdata-solr-zookeeper`. But John says this is
 just Dennis's experiments, not used in production.
 
+### Debian packages
+
+We build ten (ten!) Debian packages from `lui-solr`, in a dependency
+DAG as follows. (Each package name begins `masterkey-lui-solr4-` but
+I have removed these for simplicity. (I have also ignored the
+`masterkey-lui-solr4-zookeper` package, which is not used.)
+
+                  common
+              _____/||\_________________
+             /      ||                  \
+            /       | \____________      \
+           /        |              \      \
+        master    common-tomcat6    |    slave
+         / |        / \             |      |  \
+        /  |       /   \   common-tomcat8  |   \
+       /   |      /     \    /\            |    \
+      /    | ____/       \__/__\______     |     \
+     /     |/              /    \     \    |      \
+    (   master-tomcat6    /      \  slave-tomcat6  )
+     \                   /        \               /
+      \______  _________/          \             /
+             \/                     \           /
+           master-tomcat8           slave-tomcat8
+
 
 The `localindices` module
 -------------------------
