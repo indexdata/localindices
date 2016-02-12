@@ -2,7 +2,7 @@ all: mike-notes.html
 
 %.html: %.md
 	rm -f $@
-	pandoc $? > $@
+	pandoc --standalone --toc $? > $@
 	chmod ugo-w $@
 
 clean:
