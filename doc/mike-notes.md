@@ -60,9 +60,24 @@ inconsistencies. It seems this was last touched for release 0.30 in
 January 2013, and should be considered completely
 outdated. Presumably the Debian package is more up to date.
 
-`lui-solr` has both conf and conf3 directories. The latter seems to be a
-set of obsolete config files which were used for running against Solr
-3.x, which we no longer do. (It doesn't get a mention in `debian/rules`)
+Configuration files are found in:
+
+* `conf` -- configuration for Solr itself. The main file seems to be
+  `conf/schema.xml`, though it's not clear what all the files are for
+  -- especially `schema-minimal.xml` and `schema.xml.org`.
+* `etc` -- configuration for wiring Solr into Tomcat, I think. Again,
+  there seem to be multiple versions of the key file, for reasons that
+  are not clear. May be related to Zookeeper.
+
+(There are both conf and conf3 directories. The latter seems to be a
+set of obsolete config files which were used for running Solr 3.x,
+which we no longer do. It doesn't get a mention in `debian/rules`)
+
+`lib` contains a bunch of third-party JAR files, I assume to be used
+by Solr. As usual, I am baffled by the inclusion of these. We don't
+distribute our own libc.so with Metaproxy.
+
+`scripts` contains five shell-scripts whose purposes are unclear.
 
 Zookeeper is somehow involved with starting the LUI Solr instance: see
 `lui-solr/etc/init.d/indexdata-solr-zookeeper`. But John says this is
