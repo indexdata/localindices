@@ -52,7 +52,10 @@ Debian package and installing it. But the NEWS file is out of date
 with respect to the version number in IDMETA, and there is no Debian
 changelog, so it's hard to know the status of this code. The Debian
 control file seems a bit confused over whether the packages are named
-`masterkey-lui-solr` or `masterkey-lui-solr4`.
+`masterkey-lui-solr` or `masterkey-lui-solr4`. We currently build ten
+packages, which seems a bit extreme; but that is mostly down to the
+master/slave distinction, which I think relates to the Zookeper stuff
+that we're not actually doing.
 
 The RPM specification file for `lui-solr` seems to be outdated: for
 example, it refers to `etc/solr-tomcat-context.xml` which doesn't exist
