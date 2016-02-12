@@ -10,6 +10,10 @@ There is also a lui-solr3 module, which can be ignored. It seems to
 have been a misconceived attempt to fork the source so it can work
 with Solr 3.
 
+
+lui-solr
+========
+
 Tne lui-solr package contains its own WAR files for Solr, so there is
 on need to install Solr separately. (I don't understand why we're
 doing this. Why not just depend on a Solr package?)
