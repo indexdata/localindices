@@ -28,14 +28,20 @@ start making changes.
 The `lui-solr` module
 ---------------------
 
-Tne `lui-solr` package contains its own WAR files for Solr, so there is
-on need to install Solr separately. (I don't understand why we're
-doing this. Why not just depend on a Solr package?)
+The `lui-solr` model makes several fields special. These include, but
+may not be limited to:
+* database -- sub-database identifier
+* database_name -- corresponding sub-database name
+* id -- unique key, used to know when updates are provided
 
 The `localindices` code can run against several different backends. But
 one of them (plain files) is mostly a proof-of-concept, not intended
 for use in real life. Another (Zebra) is deprecated. So for almost all
 purposes, Solr (as configured by `lui-solr`) will be used.
+
+Tne `lui-solr` package contains its own WAR files for Solr, so there is
+on need to install Solr separately. (I don't understand why we're
+doing this. Why not just depend on a Solr package?)
 
 Compilation is managed by Maven, so should be possible without using
 an IDE. Deployment is by copying the WAR file into Tomcat's live area:
@@ -45,12 +51,6 @@ It seems as though the expected way to use `lui-solr` is by building a
 Debian package and installing it. But the NEWS file is out of date
 with respect to the version number in IDMETA, and there is no Debian
 changelog, so it's hard to know the status of this code.
-
-The `lui-solr` model makes several fields special. These include, but
-may not be limited to:
-* database -- sub-database identifier
-* database_name -- corresponding sub-database name
-* id -- unique key, used to know when updates are provided
 
 The RPM specification file for `lui-solr` seems to be outdated: for
 example, it refers to `etc/solr-tomcat-context.xml` which doesn't exist
