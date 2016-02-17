@@ -122,6 +122,17 @@ package installs where seem to be a bit off: for example,
 the default logging for _all_ Tomcat8 applications. It also installs
 `log4j-1.2.16.jar` in the same area, which seems a bit presumptious.
 
+### Using lui-solr
+
+
+Once the `masterkey-lui-solr4-master-tomcat8` and its dependencies are
+installed, you can exercise the running Solr with searches like
+
+* <http://localhost:8080/solr4/query?q=water>
+* <http://localhost:8080/solr4/query?q=water%20AND%20dinosaur>
+* <http://localhost:8080/solr4/query?q=water%20AND%20dinosaur&debug=query>
+
+(But of course the 
 
 The `localindices` module
 -------------------------
