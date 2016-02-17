@@ -112,7 +112,7 @@ I have removed these for simplicity. (I have also ignored the
              \/                     \           /
            master-tomcat8           slave-tomcat8
 
-Given the questionably need to support both v6 and v8 of Tomcat (and
+Given the questionable need to support both v6 and v8 of Tomcat (and
 the need for both master and slave Solr congfigs) this DAG does
 actually make perfect sense. But the specifics of what files each
 package installs where seem to be a bit off: for example,
@@ -132,7 +132,9 @@ installed, you can exercise the running Solr with searches like
 * <http://localhost:8080/solr4/query?q=water%20AND%20dinosaur>
 * <http://localhost:8080/solr4/query?q=water%20AND%20dinosaur&debug=query>
 
-(But of course the 
+(But of course the database will be empty initially, so all the
+queries will return no hits.)
+
 
 The `localindices` module
 -------------------------
