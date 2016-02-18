@@ -139,6 +139,16 @@ queries will return no hits.)
 The `localindices` module
 -------------------------
 
-(To be written)
+Three directories from the source tree are omitted from the Debian
+packages, presumably because they are used in development but not in
+deployment:
 
+* `lib -- yet more copies of popular Java libraries including Jetty
+  and log4j.
+* `solr` -- Solr configuration files.
+* `webapps` -- contains a WAR of Solr.
+
+I don't understand why these all exist in `localindices` when the
+equivalents are all provided by the `lui-solr` packages -- in fact,
+that is the whole purpose of those packages.
 
