@@ -139,6 +139,11 @@ queries will return no hits.)
 The `localindices` module
 -------------------------
 
+There is extensive documentation in
+[localindices/doc/manual/](manual/manual.html), but this is all to do
+with how to operate the Harvester admin console -- no developer
+documentation.
+
 Three directories from the source tree are omitted from the Debian
 packages, presumably because they are used in development but not in
 deployment:
