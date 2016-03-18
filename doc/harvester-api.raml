@@ -1,0 +1,34 @@
+#%RAML 0.8
+title: Harvester
+version: 1.0
+baseUri: http://harvester.example.com/harvester/records
+documentation:
+ - title: Overview
+   content: >
+     This API provides a means for clients to control a pool or
+     harvesting tasks which are scheduled to run at specified times in
+     order to maintain a live database of accumulated results.
+
+/harvestables:
+  get:
+    description: >
+      Return brief information about all harvesting jobs.
+  post:
+    description: >
+      Create a new harvesting job.
+  /{id}:
+    uriParameters:
+      id:
+        description: >
+          Opaque identifier of a specific harvesting job.
+    get:
+      description: >
+        Retrieve details about, and status of, a specific harvesting job.
+    delete:
+      description: >
+        Remove a harvesting job, cancelling its current run if it's active.
+    put:
+      description: >
+        Update details of the harvesting job. Doing this while the job
+        is running will force the present run to be abandoned, and the
+        harvest to be restarted.
