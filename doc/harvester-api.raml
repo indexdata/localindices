@@ -5,9 +5,16 @@ baseUri: http://harvester.example.com/harvester/records
 documentation:
  - title: Overview
    content: >
-     This API provides a means for clients to control a pool or
+     This API provides a means for clients to control a pool of
      harvesting tasks which are scheduled to run at specified times in
      order to maintain a live database of accumulated results.
+
+     * The tasks in the pool may be listed using GET, and new tasks
+       may be added using POST.
+
+     * Individual tasks are addressable by means of an opaque
+       identifier. They may be fetched with GET, updated with PUT or
+       removed with DELETE.
 
 /harvestables:
   get:
@@ -16,10 +23,10 @@ documentation:
     responses:
       200:
         description: >
-          A &lt;harvestables> document containing zero or more
-          &lt;harvestableBrief> records, each of which carries
+          A `<harvestables>` document containing zero or more
+          `<harvestableBrief>` records, each of which carries
           information about a harvesting job. This information
-          includes the &lt;currentStatus> field.
+          includes the `<currentStatus>` field.
         body:
           text/xml:
             example: |
