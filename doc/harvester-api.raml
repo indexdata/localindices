@@ -61,6 +61,13 @@ documentation:
     get:
       description: >
         Retrieve details about, and status of, a specific harvesting job.
+        Fields include:
+
+        * **currentStatus**: set to `NEW` when a new job is created by
+          POST; changes to `RUNNING` when a scheduled job begins, and
+          to `FINISHED` when it completes successfully. If something
+          goes wrong, the status is set to `ERROR` or `WARN`.
+
       responses:
         200:
           body:
@@ -119,13 +126,6 @@ documentation:
                   <lastUpdated>2015-02-03T14:15:54Z</lastUpdated>
                   </sushiJob>
                 </harvestable>
-              description: >
-                Fields include:
-
-                * **currentStatus**: set to `NEW` when a new job is created by
-                  POST; changes to `RUNNING` when a scheduled job begins, and
-                  to `FINISHED` when it completes successfully. If something
-                  goes wrong, the status is set to `ERROR` or `WARN`.
 
     delete:
       description: >
