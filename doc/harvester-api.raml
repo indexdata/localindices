@@ -6,8 +6,9 @@ documentation:
  - title: Overview
    content: >
      This API provides a means for clients to control a pool of
-     harvesting tasks which are scheduled to run at specified times in
-     order to maintain a live database of accumulated results.
+     "harvestables" -- harvesting tasks which are scheduled to run at
+     specified times in order to maintain a live database of
+     accumulated results.
 
      * The tasks in the pool may be listed using GET, and new tasks
        may be added using POST.
@@ -58,6 +59,64 @@ documentation:
     get:
       description: >
         Retrieve details about, and status of, a specific harvesting job.
+      responses:
+        200:
+          body:
+            text/xml:
+              example: |
+                <harvestable uri="http://harvester.indexdata.com/harvester/records/harvestables/4902/">
+                  <oaiPmh>
+                  <id>4902</id>
+                  <!-- user controlled meta-data follows, all but name is optional-->
+                  <name>Sample OAI job</name>
+                  <serviceProvider/>
+                  <technicalNotes/>
+                  <contactNotes/>
+                  <description/>
+                  <!-- connection options -->
+                  <url>http://localhost:8080/harvester/oaipmh</url>
+                  <!-- base URL for the target server -->
+                  <retryCount>2</retryCount>
+                  <retryWait>60</retryWait>
+                  <timeout>60</timeout>
+                  <allowErrors>true</allowErrors>
+                  <!-- allow non-well formed XML parsing -->
+                  <laxParsing>false</laxParsing>
+                  <!-- schedule for periodic harvests, CRON-style -->
+                  <scheduleString>0 11 * * 2</scheduleString>
+                  <enabled>true</enabled>
+                  <!-- enables interactive harvesting mode -->
+                  <harvestImmediately>true/false</harvestImmediately>
+                  <!-- storage options follows :-->
+                  <!-- keep or remove data from previous runs -->
+                  <overwrite>false</overwrite>
+                  <!-- keep data for runs with errors -->
+                  <keepPartial>true</keepPartial>
+                  <logLevel>INFO</logLevel>
+                  <!-- e-mail notification settings -->
+                  <mailAddress/>
+                  <mailLevel>WARN</mailLevel>
+                  <!-- OAI options -->
+                  <!-- from -->
+                  <fromDate>2015-04-07T11:00:00.152Z</fromDate>
+                  <!-- to -->
+                  <untilDate>2015-04-07T11:00:00.152Z</untilDate>
+                  <dateFormat>yyyy-MM-dd</dateFormat>
+                  <!-- OAI date long or short format used -->
+                  <metadataPrefix>oai_dc</metadataPrefix>
+                  <oaiSetName>music</oaiSetName>
+                  <!-- read-only status information follows -->
+                  <!-- status ENUM for the polling client -->
+                  <currentStatus>NEW</currentStatus>
+                  <!-- exception message or empty for successful harvests -->
+                  <message>No records matched</message>
+                  <amountHarvested>0</amountHarvested>
+                  <initiallyHarvested>2013-01-04T07:00:59Z</initiallyHarvested>
+                  <lastHarvestFinished>2015-04-07T11:00:00.746Z</lastHarvestFinished>
+                  <lastHarvestStarted>2015-04-07T11:00:00.152Z</lastHarvestStarted>
+                  <lastUpdated>2015-02-03T14:15:54Z</lastUpdated>
+                  </sushiJob>
+                </harvestable>
     delete:
       description: >
         Remove a harvesting job, cancelling its current run if it's active.
