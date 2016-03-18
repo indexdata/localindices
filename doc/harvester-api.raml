@@ -50,7 +50,9 @@ documentation:
 
   post:
     description: >
-      Create a new harvesting job.
+      Create a new harvesting job. The format of the XML to be posted
+      is the same as that returned by GET /harvestables/_id_, although
+      most fields may be omitted.
   /{id}:
     uriParameters:
       id:
@@ -59,6 +61,13 @@ documentation:
     get:
       description: >
         Retrieve details about, and status of, a specific harvesting job.
+        Fields include:
+
+        * **currentStatus**: set to `NEW` when a new job is created by
+          POST; changes to `RUNNING` when a scheduled job begins, and
+          to `FINISHED` when it completes successfully. If something
+          goes wrong, the status is set to `ERROR` or `WARN`.
+
       responses:
         200:
           body:
