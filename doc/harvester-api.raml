@@ -5,14 +5,48 @@ baseUri: http://harvester.example.com/harvester/records
 documentation:
  - title: Overview
    content: >
-     This API provides a means for clients to control a pool or
+     This API provides a means for clients to control a pool of
      harvesting tasks which are scheduled to run at specified times in
      order to maintain a live database of accumulated results.
+
+     * The tasks in the pool may be listed using GET, and new tasks
+       may be added using POST.
+
+     * Individual tasks are addressable by means of an opaque
+       identifier. They may be fetched with GET, updated with PUT or
+       removed with DELETE.
 
 /harvestables:
   get:
     description: >
       Return brief information about all harvesting jobs.
+    responses:
+      200:
+        description: >
+          A `<harvestables>` document containing zero or more
+          `<harvestableBrief>` records, each of which carries
+          information about a harvesting job. This information
+          includes the `<currentStatus>` field.
+        body:
+          text/xml:
+            example: |
+              <harvestables count="68" max="100" uri="http://localhost:8080/harvester/records/harvestables/" start="0">
+                <harvestableBrief uri="http://localhost:8080/harvester/records/harvestables/6503/">
+                  <amountHarvested>0</amountHarvested>
+                  <currentStatus>WARN</currentStatus>
+                  <enabled>false</enabled>
+                  <id>6503</id>
+                  <jobClass>OaiPmhResource</jobClass>
+                  <lastHarvestFinished>2015-05-25T12:07:56Z</lastHarvestFinished>
+                  <lastHarvestStarted>2015-05-25T12:07:56Z</lastHarvestStarted>
+                  <lastUpdated>2015-05-25T12:07:56Z</lastUpdated>
+                  <message>No Records matched</message>
+                  <name>A OAI-PMH test</name>
+                  <nextHarvestSchedule>2016-03-19T00:00:00Z</nextHarvestSchedule>
+                </harvestableBrief>
+                ...
+              </harvestables>
+
   post:
     description: >
       Create a new harvesting job.
