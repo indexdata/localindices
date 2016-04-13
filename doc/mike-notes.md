@@ -30,6 +30,7 @@ The `lui-solr` module
 
 The `lui-solr` model makes several fields special. These include, but
 may not be limited to:
+
 * database -- sub-database identifier
 * database_name -- corresponding sub-database name
 * id -- unique key, used to know when updates are provided
