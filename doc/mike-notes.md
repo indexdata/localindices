@@ -45,7 +45,7 @@ one of them (plain files) is mostly a proof-of-concept, not intended
 for use in real life. Another (Zebra) is deprecated. So for almost all
 purposes, Solr (as configured by `lui-solr`) will be used.
 
-Tne `lui-solr` package contains its own WAR files for Solr, so there is
+The `lui-solr` package contains its own WAR files for Solr, so there is
 on need to install Solr separately. (I don't understand why we're
 doing this. Why not just depend on a Solr package?)
 
