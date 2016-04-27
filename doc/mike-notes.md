@@ -1,6 +1,14 @@
 Running the Index Data harvester
 ================================
 
+*What I want to know:*
+How to get a `lui-solr` flavoured Solr running, how to change the schema
+for an existing Solr database, how to plumb the harvester into it,
+what you need installed before you start, all that kind of
+thing. Basically, everything I need to know to run it all locally and
+start making changes.
+
+
 Overview
 --------
 
@@ -16,13 +24,6 @@ matter much.)
 There is also a `lui-solr3` module, which can be ignored. It seems to
 have been a misconceived attempt to fork the source so it can work
 with the long-superseded Solr 3.
-
-*What I want to know:*
-How to get a `lui-solr` flavoured Solr running, how to change the schema
-for an existing Solr database, how to plumb the harvester into it,
-what you need installed before you start, all that kind of
-thing. Basically, everything I need to know to run it all locally and
-start making changes.
 
 
 The `lui-solr` module
