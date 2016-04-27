@@ -161,7 +161,7 @@ Three directories from the source tree are omitted from the Debian
 packages, presumably because they are used in development but not in
 deployment:
 
-* `lib -- yet more copies of popular Java libraries including Jetty
+* `lib` -- yet more copies of popular Java libraries including Jetty
   and log4j.
 * `solr` -- Solr configuration files.
 * `webapps` -- contains a WAR of Solr.
