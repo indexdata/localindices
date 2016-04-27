@@ -35,6 +35,8 @@ may not be limited to:
 * database -- sub-database identifier
 * database_name -- corresponding sub-database name
 * id -- unique key, used to know when updates are provided
+* usage tag -- seems to be a human-readable designation
+* mngmt tag -- seems to be a human-readable designation
 
 (### Although, oddly, the word `database` occurs nowhere in
 `schema.xml` -- so I don't know where this is defined. It's in
