@@ -49,7 +49,7 @@ for use in real life. Another (Zebra) is deprecated. So for almost all
 purposes, Solr (as configured by `lui-solr`) will be used.
 
 The `lui-solr` package contains its own WAR files for Solr, so there is
-no need to install Solr separately. (I don't understand why we're
+no need to install Solr separately. (### I don't understand why we're
 doing this. Why not just depend on a Solr package?)
 
 Compilation is managed by Maven, so should be possible without using
