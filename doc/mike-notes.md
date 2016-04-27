@@ -36,11 +36,12 @@ may not be limited to:
 * database_name -- corresponding sub-database name
 * id -- unique key, used to know when updates are provided
 
-(Although, oddly, the word `database` occurs nowhere in `schema.xml`
--- so I don't know where this is defined. It's in `schema-minimal.xml`
-but I assume that is not used, as it lacks many important fields.
-Also, the primary-key quality of the `id` field is inherited from the
-example `schema.xml` included with Solr distributions.)
+(### Although, oddly, the word `database` occurs nowhere in
+`schema.xml` -- so I don't know where this is defined. It's in
+`schema-minimal.xml` but I assume that is not used, as it lacks many
+important fields.  Also, the primary-key quality of the `id` field is
+inherited from the example `schema.xml` included with Solr
+distributions.)
 
 The `localindices` code can run against several different backends. But
 one of them (plain files) is mostly a proof-of-concept, not intended
@@ -48,7 +49,7 @@ for use in real life. Another (Zebra) is deprecated. So for almost all
 purposes, Solr (as configured by `lui-solr`) will be used.
 
 The `lui-solr` package contains its own WAR files for Solr, so there is
-on need to install Solr separately. (I don't understand why we're
+no need to install Solr separately. (I don't understand why we're
 doing this. Why not just depend on a Solr package?)
 
 Compilation is managed by Maven, so should be possible without using
