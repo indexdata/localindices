@@ -9,13 +9,13 @@ The complete harvester setup consists of two git modules:
 * `lui-solr` -- configuration for Solr to hold harvested records.
 * `localindices` -- the harvester software, including its control panel.
 
-(The `lui-solr` module is in `/pub/` but `localindices` is in
+(### The `lui-solr` module is in `/pub/` but `localindices` is in
 `/private/`. That doesn't make a great deal of sense, but it doesn't
 matter much.)
 
 There is also a `lui-solr3` module, which can be ignored. It seems to
 have been a misconceived attempt to fork the source so it can work
-with Solr 3.
+with the long-superseded Solr 3.
 
 *What I want to know:*
 How to get a `lui-solr` flavoured Solr running, how to change the schema
