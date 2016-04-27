@@ -59,7 +59,7 @@ an IDE. Deployment is by copying the WAR file into Tomcat's live area:
 we may add Maven rules to run under Jetty.
 
 It seems as though the expected way to use `lui-solr` is by building a
-Debian package and installing it. But the NEWS file is out of date
+Debian package and installing it. ### But the NEWS file is out of date
 with respect to the version number in IDMETA, and there is no Debian
 changelog, so it's hard to know the status of this code. The Debian
 control file seems a bit confused over whether the packages are named
@@ -85,12 +85,14 @@ Configuration files are found in:
   there seem to be multiple versions of the key file, for reasons that
   are not clear. May be related to Zookeeper.
 
-(There are both conf and conf3 directories. The latter seems to be a
+(### There are both conf and conf3 directories. The latter seems to be a
 set of obsolete config files which were used for running Solr 3.x,
-which we no longer do. It doesn't get a mention in `debian/rules`)
+which we no longer do. It doesn't get a mention in `debian/rules`. I
+suppose this should have been deleted when the `lui-solr3` package was
+created.)
 
 `lib` contains a bunch of third-party JAR files, I assume to be used
-by Solr. As usual, I am baffled by the inclusion of these. We don't
+by Solr. ### As usual, I am baffled by the inclusion of these. We don't
 distribute our own libc.so with Metaproxy.
 
 `scripts` contains five shell-scripts whose purposes are unclear.
