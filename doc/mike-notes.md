@@ -162,8 +162,7 @@ with how to operate the Harvester admin console -- no developer
 documentation.
 
 Three directories from the source tree are omitted from the Debian
-packages, presumably because they are used in development but not in
-deployment:
+packages:
 
 * `lib` -- yet more copies of popular Java libraries including Jetty
   and log4j.
@@ -172,5 +171,8 @@ deployment:
 
 I don't understand why these all exist in `localindices` when the
 equivalents are all provided by the `lui-solr` packages -- in fact,
-that is the whole purpose of those packages.
+that is the whole purpose of those packages. My best guess is that we
+use the `localindices` versions of these files when doing development,
+but leave them behind and use those from the `lui-solr4` packages in
+deployment. ### It would be great to confirm this.
 
