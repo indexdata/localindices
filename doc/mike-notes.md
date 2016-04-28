@@ -176,3 +176,34 @@ use the `localindices` versions of these files when doing development,
 but leave them behind and use those from the `lui-solr4` packages in
 deployment. ### It would be great to confirm this.
 
+
+Development system on a Mac
+---------------------------
+
+Here is a brief guide to getting a development system running on a
+Mac. You will need to install and start Tomcat:
+
+    $ brew install tomcat
+    $ cd /usr/local/opt/tomcat/libexec/bin//usr/local/opt/tomcat/libexec/bin/
+    $ ./startup.sh 
+
+You can't just `brew install solr` because it gives you Solr 5, and
+our software needs Solr 4. Since the present `lui-solr` package uses
+Solr 4.9.1, that's the best one to use, so:
+
+    $ cd
+    $ wget https://archive.apache.org/dist/lucene/solr/4.9.1/solr-4.9.1.tgz
+    $ tar xzf solr-4.9.1.tgz
+    $ cd /usr/local/opt
+    $ sudo ln -s $HOME/solr-4.9.1 solr
+
+Now you have Solr as a WAR file, `solr/dist/solr-4.9.1.war`, and you
+need to plumb it into Tomcat. Create the following file as
+`/usr/local/opt/tomcat/libexec/conf/Catalina/localhost/solr.xml`:
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <Context docBase="/usr/local/opt/solr/dist/solr-4.9.1.war" path="/solr4">
+      <Environment name="solr/home" type="java.lang.String" value="/usr/local/opt/solr/example/solr" override="true"/>
+    </Context>
+
+*THIS DOES NOT WORK* -- more is needed. Too late to work on it now.
