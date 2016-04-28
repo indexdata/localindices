@@ -148,6 +148,10 @@ installed, you can exercise the running Solr with searches like
 (But of course the database will be empty initially, so all the
 queries will return no hits.)
 
+Note to self: sometimes something else, such as Squid, is running on
+the woefully oversubscribed port 8080, and so Tomcat can't start and
+these URLs won't work. To discover what has the port, use `lsof -i
+:8080`.
 
 The `localindices` module
 -------------------------
