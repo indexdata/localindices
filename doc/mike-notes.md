@@ -177,6 +177,57 @@ but leave them behind and use those from the `lui-solr4` packages in
 deployment. ### It would be great to confirm this.
 
 
+Development system on Linux (by Wayne)
+--------------------------------------
+
+Here's what I did on a relatively clean Debian Jessie install (with
+OpenJDK and a GUI installed, at least). The (outdated) Solr
+documentation on deploying with Tomcat is at
+<http://wiki.apache.org/solr/SolrTomcat>.
+The wiki is a good resource that contains useful things not contained
+in the reference documentation (or at least not spelled out as
+explicitly), but suffers from typically wonky wiki organization. The
+Solr reference guide for 4.9.1 is available as a PDF (still no luck
+finding a nicely indexed HTML version!) at
+<https://archive.apache.org/dist/lucene/solr/ref-guide/apache-solr-ref-guide-4.9.pdf>
+
+    $ sudo apt-get install git tomcat8 tomcat8-admin
+
+Add the following lines into /etc/tomcat8/tomcat-users.xml to give access to the Tomcat admin tool:
+
+    <role rolename="manager-gui"/>
+    <user username="admin" password="tc3636" roles="manager-gui"/> <!-- or whatever -->
+
+And then:
+
+    $ sudo /sbin/service tomcat8 restart
+
+You should now be able to look at your Tomcat config from a browser
+pointing to <http://localhost:8080/manager/html>
+
+Now we're ready to start working with the git repo:
+
+    $ git clone ssh://git.indexdata.com:222/home/git/pub/lui-solr
+
+To run Solr out of the checked out lui-solr repo (this is what I would probably want to do, so I can just commit changes to the repo):
+
+    $ sudo mkdir -p /usr/share/masterkey/lui/solr4/war
+    $ sudo ln -s [full path to repo]/dist/solr-4.9.1.war /usr/share/masterkey/lui/solr4/war/solr.war
+    $ sudo cp [full path to repo]/lib/* /usr/share/tomcat8/lib # this seems crazy, there must be a better way
+    $ sudo mkdir -p /usr/share/masterkey/lui/solr4/master/collection1
+    $ sudo ln -s [full path to repo]/conf /usr/share/masterkey/lui/solr4/master/collection1/conf
+    $ sudo mkdir -p /var/lib/masterkey/lui/solr4/master
+    $ sudo chown tomcat8:tomcat8 /var/lib/masterkey/lui/solr4/master
+    $ cd [full path to repo]/conf
+    $ ln -s solrconfig-master.xml solrconfig.xml # this is not ideal, because it creates a file in the repo that you have to ignore
+    $ sudo ln -s [full path to repo]/lui-solr/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
+
+Much of this pain might be avoidable with a move to Solr 5+, not sure
+what that entails. Here is the project's explanation of why they are
+ditching JSP container deployment:
+<https://wiki.apache.org/solr/WhyNoWar>.
+That is to say, they are ditching other peoples' JSP containers :-).
+
 Development system on a Mac
 ---------------------------
 
