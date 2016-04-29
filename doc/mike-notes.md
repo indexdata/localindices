@@ -209,7 +209,10 @@ Now we're ready to start working with the git repo:
 
     $ git clone ssh://git.indexdata.com:222/home/git/pub/lui-solr
 
-To run Solr out of the checked out lui-solr repo (this is what I would probably want to do, so I can just commit changes to the repo):
+To run Solr out of the checked out lui-solr repo (this is what I would
+probably want to do, so I can just commit changes to the repo), do the
+following. (Many of these steps are to get files and directories into
+the places where the lui-solr context-fragment expects them to be):
 
     $ sudo mkdir -p /usr/share/masterkey/lui/solr4/war
     $ sudo ln -s [full path to repo]/dist/solr-4.9.1.war /usr/share/masterkey/lui/solr4/war/solr.war
