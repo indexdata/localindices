@@ -213,7 +213,7 @@ To run Solr out of the checked out lui-solr repo (this is what I would probably 
 
     $ sudo mkdir -p /usr/share/masterkey/lui/solr4/war
     $ sudo ln -s [full path to repo]/dist/solr-4.9.1.war /usr/share/masterkey/lui/solr4/war/solr.war
-    $ sudo cp [full path to repo]/lib/* /usr/share/tomcat8/lib # this seems crazy, there must be a better way
+    $ sudo ln -s [full path to repo]/lib/* /usr/share/tomcat8/lib
     $ sudo mkdir -p /usr/share/masterkey/lui/solr4/master/collection1
     $ sudo ln -s [full path to repo]/conf /usr/share/masterkey/lui/solr4/master/collection1/conf
     $ sudo mkdir -p /var/lib/masterkey/lui/solr4/master
