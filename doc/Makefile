@@ -1,4 +1,4 @@
-OUT = harvester-api.html mike-notes.html
+OUT = harvester-api.html dev-notes.html
 
 all: $(OUT)
 

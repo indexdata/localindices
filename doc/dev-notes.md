@@ -232,6 +232,15 @@ ditching JSP container deployment:
 <https://wiki.apache.org/solr/WhyNoWar>.
 That is to say, they are ditching other peoples' JSP containers :-).
 
+Now we can add the harvester and its admin console. As with LUI, we
+will do this by creating symbolic links that make the development
+environment resemble the production environment.
+
+    $ git clone ssh://git.indexdata.com:222/home/git/private/localindices
+    $ LOCALINDICES=`pwd`/localindices
+    $ sudo ln -s $LOCALINDICES/harvester-admin/target/harvester-admin /usr/share/masterkey/harvester-admin
+    $ sudo ln -s $LOCALINDICES/etc/harvester-admin-context.xml /etc/tomcat8/Catalina/localhost/harvester-admin.xml
+
 Development system on a Mac
 ---------------------------
 
