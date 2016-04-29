@@ -208,6 +208,7 @@ pointing to <http://localhost:8080/manager/html>
 Now we're ready to start working with the git repo:
 
     $ git clone ssh://git.indexdata.com:222/home/git/pub/lui-solr
+    $ LUI=`pwd`/lui-solr
 
 To run Solr out of the checked out lui-solr repo (this is what I would
 probably want to do, so I can just commit changes to the repo), do the
@@ -215,15 +216,15 @@ following. (Many of these steps are to get files and directories into
 the places where the lui-solr context-fragment expects them to be):
 
     $ sudo mkdir -p /usr/share/masterkey/lui/solr4/war
-    $ sudo ln -s [full path to repo]/dist/solr-4.9.1.war /usr/share/masterkey/lui/solr4/war/solr.war
-    $ sudo ln -s [full path to repo]/lib/* /usr/share/tomcat8/lib
+    $ sudo ln -s $LUI/dist/solr-4.9.1.war /usr/share/masterkey/lui/solr4/war/solr.war
+    $ sudo ln -s $LUI/lib/* /usr/share/tomcat8/lib
     $ sudo mkdir -p /usr/share/masterkey/lui/solr4/master/collection1
-    $ sudo ln -s [full path to repo]/conf /usr/share/masterkey/lui/solr4/master/collection1/conf
+    $ sudo ln -s $LUI/conf /usr/share/masterkey/lui/solr4/master/collection1/conf
     $ sudo mkdir -p /var/lib/masterkey/lui/solr4/master
     $ sudo chown tomcat8:tomcat8 /var/lib/masterkey/lui/solr4/master
-    $ cd [full path to repo]/conf
+    $ cd $LUI/conf
     $ ln -s solrconfig-master.xml solrconfig.xml # this is not ideal, because it creates a file in the repo that you have to ignore
-    $ sudo ln -s [full path to repo]/lui-solr/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
+    $ sudo ln -s $LUI/lui-solr/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
 
 Much of this pain might be avoidable with a move to Solr 5+, not sure
 what that entails. Here is the project's explanation of why they are
