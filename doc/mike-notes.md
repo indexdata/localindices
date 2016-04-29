@@ -224,7 +224,7 @@ the places where the lui-solr context-fragment expects them to be):
     $ sudo chown tomcat8:tomcat8 /var/lib/masterkey/lui/solr4/master
     $ cd $LUI/conf
     $ ln -s solrconfig-master.xml solrconfig.xml # this is not ideal, because it creates a file in the repo that you have to ignore
-    $ sudo ln -s $LUI/lui-solr/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
+    $ sudo ln -s $LUI/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
 
 Much of this pain might be avoidable with a move to Solr 5+, not sure
 what that entails. Here is the project's explanation of why they are
