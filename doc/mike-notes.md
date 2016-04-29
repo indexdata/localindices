@@ -177,8 +177,8 @@ but leave them behind and use those from the `lui-solr4` packages in
 deployment. ### It would be great to confirm this.
 
 
-Development system on Linux (by Wayne)
---------------------------------------
+Development system on Linux
+---------------------------
 
 Here's what I did on a relatively clean Debian Jessie install (with
 OpenJDK and a GUI installed, at least). The (outdated) Solr
