@@ -235,8 +235,8 @@ That is to say, they are ditching other peoples' JSP containers :-).
 Development system on a Mac
 ---------------------------
 
-Here is a brief guide to getting a development system running on a
-Mac. You will need to install and start Tomcat:
+Much of this is the same as on Linux. First, though, you will need to
+install and start Tomcat:
 
     $ brew install tomcat
     $ cd /usr/local/opt/tomcat/libexec/bin//usr/local/opt/tomcat/libexec/bin/
@@ -249,16 +249,7 @@ Solr 4.9.1, that's the best one to use, so:
     $ cd
     $ wget https://archive.apache.org/dist/lucene/solr/4.9.1/solr-4.9.1.tgz
     $ tar xzf solr-4.9.1.tgz
-    $ cd /usr/local/opt
-    $ sudo ln -s $HOME/solr-4.9.1 solr
 
-Now you have Solr as a WAR file, `solr/dist/solr-4.9.1.war`, and you
-need to plumb it into Tomcat. Create the following file as
-`/usr/local/opt/tomcat/libexec/conf/Catalina/localhost/solr.xml`:
+Now you can proceed essentially as outlined above, with the paths
+adjusted as necessary.
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <Context docBase="/usr/local/opt/solr/dist/solr-4.9.1.war" path="/solr4">
-      <Environment name="solr/home" type="java.lang.String" value="/usr/local/opt/solr/example/solr" override="true"/>
-    </Context>
-
-*THIS DOES NOT WORK* -- more is needed. Too late to work on it now.
