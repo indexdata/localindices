@@ -200,7 +200,7 @@ Add the following lines into /etc/tomcat8/tomcat-users.xml to give access to the
 
 And then:
 
-    $ sudo /sbin/service tomcat8 restart
+    $ sudo /usr/sbin/service tomcat8 restart
 
 You should now be able to look at your Tomcat config from a browser
 pointing to <http://localhost:8080/manager/html>
@@ -225,6 +225,10 @@ the places where the lui-solr context-fragment expects them to be):
     $ cd $LUI/conf
     $ ln -s solrconfig-master.xml solrconfig.xml # this is not ideal, because it creates a file in the repo that you have to ignore
     $ sudo ln -s $LUI/etc/solr4-tomcat-context-master.xml /etc/tomcat8/Catalina/localhost/solr4.xml
+    $ sudo /usr/sbin/service/tomcat8 restart
+
+You should now be able to get to the Solr admin screen at
+<http://localhost:8080/solr4/>.
 
 Much of this pain might be avoidable with a move to Solr 5+, not sure
 what that entails. Here is the project's explanation of why they are
@@ -238,6 +242,38 @@ environment resemble the production environment.
 
     $ git clone ssh://git.indexdata.com:222/home/git/private/localindices
     $ LOCALINDICES=`pwd`/localindices
+    $ sudo apt-get install maven # this installs approximately 1,000,000 packages
+    $ cd $LOCALINDICES
+    $ mvn install > install.log # generates lots of output, you may want to look for warnings/errors
+    $ sudo apt-get install mysql-server
+    $ mysql -u root -p
+        mysql> create database localindices;
+        mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
+        mysql> quit
+    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/localindices.sql
+    $ sudo mkdir -p /var/log/masterkey/harvester
+    $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
+    $ sudo mkdir -p /etc/masterkey/harvester
+    $ sudo ln -s $LOCALINDICES/harvester/target/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties
+
+### Why are the war files created by Maven not used in deployment?
+
+    $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
+    $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
+
+### Harvester is failing to deploy on Tomcat 8:
+>[EL Info]: connection: 2016-04-29 23:35:19.852--ServerSession(2136012227)--file:/home/wayne/localindices/harvester/target/harvester/WEB-INF/lib/masterkey-dal-2.8.0.jar_localindicesPU login successful
+>[EL Warning]: 2016-04-29 23:35:19.962--UnitOfWork(275800371)--Exception [EclipseLink-4002] (Eclipse Persistence Services - 2.5.0.v20130507-3faac2b): org.eclipse.persistence.exceptions.DatabaseException
+>Internal Exception: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'localindices.SETTING' doesn't exist
+>Error Code: 1146
+>Call: SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)
+>	bind => [2 parameters bound]
+>Query: ReportQuery(referenceClass=Setting sql="SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)")
+>Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
+>SEVERE: Error listenerStart
+>Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
+>SEVERE: Context [/harvester] startup failed due to previous errors
+
     $ sudo ln -s $LOCALINDICES/harvester-admin/target/harvester-admin /usr/share/masterkey/harvester-admin
     $ sudo ln -s $LOCALINDICES/etc/harvester-admin-context.xml /etc/tomcat8/Catalina/localhost/harvester-admin.xml
 
