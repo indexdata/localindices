@@ -257,7 +257,7 @@ environment resemble the production environment.
     $ sudo mkdir -p /etc/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties
 
-### Why are the war files created by Maven not used in deployment?
+    ### Why are the war files created by Maven not used in deployment?
 
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
