@@ -266,7 +266,7 @@ environment resemble the production environment.
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
 
-##### Harvester is failing to deploy on Tomcat 8:
+##### Harvester fails to deploy on Tomcat 8 when old sql/localindices.sql is used
 
 >[EL Info]: connection: 2016-04-29 23:35:19.852--ServerSession(2136012227)--file:/home/wayne/localindices/harvester/target/harvester/WEB-INF/lib/masterkey-dal-2.8.0.jar_localindicesPU login successful
 >[EL Warning]: 2016-04-29 23:35:19.962--UnitOfWork(275800371)--Exception [EclipseLink-4002] (Eclipse Persistence Services - 2.5.0.v20130507-3faac2b): org.eclipse.persistence.exceptions.DatabaseException
