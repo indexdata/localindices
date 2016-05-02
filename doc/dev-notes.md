@@ -250,7 +250,7 @@ environment resemble the production environment.
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
         mysql> quit
-    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/localindices.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/schema.v2.8.sql # use current schema version
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester
@@ -260,19 +260,6 @@ environment resemble the production environment.
 
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
-
-### Harvester is failing to deploy on Tomcat 8:
->[EL Info]: connection: 2016-04-29 23:35:19.852--ServerSession(2136012227)--file:/home/wayne/localindices/harvester/target/harvester/WEB-INF/lib/masterkey-dal-2.8.0.jar_localindicesPU login successful
->[EL Warning]: 2016-04-29 23:35:19.962--UnitOfWork(275800371)--Exception [EclipseLink-4002] (Eclipse Persistence Services - 2.5.0.v20130507-3faac2b): org.eclipse.persistence.exceptions.DatabaseException
->Internal Exception: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'localindices.SETTING' doesn't exist
->Error Code: 1146
->Call: SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)
->	bind => [2 parameters bound]
->Query: ReportQuery(referenceClass=Setting sql="SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)")
->Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
->SEVERE: Error listenerStart
->Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
->SEVERE: Context [/harvester] startup failed due to previous errors
 
     $ sudo ln -s $LOCALINDICES/harvester-admin/target/harvester-admin /usr/share/masterkey/harvester-admin
     $ sudo ln -s $LOCALINDICES/etc/harvester-admin-context.xml /etc/tomcat8/Catalina/localhost/harvester-admin.xml
