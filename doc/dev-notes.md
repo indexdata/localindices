@@ -245,7 +245,8 @@ environment resemble the production environment.
     $ sudo apt-get install maven # this installs approximately 1,000,000 packages
     $ cd $LOCALINDICES
     $ mvn install > install.log # generates lots of output, you may want to look for warnings/errors
-    $ sudo apt-get install mysql-server
+    $ sudo apt-get install mysql-server # Debian
+    $ sudo apt-get install mysql-client-core-5.6 mysql-server-core-5.6 # Ubuntu 15.10
     $ mysql -u root -p
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
