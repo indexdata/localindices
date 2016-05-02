@@ -241,9 +241,9 @@ will do this by creating symbolic links that make the development
 environment resemble the production environment.
 
     $ git clone ssh://git.indexdata.com:222/home/git/private/localindices
-    $ LOCALINDICES=`pwd`/localindices
-    $ sudo apt-get install maven # this installs approximately 1,000,000 packages
     $ cd $LOCALINDICES
+    $ LOCALINDICES=`pwd`
+    $ sudo apt-get install maven # this installs approximately 1,000,000 packages
     $ mvn install > install.log # generates lots of output, you may want to look for warnings/errors
     $ sudo apt-get install mysql-server # Debian
     $ sudo apt-get install mysql-server-5.6 # Ubuntu 15.10
