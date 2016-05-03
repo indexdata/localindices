@@ -4,13 +4,15 @@ Note that this is a database describing the harvesting jobs only: the
 actual harvested data goes into a Solr database which is configured in
 the separate but related "lui-solr" package.
 
-localindices.sql -- the script that created the original version of
-	the database. The live databases have been updated from this
+* localindices.sql
+	The script that created the original version of the
+	database. The live databases have been updated from this
 	beginning by the scripts in the v*.* directories (see below).
 
-v2.2, v2.3, v2.4, etc. -- sets of scripts which have been used to
-	cumulatively upgrade the original database (as described by
-	localindices.sql) to its present form.
+* v2.2, v2.3, v2.4, etc.
+	Sets of scripts which have been used to cumulatively upgrade
+	the original database (as described by localindices.sql) to
+	its present form.
 
 	Each of these directories in general contains several SQL
 	files, each named for the date when it was added. In general,
@@ -29,24 +31,27 @@ v2.2, v2.3, v2.4, etc. -- sets of scripts which have been used to
 	updates have not provided a single "alter" script at all, and
 	this is a simpler and less error-prone approach.
 
-schema.v2.8.sql -- For convenience, a script to create version of the
-	databases composed of localindices.sql plus all of the
-	updates, bringing it up to v2.8 of the schema (which at the
-	time of writing is the current version).
+* schema.v2.8.sql
+	For convenience, a script to create version of the databases
+	composed of localindices.sql plus all of the updates, bringing
+	it up to v2.8 of the schema (which at the time of writing is
+	the current version).
 
-schema.v2.8-with-sample-data.sql -- A modified version of
-	schema.v2.8.sql that has been enhanced by the addition of
-	INSERT statements to create a skeleton database. (Similar
-	records are included in the original localindices.sql file,
-	but were somehow omitted from schema.v2.8.sql. It's not clear
-	how or why.)
+* schema.v2.8-with-sample-data.sql
+	A modified version of schema.v2.8.sql that has been enhanced
+	by the addition of INSERT statements to create a skeleton
+	database. (Similar records are included in the original
+	localindices.sql file, but were somehow omitted from
+	schema.v2.8.sql. It's not clear how or why.)
 
-samples -- Snapshop dumps of complete harvester databases from live
+* samples
+	Snapshop dumps of complete harvester databases from live
 	installations. These can be loaded into local development
 	systems (but note that the schema changes through time, so
 	older dumps may not work on newer systems).
 
-obsolete -- Due to erratic record-keeping in the early days of this
+* obsolete
+	Due to erratic record-keeping in the early days of this
 	project, the exact purpose of some of these fragments is not
 	known, has had to be recovered by archaeology. Those fragments
 	are all in the "obsolete" directory, and the README therein
@@ -60,3 +65,4 @@ that file came about and whether it's a 100% match for what is in
 production. Finally, the least convenient approach, but perhaps the
 most honest, is to run localindices.sql and all of the updates in the
 v*.* directories.
+
