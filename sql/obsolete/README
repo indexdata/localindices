@@ -3,26 +3,32 @@ creating the Harvester's MySQL database schema, but which are no
 longer needed. They are retained, for now, both for historical reasons
 and to help us out if we need to do more archaeology. They are:
 
-add_encoding.sql -- Adds a column that localindices.sql already
-	creates. We can conclude that this predates the version of
-	localindices.sql that got saved.
+* add_encoding.sql
+	Adds a column that localindices.sql already creates. We can
+	conclude that this predates the version of localindices.sql
+	that got saved.
 
-db_patch -- Contains other patches which, like add_encoding.sql, seems
-	to have been incorporated in localindices.sql.
+* db_patch
+	Contains other patches which, like add_encoding.sql, seems to
+	have been incorporated in localindices.sql.
 
-convert_to_unicode.sql -- Sets columns to type TEXT and sets some UTF8
-	properties. But today the columns are 'mediumtext' according to
-	the latest dump, and there are settings for UTF8 in the
-	dump. Verdict: Things have moved on since that script.
+* convert_to_unicode.sql
+	Sets columns to type TEXT and sets some UTF8 properties. But
+	today the columns are 'mediumtext' according to the latest
+	dump, and there are settings for UTF8 in the dump. Verdict:
+	Things have moved on since that script.
 
-localindices_no_data.sql -- Roughly, a version of the original
-	localindices.sql script that does not add an rows to the
-	tables. But it also differs from the main script in several
-	other ways, and it's not clear what its value is now.
+* localindices_no_data.sql
+	Roughly, a version of the original localindices.sql script
+	that does not add an rows to the tables. But it also differs
+	from the main script in several other ways, and it's not clear
+	what its value is now.
 
-reset-storage-type.sql -- This was related to support request SUP-709,
-	but is obsolete now.
+* reset-storage-type.sql
+	This was related to support request SUP-709, but is obsolete
+	now.
 
-transformations.sql -- This was created by Dennis in 2011. No-one
-	still at Index Data knows what it is.
+* transformations.sql
+	This was created by Dennis in 2011. No-one still at Index Data
+	knows what it is.
 
