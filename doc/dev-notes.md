@@ -255,7 +255,7 @@ environment resemble the production environment.
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
         mysql> quit
-    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/2016-05-02--dump-from-katsu/localindices-2016-05-01_06:00:01.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/2016-05-02--dump-from-katsu/localindices-2016-05-01_06-00-01.sql
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester
