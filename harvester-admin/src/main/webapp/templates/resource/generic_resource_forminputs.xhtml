@@ -188,6 +188,12 @@
           </h:selectOneMenu>
           <id:helplink field="[Harvest Jobs][General information][Send notification if severity at least]"/>
         </h:panelGroup>
+        <h:outputText value="List of constant fields: " />
+        <h:panelGroup>
+        <h:inputText id="constantFields"
+                     value="#{resourceController.resource.constantFields}" size="80" />
+          <id:helplink field="[Harvest Jobs][General information][List of constant fields]"/>
+        </h:panelGroup>
         <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
         <h:panelGroup>
           <h:inputTextarea cols="60" rows="2" styleClass="optionalInput"

@@ -86,6 +86,8 @@ Remaing settings include:
 
 * _Send notification if severity at least:_: specify job completion status with the least severity that will trigger the e-mail notification
 
+* _List of constant fields_: a comma-separated list of NAME=VALUE pairs. For a harvestable that has this field set, each harvested record has each NAME field set to the corresponding VALUE.
+
 * _Extra configuration (JSON)_: specify additional advanced harvester configuration in the JSON format.
 
 Buttons:

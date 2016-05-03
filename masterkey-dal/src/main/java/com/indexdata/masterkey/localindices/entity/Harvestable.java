@@ -119,6 +119,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private Date untilDate;
   @Column(nullable=true)
   private Integer storageBatchLimit = null; 
+  private String constantFields = null;
   
   public String getDescription() {
     return description;
@@ -501,4 +502,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
     this.storageBatchLimit = storageBatchLimit;
   }
   
+  public String getConstantFields() {
+    return constantFields;
+  }
+
+  public void setConstantFields(String constantFields) {
+    this.constantFields = constantFields;
+  }
+
 }
