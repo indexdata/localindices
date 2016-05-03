@@ -38,12 +38,10 @@ may not be limited to:
 * usage tag -- seems to be a human-readable designation
 * mngmt tag -- seems to be a human-readable designation
 
-(### Although, oddly, the word `database` occurs nowhere in
-`schema.xml` -- so I don't know where this is defined. It's in
-`schema-minimal.xml` but I assume that is not used, as it lacks many
-important fields.  Also, the primary-key quality of the `id` field is
-inherited from the example `schema.xml` included with Solr
-distributions.)
+id is set as the UniqueKey in `schema.xml`. The other fields are NOT
+defined in `schema.xml`, so they are created as part of a catch-all
+dynamic field definition in the schema: `<dynamicField name="*"
+type="text" multiValued="true" />`
 
 The `localindices` code can run against several different backends. But
 one of them (plain files) is mostly a proof-of-concept, not intended
@@ -51,12 +49,13 @@ for use in real life. Another (Zebra) is deprecated. So for almost all
 purposes, Solr (as configured by `lui-solr`) will be used.
 
 The `lui-solr` package contains its own WAR files for Solr, so there is
-no need to install Solr separately. (### I don't understand why we're
-doing this. Why not just depend on a Solr package?)
+no need to install Solr separately. This gets around the lack of
+availability of recent Solr packages for Debian and RHEL.
 
 Compilation is managed by Maven, so should be possible without using
-an IDE. Deployment is by copying the WAR file into Tomcat's live area:
-we may add Maven rules to run under Jetty.
+an IDE. Deployment is by linking or copying the the target web app
+build with a Tomcat context fragment; we may add Maven rules to run
+under Jetty.
 
 It seems as though the expected way to use `lui-solr` is by building a
 Debian package and installing it. ### But the NEWS file is out of date
@@ -78,9 +77,10 @@ outdated. Presumably the Debian package is more up to date.
 
 Configuration files are found in:
 
-* `conf` -- configuration for Solr itself. The main file seems to be
-  `conf/schema.xml`, though it's not clear what all the files are for
-  -- especially `schema-minimal.xml` and `schema.xml.org`.
+* `conf` -- configuration for Solr itself. The main files seem to be
+  `conf/schema.xml` and `conf/solrconfig-master.xml`, though it's not
+  clear what all the files are for  -- especially `schema-minimal.xml`
+  and `schema.xml.org`. 
 * `etc` -- configuration for wiring Solr into Tomcat, I think. Again,
   there seem to be multiple versions of the key file, for reasons that
   are not clear. May be related to Zookeeper.
@@ -287,6 +287,8 @@ database:
 
 This is why, at present, we are using a dump from the live Harvester
 on katsu. John created this a few days before 2 May 2016.
+
+*For more information, see sql/README*
 
 #### Harvester console
 

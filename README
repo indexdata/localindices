@@ -1,4 +1,6 @@
 - Localindices Suite
+*For detailed notes on building a running development environment, see
+doc/dev-notes.md*
   
 -- COMPILING AND BUILDING
 
@@ -44,15 +46,15 @@ database and user (using mysql console):
 
 Then you can create the tables by running the following command:
 
-$ mysql -u localidxadm -plocalidxadmpass localindices < sql/schema.v2.8.sql
-
-(using the current version of the schema)
+$ mysql -u localidxadm -plocalidxadmpass localindices < sql/localindices.sql
 
 However this is recomended to change the password used here. But it will also be required to change the password set 
 in the webapps: 
 
 - /etc/masterkey/harvester/harvester-context.xml
 - /etc/masterkey/harvester-admin/harvester-admin-context.xml
+
+You will then need to follow the upgrade path below to build a working installation.
 
 -- Upgrading the Harvester and the MySQL database (V2.3 => V2.4) 
 
