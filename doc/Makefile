@@ -9,7 +9,7 @@ all: $(OUT)
 
 %.html: %.md
 	rm -f $@
-	pandoc -c style.css --standalone --toc $? > $@
+	pandoc -c style.css --standalone --toc --toc-depth 5 $? > $@
 	chmod ugo-w $@
 
 clean:

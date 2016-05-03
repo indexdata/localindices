@@ -180,6 +180,8 @@ deployment. ### It would be great to confirm this.
 Development system on Linux
 ---------------------------
 
+#### General setup and LUI-Solr
+
 Here's what I did on a relatively clean Debian Jessie install (with
 OpenJDK and a GUI installed, at least). The (outdated) Solr
 documentation on deploying with Tomcat is at
@@ -236,44 +238,57 @@ ditching JSP container deployment:
 <https://wiki.apache.org/solr/WhyNoWar>.
 That is to say, they are ditching other peoples' JSP containers :-).
 
+#### Harvester
+
 Now we can add the harvester and its admin console. As with LUI, we
 will do this by creating symbolic links that make the development
 environment resemble the production environment.
 
     $ git clone ssh://git.indexdata.com:222/home/git/private/localindices
-    $ LOCALINDICES=`pwd`/localindices
-    $ sudo apt-get install maven # this installs approximately 1,000,000 packages
     $ cd $LOCALINDICES
+    $ LOCALINDICES=`pwd`
+    $ sudo apt-get install maven # this installs approximately 1,000,000 packages
     $ mvn install > install.log # generates lots of output, you may want to look for warnings/errors
-    $ sudo apt-get install mysql-server
+    $ sudo apt-get install mysql-server # Debian
+    $ sudo apt-get install mysql-server-5.6 # Ubuntu 15.10
     $ mysql -u root -p
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
         mysql> quit
-    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/localindices.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/2016-05-02--dump-from-katsu/localindices-2016-05-01_06:00:01.sql
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties
 
-### Why are the war files created by Maven not used in deployment?
+    ### Why are the war files created by Maven not used in deployment?
 
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
 
-### Harvester is failing to deploy on Tomcat 8:
+##### Problems populating the Harvester's MySQL database
 
-    [EL Info]: connection: 2016-04-29 23:35:19.852--ServerSession(2136012227)--file:/home/wayne/localindices/harvester/target/harvester/WEB-INF/lib/masterkey-dal-2.8.0.jar_localindicesPU login successful
-    [EL Warning]: 2016-04-29 23:35:19.962--UnitOfWork(275800371)--Exception [EclipseLink-4002] (Eclipse Persistence Services - 2.5.0.v20130507-3faac2b): org.eclipse.persistence.exceptions.DatabaseException
-    Internal Exception: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'localindices.SETTING' doesn't exist
-    Error Code: 1146
-    Call: SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)
-    	bind => [2 parameters bound]
-    Query: ReportQuery(referenceClass=Setting sql="SELECT COUNT(ID) FROM SETTING WHERE NAME LIKE CONCAT(?, ?)")
-    Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
-    SEVERE: Error listenerStart
-    Apr 29, 2016 11:35:19 PM org.apache.catalina.core.StandardContext startInternal
-    SEVERE: Context [/harvester] startup failed due to previous errors
+We have not yet established the correct sequence of SQL files to
+execute in order to create a new, empty, functional MySQL
+database:
+
+* The README originally said to load `sql/localindices.sql`, but the
+  Harvester will not run when is used, complaining
+  `com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table
+  'localindices.SETTING' doesn't exist`.
+  
+* When `sql/schema.v2.8.sql` is used instead, an apparently functional
+  database is created, but it is empty of transformation steps and
+  pipelines, so jobs can't be created.
+
+* `transformations.sql` (at the top level, not within the `sql`
+  directory) _might_ provide the necessary data, but its location is
+  suspicious, and we don't have time for guesswork.
+
+This is why, at present, we are using a dump from the live Harvester
+on katsu. John created this a few days before 2 May 2016.
+
+#### Harvester console
 
     $ sudo ln -s $LOCALINDICES/harvester-admin/target/harvester-admin /usr/share/masterkey/harvester-admin
     $ sudo ln -s $LOCALINDICES/etc/harvester-admin-context.xml /etc/tomcat8/Catalina/localhost/harvester-admin.xml

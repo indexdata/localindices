@@ -44,7 +44,9 @@ database and user (using mysql console):
 
 Then you can create the tables by running the following command:
 
-$ mysql -u localidxadm -plocalidxadmpass localindices < sql/localindices.sql
+$ mysql -u localidxadm -plocalidxadmpass localindices < sql/schema.v2.8.sql
+
+(using the current version of the schema)
 
 However this is recomended to change the password used here. But it will also be required to change the password set 
 in the webapps: 

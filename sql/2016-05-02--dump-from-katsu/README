@@ -1,0 +1,6 @@
+This directory contains a dump of the live harvester's MySQL database
+on katsu, taken a few days before 2 May 2016 by John.
+
+This is only for Mike's convenience in getting a working local system
+up and running as quickly as possible. It is NOT part of the process
+for creating new system.
