@@ -1,0 +1,10 @@
+This directory contains all the SQL fragments needed to create a
+Harvester database, and to upgrade it through its various versions.
+Note that this is a database describing the harvesting jobs only: the
+actual harvested data goes into a Solr database which is configured in
+the separate but related "lui-solr" package.
+
+Due to erratic record-keeping in the early days of this project, the
+exact purpose of some of these fragments is not known, has had to be
+recovered by archaeology. Those fragments are all in the "obsolete"
+directory.
