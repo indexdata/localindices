@@ -1,0 +1,7 @@
+This directory contains dumps of live harvesters' MySQL databases.
+
+localindices-katsu--2016-05-01_06-00-01.sql
+	Taken from katu (Harvester #1) on 1st May 2016. This is only
+	for Mike's convenience in getting a working local system up
+	and running as quickly as possible.
+
