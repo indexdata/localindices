@@ -255,13 +255,17 @@ environment resemble the production environment.
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
         mysql> quit
+
+### Are we really using latin1/latin1_swedish_ci (MySQL defaults) for
+### encoding and collation?
+    
     $ mysql -u localidxadm -plocalidxadmpass localindices < sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester/WEB-INF/harvester.properties /etc/masterkey/harvester/harvester.properties
 
-    ### Why are the war files created by Maven not used in deployment?
+### Why are the war files created by Maven not used in deployment?
 
     $ sudo ln -s $LOCALINDICES/harvester/target/harvester /usr/share/masterkey/harvester
     $ sudo ln -s $LOCALINDICES/etc/harvester-context.xml /etc/tomcat8/Catalina/localhost/harvester.xml
