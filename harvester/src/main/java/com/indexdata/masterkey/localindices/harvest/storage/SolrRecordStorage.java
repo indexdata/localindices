@@ -235,6 +235,7 @@ public class SolrRecordStorage implements RecordStorage {
       logger.error("Failed to get Record Id for record: " + record);
       return null;
     }
+    setConstantFields(document, harvestable);
     document.setField(DATABASE_FIELD, database);
     
     if (transactionId  != null) {
@@ -243,6 +244,23 @@ public class SolrRecordStorage implements RecordStorage {
       document.setField(harvestDateStringField, harvestDateShort);
     }
     return document;
+  }
+  
+  /**
+   * Applies constant fields defined for the harvestable to each record
+   * @param document
+   * @param harvestable
+   */
+  private void setConstantFields (SolrInputDocument document, Harvestable harvestable) {
+    String constantFieldsStr = harvestable.getConstantFields();
+    if (constantFieldsStr != null) {
+      for (String keyval : constantFieldsStr.split(",")) {
+        String[] keyvalArr = keyval.split("=");
+        if (keyvalArr.length==2) {
+          document.setField(keyvalArr[0],keyvalArr[1]);
+        }
+      }
+    }
   }
 
   protected Record createRecord(SolrDocument doc) {
