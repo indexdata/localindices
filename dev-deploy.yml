@@ -123,10 +123,21 @@
     #   with_items: "{{ db_alter.stdout_lines }}"
 
     # The "wrong way" - load a database from production
+    # - name: Initialize the database
+    #   become: yes
+    #   mysql_db: name=localindices state=import target=/vagrant/sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
+    # Which didn't work, either.
+
+    # Loading new schema 2.8-2.9
     - name: Initialize the database
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
-    # Which didn't work, either. HERE I AM
+      mysql_db: name=localindices state=import target=/vagrant/sql/schema.v2.8.sql
+      notify: Restart Tomcat
+
+    - name: Load 2.9 table alteration
+      become: yes
+      mysql_db: name=localindices state=import target=/vagrant/sql/v2.9/2016-05-03.sql
+      notify: Restart Tomcat
 
     - name: Build Harvester and Harvester Admin web apps
       shell: mvn install > mvn-install.log creates=/vagrant/mvn-install.log chdir=/vagrant/
@@ -144,7 +155,16 @@
       become: yes
       file: src=/vagrant/etc/harvester-context.xml path=/etc/tomcat8/Catalina/localhost/harvester.xml state=link
       notify: Restart Tomcat
-      
+
+    - name: Link Harvester Admin web app
+      become: yes
+      file: src=/vagrant/harvester-admin/target/harvester-admin path=/usr/share/masterkey/harvester-admin state=link
+      notify: Restart Tomcat
+
+    - name: Deploy Tomcat context fragment for Harvester Admin
+      become: yes
+      file: src=/vagrant/etc/harvester-admin-context.xml path=/etc/tomcat8/Catalina/localhost/harvester-admin.xml state=link
+
   handlers:
     - name: Restart Tomcat
       become: yes
