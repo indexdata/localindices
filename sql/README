@@ -4,7 +4,7 @@ Note that this is a database describing the harvesting jobs only: the
 actual harvested data goes into a Solr database which is configured in
 the separate but related "lui-solr" package.
 
-* localindices.sql
+* initial-schema.sql
 	The script that created the original version of the
 	database. The live databases have been updated from this
 	beginning by the scripts in the v*.* directories (see below).
