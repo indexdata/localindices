@@ -151,6 +151,39 @@
       become: yes
       file: src=/vagrant/harvester/target/harvester/WEB-INF/harvester.properties path=/etc/masterkey/harvester/harvester.properties state=link
 
+    - name: Link Harvester stylesheets
+      become: yes
+      file: src=/vagrant/harvester/target/harvester/WEB-INF/stylesheets/{{ item }} path=/var/lib/tomcat8/{{ item }} state=link
+      with_items:
+        - ARTstor-electronic-url-fix.xsl
+        - addmergekey.xsl
+        - addsnippet.xsl
+        - creator-filter-date-2.0.xsl
+        - dc-lexis.xsl
+        - marc21.xsl
+        - oai2marc.xsl
+        - oai_dc.xsl
+        - oaipmh-dc_pazpar2-minimal.xsl
+        - pz-author-remove-end-date.xsl
+        - pz-subject-split.xsl
+        - pz2-ourl-base.xsl
+        - pz2-ourl-marc21.xsl
+        - pz2-solr-split-1.0.xsl
+        - pz2-solr-split-2-levels.xsl
+        - pz2-solr.xsl
+        - pz2index.xsl
+        - snippet2pz.xsl
+        - solr-subject-split.xsl
+
+    - name: Create Harvester cache directory
+      become: yes
+      file: path=/var/cache/harvester owner=tomcat8 group=adm state=directory
+
+    - name: Provide access to Harvester test data
+      become: yes
+      lineinfile: dest=/etc/tomcat8/server.xml line="\t<Context docBase=\"/vagrant/harvester/test\" path=\"/test\" />" insertbefore="</Host>"
+      notify: Restart Tomcat
+
     - name: Deploy Tomcat context fragment for Harvester
       become: yes
       file: src=/vagrant/etc/harvester-context.xml path=/etc/tomcat8/Catalina/localhost/harvester.xml state=link
