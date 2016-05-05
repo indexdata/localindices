@@ -131,7 +131,7 @@
     # Loading new schema 2.8-2.9
     - name: Initialize the database
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/schema.v2.8.sql
+      mysql_db: name=localindices state=import target=/vagrant/sql/schema.v2.8-with-sample-data.sql
       notify: Restart Tomcat
 
     - name: Load 2.9 table alteration
