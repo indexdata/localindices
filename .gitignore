@@ -22,3 +22,6 @@ logs/
 solr/collection1/data/
 solr/collection1/conf/*
 masterkey-dal/generated-sources/
+.vagrant/
+lui-solr/
+/mvn-install.log

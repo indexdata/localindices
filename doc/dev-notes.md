@@ -180,6 +180,15 @@ deployment. ### It would be great to confirm this.
 Development system on Linux
 ---------------------------
 
+*Note that these steps have been put into an Ansible playbook
+ (dev-deploy.yml), and a Vagrantfile has been created that will build
+ the system below as a VM by typing "vagrant up" in the root of the
+ localindices directory.*
+
+* For more information about Vagrant: http://vagrantup.com 
+* For more information about Ansible: http://www.ansible.com
+
+
 #### General setup and LUI-Solr
 
 Here's what I did on a relatively clean Debian Jessie install (with
@@ -251,15 +260,13 @@ environment resemble the production environment.
     $ mvn install > install.log # generates lots of output, you may want to look for warnings/errors
     $ sudo apt-get install mysql-server # Debian
     $ sudo apt-get install mysql-server-5.6 # Ubuntu 15.10
+### We are working on a way to make this better
     $ mysql -u root -p
         mysql> create database localindices;
         mysql> grant all privileges on localindices.* to 'localidxadm'@'localhost' identified by 'localidxadmpass';
         mysql> quit
-
-### Are we really using latin1/latin1_swedish_ci (MySQL defaults) for
-### encoding and collation?
-    
-    $ mysql -u localidxadm -plocalidxadmpass localindices < sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices <sql/schema.v2.8-with-sample-data.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices <sql/v2.9/2016-05-03.sql
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester
@@ -285,12 +292,9 @@ database:
   database is created, but it is empty of transformation steps and
   pipelines, so jobs can't be created.
 
-* `transformations.sql` (at the top level, not within the `sql`
-  directory) _might_ provide the necessary data, but its location is
-  suspicious, and we don't have time for guesswork.
-
-This is why, at present, we are using a dump from the live Harvester
-on katsu. John created this a few days before 2 May 2016.
+* `sql/schema.v2.8.sql-with-sample-data` contains the DDL to create
+  the database and enough sample data to build a working dev system
+  with a single test job.
 
 *For more information, see sql/README*
 
