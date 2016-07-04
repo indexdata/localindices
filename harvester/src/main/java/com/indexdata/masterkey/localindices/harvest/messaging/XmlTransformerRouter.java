@@ -83,7 +83,7 @@ public class XmlTransformerRouter implements MessageRouter {
       if (record instanceof RecordDOM) {
 	((RecordDOM) record).setNode(result.getNode());
       } else
-	record = new RecordDOMImpl(record.getId(), record.getDatabase(), result.getNode());
+	record = new RecordDOMImpl(record.getId(), record.getDatabase(), result.getNode(), record.getOriginalContent());
       produce(record);
     }
   }

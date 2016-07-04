@@ -20,6 +20,7 @@ import static com.indexdata.utils.TextUtils.joinPath;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +38,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.marc4j.MarcException;
 import org.marc4j.MarcStreamReader;
+import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.TurboMarcXmlWriter;
@@ -449,6 +451,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
     long index = 0;
     MarcWriter writer;
     RecordStorage storage = job.getStorage();
+    
+    ByteArrayOutputStream baos = null;
+    MarcStreamWriter iso2709writer = null;
+    if (resource.isStoreOriginal()) {
+      baos = new ByteArrayOutputStream(20000);
+      iso2709writer = new MarcStreamWriter(baos);
+    }
     while (reader.hasNext()) {
       try {
         org.marc4j.marc.Record record = reader.next();
@@ -459,12 +468,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
           writer = new MarcXmlWriter(result);
         }
         writer.write(record);
+        if (baos != null && iso2709writer != null) {
+          baos.reset();
+          iso2709writer.write(record);
+        }
         writer.close();
         if (record.getLeader().getTypeOfRecord() == 'd') {
           storage.delete(record.getControlNumber());
         } else {
           storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.
-            getNode()));
+            getNode(), baos != null ? baos.toByteArray() : null));
         }
         if (job.isKillSent()) {
           // Close to end the pipe 
@@ -487,6 +500,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.info("MARC records read: " + index);
       }
     }
+    if (iso2709writer != null) iso2709writer.close();
     logger.info("MARC records read: " + index);
   }
 
@@ -495,7 +509,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     int splitAt = getJob().getNumber(getResource().getSplitAt(), defaultSplitAt);
     logger.debug("XML splitting depth: "+splitAt);
     SplitContentHandler handler = new SplitContentHandler(
-      new RecordStorageConsumer(storage, job.getLogger()), splitAt);
+      new RecordStorageConsumer(storage, job.getLogger(), resource.isStoreOriginal()), splitAt);
     XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
       handler, resource.isLaxParsing());
     try {
@@ -541,7 +555,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
 
   private void storeCSV(InputStream input, MimeTypeCharSet mt) throws IOException {
-    MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger());
+    MessageConsumer mc = new RecordStorageConsumer(job.getStorage(), job.getLogger(), resource.isStoreOriginal());
     try {
       char defaultDelim = mt.isTSV() ? '\t' : ',';
       String defaultCharset = mt.getCharset() != null ? mt.getCharset() : "iso-8859-1";

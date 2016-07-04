@@ -45,6 +45,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setId(record.getId());
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
+    setOriginalContent(record.getOriginalContent());
   }
 
   public RecordDOMImpl(RecordDOMImpl record, NamespaceContext context) {
@@ -52,12 +53,14 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setId(record.getId());
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
+    setOriginalContent(record.getOriginalContent());
   }
 
-  public RecordDOMImpl(String id, String database, Node node) {
+  public RecordDOMImpl(String id, String database, Node node, byte[] originalContent) {
     setId(id);
     setDatabase(database);
     setNode(node);
+    setOriginalContent(originalContent);
   }
 
   public void setNode(Node node) {
@@ -122,7 +125,10 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       Node child = children.item(i);
       if (child.getNodeType() != Node.ELEMENT_NODE) continue;
       Element childElem = (Element) child;
-      list.add(new RecordDOMImpl(null, null, child));
+      //original record is set to null since at this point the collection
+      //is most likely transformed and we can't "extract' matching original rec
+      //instead, to store original records, the input should be 'split at depth'
+      list.add(new RecordDOMImpl(null, null, child, null));
     }
     return list;
   }

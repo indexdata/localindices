@@ -11,6 +11,12 @@ public interface Record {
   String getDatabase();
 
   boolean isDeleted();
+  
+  /**
+   * Original content of the record, if preserved, otherwise null 
+   * @return raw original content
+   */
+  byte[] getOriginalContent();
 
   Map<String, Collection<Serializable>> getValues();
   

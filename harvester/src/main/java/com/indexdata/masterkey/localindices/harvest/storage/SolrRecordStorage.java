@@ -235,6 +235,9 @@ public class SolrRecordStorage implements RecordStorage {
       logger.error("Failed to get Record Id for record: " + record);
       return null;
     }
+    if (record.getOriginalContent() != null) {
+      document.setField("content_binary", record.getOriginalContent());
+    }
     setConstantFields(document, harvestable);
     document.setField(DATABASE_FIELD, database);
     

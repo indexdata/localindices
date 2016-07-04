@@ -10,6 +10,7 @@ public class RecordImpl implements Record {
   Map<String, Collection<Serializable>> valueMap;
   String id;
   String database;
+  byte[] content;
   boolean isDeleted;
 
   public RecordImpl() {
@@ -28,6 +29,15 @@ public class RecordImpl implements Record {
   @Override
   public String getDatabase() {
     return database;
+  }
+
+  @Override
+  public byte[] getOriginalContent() {
+    return content;
+  }
+  
+  public void setOriginalContent(byte[] content) {
+    this.content = content;
   }
 
   @Override

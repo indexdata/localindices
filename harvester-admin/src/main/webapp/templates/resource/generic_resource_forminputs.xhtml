@@ -157,6 +157,12 @@
             value="#{resourceController.resource.cacheEnabled}" />
           <id:helplink field="[Harvest Jobs][General information][Cache on disk]"/>
         </h:panelGroup>
+        <h:outputText value="Store original record content:" />
+        <h:panelGroup>
+          <h:selectBooleanCheckbox
+            value="#{resourceController.resource.storeOriginal}" />
+          <id:helplink field="[Harvest Jobs][General information][Store original]"/>
+        </h:panelGroup>
         <h:outputText value="Limit record number to: " styleClass="optionalInput" />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.recordLimit}" styleClass="optionalInput" />

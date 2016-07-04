@@ -120,6 +120,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @Column(nullable=true)
   private Integer storageBatchLimit = null; 
   private String constantFields = null;
+  @Column(nullable=false)
+  private boolean storeOriginal = false;
   
   public String getDescription() {
     return description;
@@ -510,4 +512,12 @@ public abstract class Harvestable implements Serializable, Cloneable {
     this.constantFields = constantFields;
   }
 
+  public boolean isStoreOriginal() {
+    return storeOriginal;
+  }
+
+  public void setStoreOriginal(boolean storeOriginal) {
+    this.storeOriginal = storeOriginal;
+  }
+  
 }

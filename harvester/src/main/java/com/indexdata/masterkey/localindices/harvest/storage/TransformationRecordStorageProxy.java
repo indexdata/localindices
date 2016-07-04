@@ -91,7 +91,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
 
   @Override
   public void delete(String id) {
-    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null);
+    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null, null);
     while (true) {
       if (job.isKillSent())
 	      throw new RuntimeException("Job killed");
