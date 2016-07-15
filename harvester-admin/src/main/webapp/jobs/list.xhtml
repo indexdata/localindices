@@ -12,7 +12,7 @@
       <ui:param name="title" value="Harvest Jobs" />
       <ui:define name="content">
         <h:form>
-          <h:outputText value="Add new harvest job: " />
+          <h:outputText value="Add new harvest jobxxxx: " />
           <h:link styleClass="navigation" value="OAI-PMH" 
                   outcome="new_OaiPmhResource"/>
           <h:outputText value=", " />
@@ -171,7 +171,7 @@
                   <f:param name="resourceId" value="#{item.id}" />
                   <h:graphicImage title="View Log" alt="View Log" height="16" url="/images/log.png" />
                 </h:link>
-                <h:outputLink styleClass="action" value="#{item.storageUrl}" rendered="#{item.storageUrl != null}" >
+                <h:outputLink styleClass="action" value="#{resourceController.storageUrl}" rendered="#{resourceController.storageUrl != null}" >
                   <h:graphicImage title="SOLR" alt="SOLR" height="16" url="/images/solr.png" />
                 </h:outputLink>
               </h:column>
