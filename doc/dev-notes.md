@@ -267,6 +267,8 @@ environment resemble the production environment.
         mysql> quit
     $ mysql -u localidxadm -plocalidxadmpass localindices <sql/schema.v2.8-with-sample-data.sql
     $ mysql -u localidxadm -plocalidxadmpass localindices <sql/v2.9/2016-05-03.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices <sql/v2.10/2016-07-04.sql
+    $ mysql -u localidxadm -plocalidxadmpass localindices <sql/v2.11/2016-07-15.sql
     $ sudo mkdir -p /var/log/masterkey/harvester
     $ sudo chown tomcat8:tomcat8 /var/log/masterkey/harvester
     $ sudo mkdir -p /etc/masterkey/harvester

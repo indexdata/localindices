@@ -1,4 +1,4 @@
-The following document describes the installing the Masterkey Harvester v2.9 
+The following document describes the installing the Masterkey Harvester v2.11 
 and Masterkey Local Unified Index (LUI) v0.9 on a Debian 8 system.
 
 
@@ -106,6 +106,8 @@ change the password and update the following Harvester configuration files:
 ```
      mysql -u localidxadm -p localindices < /usr/share/masterkey/harvester/sql/schema.v2.8.sql
      mysql -u localidxadm -p localindices < /usr/share/masterkey/harvester/sql/v2.9/2016-05-03.sql
+     mysql -u localidxadm -p localindices < /usr/share/masterkey/harvester/sql/v2.10/2016-07-04.sql
+     mysql -u localidxadm -p localindices < /usr/share/masterkey/harvester/sql/v2.11/2016-07-15.sql
 
 ```
 
