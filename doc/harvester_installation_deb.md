@@ -21,7 +21,7 @@ Pre-Installation
 *  Index Data packages are signed with a GPG key.   Add the key to your apt keyring.
 
 ```
-     wget http://ftp.indexdata.com/pub/debian/indexdata.asc | sudo apt-key add -
+     wget http://ftp.indexdata.com/pub/debian/indexdata.asc -O - | sudo apt-key add -
      sudo apt-get update
 
 ```
