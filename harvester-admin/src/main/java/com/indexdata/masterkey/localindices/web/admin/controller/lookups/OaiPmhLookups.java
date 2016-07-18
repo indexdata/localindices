@@ -41,8 +41,16 @@ public class OaiPmhLookups {
       e.printStackTrace();
     }      
     response = (OaiPmhResponse) OaiPmhResponseParser.getParser().getDataObject(identifyVerb);
-    if (response != null && response.getOneElement("Identify") != null) { 
-      identify = (com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify) response.getOneElement("Identify");
+    if (response != null) {
+      // Allow for either "Identify" or "identify"
+      if (response.getOneElement("Identify") != null) {
+        identify = (com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify) response.getOneElement("Identify");
+      } else {
+        identify = (com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify) response.getOneElement("identify");
+      }
+    }
+    if (identify == null) {
+      throw new OaiPmhResourceException("No \"Identify\" element in OAI-PMH response from " + oaiRepositoryUrl);
     }
     return identify;
   }

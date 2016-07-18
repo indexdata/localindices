@@ -69,8 +69,10 @@ public class OaiPmhLookupsController implements Serializable {
           getLongDate();
         }
       } catch (OaiPmhResourceException e) {
-        // TODO Auto-generated catch block
+        // TODO This renders on update, how to render error message on initial page display?
+        // Use case: repository stops returning a valid response after the job has been set up
         e.printStackTrace();
+        setMessage("jobForm:resourceUrl",e.getMessage(),e.getMessage());
       }
     }
   }

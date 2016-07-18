@@ -96,7 +96,7 @@ public class OaiPmhResponseParser extends DefaultHandler {
       currentElement = new Set();
     } else if (localName.equals("metadataFormat")) {
       currentElement = new MetadataFormat();
-    } else if (localName.equals("Identify")) {
+    } else if (localName.matches("^[Ii]dentify$")) {
       currentElement = new Identify();
     // Catch all
     } else {
