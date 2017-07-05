@@ -19,7 +19,7 @@ Links for adding new harvest jobs appear just below the navigation menu.
 
 ### Editing or adding new Harvest Jobs ###
 
-The Harvester currently supports harvesting OAI-PMH resources, XML and MARC binary data, and data obtained through Index Data screen-scraping Connectors. 
+The Harvester currently supports harvesting OAI-PMH resources, XML, SGML, CSV and MARC binary data (FTP or HTTP), and data obtained through Index Data screen-scraping solution called Connector Platform. 
 
 Click one of those three selections to add a new Resource to harvest, and follow the instructions below. 
 
