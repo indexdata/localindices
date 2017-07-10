@@ -7,7 +7,7 @@
 The Harvester Admin web site (URL and login credentials are deployment specific) opens to the Harvest
 Jobs page.
 
-The navigation menu at the top of the Harvest Jobs page allows one to switch between sections of the Harvester Admin, such as "Storage Engines", "Transformaton Pipelines", "Transformation Steps" and "Settings". 
+The navigation menu at the top of the Harvest Jobs page allows one to switch between sections of the Harvester Admin, such as "Storage Engines", "Transformation Pipelines", "Transformation Steps" and "Settings". 
 
 The Harvest Jobs page displays a list of currently harvested resources along with: corresponding job status (NEW/OK, RUNNING, ERROR, WARN), date of the last harvest, number of records harvested during the last harvest, date for the next harvest and most recent status message. Using the icons in the "Actions" column, one can Edit (the job settings), Run the job (a play/stop toggle icon), View the most recent job log, or Delete the job.
 
@@ -34,13 +34,13 @@ The screen capture below shows the general settings applicable to all three type
 * _ID_: Automatically assigned identifier for the job.
 
 * _Name_: Preferably a unique name for users to identify this Harvester resource. In some cases the name may be proposed after filling out protocol specific
-section of the configuration (e.g Index Data Connectors, OAI-PMH).
+section of the configuration (e.g. Index Data Connectors, OAI-PMH).
 
 * _Service Provider_,  _Content Description_,  _Technical Notes_ and _Contact Notes_: These free-text fields are not used by the Harvester, but by support staff for recording useful administrative information.
 
 * _Harvest job enabled_: Check to run the Harvesting job as described by the time/interval selected in "Harvest schedule". Leaving this box unchecked will make the job inactive.
 
-* _Harvest schedule_: Use these fields to define a recurring time/interval at which the Harvester job should run. E.g for weekly runs specify a day of the week
+* _Harvest schedule_: Use these fields to define a recurring time/interval at which the Harvester job should run, e.g. for weekly runs specify a day of the week
 on which the harvest should be executed.
 
 <!-- 
@@ -57,7 +57,7 @@ on which the harvest should be executed.
     This is new development though.
 -->
 
-Remaing settings include:
+Remaining settings include:
 
 
 * _Transformation Pipeline_: Select the transformation required to match the input format delivered by the feed to the internal format used by the Harvester for data storage. See the _Transformation Pipelines_ manual section for more details. 
@@ -72,7 +72,7 @@ Remaing settings include:
 
 * _Encoding override_: A feed can return invalid encoded responses, such as having an XML header with encoding set to UTF-8, but actually return ISO-8859-1 in the data. Setting this field to the actual encoding will force the Harvester to use the specified encoding. 
 
-* _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Solr/Lucene is supported. Once the _Storage_ has been selected, it is possible to view the indexed records by clicking the _Stored records: click to view_ field.
+* _Storage_: Select the storage type and location for the harvested data. The Harvester has a storage abstraction layer to allow it to work with multiple potential record storage systems, but at present, only Apache Solr/Lucene is supported. Once the _Storage_ has been selected, it is possible to view the indexed records by clicking the _Stored records: click to view_ field.
 
 * _Cache on disk_: if enabled, harvest data is kept in the filesystem cache and the job can be restarted from this cache without needing to go back to the server.
 
@@ -149,9 +149,9 @@ The XML/MARC specific settings look like this:
 
 * _Overwrite data with each run_: Check to delete all previously harvested data before beginning the next scheduled (or manually triggered) run. This may be used when complete catalog dumps reside on the server.
 
-* _Ask server for new files only_: ask the server if the files are modified before attempting a harvest, relies on proper timestamp handling on the server side. It's usually safe to have this enabled as servers are eager to update the modification date, even in cases when the files themselves don't change. Enabling this setting may significantly shorten harvest times.
+* _Ask server for new files only_: Ask the server if the files are modified before attempting a harvest, relies on proper timestamp handling on the server side. It's usually safe to have this enabled as servers are eager to update the modification date, even in cases when the files themselves don't change. Enabling this setting may significantly shorten harvest times.
 
-* _Initial from date_: allows to specify the initial _from_ harvest date when _ask server for new files only_ option is checked. When filled out, files older than the specified value will be only harvested. 
+* _Initial from date_: Allows to specify the initial _from_ harvest date when _Ask server for new files only_ option is checked. When filled out, files older than the specified value will only be harvested. 
 
 * _Split XML at depth_: For XML data. This should usually be set to 1 for XML feeds, if we want to harvest the record elements in the data structured like:
 
@@ -164,20 +164,20 @@ The XML/MARC specific settings look like this:
 ```
 * _Split at number of records_: The Harvester tries to imply streaming parsing where possible, but many XSL Transformations will not support this. Attempting to transform millions of records will be too memory consuming, so breaking the resource into chunks of 1000 records seems to be a reasonable option. Enter into this field the number of records to be contained in each chunk. 
 
-* _MIME-type override_: The Harvester detects the type (XML, binary MARC, CSV) from the MIME-type file contents and extension. It is also able to deal with compressed archives (zip, tar, gzip), in some rare case it may be required to provide the content type manually (e.g if it's missing or it's wrong), the format is:
+* _MIME-type override_: The Harvester detects the type (XML, binary MARC, CSV) from the MIME-type file contents and extension. It is also able to deal with compressed archives (zip, tar, gzip), in some rare cases it may be required to provide the content type manually (e.g. if it's missing or it's wrong), the format is:
 ```
     MIME-type [; optional character encoding].
 ```
 
-* _MARC XML transformation format_: This field expresses the output format of binary MARC reading--which will also be the input format for the transformation pipeline. If the Transformation Pipeline expects MARC21 XML, this should be set to Application/marc. If the pipeline expects Turbo MARC XML, it should be set to Application/tmarc.
+* _MARC XML transformation format_: This field expresses the output format of binary MARC reading (which will also be the input format for the transformation pipeline). If the Transformation Pipeline expects MARC21 XML, this should be set to `Application/marc`. If the pipeline expects Turbo MARC XML, it should be set to `Application/tmarc`.
 
 
 * _Recurse into subfolders_: When set, the harvester will traverse the entire directory tree and search for harvestable files. This setting should be enabled with care.
 
 
-* _Use passive mode for FTP transfers_: When set passive, instead of active, mode is used for FTP connections. If harvester is running within a restricted firewall that blocks FTP active mode connections, enabling this setting might help. It might be, however, necessary to align this mode with what FTP server expects.
+* _Use passive mode for FTP transfers_: When set passive, instead of active, mode is used for FTP connections. If harvester is running within a restricted firewall that blocks FTP active mode connections, enabling this setting might help. It might be, however, necessary to align this mode with what the FTP server expects.
 
-* _CSV parser configuration_: the harvester will detect (either by MIME-type or by file extension) and attempt to parse CSV (comma separated values) files into an XML representation for further processing. The XML representation of each data row looks as follows:
+* _CSV parser configuration_: The harvester will detect (either by MIME-type or by file extension) and attempt to parse CSV (comma separated values) files into an XML representation for further processing. The XML representation of each data row looks as follows:
 
 
 ```
@@ -197,12 +197,12 @@ The parser configuration is expressed in a semicolon delimited key/value list, l
 
 * `containsHeader`: default `"yes"`, specifies if the first line in the files contains the header line
 
-* `headerLine`: no default, allows to override or specify headers, format is a comma-separated list  e.g `headers="title,author,description"`
+* `headerLine`: no default, allows to override or specify headers, format is a comma-separated list, e.g. `headers="title,author,description"`
 
 
 ##### Connector Specific Information: \
 
-The Connector Harvest Job uses MasterKey Connect technology to harvest and extract information from any web site or data source that does not support standard harvesting protocols such as OAI-PMH. In order to set up Harvesting Connector jobs, one must have access to the _harvesting connector_ prepared for the MKC platform. Please see MKC pages on the IndexData website for more information. Specific settings look like this:
+The Connector Harvest Job uses MasterKey Connect technology to harvest and extract information from any web site or data source that does not support standard harvesting protocols such as OAI-PMH. In order to set up Harvesting Connector jobs, one must have access to the _harvesting connector_ prepared for the MKC platform. Please see MKC pages on the Index Data website for more information. Specific settings look like this:
 
 ![Connector job settings.](./img/05-cfspecific.png)
 
@@ -220,7 +220,7 @@ The Connector Harvest Job uses MasterKey Connect technology to harvest and extra
 * _Password_: Password required for access to a harvested resource that requires authentication.
 
 * _Proxy server address_: address of the proxy server that should be used by
-the harvesting engine, e.g to deal with cases when the resource is IP authenticated.
+the harvesting engine, e.g. to deal with cases when the resource is IP authenticated.
 
 * _Init Data_: Advanced setting to provide additional initialization parameters to the harvesting connector. Any username/password/proxy specified in the inputs above will take precedence over settings specified in this field. These settings must be provided in JSON format.
 
@@ -243,13 +243,13 @@ Selecting the _Storage Engines_ menu item shows the list of currently configured
 
 ![Storage engines page.](./img/06-storages.png)
 
-The Harvester currently supports the open source SOLR index only.
+The Harvester currently supports the open source Solr index only.
 
 ### Adding new Storage Engine ###
 
-![SOLR storage settings.](./img/07-solr.png)
+![Solr storage settings.](./img/07-solr.png)
 
-The following settings are used to set up a new SOLR storage:
+The following settings are used to set up a new Solr storage:
 
 * _Name_: Uniquely identifiable name, for example, "Solr (tomcat) @ donut".
 
@@ -257,7 +257,7 @@ The following settings are used to set up a new SOLR storage:
 
 * _Enabled_: The Storage element will only be available for new Harvester jobs when enabled.
 
-* _Basic SOLR Server URL_: The web service end point, e.g., _http://<some-server>/solr/<optional core>_
+* _Basic Solr Server URL_: The web service end point, e.g. _http://<some-server>/solr/<optional core>_
 
 
 ## Transformation Pipelines ##
@@ -333,12 +333,12 @@ The Output Format of the first Step is PZ but the second step expects MARCXML as
 the *Run* button, you can see the result (or an error message in red) of the 
 transformation.
 
-* _Output_: Output of the rest run.
+* _Output_: Output of the test run.
     
 ### Add a new Custom Step ###
 
 Allows to specify a custom Java class for transforming records. This requires
-that the fully qualified Java class names is specified and that the class
+that the fully qualified Java class name is specified and that the class
 is available on the harvester classpath.
 
 ### Add a new XML Logging Step ###
