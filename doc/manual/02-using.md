@@ -257,7 +257,7 @@ The following settings are used to set up a new Solr storage:
 
 * _Enabled_: The Storage element will only be available for new Harvester jobs when enabled.
 
-* _Basic Solr Server URL_: The web service end point, e.g. _http://<some-server>/solr/<optional core>_
+* _Basic Solr Server URL_: The web service end point, e.g. `http://<some-server>/solr/<optional core>`
 
 
 ## Transformation Pipelines ##
