@@ -1,8 +1,9 @@
 This manual is written using markdown. The Makefile uses pandoc to publish it 
 into a distributable format (PDF).
 
-You need to have pandoc and pdflatex backend installed. On OS X, You can get those with macports:
+You need to have pandoc and pdflatex backend installed. On macOS, you can get those with macports:
 
-port install pandoc texlive-latex-extra texlive-fonts-extra texlive-fonts-recomendeda
+port install pandoc texlive-latex-extra texlive-fonts-extra texlive-fonts-recomended
 
-
+Another way is via http://pandoc.org/installing.html
+to install "pandoc" and "BasicTeX".
