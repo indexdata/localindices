@@ -9,22 +9,54 @@
     mysql_credentials:
       user: localidxadm
       password: localidxadmpass
-    lui_version: v0.9
+    lui_version: v0.12
 
   tasks:
     - name: Clone lui-solr repo into development tree
       connection: local
       git: repo=ssh://git.indexdata.com:222/home/git/pub/lui-solr dest=./lui-solr version={{ lui_version }}
 
+    - name: Create deployment environment
+      become: yes
+      file: path={{ item }} state=directory
+      with_items:
+        - /usr/share/masterkey/lui
+        - /var/lib/masterkey/lui/solr/lui
+        - /var/log/masterkey/lui
+        - /etc/masterkey/lui
+        - /var/log/masterkey/harvester
+        - /etc/masterkey/harvester
+
     - name: Update apt-cache
       become: yes
       apt: update-cache=yes
       
-    - name: Install dependencies from apt
+    - name: Install apt mgmt prerequisites
       become: yes
       apt: name={{ item }} state=present
       with_items:
-        - openjdk-7-jdk
+        - python-apt
+        - apt-transport-https
+        - ca-certificates
+      
+    - name: Add backports apt repo
+      become: yes
+      apt_repository: repo="deb http://ftp.debian.org/debian jessie-backports main" state=present update_cache=yes
+
+    - name: Install Java 8 from backports
+      become: yes
+      apt: name=openjdk-8-jdk state=present default_release=jessie-backports
+
+    - name: Make Java 8 the system default 
+      become: yes
+      shell: update-java-alternatives --set java-1.8.0-openjdk-amd64 && touch /etc/.set_javadefault_ansible
+      args:
+        creates: /etc/.set_javadefault_ansible
+
+    - name: Install other dependencies from apt
+      become: yes
+      apt: name={{ item }} state=present
+      with_items:
         - tomcat8
         - tomcat8-admin
         - mysql-server
@@ -39,50 +71,46 @@
         - '  <user username="{{ tomcat_admin.user }}" password="{{ tomcat_admin.password }}" roles="manager-gui"/>'
       notify: Restart Tomcat
 
-    - name: Create deployment environment
-      become: yes
-      file: path={{ item }} state=directory
-      with_items:
-        - /usr/share/masterkey/lui/solr4/war
-        - /usr/share/masterkey/lui/solr4/master/collection1
-        - /var/lib/masterkey/lui/solr4/master
-        - /var/log/masterkey/harvester
-        - /etc/masterkey/harvester
-
-    - name: Update permissions on deployment directories
+    - name: Update permissions on harvester directories
       become: yes
       file: path={{ item }} owner=tomcat8
       with_items:
-        - /var/lib/masterkey/lui/solr4/master
         - /var/log/masterkey/harvester
 
-    - name: Link Solr prerequisites
+    - name: Create lui-solr account
       become: yes
-      file: src=/vagrant/lui-solr/lib/{{ item }} path=/usr/share/tomcat8/lib/{{ item }} state=link
+      user: name=lui-solr state=present system=yes home=/var/lib/masterkey/lui
+
+    - name: Update permissions on lui-solr directories
+      become: yes
+      file: path={{ item }} owner=lui-solr recurse=yes
       with_items:
-        - jcl-over-slf4j-1.6.6.jar
-        - jul-to-slf4j-1.6.6.jar
-        - log4j-1.2.16.jar
-        - log4j.properties
-        - slf4j-api-1.6.6.jar
-        - slf4j-log4j12-1.6.6.jar
+        - /var/lib/masterkey/lui
+        - /var/log/masterkey/lui
 
     - name: Link Solr configuration
       become: yes
-      file: src=/vagrant/lui-solr/conf path=/usr/share/masterkey/lui/solr4/master/collection1/conf state=link
+      file: src=/vagrant/lui-solr/conf/solr path=/etc/masterkey/lui/solr state=link
 
-    - name: Link solrconfig.xml
+    - name: Link Solr defaults
       become: yes
-      file: src=/vagrant/lui-solr/conf/solrconfig-master.xml dest=/vagrant/lui-solr/conf/solrconfig.xml state=link
+      file: src=/etc/masterkey/lui/solr/lui-solr.in.sh path=/etc/default/lui-solr.in.sh state=link
 
-    - name: Link Solr binary
+    - name: Install Solr binary
       become: yes
-      file: src=/vagrant/lui-solr/dist/solr-4.9.1.war path=/usr/share/masterkey/lui/solr4/war/solr.war state=link
+      command: /vagrant/lui-solr/dist/install_solr6_service.sh /vagrant/lui-solr/dist/solr-6.1.0.tgz -d /var/lib/masterkey/lui -i /usr/share/masterkey/lui -s lui-solr -u lui-solr -f creates=/usr/share/masterkey/lui/solr-6.1.0
 
-    - name: Deploy Tomcat context fragment for Solr
+    - name: Remove extra files created by Solr install
       become: yes
-      file: src=/vagrant/lui-solr/etc/solr4-tomcat-context-master.xml path=/etc/tomcat8/Catalina/localhost/solr4.xml state=link
-      notify: Restart Tomcat
+      file: path={{ item }} state=absent
+      with_items:
+        - /var/lib/masterkey/lui/log4j.properties
+        - /var/lib/masterkey/lui/logs
+        - /var/lib/masterkey/lui/data
+
+    - name: Start lui-solr service
+      become: yes
+      service: name=lui-solr state=started
 
     - name: Update MySQL root password
       become: yes

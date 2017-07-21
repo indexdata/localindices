@@ -25,3 +25,4 @@ masterkey-dal/generated-sources/
 .vagrant/
 lui-solr/
 /mvn-install.log
+*.retry
