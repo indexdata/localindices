@@ -43,7 +43,7 @@
             <argLine>-Dfile.encoding=UTF-8</argLine>
           </configuration>
         </plugin>
-	    <plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <executions>
@@ -51,15 +51,15 @@
               <id>attach-sources</id>
               <phase>verify</phase>
               <goals>
-		<goal>jar</goal>
+                <goal>jar</goal>
               </goals>
             </execution>
           </executions>
-	</plugin>
-	<!-- Build on platform that has maven 2.2.1 
-	   On RHEL5/CentOS5 install a newer maven or package it from war. 
-	  -->
-	<plugin>
+        </plugin>
+	<!-- Build on platform that has maven 2.2.1
+           On RHEL5/CentOS5 install a newer maven or package it from war.
+        -->
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>2.4.2</version>
@@ -82,7 +82,7 @@
               <version>1.8.1</version>
             </dependency>
           </dependencies>
-       </plugin>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -140,7 +140,7 @@
   </pluginRepositories>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties> 
+  </properties>
   <distributionManagement>
     <repository>
       <uniqueVersion>false</uniqueVersion>
@@ -149,11 +149,11 @@
       <url>scp://maven.indexdata.com:22/var/www/maven/repository</url>
     </repository>
     <!--
-	<site>
-	  <id>id-website</id>
-	  <url>scpexe://www.indexdata.com/var/www/software/LUI/</url>
-	</site>
-	-->
+    <site>
+      <id>id-website</id>
+      <url>scpexe://www.indexdata.com/var/www/software/LUI/</url>
+    </site>
+    -->
   </distributionManagement>
   <scm>
     <connection>scm:git:ssh://git.indexdata.com:222/home/git/private/localindices</connection>
