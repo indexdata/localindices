@@ -163,6 +163,17 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
           </archive>
+          <!-- Include version in footer.xhtml file. -->
+          <webResources>
+            <resource>
+              <directory>src/main/webapp/templates/common</directory>
+              <targetPath>templates/common</targetPath>
+              <filtering>true</filtering>
+              <includes>
+                <include>footer.xhtml</include>
+              </includes>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>
       <plugin>
