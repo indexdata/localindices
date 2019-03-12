@@ -14,7 +14,7 @@
   tasks:
     - name: Clone lui-solr repo into development tree
       connection: local
-      git: repo=ssh://git.indexdata.com:222/home/git/pub/lui-solr dest=./lui-solr version={{ lui_version }}
+      git: repo=ssh://git.indexdata.com:222/home/git/pub/lui-solr dest=./lui-solr version={{ lui_version }} accept_hostkey=yes
 
     - name: Create deployment environment
       become: yes

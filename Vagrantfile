@@ -11,5 +11,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "dev-deploy.yml"
+
+  config.vm.synced_folder "./shared", "/vagrant_shared"
   end
 end
