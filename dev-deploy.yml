@@ -27,41 +27,20 @@
         - /var/log/masterkey/harvester
         - /etc/masterkey/harvester
 
-    - name: Update apt-cache
+    - name: Install prerequisites from apt
       become: yes
-      apt: update-cache=yes
-      
-    - name: Install apt mgmt prerequisites
-      become: yes
-      apt: name={{ item }} state=present
-      with_items:
-        - python-apt
-        - apt-transport-https
-        - ca-certificates
-      
-    - name: Add backports apt repo
-      become: yes
-      apt_repository: repo="deb http://ftp.debian.org/debian jessie-backports main" state=present update_cache=yes
-
-    - name: Install Java 8 from backports
-      become: yes
-      apt: name=openjdk-8-jdk state=present default_release=jessie-backports
-
-    - name: Make Java 8 the system default 
-      become: yes
-      shell: update-java-alternatives --set java-1.8.0-openjdk-amd64 && touch /etc/.set_javadefault_ansible
-      args:
-        creates: /etc/.set_javadefault_ansible
-
-    - name: Install other dependencies from apt
-      become: yes
-      apt: name={{ item }} state=present
-      with_items:
-        - tomcat8
-        - tomcat8-admin
-        - mysql-server
-        - python-mysqldb
-        - maven 
+      apt:
+        update-cache: yes
+        name:
+          - python-apt
+          - apt-transport-https
+          - ca-certificates
+          - openjdk-8-jdk
+          - tomcat8
+          - tomcat8-admin
+          - mysql-server
+          - python-mysqldb
+          - maven 
 
     - name: Create tomcat administrative user
       become: yes
