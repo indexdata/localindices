@@ -43,9 +43,14 @@ public class InventoryRecordStorage implements RecordStorage {
   protected StorageJobLogger logger;
   protected Harvestable harvestable;
 
+  public InventoryRecordStorage() {
+
+  }
+
   public InventoryRecordStorage(Harvestable harvestable) {
     this.harvestable = harvestable;
   }
+
 
   public void init() {
     try {

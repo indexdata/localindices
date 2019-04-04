@@ -54,6 +54,10 @@ public class HarvestStorageFactory {
       FileStorage storage = new FileStorage();
       return storage;
     }
+    else if (entity instanceof com.indexdata.masterkey.localindices.entity.InventoryStorageEntity) {
+      RecordStorage storage = new InventoryRecordStorage();
+      return storage;
+    }
     else {
       }
     return harvestStorage;
