@@ -5,11 +5,6 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -29,6 +24,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 /**
  *
  * @author kurt
@@ -44,7 +44,6 @@ public class InventoryRecordStorage implements RecordStorage {
   protected Harvestable harvestable;
 
   public InventoryRecordStorage() {
-
   }
 
   public InventoryRecordStorage(Harvestable harvestable) {
@@ -66,10 +65,10 @@ public class InventoryRecordStorage implements RecordStorage {
     }
   }
   
-
   @Override
   public void begin() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    init();
+    logger.info("Inventory Record Storage begin() invoked.");
   }
 
   @Override
