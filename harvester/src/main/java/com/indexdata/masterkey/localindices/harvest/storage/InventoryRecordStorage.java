@@ -9,14 +9,14 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.http.HttpResponse;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -99,7 +99,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    this.harvestable = harvestable;
   }
 
   @Override
