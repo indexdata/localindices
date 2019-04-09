@@ -69,17 +69,17 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void begin() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Transaction begin request recieved");
   }
 
   @Override
   public void commit() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Commit request recieved");
   }
 
   @Override
   public void rollback() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Rollback request recieved");
   }
 
   @Override
@@ -99,7 +99,8 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    this.harvestable = harvestable;
+    init();
   }
 
   @Override
