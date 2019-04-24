@@ -5,18 +5,13 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.http.HttpResponse;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -28,6 +23,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
  *
@@ -64,7 +64,7 @@ public class InventoryRecordStorage implements RecordStorage {
       }
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
       client = HttpClients.createDefault();
-      okapiUrl = "http://localhost:9130";
+      okapiUrl = "http://10.0.2.2:9130";
       folioUsername = "diku_admin";
       folioPassword = "admin";
       folioTenant = "diku";
@@ -73,7 +73,7 @@ public class InventoryRecordStorage implements RecordStorage {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
   }
-  
+
 
   @Override
   public void begin() throws IOException {
@@ -93,7 +93,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void purge(boolean commit) throws IOException {
-    throw new UnsupportedOperationException("purge Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Purge request recieved");
   }
 
   @Override
@@ -128,8 +128,8 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Map<String, Collection<Serializable>> keyValues) {
     logger.info("Adding records via map");
     try {
-      addInstanceRecord(this.client, makeInstanceJson(keyValues), this.authToken,
-          this.folioTenant);
+      addInstanceRecord(this.client, makeInstanceJson(keyValues), this.folioTenant,
+              this.authToken);
     } catch(Exception e) {
       logger.error("Error adding record: " + e.getLocalizedMessage(), e);
     }
@@ -139,8 +139,8 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Record record) {
     logger.info("Adding record " + record.toString());
     try {
-      addInstanceRecord(this.client, makeInstanceJson(record), this.authToken,
-          this.folioTenant);
+      addInstanceRecord(this.client, makeInstanceJson(record), this.folioTenant,
+              this.authToken);
     } catch(Exception e) {
       logger.error("Error adding record: " + e.getLocalizedMessage(), e);
       e.printStackTrace();
@@ -209,7 +209,7 @@ public class InventoryRecordStorage implements RecordStorage {
   private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
       String tenant, String authToken)
       throws UnsupportedEncodingException, IOException {
-    String url = okapiUrl + "/instances";
+    String url = okapiUrl + "/instance-storage/instances";
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(record.toJSONString());
     httpPost.setEntity(entity);
@@ -280,5 +280,5 @@ public class InventoryRecordStorage implements RecordStorage {
   private String getResourceTypeUUID(CloseableHttpClient client, String name) {
     return UUID.randomUUID().toString();
   }
-  
+
 }
