@@ -43,6 +43,10 @@ public class InventoryRecordStorage implements RecordStorage {
   protected StorageJobLogger logger;
   protected Harvestable harvestable;
 
+  private String database;
+  private Map<String, String> databaseProperties;
+  private StorageStatus storageStatus;
+
   public InventoryRecordStorage() {
   }
 
@@ -53,13 +57,17 @@ public class InventoryRecordStorage implements RecordStorage {
 
   public void init() {
     try {
-      Storage storage = harvestable.getStorage();
+      Storage storage = null;
+      if(harvestable != null) {
+        storage = harvestable.getStorage();
+      }
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
       client = HttpClients.createDefault();
       okapiUrl = "http://localhost:9130";
       folioUsername = "diku_admin";
       folioPassword = "admin";
       folioTenant = "diku";
+      storageStatus = new InventoryStorageStatus(okapiUrl, authToken);
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -67,57 +75,67 @@ public class InventoryRecordStorage implements RecordStorage {
   
   @Override
   public void begin() throws IOException {
-    init();
-    logger.info("Inventory Record Storage begin() invoked.");
+    logger.info("Transaction begin request recieved");
+    database = harvestable.getId().toString();
   }
 
   @Override
   public void commit() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Commit request recieved");
   }
 
   @Override
   public void rollback() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Rollback request recieved");
   }
 
   @Override
   public void purge(boolean commit) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("purge Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void setOverwriteMode(boolean mode) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("set overwrite mode Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public boolean getOverwriteMode() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("get overwrite mode Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
     this.harvestable = harvestable;
+    init();
   }
 
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Database started");
+    this.databaseProperties = properties;
+    this.database = database;
   }
 
   @Override
   public void databaseEnd() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Database ended");
   }
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Adding records via map");
+    try {
+      addInstanceRecord(this.client, makeInstanceJson(keyValues), this.authToken,
+          this.folioTenant);
+    } catch(Exception e) {
+      logger.error("Error adding record: " + e.getLocalizedMessage(), e);
+    }
   }
 
   @Override
   public void add(Record record) {
+    logger.info("Adding record " + record.toString());
     try {
       addInstanceRecord(this.client, makeInstanceJson(record), this.authToken,
           this.folioTenant);
@@ -129,37 +147,37 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public Record get(String id) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("get by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void delete(String id) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("delete by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("set logger Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return this.storageStatus;
   }
 
   @Override
   public DatabaseContenthandler getContentHandler() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return new Pz2SolrRecordContentHandler(this, database);
   }
 
   @Override
   public void shutdown() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("shutdown Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void setBatchLimit(int limit) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   private JSONObject makeInstanceJson(Record record) {
@@ -170,6 +188,16 @@ public class InventoryRecordStorage implements RecordStorage {
     Map<String, Collection<Serializable>> values = record.getValues();
     for(String key : values.keySet()) {
       for (Serializable value : values.get(key)) {
+        instanceJson.put(key, value);
+      }
+    }
+    return instanceJson;
+  }
+
+  private JSONObject makeInstanceJson(Map<String, Collection<Serializable>> keyValues) {
+    JSONObject instanceJson = new JSONObject();
+    for(String key : keyValues.keySet()) {
+      for( Serializable value : keyValues.get(key)) {
         instanceJson.put(key, value);
       }
     }
