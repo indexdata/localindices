@@ -219,8 +219,8 @@ CREATE TABLE `STORAGE` (
 LOCK TABLES `STORAGE` WRITE;
 /*!40000 ALTER TABLE `STORAGE` DISABLE KEYS */;
 INSERT INTO `STORAGE` VALUES (103,'SolrStorageEntity',1,'TODO','Solr @ localhost',NULL,NULL,'Solr at localhost:8983','http://localhost:8983/solr/lui/',NULL,NULL,NULL,NULL,1000,60,2,60);
-INSERT INTO `STORAGE` VALUES (104,'InventoryStorageEntity',1,'TODO','FOLIO Inventory Storage @ localhost',NULL,NULL,'Inventory Storage at localhost','http://10.0.2.2:9130/instance-storage/instances',NULL,NULL,NULL,NULL,1000,60,2,60);
-INSERT INTO `STORAGE` VALUES (105,'InventoryStorageEntity',1,'TODO','FOLIO Inventory Match @ localhost',NULL,NULL,'Inventory Match at localhost','http://10.0.2.2:9130/instance-storage-match/instances',NULL,NULL,NULL,NULL,1000,60,2,60);
+/*INSERT INTO `STORAGE` VALUES (104,'InventoryStorageEntity',1,'TODO','FOLIO Inventory Storage @ localhost',NULL,NULL,'Inventory Storage at localhost','http://10.0.2.2:9130/instance-storage/instances',NULL,NULL,NULL,NULL,1000,60,2,60);*/
+/*INSERT INTO `STORAGE` VALUES (105,'InventoryStorageEntity',1,'TODO','FOLIO Inventory Match @ localhost',NULL,NULL,'Inventory Match at localhost','http://10.0.2.2:9130/instance-storage-match/instances',NULL,NULL,NULL,NULL,1000,60,2,60);*/
 /*!40000 ALTER TABLE `STORAGE` ENABLE KEYS */;
 UNLOCK TABLES;
 
