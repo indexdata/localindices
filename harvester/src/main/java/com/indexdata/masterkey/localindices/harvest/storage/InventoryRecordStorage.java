@@ -63,7 +63,7 @@ public class InventoryRecordStorage implements RecordStorage {
       }
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
       client = HttpClients.createDefault();
-      okapiUrl = "http://localhost:9130";
+      okapiUrl = "http://10.0.2.2:9130";
       folioUsername = "diku_admin";
       folioPassword = "admin";
       folioTenant = "diku";
@@ -72,7 +72,7 @@ public class InventoryRecordStorage implements RecordStorage {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
   }
-  
+
   @Override
   public void begin() throws IOException {
     logger.info("Transaction begin request recieved");
@@ -91,7 +91,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void purge(boolean commit) throws IOException {
-    throw new UnsupportedOperationException("purge Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    logger.info("Purge request recieved");
   }
 
   @Override
@@ -126,8 +126,13 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Map<String, Collection<Serializable>> keyValues) {
     logger.info("Adding records via map");
     try {
-      addInstanceRecord(this.client, makeInstanceJson(keyValues), this.authToken,
-          this.folioTenant);
+      JSONObject json = makeInstanceJson(keyValues);
+      if (json.containsKey("title")) {
+        addInstanceRecord(this.client, json, this.folioTenant,
+                this.authToken);
+      } else {
+        logger.info("Skipping JSON without a title");
+      }
     } catch(Exception e) {
       logger.error("Error adding record: " + e.getLocalizedMessage(), e);
     }
@@ -137,8 +142,13 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Record record) {
     logger.info("Adding record " + record.toString());
     try {
-      addInstanceRecord(this.client, makeInstanceJson(record), this.authToken,
-          this.folioTenant);
+      JSONObject json = makeInstanceJson(record);
+      if (json.containsKey("title")) {
+        addInstanceRecord(this.client, json, this.folioTenant,
+                this.authToken);
+      } else {
+        logger.info("Skipping JSON without a title");
+      }
     } catch(Exception e) {
       logger.error("Error adding record: " + e.getLocalizedMessage(), e);
       e.printStackTrace();
@@ -182,15 +192,18 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private JSONObject makeInstanceJson(Record record) {
     JSONObject instanceJson = new JSONObject();
-    if(record.getId() != null) {
-      instanceJson.put("recordId", record.getId());
-    }
     Map<String, Collection<Serializable>> values = record.getValues();
+
     for(String key : values.keySet()) {
       for (Serializable value : values.get(key)) {
-        instanceJson.put(key, value);
+        if (key.equals("title")) {
+          instanceJson.put(key, value);
+          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
+          instanceJson.put("source", "HARVEST");
+        }
       }
     }
+    logger.info("Created instanceJson from record: "+instanceJson.toJSONString());
     return instanceJson;
   }
 
@@ -198,16 +211,22 @@ public class InventoryRecordStorage implements RecordStorage {
     JSONObject instanceJson = new JSONObject();
     for(String key : keyValues.keySet()) {
       for( Serializable value : keyValues.get(key)) {
-        instanceJson.put(key, value);
+        if (key.equals("title")) {
+          instanceJson.put(key, value);
+          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
+          instanceJson.put("source", "HARVEST");
+        }
       }
     }
+    logger.info("Created instanceJson from key-values: "+instanceJson.toJSONString());
     return instanceJson;
   }
 
   private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
       String tenant, String authToken)
       throws UnsupportedEncodingException, IOException {
-    String url = okapiUrl + "/instances";
+    logger.info("About to POST: " + record.toJSONString());
+    String url = okapiUrl + "/instance-storage/instances";
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(record.toJSONString());
     httpPost.setEntity(entity);
@@ -215,7 +234,9 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("Content-type", "application/json");
     httpPost.setHeader("X-Okapi-Token", authToken);
     httpPost.setHeader("X-Okapi-Tenant", tenant);
+
     CloseableHttpResponse response = client.execute(httpPost);
+    logger.info("Status code: "+response.getStatusLine().getStatusCode());
     if(response.getStatusLine().getStatusCode() != 201) {
       throw new IOException(String.format("Got error adding record: %s", record.toJSONString()));
     }
@@ -278,5 +299,5 @@ public class InventoryRecordStorage implements RecordStorage {
   private String getResourceTypeUUID(CloseableHttpClient client, String name) {
     return UUID.randomUUID().toString();
   }
-  
+
 }
