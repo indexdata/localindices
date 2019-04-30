@@ -54,12 +54,12 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   @Override
   public Long getAdds() {
-    return deletes;
+    return adds;
   }
 
   @Override
   public Long getDeletes() {
-    return adds;
+    return deletes;
   }
 
 }
