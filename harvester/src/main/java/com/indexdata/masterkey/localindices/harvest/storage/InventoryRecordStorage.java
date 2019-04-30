@@ -141,18 +141,41 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void add(Record record) {
     logger.info("Adding record " + record.toString());
-    try {
-      JSONObject json = makeInstanceJson(record);
-      if (json.containsKey("title")) {
-        addInstanceRecord(this.client, json, this.folioTenant,
-                this.authToken);
-      } else {
-        logger.info("Skipping JSON without a title");
+    logger.info("Record is collection?: "+ record.isCollection());
+    if (record.isCollection()) {
+      Collection<Record> subrecords = record.getSubRecords();
+      //if collection does include subrecord, "split" them programmatically
+      if (subrecords.size() > 1) {
+        for (Record rec : subrecords) {
+          try {
+            JSONObject json = makeInstanceJson(rec);
+            if (json.containsKey("title")) {
+              addInstanceRecord(this.client, json, this.folioTenant,
+                      this.authToken);
+            } else {
+              logger.info("Skipping JSON without a title");
+            }
+          } catch(Exception e) {
+            logger.error("Error adding record: " + e.getLocalizedMessage(), e);
+            e.printStackTrace();
+          }
+        }
       }
-    } catch(Exception e) {
-      logger.error("Error adding record: " + e.getLocalizedMessage(), e);
-      e.printStackTrace();
+    } else {
+      try {
+        JSONObject json = makeInstanceJson(record);
+        if (json.containsKey("title")) {
+          addInstanceRecord(this.client, json, this.folioTenant,
+                  this.authToken);
+        } else {
+          logger.info("Skipping JSON without a title");
+        }
+      } catch(Exception e) {
+        logger.error("Error adding record: " + e.getLocalizedMessage(), e);
+        e.printStackTrace();
+      }
     }
+    
   }
 
   @Override
