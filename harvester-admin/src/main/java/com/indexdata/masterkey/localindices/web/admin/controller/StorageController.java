@@ -146,11 +146,8 @@ public class StorageController {
   }
 
   public String prepareInventoryStorageToAdd() {
-    logger.log(Level.INFO, "Invoked prepareInventoryStorageToAdd()");
-    logger.log(Level.INFO, "Instantiating InventoryStorageEntity");
     storage = new InventoryStorageEntity();
-    logger.log(Level.INFO, "Returning new_zebrastorage");
-    return "new_zebrastorage";
+    return "new_inventorystorage";
   }
 
   public String addStorage() {
