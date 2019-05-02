@@ -26,6 +26,7 @@ import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
+import com.indexdata.masterkey.localindices.entity.InventoryStorageEntity;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
@@ -33,7 +34,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 /**
  * The controller for the Admin interface for storages, implements all the
  * business logic and controls data access through DAO object
- * 
+ *
  * @author Dennis
  */
 public class StorageController {
@@ -144,6 +145,12 @@ public class StorageController {
     return "new_consolestorage";
   }
 
+  public String prepareInventoryStorageToAdd() {
+    logger.log(Level.INFO, "Invoked prepareInventoryStorageToAdd()");
+    storage = new InventoryStorageEntity();
+    return "new_inventorystorage";
+  }
+
   public String addStorage() {
     prePersist();
     dao.create(storage);
@@ -158,6 +165,8 @@ public class StorageController {
     logger.log(Level.INFO, "Retrieved persisted resource of type " + storage.getClass().getName());
     if (storage instanceof SolrStorageEntity) {
       return "edit_solrstorage";
+    } else if (storage instanceof InventoryStorageEntity) {
+      return "edit_inventorystorage";
     }
     /*
      * else if (resource instanceof ZebraStorage) { return "edit_zebrastorage";
@@ -178,7 +187,7 @@ public class StorageController {
   }
 
   private boolean isPb() {
-    FacesContext ctx = FacesContext.getCurrentInstance();	
+    FacesContext ctx = FacesContext.getCurrentInstance();
     return ctx.getRenderKit().getResponseStateManager().isPostback(ctx);
   }
 
@@ -237,7 +246,7 @@ public class StorageController {
     if (storage instanceof SolrStorageEntity) {
       Storage solrStorage = (Storage) storage;
       storageAdminSite = solrStorage.getSearchUrl() + "admin";
-      return storageAdminSite;     
+      return storageAdminSite;
     }
     return "";
   }
@@ -257,12 +266,12 @@ public class StorageController {
     } else {
       String param = FacesContext.getCurrentInstance().getExternalContext()
 	  .getRequestParameterMap().get("storageId");
-      if (param != null) { 
+      if (param != null) {
 	logger.log(Level.DEBUG, "StorageId found " + param);
 	Long id = new Long(param);
 	o = dao.retrieveById(id);
       }
-      else 
+      else
 	logger.log(Level.ERROR, "No StorageId parameter found on request");
     }
     return o;

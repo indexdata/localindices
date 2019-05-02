@@ -17,6 +17,9 @@
           <h:commandLink styleClass="navigation"  value="ZooKeeper (Solr)" action="#{storageController.prepareSolrStorageToAdd}">
                 <f:param name="customClass" value="com.indexdata.masterkey.localindices.harvest.storage.ZooKeeperSolrRecordStorage"/>
           </h:commandLink>
+          <h:commandLink styleClass="navigation"  value="FOLIO Inventory" action="#{storageController.prepareInventoryStorageToAdd}">
+                <f:param name="customClass" value="com.indexdata.masterkey.localindices.harvest.storage.InventoryRecordStorage"/>
+          </h:commandLink>
           <!-- 
                           <h:outputText value=", "/>
                           <h:commandLink styleClass="navigation"  value="ConsoleStorage" action="#{storageController.prepareConsoleStorageToAdd}" />       

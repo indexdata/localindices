@@ -6,7 +6,7 @@
     xmlns="http://java.sun.com/xml/ns/javaee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_1.xsd"
-    version="2.1">    
+    version="2.1">
     <managed-bean>
         <managed-bean-name>resourceController</managed-bean-name>
         <managed-bean-class>com.indexdata.masterkey.localindices.web.admin.controller.JobController</managed-bean-class>
@@ -150,6 +150,10 @@
             <from-outcome>new_zebrastorage</from-outcome>
             <to-view-id>/storages/add_zebra.xhtml</to-view-id>
         </navigation-case>
+        <navigation_case>
+            <from-outcome>new_inventorystorage</from-outcome>
+            <to-view-id>/storages/add_inventory.xhtml</to-view-id>
+        </navigation_case>
         <navigation-case>
             <from-outcome>edit_xmlstorage</from-outcome>
             <to-view-id>/storages/edit_xmlstorage.xhtml</to-view-id>
@@ -161,6 +165,10 @@
         <navigation-case>
             <from-outcome>edit_solrstorage</from-outcome>
             <to-view-id>/storages/edit_solr.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>edit_inventorystorage</from-outcome>
+            <to-view-id>/storages/edit_inventory.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_zebrastorage</from-outcome>
@@ -261,5 +269,5 @@
             <from-outcome>cancel</from-outcome>
             <to-view-id>/transformations/list.xhtml</to-view-id>
         </navigation-case>
-    </navigation-rule> 
+    </navigation-rule>
 </faces-config>

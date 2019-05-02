@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
+  <body>
+    <ui:composition>
+      <h5>FOLIO Inventory specific information: </h5>
+      <h:panelGrid columns="2">
+        <h:outputText value="Server URL:"/>
+        <h:panelGroup>
+          <h:inputText id="inventoryUrl" value="#{storageController.storage.url}" size="100"
+             required="true" requiredMessage="Please provide FOLIO Inventory URL!"/>
+          <id:helplink field="[Storage Engines][General information][Server URL]"/>
+          <h:message for="inventoryUrl" style="color: red;"/>
+        </h:panelGroup>
+        <!--
+                <h:inputText value="#{storageController.storage.transformation}"/>
+        -->
+        <h:outputText style="Display: None;" styleClass="optionalInput" value="Bulk size" />
+        <h:panelGroup style="Display: None;">
+          <h:inputText id="bulkSize" styleClass="optionalInput" value="#{storageController.storage.bulkSize}" size="20"/>
+          <id:helplink field="[Storage Engines][General information][Bulk size]"/>
+          <h:message for="bulkSize" style="color: red;"/>
+        </h:panelGroup>
+      </h:panelGrid>
+    </ui:composition>
+  </body>
+</html>
