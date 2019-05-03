@@ -248,7 +248,6 @@ public class InventoryRecordStorage implements RecordStorage {
   private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
       String tenant, String authToken)
       throws UnsupportedEncodingException, IOException {
-    logger.info("About to POST: " + record.toJSONString());
     String url = okapiUrl + "/instance-storage/instances";
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(record.toJSONString());
@@ -257,9 +256,9 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("Content-type", "application/json");
     httpPost.setHeader("X-Okapi-Token", authToken);
     httpPost.setHeader("X-Okapi-Tenant", tenant);
-
     CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: "+response.getStatusLine().getStatusCode());
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + record.toJSONString());
+    response.close();
     if(response.getStatusLine().getStatusCode() != 201) {
       throw new IOException(String.format("Got error adding record: %s", record.toJSONString()));
     }
