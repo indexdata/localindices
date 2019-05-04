@@ -34,8 +34,8 @@ public class MainVerticle extends AbstractVerticle {
     HttpServer server = vertx.createHttpServer();
 
     router.route("/*").handler(BodyHandler.create());
-    router.route("/instances/:id").handler(this::handleInstances);
-    router.route("/instances").handler(this::handleInstances);
+    router.route("/instance-storage/:id").handler(this::handleInstances);
+    router.route("/instance-storage").handler(this::handleInstances);
     router.route("/bl-users/login").handler(this::handleLogin);
 
     logger.info("Running MIS-Mock on port " + port);

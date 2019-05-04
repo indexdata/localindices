@@ -28,6 +28,9 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -46,6 +49,12 @@ public class InventoryRecordStorage implements RecordStorage {
   private String database;
   private Map<String, String> databaseProperties;
   private StorageStatus storageStatus;
+  private Date transactionStart;
+  private List<String> transactionIdList;
+
+  private String instanceTypeId = "6312d172-f0cf-40f6-b27d-9fa8feaf332f"; //TODO - Implement a lookup for this
+
+
 
   public InventoryRecordStorage() {
   }
@@ -77,15 +86,19 @@ public class InventoryRecordStorage implements RecordStorage {
   public void begin() throws IOException {
     logger.info("Transaction begin request recieved");
     database = harvestable.getId().toString();
+    transactionStart = new Date();
+    transactionIdList = new ArrayList<String>();
   }
 
   @Override
   public void commit() throws IOException {
     logger.info("Commit request recieved");
+    storageStatus.setTransactionState(StorageStatus.TransactionState.Committed);
   }
 
   @Override
   public void rollback() throws IOException {
+    //TODO: Issue deletes for all of the IDs in the transactionIdList
     logger.info("Rollback request recieved");
   }
 
@@ -221,7 +234,7 @@ public class InventoryRecordStorage implements RecordStorage {
       for (Serializable value : values.get(key)) {
         if (key.equals("title")) {
           instanceJson.put(key, value);
-          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
+          instanceJson.put("instanceTypeId", instanceTypeId);
           instanceJson.put("source", "HARVEST");
         }
       }
@@ -236,7 +249,7 @@ public class InventoryRecordStorage implements RecordStorage {
       for( Serializable value : keyValues.get(key)) {
         if (key.equals("title")) {
           instanceJson.put(key, value);
-          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
+          instanceJson.put("instanceTypeId", instanceTypeId);
           instanceJson.put("source", "HARVEST");
         }
       }
@@ -245,7 +258,11 @@ public class InventoryRecordStorage implements RecordStorage {
     return instanceJson;
   }
 
-  private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
+  /*
+    Add a new instance record to the folio inventory storage backend. Return the
+    ID for the newly added instance.
+  */
+  private String addInstanceRecord(CloseableHttpClient client, JSONObject record,
       String tenant, String authToken)
       throws UnsupportedEncodingException, IOException {
     logger.info("About to POST: " + record.toJSONString());
@@ -268,7 +285,7 @@ public class InventoryRecordStorage implements RecordStorage {
   private JSONObject getInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken)
       throws IOException, ParseException {
-    String url = String.format("%s/instances/%s", okapiUrl, id);
+    String url = String.format("%s/instance-storage/%s", okapiUrl, id);
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -287,7 +304,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private void deleteInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken) throws IOException {
-    String url = String.format("%s/instances/%s", okapiUrl, id);
+    String url = String.format("%s/instance-storage/%s", okapiUrl, id);
     HttpDelete httpDelete = new HttpDelete(url);
     httpDelete.setHeader("Accept", "application/json");
     httpDelete.setHeader("Content-type", "application/json");

@@ -13,6 +13,10 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   long adds;
   long deletes;
+
+  long outstandingAdds;
+  long outstandingDeletes;
+
   String okapiURL;
   String accessToken;
   TransactionState transactionState = TransactionState.NoTransaction;
@@ -20,6 +24,9 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
   public InventoryStorageStatus(String okapiURL, String accessToken) {
     adds = 0L;
     deletes = 0L;
+    outstandingAdds = 0L;
+    outstandingDeletes = 0L;
+
     this.okapiURL = okapiURL;
     this.accessToken = accessToken;
   }
@@ -37,19 +44,23 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   @Override
   public void setTransactionState(TransactionState state) {
+    if(TransactionState.Committed == state) {
+      adds = outstandingAdds;
+      deletes = outstandingDeletes;
+      outstandingAdds = 0;
+      outstandingDeletes = 0;
+    }
     this.transactionState = state;
   }
 
   @Override
   public Long getOutstandingAdds() {
-    // TODO: Support pseudo-transactions
-    return 0L;
+    return outstandingAdds;
   }
 
   @Override
   public Long getOutstandingDeletes() {
-    // TODO: Support pseudo-transactions
-    return 0L;
+    return outstandingDeletes;
   }
 
   @Override
@@ -60,6 +71,16 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
   @Override
   public Long getDeletes() {
     return deletes;
+  }
+
+  public synchronized long incrementAdd(long add) {
+    outstandingAdds += add;
+    return outstandingAdds;
+  }
+
+  public synchronized long incrementDelete(long delete) {
+    outstandingDeletes += delete;
+    return outstandingDeletes;
   }
 
 }
