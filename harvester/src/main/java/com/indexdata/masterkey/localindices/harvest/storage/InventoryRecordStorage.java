@@ -20,6 +20,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -124,18 +125,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
-    logger.info("Adding records via map");
-    try {
-      JSONObject json = makeInstanceJson(keyValues);
-      if (json.containsKey("title")) {
-        addInstanceRecord(this.client, json, this.folioTenant,
-                this.authToken);
-      } else {
-        logger.info("Skipping JSON without a title");
-      }
-    } catch(Exception e) {
-      logger.error("Error adding record: " + e.getLocalizedMessage(), e);
-    }
+    throw new UnsupportedOperationException("Adding record by key-values collection not supported.");
   }
 
   @Override
@@ -175,7 +165,7 @@ public class InventoryRecordStorage implements RecordStorage {
         e.printStackTrace();
       }
     }
-    
+
   }
 
   @Override
@@ -214,34 +204,56 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   private JSONObject makeInstanceJson(Record record) {
+
     JSONObject instanceJson = new JSONObject();
     Map<String, Collection<Serializable>> values = record.getValues();
+    logger.info("record,values: " + values);
 
-    for(String key : values.keySet()) {
-      for (Serializable value : values.get(key)) {
-        if (key.equals("title")) {
-          instanceJson.put(key, value);
-          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
-          instanceJson.put("source", "HARVEST");
-        }
+    Serializable title = values.containsKey("title") ? values.get("title").iterator().next() : "";
+    instanceJson.put("title", title);
+
+    instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
+    instanceJson.put("source", "HARVEST");
+
+    if (values.containsKey("author")) {
+      JSONArray contributors = new JSONArray();
+      for (Serializable author : values.get("author")) {
+        JSONObject contributor = new JSONObject();
+        contributor.put("name", author);
+        contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a");
+        contributor.put("primary", true);
+        contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81");
+        contributors.add(contributor);
       }
+      instanceJson.put("contributors", contributors);
+    }
+
+    if (values.containsKey("subject")) {
+      JSONArray subjects = new JSONArray();
+      for (Serializable subject : values.get("subject")) {
+        subjects.add(subject);
+      }
+      instanceJson.put("subjects", subjects);
+    }
+
+    if (values.containsKey("description")) {
+      JSONArray notes = new JSONArray();
+      for (Serializable description : values.get("description")) {
+        notes.add(description);
+      }
+      instanceJson.put("notes", notes);
+    }
+
+    if (values.containsKey("publication-name")) {
+      JSONArray publication = new JSONArray();
+      for (Serializable publicationName : values.get("publication-name")) {
+        JSONObject publisher = new JSONObject();
+        publisher.put("publisher", publicationName);
+        publication.add(publisher);
+      }
+      instanceJson.put("publication", publication);
     }
     logger.info("Created instanceJson from record: "+instanceJson.toJSONString());
-    return instanceJson;
-  }
-
-  private JSONObject makeInstanceJson(Map<String, Collection<Serializable>> keyValues) {
-    JSONObject instanceJson = new JSONObject();
-    for(String key : keyValues.keySet()) {
-      for( Serializable value : keyValues.get(key)) {
-        if (key.equals("title")) {
-          instanceJson.put(key, value);
-          instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
-          instanceJson.put("source", "HARVEST");
-        }
-      }
-    }
-    logger.info("Created instanceJson from key-values: "+instanceJson.toJSONString());
     return instanceJson;
   }
 
