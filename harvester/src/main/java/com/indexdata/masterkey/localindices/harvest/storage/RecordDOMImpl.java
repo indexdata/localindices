@@ -1,24 +1,27 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import ORG.oclc.oai.harvester2.verb.XPathHelper;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+
+import ORG.oclc.oai.harvester2.verb.XPathHelper;
 
 public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pz2Namespace = "http://www.indexdata.com/pazpar2/1.0";
@@ -36,11 +39,11 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String xpathStatus = ".//pz:metadata[@type='status']";
   private String xpathId = ".//pz:metadata[@type='id']";
   Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
-  
+
   public RecordDOMImpl(Record record) {
     if (record instanceof RecordDOM)
       setNode(((RecordDOMImpl) record).toNode());
-    else 
+    else
       valueMap = record.getValues();
     setId(record.getId());
     setDatabase(record.getDatabase());
@@ -65,7 +68,6 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
 
   public void setNode(Node node) {
     this.node = node;
-//    valueMap 
     extractDelete();
     extractId();
   }
@@ -82,7 +84,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     }
   }
 
-  protected void extractId() 
+  protected void extractId()
   {
     XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, nsContext);
     try {
@@ -107,14 +109,17 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       } else {
         root = node.getOwnerDocument().getDocumentElement();
       }
-      boolean isCollection = root.getTagName().equals("collection") 
-        || root.getTagName().equals("pz:collection");
+      boolean isCollection = (
+              root != null
+              && (root.getTagName().equals("collection") ||
+                  root.getTagName().equals("pz:collection"))
+              );
       return isCollection;
     } else {
       return false;
     }
   }
-  
+
   public Collection<Record> getSubRecords() {
     if (!isCollection()) return null;
     NodeList children = node.getNodeType() == Node.DOCUMENT_NODE
@@ -132,9 +137,9 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     }
     return list;
   }
-  
+
   public Map<String, Collection<Serializable>> getValues() {
-    if (node == null) 
+    if (node == null)
       return valueMap;
     valueMap.clear();
     try {
@@ -147,14 +152,14 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     } catch (XPathExpressionException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    } 
+    }
     return valueMap;
   }
 
   /**
    * Merge a XML node into a record
    * @param node
-   * 
+   *
    * TODO Only works on PZ nodes
    */
   public void merge(Node node) {
@@ -180,7 +185,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       if (key != null)
       {
 	Collection<Serializable> values = valueMap.get(key);
-	if (values == null) { 
+	if (values == null) {
 	  values = new LinkedList();
 	  valueMap.put(key, values);
 	}
@@ -196,7 +201,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   }
 
   public Node toNode() {
-    if (node != null) 
+    if (node != null)
       return node;
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder;
@@ -208,7 +213,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     Document doc = builder.newDocument();
     Element recordElement = doc.createElementNS(pz2Namespace, pzRecord);
     doc.appendChild(recordElement);
-    
+
     Map<String, Collection<Serializable>> keyValues = valueMap;
     for (Object obj : keyValues.keySet()) {
       	if (obj instanceof String) {

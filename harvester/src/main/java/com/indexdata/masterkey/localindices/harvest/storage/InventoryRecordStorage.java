@@ -20,7 +20,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -129,43 +128,27 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void add(Record record) {
-    logger.info("Adding record " + record.toString());
-    logger.info("Record is collection?: "+ record.isCollection());
-    if (record.isCollection()) {
-      Collection<Record> subrecords = record.getSubRecords();
-      //if collection does include subrecord, "split" them programmatically
-      if (subrecords.size() > 1) {
-        for (Record rec : subrecords) {
+  public void add(Record recordJson) {
+    if (recordJson.isCollection()) {
+      Collection<Record> subrecords = recordJson.getSubRecords();
+        for (Record subRecord : subrecords) {
           try {
-            JSONObject json = makeInstanceJson(rec);
-            if (json.containsKey("title")) {
-              addInstanceRecord(this.client, json, this.folioTenant,
-                      this.authToken);
-            } else {
-              logger.info("Skipping JSON without a title");
-            }
-          } catch(Exception e) {
-            logger.error("Error adding record: " + e.getLocalizedMessage(), e);
-            e.printStackTrace();
+            addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
+          } catch(UnsupportedEncodingException uee) {
+            logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+          } catch(IOException ioe) {
+            logger.error("IO exception when adding record: " + ioe.getLocalizedMessage(), ioe);
           }
         }
-      }
     } else {
       try {
-        JSONObject json = makeInstanceJson(record);
-        if (json.containsKey("title")) {
-          addInstanceRecord(this.client, json, this.folioTenant,
-                  this.authToken);
-        } else {
-          logger.info("Skipping JSON without a title");
-        }
-      } catch(Exception e) {
-        logger.error("Error adding record: " + e.getLocalizedMessage(), e);
-        e.printStackTrace();
+        addInstanceRecord(this.client, ((RecordJSON)recordJson).toJson(), this.folioTenant, this.authToken);
+      } catch(UnsupportedEncodingException uee) {
+        logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+      } catch(IOException ioe) {
+        logger.error("IO exception when adding record: " + ioe.getLocalizedMessage(), ioe);
       }
     }
-
   }
 
   @Override
@@ -201,60 +184,6 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limit) {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  private JSONObject makeInstanceJson(Record record) {
-
-    JSONObject instanceJson = new JSONObject();
-    Map<String, Collection<Serializable>> values = record.getValues();
-    logger.info("record,values: " + values);
-
-    Serializable title = values.containsKey("title") ? values.get("title").iterator().next() : "";
-    instanceJson.put("title", title);
-
-    instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
-    instanceJson.put("source", "HARVEST");
-
-    if (values.containsKey("author")) {
-      JSONArray contributors = new JSONArray();
-      for (Serializable author : values.get("author")) {
-        JSONObject contributor = new JSONObject();
-        contributor.put("name", author);
-        contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a");
-        contributor.put("primary", true);
-        contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81");
-        contributors.add(contributor);
-      }
-      instanceJson.put("contributors", contributors);
-    }
-
-    if (values.containsKey("subject")) {
-      JSONArray subjects = new JSONArray();
-      for (Serializable subject : values.get("subject")) {
-        subjects.add(subject);
-      }
-      instanceJson.put("subjects", subjects);
-    }
-
-    if (values.containsKey("description")) {
-      JSONArray notes = new JSONArray();
-      for (Serializable description : values.get("description")) {
-        notes.add(description);
-      }
-      instanceJson.put("notes", notes);
-    }
-
-    if (values.containsKey("publication-name")) {
-      JSONArray publication = new JSONArray();
-      for (Serializable publicationName : values.get("publication-name")) {
-        JSONObject publisher = new JSONObject();
-        publisher.put("publisher", publicationName);
-        publication.add(publisher);
-      }
-      instanceJson.put("publication", publication);
-    }
-    logger.info("Created instanceJson from record: "+instanceJson.toJSONString());
-    return instanceJson;
   }
 
   private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
