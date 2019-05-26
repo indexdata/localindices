@@ -134,6 +134,7 @@ public class InventoryRecordStorage implements RecordStorage {
         for (Record subRecord : subrecords) {
           try {
             addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
+            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
           } catch(UnsupportedEncodingException uee) {
             logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
           } catch(IOException ioe) {
@@ -143,6 +144,7 @@ public class InventoryRecordStorage implements RecordStorage {
     } else {
       try {
         addInstanceRecord(this.client, ((RecordJSON)recordJson).toJson(), this.folioTenant, this.authToken);
+        ((InventoryStorageStatus) storageStatus).incrementAdd(1);
       } catch(UnsupportedEncodingException uee) {
         logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
       } catch(IOException ioe) {
