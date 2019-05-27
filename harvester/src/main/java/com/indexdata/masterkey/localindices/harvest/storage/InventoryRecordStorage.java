@@ -64,13 +64,48 @@ public class InventoryRecordStorage implements RecordStorage {
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
       client = HttpClients.createDefault();
       okapiUrl = "http://10.0.2.2:9130";
-      folioUsername = "diku_admin";
-      folioPassword = "admin";
-      folioTenant = "diku";
+      folioUsername = getConstantFieldsValue("folioUsername");
+      folioPassword = getConstantFieldsValue("folioPassword");
+      folioTenant   = getConstantFieldsValue("folioTenant", "diku");
+      if (folioUsername != null && folioPassword != null && folioTenant != null) {
+        authToken = getAuthtoken(client, folioUsername, folioPassword, folioTenant);
+      } else {
+        logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
+                + "Will attempt to continue without for tenant [" + folioTenant + "]."
+                + "This would only work for a FOLIO instance with no authentication enabled.");
+      }
       storageStatus = new InventoryStorageStatus(okapiUrl, authToken);
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
+  }
+
+  private String getConstantFieldsValue(String key) {
+    String value = null;
+    if (harvestable != null) {
+      String constantFields = harvestable.getConstantFields();
+      if (constantFields != null && constantFields.length()>0) {
+        for (String keyval : constantFields.split(",")) {
+          String[] keyvalArr = keyval.split("=");
+          if (keyvalArr.length==2 && keyvalArr[0].equals(key)) {
+            value = keyvalArr[1];
+          }
+        }
+        if (value == null) {
+          logger.warn("Did not find value for key [" + key + "] in 'constantFields': " + constantFields);
+        }
+      } else {
+        logger.warn("Cannot find value for key [" + key + "] because harvestable.constantFields is empty");
+      }
+    } else {
+      logger.warn("Cannot find value for key [" + key + "] from 'constantFields' because harvestable is null");
+    }
+    return value;
+  }
+
+  private String getConstantFieldsValue (String key, String defaultValue) {
+    String value = getConstantFieldsValue (key);
+    return value != null ? value : defaultValue;
   }
 
   @Override
@@ -248,6 +283,8 @@ public class InventoryRecordStorage implements RecordStorage {
     String url = okapiUrl + "/bl-users/login";
     HttpPost httpPost = new HttpPost(url);
     JSONObject loginJson = new JSONObject();
+    loginJson.put("username", username);
+    loginJson.put("password", password);
     StringEntity entity = new StringEntity(loginJson.toJSONString());
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
