@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.IOException;
@@ -62,19 +57,6 @@ public class InventoryRecordStorage implements RecordStorage {
         storage = harvestable.getStorage();
       }
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
-      client = HttpClients.createDefault();
-      okapiUrl = "http://10.0.2.2:9130";
-      folioUsername = getConstantFieldsValue("folioUsername");
-      folioPassword = getConstantFieldsValue("folioPassword");
-      folioTenant   = getConstantFieldsValue("folioTenant", "diku");
-      if (folioUsername != null && folioPassword != null && folioTenant != null) {
-        authToken = getAuthtoken(client, folioUsername, folioPassword, folioTenant);
-      } else {
-        logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
-                + "Will attempt to continue without for tenant [" + folioTenant + "]."
-                + "This would only work for a FOLIO instance with no authentication enabled.");
-      }
-      storageStatus = new InventoryStorageStatus(okapiUrl, authToken);
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -147,9 +129,29 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
-    logger.info("Database started");
+    logger.info("Database started: " + database + ", with properties " + properties);
     this.databaseProperties = properties;
     this.database = database;
+    try {
+      client = HttpClients.createDefault();
+      okapiUrl = "http://10.0.2.2:8130";
+      folioUsername = getConstantFieldsValue("folioUsername");
+      folioPassword = getConstantFieldsValue("folioPassword");
+      folioTenant   = getConstantFieldsValue("folioTenant", "diku");
+      if (folioUsername != null && folioPassword != null && folioTenant != null) {
+        authToken = getAuthtoken(client, folioUsername, folioPassword, folioTenant);
+      } else {
+        logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
+                + "Will attempt to continue without for tenant [" + folioTenant + "]."
+                + "This would only work for a FOLIO instance with no authentication enabled.");
+      }
+      storageStatus = new InventoryStorageStatus(okapiUrl, authToken);
+    } catch (StorageException se) {
+      throw se;
+    } catch (IOException ioe) {
+      throw new StorageException("IO exception setting up access to FOLIO ", ioe);
+    }
+
   }
 
   @Override
@@ -171,9 +173,11 @@ public class InventoryRecordStorage implements RecordStorage {
             addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
             ((InventoryStorageStatus) storageStatus).incrementAdd(1);
           } catch(UnsupportedEncodingException uee) {
+            ((InventoryStorageStatus) storageStatus).incrementAdd(0);
             logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
           } catch(IOException ioe) {
-            logger.error("IO exception when adding record: " + ioe.getLocalizedMessage(), ioe);
+            ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+            logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
           }
         }
     } else {
@@ -181,9 +185,11 @@ public class InventoryRecordStorage implements RecordStorage {
         addInstanceRecord(this.client, ((RecordJSON)recordJson).toJson(), this.folioTenant, this.authToken);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
       } catch(UnsupportedEncodingException uee) {
+        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
         logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
       } catch(IOException ioe) {
-        logger.error("IO exception when adding record: " + ioe.getLocalizedMessage(), ioe);
+        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+        logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
       }
     }
   }
@@ -235,10 +241,17 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("X-Okapi-Token", authToken);
     httpPost.setHeader("X-Okapi-Tenant", tenant);
     CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + record.toJSONString());
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + record.get("title"));
     response.close();
     if(response.getStatusLine().getStatusCode() != 201) {
-      throw new IOException(String.format("Got error adding record: %s", record.toJSONString()));
+      logger.error(String.format("Got error %s, %s adding record: %s",
+              response.getStatusLine().getStatusCode(),
+              response.getStatusLine().getReasonPhrase(),
+              record.get("title")));
+      throw new IOException(String.format("Error adding record %s: %s (%s)",
+              record.get("title"),
+              response.getStatusLine().getReasonPhrase(),
+              response.getStatusLine().getStatusCode()));
     }
   }
 
@@ -279,7 +292,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private String getAuthtoken(CloseableHttpClient client, String username,
       String password, String tenant)
-      throws UnsupportedEncodingException, IOException {
+      throws UnsupportedEncodingException, IOException, StorageException {
     String url = okapiUrl + "/bl-users/login";
     HttpPost httpPost = new HttpPost(url);
     JSONObject loginJson = new JSONObject();
@@ -292,7 +305,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("X-Okapi-Tenant", tenant);
     CloseableHttpResponse response = client.execute(httpPost);
     if(response.getStatusLine().getStatusCode() != 201) {
-      throw new IOException(String.format("Got bad response obtaining authtoken: %s, %s",
+      throw new StorageException(String.format("Got bad response obtaining authtoken: %s, %s",
           response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity())));
     }
     return response.getFirstHeader("X-Okapi-Token").getValue();
