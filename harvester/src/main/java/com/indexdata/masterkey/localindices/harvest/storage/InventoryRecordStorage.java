@@ -49,7 +49,6 @@ public class InventoryRecordStorage implements RecordStorage {
     this.harvestable = harvestable;
   }
 
-
   public void init() {
     try {
       Storage storage = null;
@@ -60,34 +59,6 @@ public class InventoryRecordStorage implements RecordStorage {
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
-  }
-
-  private String getConstantFieldsValue(String key) {
-    String value = null;
-    if (harvestable != null) {
-      String constantFields = harvestable.getConstantFields();
-      if (constantFields != null && constantFields.length()>0) {
-        for (String keyval : constantFields.split(",")) {
-          String[] keyvalArr = keyval.split("=");
-          if (keyvalArr.length==2 && keyvalArr[0].equals(key)) {
-            value = keyvalArr[1];
-          }
-        }
-        if (value == null) {
-          logger.warn("Did not find value for key [" + key + "] in 'constantFields': " + constantFields);
-        }
-      } else {
-        logger.warn("Cannot find value for key [" + key + "] because harvestable.constantFields is empty");
-      }
-    } else {
-      logger.warn("Cannot find value for key [" + key + "] from 'constantFields' because harvestable is null");
-    }
-    return value;
-  }
-
-  private String getConstantFieldsValue (String key, String defaultValue) {
-    String value = getConstantFieldsValue (key);
-    return value != null ? value : defaultValue;
   }
 
   @Override
@@ -134,10 +105,10 @@ public class InventoryRecordStorage implements RecordStorage {
     this.database = database;
     try {
       client = HttpClients.createDefault();
-      okapiUrl = "http://10.0.2.2:8130";
-      folioUsername = getConstantFieldsValue("folioUsername");
-      folioPassword = getConstantFieldsValue("folioPassword");
-      folioTenant   = getConstantFieldsValue("folioTenant", "diku");
+      okapiUrl = "http://10.0.2.2:9130";
+      folioUsername = InventoryRecordStorage.this.getConfigurationValue("folioUsername");
+      folioPassword = InventoryRecordStorage.this.getConfigurationValue("folioPassword");
+      folioTenant   = getConfigurationValue("folioTenant", "diku");
       if (folioUsername != null && folioPassword != null && folioTenant != null) {
         authToken = getAuthtoken(client, folioUsername, folioPassword, folioTenant);
       } else {
@@ -152,6 +123,35 @@ public class InventoryRecordStorage implements RecordStorage {
       throw new StorageException("IO exception setting up access to FOLIO ", ioe);
     }
 
+  }
+
+  private String getConfigurationValue(String key) {
+    String value = null;
+    if (harvestable != null) {
+      String configurationsJsonString = harvestable.getJson();
+      if (configurationsJsonString != null && configurationsJsonString.length()>0) {
+      try {
+        JSONParser parser = new JSONParser();
+        JSONObject configurations = (JSONObject) parser.parse(configurationsJsonString);
+        value = (String) configurations.get(key);
+      } catch (ParseException pe) {
+        logger.warn("Could not parse JSON configuration from harvestable.json [" + configurationsJsonString + "]");
+      }
+      if (value == null) {
+          logger.warn("Did not find value for key [" + key + "] in 'configurations JSON': " + configurationsJsonString);
+        }
+      } else {
+        logger.warn("Cannot find value for key [" + key + "] because harvestable.json is empty");
+      }
+    } else {
+      logger.warn("Cannot find value for key [" + key + "] from 'harvestable.json' because harvestable is null");
+    }
+    return value;
+  }
+
+  private String getConfigurationValue (String key, String defaultValue) {
+    String value = InventoryRecordStorage.this.getConfigurationValue (key);
+    return value != null ? value : defaultValue;
   }
 
   @Override
