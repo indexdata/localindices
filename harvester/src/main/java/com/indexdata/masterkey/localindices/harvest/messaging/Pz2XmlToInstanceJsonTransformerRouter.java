@@ -1,15 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
-
-import javax.xml.transform.Transformer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,12 +16,11 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
 
-public class XmlToJsonTransformerRouter implements MessageRouter {
+public class Pz2XmlToInstanceJsonTransformerRouter implements MessageRouter {
 
   private MessageConsumer input;
   private MessageProducer output;
   private MessageProducer error;
-  private Transformer transformer;
 
   private boolean running = true;
 
@@ -38,7 +30,7 @@ public class XmlToJsonTransformerRouter implements MessageRouter {
   TransformationStep step;
 
 
-  public XmlToJsonTransformerRouter(TransformationStep step, RecordHarvestJob job) {
+  public Pz2XmlToInstanceJsonTransformerRouter(TransformationStep step, RecordHarvestJob job) {
     this.job = job;
     this.logger = job.getLogger();
     if (step instanceof TransformationStep) {
