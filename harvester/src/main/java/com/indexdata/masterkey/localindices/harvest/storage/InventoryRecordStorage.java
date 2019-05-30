@@ -29,9 +29,13 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus.TransactionState;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 
 /**
@@ -90,10 +94,11 @@ public class InventoryRecordStorage implements RecordStorage {
     database = harvestable.getId().toString();
     transactionStart = new Date();
     transactionIdList = new ArrayList<String>();
+    storageStatus.setTransactionState(TransactionState.InTransaction);
   }
 
   @Override
-  public void commit() throws IOException {
+  public void commit() throws IOException  {
     logger.info("Commit request recieved");
     storageStatus.setTransactionState(StorageStatus.TransactionState.Committed);
   }
@@ -154,8 +159,9 @@ public class InventoryRecordStorage implements RecordStorage {
           try {
             JSONObject json = makeInstanceJson(rec);
             if (json.containsKey("title")) {
-              addInstanceRecord(this.client, json, this.folioTenant,
+              String addedId = addInstanceRecord(this.client, json, this.folioTenant,
                       this.authToken);
+              transactionIdList.add(addedId);
             } else {
               logger.info("Skipping JSON without a title");
             }
@@ -169,8 +175,9 @@ public class InventoryRecordStorage implements RecordStorage {
       try {
         JSONObject json = makeInstanceJson(record);
         if (json.containsKey("title")) {
-          addInstanceRecord(this.client, json, this.folioTenant,
+          String addedId = addInstanceRecord(this.client, json, this.folioTenant,
                   this.authToken);
+          transactionIdList.add(addedId);
         } else {
           logger.info("Skipping JSON without a title");
         }
@@ -184,12 +191,27 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public Record get(String id) {
-    throw new UnsupportedOperationException("get by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    JSONObject instanceJson = null;
+    try {
+      instanceJson = getInstanceRecord(this.client, id, this.folioTenant,
+        this.authToken);
+    } catch(Exception e) {
+      logger.error(String.format("Error getting record with id %s: %s ", id,
+          e.getLocalizedMessage(), e));
+      e.printStackTrace();
+    }
+    return recordFromInstanceJson(instanceJson);
   }
 
   @Override
   public void delete(String id) {
-    throw new UnsupportedOperationException("delete by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    try {
+      deleteInstanceRecord(this.client, id, this.folioTenant, this.authToken);
+    } catch (Exception e) {
+      logger.error(String.format("Error deleting record with id %s: %s ", id,
+          e.getLocalizedMessage(), e));
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -215,6 +237,15 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limit) {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  private Record recordFromInstanceJson(JSONObject instanceJson) {
+    Map<String, Collection<Serializable>> values = new HashMap<>();
+    RecordImpl recordImpl;
+
+
+    recordImpl = new RecordImpl(values);
+    return recordImpl;
   }
 
   private JSONObject makeInstanceJson(Record record) {
@@ -322,7 +353,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpGet.setHeader("X-Okapi-Tenant", tenant);
     CloseableHttpResponse response = client.execute(httpGet);
     if(response.getStatusLine().getStatusCode() != 200) {
-      throw new IOException(String.format("Got error retrieving record record with id '%s': %s",
+      throw new IOException(String.format("Got error retrieving record with id '%s': %s",
           id, EntityUtils.toString(response.getEntity())));
     }
     JSONObject recordJson;
