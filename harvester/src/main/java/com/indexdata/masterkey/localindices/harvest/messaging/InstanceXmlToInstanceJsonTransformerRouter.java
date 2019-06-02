@@ -138,24 +138,46 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
     JSONObject instanceJson = new JSONObject();
     NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
-    JSONArray contributors = new JSONArray();
     // Setting dummy values for two required properties
     instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
     instanceJson.put("source", "HARVEST");
 
     for (Node node : iterable(nodeList)) {
       if (node.getLocalName().equals("contributors")) {
-        JSONObject contributor = new JSONObject();
-        contributor.put("name", node.getTextContent());
-        contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a"); // personal name
-        contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81"); // author
-        contributors.add(contributor);
+        JSONArray contributors = new JSONArray();
+        NodeList items = node.getChildNodes();
+        for (Node item : iterable(items)) {
+          JSONObject contributor = new JSONObject();
+          NodeList itemProperties = item.getChildNodes();
+          for (Node itemProperty : iterable(itemProperties)) {
+            if (itemProperty.getLocalName().equals("name")) {
+              contributor.put("name", itemProperty.getTextContent());
+              // Setting dummy values for two contributor properties
+              contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a"); // personal name
+              contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81"); // author
+            }
+          }
+          contributors.add(contributor);
+        }
+        if (contributors.size()>0) instanceJson.put("contributors", contributors);
+      }
+      if (node.getLocalName().equals("publication")) {
+        JSONArray publication = new JSONArray();
+        NodeList items = node.getChildNodes();
+        for (Node item : iterable(items)) {
+          JSONObject pub = new JSONObject();
+          NodeList itemProperties = item.getChildNodes();
+          for (Node itemProperty : iterable(itemProperties)) {
+            pub.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+          }
+          publication.add(pub);
+        }
+        if (publication.size()>0) instanceJson.put("publication", publication);
       }
       if (Arrays.asList("title").contains(node.getLocalName())) { // list of simplest elements
         instanceJson.put(node.getLocalName(), node.getTextContent());
       }
     }
-    if (contributors.size()>0) instanceJson.put("contributors", contributors);
     return instanceJson;
   }
 
