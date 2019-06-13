@@ -182,6 +182,14 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         }
         if (subjects.size()>0) instanceJson.put("subjects", subjects);
       }
+      if (node.getLocalName().equals("editions")) {
+        JSONArray subjects = new JSONArray();
+        NodeList items = node.getChildNodes();
+        for (Node item : iterable(items)) {
+            subjects.add(item.getTextContent());
+        }
+        if (subjects.size()>0) instanceJson.put("editions", subjects);
+      }
       if (Arrays.asList("title").contains(node.getLocalName())) { // list of simplest elements
         instanceJson.put(node.getLocalName(), node.getTextContent());
       }
