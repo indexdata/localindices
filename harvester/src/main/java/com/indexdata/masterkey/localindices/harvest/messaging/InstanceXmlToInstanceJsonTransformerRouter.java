@@ -138,11 +138,11 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
     JSONObject instanceJson = new JSONObject();
     NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
-    // Setting dummy values for two required properties
-    instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
-    instanceJson.put("source", "HARVEST");
 
     for (Node node : iterable(nodeList)) {
+      if (Arrays.asList("instanceTypeId", "source", "title").contains(node.getLocalName())) { // list of simplest elements
+        instanceJson.put(node.getLocalName(), node.getTextContent());
+      }
       if (node.getLocalName().equals("contributors")) {
         JSONArray contributors = new JSONArray();
         NodeList items = node.getChildNodes();
@@ -184,9 +184,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             subjects.add(item.getTextContent());
         }
         if (subjects.size()>0) instanceJson.put("editions", subjects);
-      }
-      if (Arrays.asList("title").contains(node.getLocalName())) { // list of simplest elements
-        instanceJson.put(node.getLocalName(), node.getTextContent());
       }
     }
     return instanceJson;
