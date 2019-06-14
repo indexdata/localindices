@@ -168,12 +168,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       if (isSimpleElement(node)) {
         instanceJson.put(node.getLocalName(), node.getTextContent());
       } else if (isObject(node)) {
-        JSONObject jsonObject = new JSONObject();
-        NodeList objectProperties = node.getChildNodes();
-        for (Node objectProperty : iterable(objectProperties)) {
-          jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
-        }
-        instanceJson.put(node.getLocalName(), jsonObject);
+        instanceJson.put(node.getLocalName(), makeJsonObject(node));
       } else if (isArray(node)) {
         JSONArray jsonArray = new JSONArray();
         NodeList items = node.getFirstChild().getChildNodes();
@@ -181,18 +176,27 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
           if (isSimpleElement(item)) {
             jsonArray.add(item.getTextContent());
           } else if (isObject(item)) {
-            JSONObject jsonItem = new JSONObject();
-            NodeList itemProperties = item.getChildNodes();
-            for (Node itemProperty : iterable(itemProperties)) {
-              jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
-            }
-            jsonArray.add(jsonItem);
+            jsonArray.add(makeJsonObject(item));
           }
         }
         if (jsonArray.size()>0) instanceJson.put(node.getLocalName(), jsonArray);
       }
     }
     return instanceJson;
+  }
+
+  /**
+   * 
+   * @param XML element
+   * @return JSONObject created from the XML element
+   */
+  private JSONObject makeJsonObject (Node node) {
+    JSONObject jsonObject = new JSONObject();
+    NodeList objectProperties = node.getChildNodes();
+    for (Node objectProperty : iterable(objectProperties)) {
+      jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+    }
+    return jsonObject;
   }
 
   /**
