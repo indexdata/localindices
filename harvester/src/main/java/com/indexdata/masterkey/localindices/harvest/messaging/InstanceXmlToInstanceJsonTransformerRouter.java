@@ -159,7 +159,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param record
    * @return a JSON representation of the XML record
    */
-  private JSONObject makeInstanceJson(Record record) {
+  private static JSONObject makeInstanceJson(Record record) {
 
     JSONObject instanceJson = new JSONObject();
     NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
@@ -179,7 +179,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             jsonArray.add(makeJsonObject(item));
           }
         }
-        if (jsonArray.size()>0) instanceJson.put(node.getLocalName(), jsonArray);
+        instanceJson.put(node.getLocalName(), jsonArray);
       }
     }
     return instanceJson;
@@ -190,7 +190,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param XML element
    * @return JSONObject created from the XML element
    */
-  private JSONObject makeJsonObject (Node node) {
+  private static JSONObject makeJsonObject (Node node) {
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
     for (Node objectProperty : iterable(objectProperties)) {
@@ -204,7 +204,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param node
    * @return true if element is simple scalar
    */
-  private boolean isSimpleElement(Node node) {
+  private static boolean isSimpleElement(Node node) {
     return (node.hasChildNodes()
             && node.getFirstChild().getNodeType() == Node.TEXT_NODE);
   }
@@ -214,7 +214,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param node
    * @return true if element is a structure with sub-elements
    */
-  private boolean isObject(Node node) {
+  private static boolean isObject(Node node) {
     return (node.hasChildNodes()
             && node.getFirstChild().getNodeType() == Node.ELEMENT_NODE
             && ! isArray(node));
@@ -225,7 +225,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param node
    * @return true if element is an array (contains repeatable 'item' elements)
    */
-  private boolean isArray(Node node) {
+  private static boolean isArray(Node node) {
     return (node.hasChildNodes()
             && node.getFirstChild().getLocalName().equals("arr"));
   }
