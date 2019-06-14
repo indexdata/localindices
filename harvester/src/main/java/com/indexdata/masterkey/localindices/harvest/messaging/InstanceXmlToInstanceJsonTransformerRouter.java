@@ -140,50 +140,43 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
 
     for (Node node : iterable(nodeList)) {
-      if (Arrays.asList("instanceTypeId", "source", "title").contains(node.getLocalName())) { // list of simplest elements
+      if (node.hasChildNodes() && node.getFirstChild().getNodeType() == Node.TEXT_NODE) {
         instanceJson.put(node.getLocalName(), node.getTextContent());
-      }
-      if (node.getLocalName().equals("contributors")) {
-        JSONArray contributors = new JSONArray();
-        NodeList items = node.getChildNodes();
-        for (Node item : iterable(items)) {
-          JSONObject jsonItem = new JSONObject();
-          NodeList itemProperties = item.getChildNodes();
-          for (Node itemProperty : iterable(itemProperties)) {
-            jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+      } else {
+        if (node.getLocalName().equals("contributors")) {
+          JSONArray contributors = new JSONArray();
+          NodeList items = node.getChildNodes();
+          for (Node item : iterable(items)) {
+            JSONObject jsonItem = new JSONObject();
+            NodeList itemProperties = item.getChildNodes();
+            for (Node itemProperty : iterable(itemProperties)) {
+              jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+            }
+            contributors.add(jsonItem);
           }
-          contributors.add(jsonItem);
+          if (contributors.size()>0) instanceJson.put("contributors", contributors);
         }
-        if (contributors.size()>0) instanceJson.put("contributors", contributors);
-      }
-      if (node.getLocalName().equals("publication")) {
-        JSONArray publication = new JSONArray();
-        NodeList items = node.getChildNodes();
-        for (Node item : iterable(items)) {
-          JSONObject jsonItem = new JSONObject();
-          NodeList itemProperties = item.getChildNodes();
-          for (Node itemProperty : iterable(itemProperties)) {
-            jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+        if (node.getLocalName().equals("publication")) {
+          JSONArray publication = new JSONArray();
+          NodeList items = node.getChildNodes();
+          for (Node item : iterable(items)) {
+            JSONObject jsonItem = new JSONObject();
+            NodeList itemProperties = item.getChildNodes();
+            for (Node itemProperty : iterable(itemProperties)) {
+              jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+            }
+            publication.add(jsonItem);
           }
-          publication.add(jsonItem);
+          if (publication.size()>0) instanceJson.put("publication", publication);
         }
-        if (publication.size()>0) instanceJson.put("publication", publication);
-      }
-      if (node.getLocalName().equals("subjects")) {
-        JSONArray subjects = new JSONArray();
-        NodeList items = node.getChildNodes();
-        for (Node item : iterable(items)) {
-            subjects.add(item.getTextContent());
+        if (Arrays.asList("editions", "subjects").contains(node.getLocalName())) {
+          JSONArray jsonItems = new JSONArray();
+          NodeList items = node.getChildNodes();
+          for (Node item : iterable(items)) {
+              jsonItems.add(item.getTextContent());
+          }
+          if (jsonItems.size()>0) instanceJson.put(node.getLocalName(), jsonItems);
         }
-        if (subjects.size()>0) instanceJson.put("subjects", subjects);
-      }
-      if (node.getLocalName().equals("editions")) {
-        JSONArray subjects = new JSONArray();
-        NodeList items = node.getChildNodes();
-        for (Node item : iterable(items)) {
-            subjects.add(item.getTextContent());
-        }
-        if (subjects.size()>0) instanceJson.put("editions", subjects);
       }
     }
     return instanceJson;
