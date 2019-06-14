@@ -28,10 +28,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
  * Simple elements:  &lt;title&gt;My title&lt;/title&gt; <br/>
  *  transformed to "title": "My title"<br/>
  * <br/>
- * Arrays of simple elements: &lt;subjects&gt;&lt;item&gt;subject 1&lt;/item&gt;&lt;item&gt;subject 2&lt;/item&gt;&lt;/subjects&gt;<br/>
+ * Arrays of simple elements: &lt;subjects&gt;&lt;arr&gt;&lt;i&gt;subject 1&lt;/i&gt;&lt;i&gt;subject 2&lt;/i&gt;&lt;/arr&gt;&lt;/subjects&gt;<br/>
  *  transformed to "subjects": ["subject 1", "subject 2"]<br/>
  * <br/>
- * Arrays of objects: &lt;publication&gt;&lt;item&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/item&gt;&lt;item&gt;...&lt;/item&gt;&lt;/publication&gt;<br/>
+ * Arrays of objects: &lt;publication&gt;&lt;arr&gt;&lt;i&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/i&gt;&lt;i&gt;...&lt;/i&gt;&lt;/arr&gt;&lt;/publication&gt;<br/>
  *  transformed to "publication" [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
  *
  */
