@@ -147,17 +147,12 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         JSONArray contributors = new JSONArray();
         NodeList items = node.getChildNodes();
         for (Node item : iterable(items)) {
-          JSONObject contributor = new JSONObject();
+          JSONObject jsonItem = new JSONObject();
           NodeList itemProperties = item.getChildNodes();
           for (Node itemProperty : iterable(itemProperties)) {
-            if (itemProperty.getLocalName().equals("name")) {
-              contributor.put("name", itemProperty.getTextContent());
-              // Setting dummy values for two contributor properties
-              contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a"); // personal name
-              contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81"); // author
-            }
+            jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
           }
-          contributors.add(contributor);
+          contributors.add(jsonItem);
         }
         if (contributors.size()>0) instanceJson.put("contributors", contributors);
       }
@@ -165,12 +160,12 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         JSONArray publication = new JSONArray();
         NodeList items = node.getChildNodes();
         for (Node item : iterable(items)) {
-          JSONObject pub = new JSONObject();
+          JSONObject jsonItem = new JSONObject();
           NodeList itemProperties = item.getChildNodes();
           for (Node itemProperty : iterable(itemProperties)) {
-            pub.put(itemProperty.getLocalName(), itemProperty.getTextContent());
+            jsonItem.put(itemProperty.getLocalName(), itemProperty.getTextContent());
           }
-          publication.add(pub);
+          publication.add(jsonItem);
         }
         if (publication.size()>0) instanceJson.put("publication", publication);
       }
