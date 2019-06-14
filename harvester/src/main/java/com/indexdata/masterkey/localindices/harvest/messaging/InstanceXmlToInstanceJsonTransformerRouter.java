@@ -153,7 +153,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   /**
    * Handles incoming XML containing: simple fields, objects with simple fields,
    * arrays of simple fields and arrays of objects with simple fields.
-   * It thus support limited nesting and e.g. not objects with nested objects,
+   * It thus support limited nesting but e.g. not objects with nested objects,
    * objects with nested arrays, or arrays of arrays. For support of deeper
    * nesting the method should be refactored to recurse.
    * @param record
@@ -174,9 +174,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
           jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
         }
         instanceJson.put(node.getLocalName(), jsonObject);
-      } else if (isItemArray(node)) {
+      } else if (isArray(node)) {
         JSONArray jsonArray = new JSONArray();
-        NodeList items = node.getChildNodes();
+        NodeList items = node.getFirstChild().getChildNodes();
         for (Node item : iterable(items)) {
           if (isSimpleElement(item)) {
             jsonArray.add(item.getTextContent());
@@ -213,7 +213,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   private boolean isObject(Node node) {
     return (node.hasChildNodes()
             && node.getFirstChild().getNodeType() == Node.ELEMENT_NODE
-            && ! isItemArray(node));
+            && ! isArray(node));
   }
 
   /**
@@ -221,11 +221,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param node
    * @return true if element is an array (contains repeatable 'item' elements)
    */
-  private boolean isItemArray(Node node) {
+  private boolean isArray(Node node) {
     return (node.hasChildNodes()
-            && node.getFirstChild().getNodeType() == Node.ELEMENT_NODE
-            && node.getFirstChild().getLocalName().equals("item")
-            && node.getLastChild().getLocalName().equals("item"));
+            && node.getFirstChild().getLocalName().equals("arr"));
   }
 
 
