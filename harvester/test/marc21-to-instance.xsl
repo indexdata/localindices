@@ -4,6 +4,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:marc="http://www.loc.gov/MARC21/slim">
 
+  <xsl:import href="map-relator-to-contributor-type.xsl"/>
 
   <xsl:output indent="yes" method="xml" version="1.0" encoding="UTF-8"/>
 
@@ -55,34 +56,29 @@
       <xsl:if test="marc:datafield[@tag='100' or @tag='110' or @tag='111']">
         <contributors>
           <arr>
-            <xsl:for-each select="marc:datafield[@tag='100']">
+            <xsl:for-each select="marc:datafield[@tag='100' or @tag='110' or @tag='111']">
               <i>
                 <name>
                   <xsl:value-of select="marc:subfield[@code='a']"/>
                 </name>
-                <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
-                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
+                <xsl:choose>
+                  <xsl:when test="@tag='100'">
+                    <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
+                  </xsl:when>
+                  <xsl:when test="@tag='110'">
+                    <contributorNameTypeId>2e48e713-17f3-4c13-a9f8-23845bb210aa</contributorNameTypeId> <!-- corporate name -->
+                  </xsl:when>
+                  <xsl:when test="@tag='111'">
+                    <contributorNameTypeId>e8b311a6-3b21-43f2-a269-dd9310cb2d0a</contributorNameTypeId> <!-- meeting name -->
+                  </xsl:when>
+                </xsl:choose>
+                <xsl:if test="marc:subfield[@code='e' or @code='4']">
+                  <contributorTypeId>
+                    <xsl:call-template name="map-relator"/>
+                  </contributorTypeId>
+                </xsl:if>
               </i>
             </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag='110']">
-              <i>
-                <name>
-                  <xsl:value-of select="marc:subfield[@code='a']"/>
-                </name>
-                <contributorNameTypeId>2e48e713-17f3-4c13-a9f8-23845bb210aa</contributorNameTypeId> <!-- corporate name -->
-                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
-              </i>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag='111']">
-              <i>
-                <name>
-                  <xsl:value-of select="marc:subfield[@code='a']"/>
-                </name>
-                <contributorNameTypeId>e8b311a6-3b21-43f2-a269-dd9310cb2d0a</contributorNameTypeId> <!-- meeting name -->
-                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
-              </i>
-            </xsl:for-each>
-
           </arr>
         </contributors>
       </xsl:if>

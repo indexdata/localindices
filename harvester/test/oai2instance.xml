@@ -78,13 +78,44 @@
         <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
           <leader>01914cam a2200493Ia 4500</leader>
           <datafield tag="100">
-            <subfield code="a">Name, Personal.</subfield>
+            <subfield code="a">Author, Personal.</subfield>
+            <subfield code="e">aut</subfield>
           </datafield>
           <datafield tag="110">
-            <subfield code="a">Name, Corporate.</subfield>
+            <subfield code="a">Author, Corporate.</subfield>
+            <subfield code="4">author</subfield>
           </datafield>
           <datafield tag="111">
-            <subfield code="a">Name, Meeting.</subfield>
+            <subfield code="a">Illustrator, Meeting.</subfield>
+            <subfield code="e">illustrator</subfield>
+          </datafield>
+          <datafield tag="245" ind1="1" ind2="0">
+            <subfield code="a">Instance of type 'text'</subfield>
+          </datafield>
+        </record>
+      </metadata>
+    </record>
+
+    <record>
+      <header>
+        <identifier>MARC21-TO-INSTANCE-TEST-RECORDS</identifier>
+        <datestamp>2019-06-01T12:06:39Z</datestamp>
+        <setSpec>ID:Set01</setSpec>
+      </header>
+      <metadata>
+        <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
+          <leader>01914cam a2200493Ia 4500</leader>
+          <datafield tag="100">
+            <subfield code="a">Author, Personal.</subfield>
+            <subfield code="e">aut</subfield>
+          </datafield>
+          <datafield tag="110">
+            <subfield code="a">Author, Corporate.</subfield>
+            <subfield code="4">author</subfield>
+          </datafield>
+          <datafield tag="111">
+            <subfield code="a">Illustrator, Meeting.</subfield>
+            <subfield code="4">ill</subfield>
           </datafield>
           <datafield tag="245" ind1="1" ind2="0">
             <subfield code="a">Instance of type 'text'</subfield>
