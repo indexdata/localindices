@@ -10,7 +10,6 @@
 <!-- Extract metadata from MARC21/USMARC
       http://www.loc.gov/marc/bibliographic/ecbdhome.html
 -->
-  <xsl:include href="pz2-ourl-marc21.xsl" />
 
   <xsl:template match="/">
     <collection>
