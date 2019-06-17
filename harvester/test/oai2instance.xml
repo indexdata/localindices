@@ -9,8 +9,8 @@
         <setSpec>ID:Set01</setSpec>
       </header>
       <metadata>
-        <record xmlns="http://www.loc.gov/MARC21/slim" 
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        <record xmlns="http://www.loc.gov/MARC21/slim"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
           <leader>02670cam  2200685 a 4500</leader>
           <controlfield tag="005">20181023131719.0</controlfield>
@@ -68,6 +68,31 @@
       </metadata>
     </record>
 
+    <record>
+      <header>
+        <identifier>MARC21-TO-INSTANCE-TEST-RECORDS</identifier>
+        <datestamp>2019-06-01T12:06:39Z</datestamp>
+        <setSpec>ID:Set01</setSpec>
+      </header>
+      <metadata>
+        <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
+          <leader>01914cam a2200493Ia 4500</leader>
+          <datafield tag="100">
+            <subfield code="a">Name, Personal.</subfield>
+          </datafield>
+          <datafield tag="110">
+            <subfield code="a">Name, Corporate.</subfield>
+          </datafield>
+          <datafield tag="111">
+            <subfield code="a">Name, Meeting.</subfield>
+          </datafield>
+          <datafield tag="245" ind1="1" ind2="0">
+            <subfield code="a">Instance of type 'text'</subfield>
+          </datafield>
+        </record>
+      </metadata>
+    </record>
+
   </ListRecords>
 </OAI-PMH>
-  
+

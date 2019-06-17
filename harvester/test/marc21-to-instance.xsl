@@ -52,18 +52,37 @@
           <xsl:value-of select="marc:subfield[@code='a']"/>
         </title>
       </xsl:for-each>
-      <xsl:if test="marc:datafield[@tag='100']">
+      <xsl:if test="marc:datafield[@tag='100' or @tag='110' or @tag='111']">
         <contributors>
           <arr>
-          <xsl:for-each select="marc:datafield[@tag='100']">
-            <i>
-              <name>
-                <xsl:value-of select="marc:subfield[@code='a']"/>
-              </name>
-              <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
-              <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
-            </i>
-          </xsl:for-each>
+            <xsl:for-each select="marc:datafield[@tag='100']">
+              <i>
+                <name>
+                  <xsl:value-of select="marc:subfield[@code='a']"/>
+                </name>
+                <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
+                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
+              </i>
+            </xsl:for-each>
+            <xsl:for-each select="marc:datafield[@tag='110']">
+              <i>
+                <name>
+                  <xsl:value-of select="marc:subfield[@code='a']"/>
+                </name>
+                <contributorNameTypeId>2e48e713-17f3-4c13-a9f8-23845bb210aa</contributorNameTypeId> <!-- corporate name -->
+                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
+              </i>
+            </xsl:for-each>
+            <xsl:for-each select="marc:datafield[@tag='111']">
+              <i>
+                <name>
+                  <xsl:value-of select="marc:subfield[@code='a']"/>
+                </name>
+                <contributorNameTypeId>e8b311a6-3b21-43f2-a269-dd9310cb2d0a</contributorNameTypeId> <!-- meeting name -->
+                <contributorTypeId>6e09d47d-95e2-4d8a-831b-f777b8ef6d81</contributorTypeId> <!-- Author -->
+              </i>
+            </xsl:for-each>
+
           </arr>
         </contributors>
       </xsl:if>
