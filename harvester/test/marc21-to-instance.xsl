@@ -31,7 +31,7 @@
           <xsl:when test="substring(marc:leader,7,1)='a'">6312d172-f0cf-40f6-b27d-9fa8feaf332f</xsl:when>
           <xsl:when test="substring(marc:leader,7,1)='c'">497b5090-3da2-486c-b57f-de5bb3c2e26d</xsl:when>
           <xsl:when test="substring(marc:leader,7,1)='d'">497b5090-3da2-486c-b57f-de5bb3c2e26d</xsl:when>
-          <xsl:when test="substring(marc:leader,7,1)='e'">79a09d3a-bae8-433f-af70-9db9e134c662</xsl:when>
+          <xsl:when test="substring(marc:leader,7,1)='e'">526aa04d-9289-4511-8866-349299592c18</xsl:when>
           <xsl:when test="substring(marc:leader,7,1)='f'">79a09d3a-bae8-433f-af70-9db9e134c662</xsl:when>
           <xsl:when test="substring(marc:leader,7,1)='g'">77469f80-b517-457e-b6e9-306237340287</xsl:when>
           <xsl:when test="substring(marc:leader,7,1)='i'">f7f4d525-5de9-4ba0-8625-ae2f96dbfc1c</xsl:when>
