@@ -107,7 +107,20 @@
           <leader>01914cam a2200493Ia 4500</leader>
           <datafield tag="100">
             <subfield code="a">Author, Personal.</subfield>
+            <subfield code="b">sub b</subfield>
+            <subfield code="c">sub c</subfield>
+            <subfield code="d">sub d</subfield>
             <subfield code="e">aut</subfield>
+            <subfield code="f">sub f</subfield>
+            <subfield code="g">sub g</subfield>
+            <subfield code="j">sub j</subfield>
+            <subfield code="k">sub k</subfield>
+            <subfield code="l">sub l</subfield>
+            <subfield code="n">sub n</subfield>
+            <subfield code="p">sub p</subfield>
+            <subfield code="q">sub q</subfield>
+            <subfield code="t">sub t</subfield>
+            <subfield code="u">sub u</subfield>
           </datafield>
           <datafield tag="110">
             <subfield code="a">Author, Corporate.</subfield>
