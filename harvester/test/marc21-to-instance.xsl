@@ -25,6 +25,8 @@
   <xsl:template match="//marc:record">
 
     <record>
+      <source>HARVEST</source>
+
       <instanceTypeId>
         <!-- UUIDs for resource types -->
         <xsl:choose>
@@ -46,8 +48,60 @@
         </xsl:choose>
       </instanceTypeId>
 
-      <source>HARVEST</source>
-
+      <xsl:if test="marc:datafield[@tag='010' or @tag='020' or @tag='022' or @tag='024' or @tag='028' or @tag='035' or @tag='074']">
+        <identifiers>
+          <arr>
+          <xsl:for-each select="marc:datafield[@tag='010' or @tag='020' or @tag='022' or @tag='024' or @tag='028' or @tag='035' or @tag='074']">
+            <i>
+              <xsl:choose>
+                <xsl:when test="current()[@tag='010']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>c858e4f2-2b6b-4385-842b-60732ee14abb</identifierTypeId> <!-- LCCN -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='020']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>8261054f-be78-422d-bd51-4ed9f33c3422</identifierTypeId> <!-- ISBN -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='022']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>913300b2-03ed-469a-8179-c1092c991227</identifierTypeId> <!-- ISSN -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='024']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5</identifierTypeId> <!-- Other standard identifier -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='028']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>b5d8cdc4-9441-487c-90cf-0c7ec97728eb</identifierTypeId> <!-- Publisher number -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='035']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId> <!-- System control number -->
+                </xsl:when>
+                <xsl:when test="current()[@tag='074']">
+                  <value>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </value>
+                  <identifierTypeId>351ebc1c-3aae-4825-8765-c6d50dbf011f</identifierTypeId> <!-- GPO item number -->
+                </xsl:when>
+              </xsl:choose>
+            </i>
+          </xsl:for-each>
+          </arr>
+        </identifiers>
+      </xsl:if>
       <xsl:for-each select="marc:datafield[@tag='245']">
         <title>
           <xsl:value-of select="marc:subfield[@code='a']"/>

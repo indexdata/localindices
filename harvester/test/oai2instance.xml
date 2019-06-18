@@ -105,6 +105,29 @@
       <metadata>
         <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
           <leader>01914cam a2200493Ia 4500</leader>
+          <datafield tag="010">
+            <subfield code="a">LCCN-0123456789</subfield>
+          </datafield>
+          <datafield tag="020">
+            <subfield code="a">ISBN-0123456789</subfield>
+          </datafield>
+          <datafield tag="022">
+            <subfield code="a">ISSN-0123456789</subfield>
+          </datafield>
+          <datafield tag="024">
+            <subfield code="a">OtherStdIdent-012</subfield>
+          </datafield>
+          <datafield tag="028">
+            <subfield code="a">Publisher-012345</subfield>
+          </datafield>
+          <datafield tag="035">
+            <subfield code="a">SystemCtrlNo-012345</subfield>
+          </datafield>
+          <datafield tag="074">
+            <subfield code="a">GPO-ItemNo-012345</subfield>
+          </datafield>
+
+
           <datafield tag="100">
             <subfield code="a">Author, Personal.</subfield>
             <subfield code="b">sub b</subfield>
