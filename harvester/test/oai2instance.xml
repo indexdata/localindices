@@ -126,6 +126,12 @@
           <datafield tag="074">
             <subfield code="a">GPO-ItemNo-012345</subfield>
           </datafield>
+          <datafield tag="050">
+            <subfield code="a">A LC classication number</subfield>
+          </datafield>
+          <datafield tag="082">
+            <subfield code="a">A Dewey classification number</subfield>
+          </datafield> 
 
 
           <datafield tag="100">

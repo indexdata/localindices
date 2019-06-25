@@ -102,6 +102,40 @@
           </arr>
         </identifiers>
       </xsl:if>
+      <xsl:if test="marc:datafield[@tag='050' or @tag='060' or @tag='080' or @tag='082' or @tag='086' or @tag='090']">
+        <classifications>
+          <arr>
+            <xsl:for-each select="marc:datafield[@tag='050' or @tag='060' or @tag='080' or @tag='082' or @tag='086' or @tag='090']">
+              <i>
+                <xsl:choose>
+                  <xsl:when test="current()[@tag='050']">
+                    <classificationNumber>
+                      <xsl:for-each select="marc:subfield[@code='a' or @code='b']">
+                        <xsl:if test="position() > 1">
+                        <xsl:text>; </xsl:text>
+                      </xsl:if>
+                      <xsl:value-of select="."/>
+                      </xsl:for-each>
+                    </classificationNumber>
+                    <classificationTypeId>ce176ace-a53e-4b4d-aa89-725ed7b2edac</classificationTypeId> <!-- LC, Library of Congress -->
+                  </xsl:when>
+                  <xsl:when test="current()[@tag='082']">
+                    <classificationNumber>
+                      <xsl:for-each select="marc:subfield[@code='a' or @code='b']">
+                        <xsl:if test="position() > 1">
+                        <xsl:text>; </xsl:text>
+                      </xsl:if>
+                      <xsl:value-of select="."/>
+                      </xsl:for-each>
+                    </classificationNumber>
+                    <classificationTypeId>42471af9-7d25-4f3a-bf78-60d29dcf463b</classificationTypeId> <!-- Dewey -->
+                  </xsl:when>
+                </xsl:choose>
+              </i>
+            </xsl:for-each>
+          </arr>
+        </classifications>
+      </xsl:if>
       <xsl:for-each select="marc:datafield[@tag='245']">
         <title>
           <xsl:value-of select="marc:subfield[@code='a']"/>
