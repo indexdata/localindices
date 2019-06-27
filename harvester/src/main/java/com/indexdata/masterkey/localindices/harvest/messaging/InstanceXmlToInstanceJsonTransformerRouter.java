@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -19,6 +18,23 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
 
+/**
+ *
+ * This class will take a Record with Instance XML (a XML document corresponding to
+ * the JSON schema for FOLIO instances) and transform it to a JSON output.
+ * <br/>
+ * Currently supported is <br/>
+ * <br>
+ * Simple elements:  &lt;title&gt;My title&lt;/title&gt; <br/>
+ *  transformed to "title": "My title"<br/>
+ * <br/>
+ * Arrays of simple elements: &lt;subjects&gt;&lt;arr&gt;&lt;i&gt;subject 1&lt;/i&gt;&lt;i&gt;subject 2&lt;/i&gt;&lt;/arr&gt;&lt;/subjects&gt;<br/>
+ *  transformed to "subjects": ["subject 1", "subject 2"]<br/>
+ * <br/>
+ * Arrays of objects: &lt;publication&gt;&lt;arr&gt;&lt;i&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/i&gt;&lt;i&gt;...&lt;/i&gt;&lt;/arr&gt;&lt;/publication&gt;<br/>
+ *  transformed to "publication" [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
+ *
+ */
 public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter {
 
   private MessageConsumer input;
@@ -134,30 +150,86 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     }
   }
 
-  private JSONObject makeInstanceJson(Record record) {
+  /**
+   * Handles incoming XML containing: simple fields, objects with simple fields,
+   * arrays of simple fields and arrays of objects with simple fields.
+   * It thus support limited nesting but e.g. not objects with nested objects,
+   * objects with nested arrays, or arrays of arrays. For support of deeper
+   * nesting the method should be refactored to recurse.
+   * @param record
+   * @return a JSON representation of the XML record
+   */
+  private static JSONObject makeInstanceJson(Record record) {
 
     JSONObject instanceJson = new JSONObject();
     NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
-    JSONArray contributors = new JSONArray();
-    // Setting dummy values for two required properties
-    instanceJson.put("instanceTypeId", "6312d172-f0cf-40f6-b27d-9fa8feaf332f");
-    instanceJson.put("source", "HARVEST");
 
     for (Node node : iterable(nodeList)) {
-      if (node.getLocalName().equals("contributors")) {
-        JSONObject contributor = new JSONObject();
-        contributor.put("name", node.getTextContent());
-        contributor.put("contributorNameTypeId", "2b94c631-fca9-4892-a730-03ee529ffe2a"); // personal name
-        contributor.put("contributorTypeId", "6e09d47d-95e2-4d8a-831b-f777b8ef6d81"); // author
-        contributors.add(contributor);
-      }
-      if (Arrays.asList("title").contains(node.getLocalName())) { // list of simplest elements
+      if (isSimpleElement(node)) {
         instanceJson.put(node.getLocalName(), node.getTextContent());
+      } else if (isObject(node)) {
+        instanceJson.put(node.getLocalName(), makeJsonObject(node));
+      } else if (isArray(node)) {
+        JSONArray jsonArray = new JSONArray();
+        NodeList items = node.getFirstChild().getChildNodes();
+        for (Node item : iterable(items)) {
+          if (isSimpleElement(item)) {
+            jsonArray.add(item.getTextContent());
+          } else if (isObject(item)) {
+            jsonArray.add(makeJsonObject(item));
+          }
+        }
+        instanceJson.put(node.getLocalName(), jsonArray);
       }
     }
-    if (contributors.size()>0) instanceJson.put("contributors", contributors);
     return instanceJson;
   }
+
+  /**
+   * 
+   * @param XML element
+   * @return JSONObject created from the XML element
+   */
+  private static JSONObject makeJsonObject (Node node) {
+    JSONObject jsonObject = new JSONObject();
+    NodeList objectProperties = node.getChildNodes();
+    for (Node objectProperty : iterable(objectProperties)) {
+      jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+    }
+    return jsonObject;
+  }
+
+  /**
+   *
+   * @param node
+   * @return true if element is simple scalar
+   */
+  private static boolean isSimpleElement(Node node) {
+    return (node.hasChildNodes()
+            && node.getFirstChild().getNodeType() == Node.TEXT_NODE);
+  }
+
+  /**
+   *
+   * @param node
+   * @return true if element is a structure with sub-elements
+   */
+  private static boolean isObject(Node node) {
+    return (node.hasChildNodes()
+            && node.getFirstChild().getNodeType() == Node.ELEMENT_NODE
+            && ! isArray(node));
+  }
+
+  /**
+   *
+   * @param node
+   * @return true if element is an array (contains repeatable 'item' elements)
+   */
+  private static boolean isArray(Node node) {
+    return (node.hasChildNodes()
+            && node.getFirstChild().getLocalName().equals("arr"));
+  }
+
 
   @Override
   public void onMessage(Object documentIn) {

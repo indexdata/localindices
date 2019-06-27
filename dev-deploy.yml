@@ -197,6 +197,7 @@
         - pz2index.xsl
         - snippet2pz.xsl
         - solr-subject-split.xsl
+        - map-relator-to-contributor-type.xsl
 
     - name: Create Harvester cache directory
       become: yes
