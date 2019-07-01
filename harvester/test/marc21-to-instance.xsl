@@ -25,8 +25,9 @@
   <xsl:template match="//marc:record">
 
     <record>
-      <source>HARVEST</source>
+      <source>MARC</source>
 
+      <!-- Instance type ID (resource type) -->
       <instanceTypeId>
         <!-- UUIDs for resource types -->
         <xsl:choose>
@@ -48,6 +49,7 @@
         </xsl:choose>
       </instanceTypeId>
 
+      <!-- Identifiers -->
       <xsl:if test="marc:datafield[@tag='010' or @tag='020' or @tag='022' or @tag='024' or @tag='028' or @tag='035' or @tag='074']">
         <identifiers>
           <arr>
@@ -102,6 +104,8 @@
           </arr>
         </identifiers>
       </xsl:if>
+
+      <!-- Classifications -->
       <xsl:if test="marc:datafield[@tag='050' or @tag='060' or @tag='080' or @tag='082' or @tag='086' or @tag='090']">
         <classifications>
           <arr>
@@ -136,11 +140,18 @@
           </arr>
         </classifications>
       </xsl:if>
+
+      <!-- title -->
       <xsl:for-each select="marc:datafield[@tag='245']">
         <title>
-          <xsl:value-of select="marc:subfield[@code='a']"/>
+          <xsl:call-template name="remove-characters-last">
+                  <xsl:with-param  name="input" select="marc:subfield[@code='a']" />
+                  <xsl:with-param  name="characters">,-./ :</xsl:with-param>
+                </xsl:call-template>
         </title>
       </xsl:for-each>
+
+      <!-- Contributors -->
       <xsl:if test="marc:datafield[@tag='100' or @tag='110' or @tag='111' or @tag='700' or @tag='710' or @tag='711']">
         <contributors>
           <arr>
@@ -151,12 +162,18 @@
                   <xsl:if test="position() > 1">
                     <xsl:text>; </xsl:text>
                   </xsl:if>
-                  <xsl:value-of select="."/>
+                  <xsl:call-template name="remove-characters-last">
+                    <xsl:with-param  name="input" select="." />
+                    <xsl:with-param  name="characters">,-.</xsl:with-param>
+                  </xsl:call-template>
                 </xsl:for-each>
                 </name>
                 <xsl:choose>
                   <xsl:when test="@tag='100' or @tag='700'">
                     <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
+                    <xsl:if test="@tag='100'">
+                      <primary>true</primary>
+                    </xsl:if>
                   </xsl:when>
                   <xsl:when test="@tag='110' or @tag='710'">
                     <contributorNameTypeId>2e48e713-17f3-4c13-a9f8-23845bb210aa</contributorNameTypeId> <!-- corporate name -->
@@ -175,6 +192,8 @@
           </arr>
         </contributors>
       </xsl:if>
+
+      <!-- Editions -->
       <xsl:if test="marc:datafield[@tag='250']">
         <editions>
           <arr>
@@ -187,29 +206,12 @@
           </arr>
         </editions>
       </xsl:if>
-      <xsl:if test="marc:datafield[@tag='260']">
+
+      <!-- Publication -->
+      <xsl:if test="marc:datafield[@tag='260' or @tag='264']">
         <publication>
           <arr>
-            <xsl:for-each select="marc:datafield[@tag='260']">
-              <i>
-                <publisher>
-                  <xsl:value-of select="marc:subfield[@code='b']"/>
-                </publisher>
-                <place>
-                  <xsl:value-of select="marc:subfield[@code='a']"/>
-                </place>
-                <dateOfPublication>
-                  <xsl:value-of select="marc:subfield[@code='c']"/>
-                </dateOfPublication>
-              </i>
-            </xsl:for-each>
-          </arr>
-        </publication>
-      </xsl:if>
-      <xsl:if test="marc:datafield[@tag='264']">
-        <publication>
-          <arr>
-            <xsl:for-each select="marc:datafield[@tag='264']">
+            <xsl:for-each select="marc:datafield[@tag='260' or @tag='264']">
               <i>
                 <publisher>
                   <xsl:value-of select="marc:subfield[@code='b']"/>
@@ -226,13 +228,20 @@
         </publication>
       </xsl:if>
 
+      <!-- Subjects -->
       <xsl:if test="marc:datafield[@tag='600' or @tag='610' or @tag='611' or @tag='630' or @tag='648' or @tag='650' or @tag='651' or @tag='653' or @tag='654' or @tag='655' or @tag='656' or @tag='657' or @tag='658' or @tag='662' or @tag='69X']">
         <subjects>
           <arr>
           <xsl:for-each select="marc:datafield[@tag='600' or @tag='610' or @tag='611' or @tag='630' or @tag='648' or @tag='650' or @tag='651' or @tag='653' or @tag='654' or @tag='655' or @tag='656' or @tag='657' or @tag='658' or @tag='662' or @tag='69X']">
-            <i>
-              <xsl:value-of select="marc:subfield[@code='a']"/>
-            </i>
+            <xsl:for-each select="marc:subfield[@code='a' or @code='b' or @code='c' or @code='d' or @code='f' or @code='g' or @code='j' or @code='k' or @code='l' or @code='n' or @code='p' or @code='q' or @code='t' or @code='u']">
+              <xsl:if test="position() > 1">
+                <xsl:text>; </xsl:text>
+              </xsl:if>
+              <i><xsl:call-template name="remove-characters-last">
+                  <xsl:with-param  name="input" select="." />
+                  <xsl:with-param  name="characters">,-.</xsl:with-param>
+                </xsl:call-template></i>
+            </xsl:for-each>
           </xsl:for-each>
           </arr>
         </subjects>
@@ -241,4 +250,22 @@
   </xsl:template>
 
   <xsl:template match="text()"/>
+
+  <xsl:template name="remove-characters-last">
+    <xsl:param name="input" />
+    <xsl:param name="characters"/>
+    <xsl:variable name="lastcharacter" select="substring($input,string-length($input))" />
+    <xsl:choose>
+      <xsl:when test="$characters and $lastcharacter and contains($characters, $lastcharacter)">
+        <xsl:call-template name="remove-characters-last">
+          <xsl:with-param  name="input" select="substring($input,1, string-length($input)-1)" />
+          <xsl:with-param  name="characters" select="$characters" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$input"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
 </xsl:stylesheet>
