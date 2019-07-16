@@ -79,7 +79,7 @@ public class Pz2XmlToInstanceJsonTransformerRouter implements MessageRouter {
 
   private void consume(Object documentIn) {
     if (documentIn instanceof Record) {
-      Record recordIn = (Record) documentIn;
+     Record recordIn = (Record) documentIn;
       try {
         if (((RecordDOM) recordIn).toNode().getChildNodes().getLength() == 0) {
           logger.info("Empty record came in from queue, skipping further processing of this document");
