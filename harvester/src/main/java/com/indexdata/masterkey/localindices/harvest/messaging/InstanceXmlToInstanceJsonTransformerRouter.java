@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -32,7 +33,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
  *  transformed to "subjects": ["subject 1", "subject 2"]<br/>
  * <br/>
  * Arrays of objects: &lt;publication&gt;&lt;arr&gt;&lt;i&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/i&gt;&lt;i&gt;...&lt;/i&gt;&lt;/arr&gt;&lt;/publication&gt;<br/>
- *  transformed to "publication" [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
+ *  transformed to "publication": [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
  *
  */
 public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter {
@@ -98,18 +99,27 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
   private void consume(Object documentIn) {
     if (documentIn instanceof Record) {
+
       Record recordIn = (Record) documentIn;
       try {
+        logger.debug(this.getClass().getSimpleName() + " received record with originalContent "+ new String(recordIn.getOriginalContent(), "UTF-8"));
+      } catch (UnsupportedEncodingException uee) { logger.debug("Unsupported encoding in log statement");}
+
+      try {
         if (((RecordDOM) recordIn).toNode().getChildNodes().getLength() == 0) {
-          logger.info("Empty record came in from queue, skipping further processing of this document");
+          logger.debug("Empty record came in from queue, skipping further processing of this document");
         } else {
+          logger.debug(this.getClass().getTypeName() + " has Record with " + ((RecordDOM) recordIn).toNode().getChildNodes().getLength() + " child nodes. Iterating:");
           RecordJSON recordOut = new RecordJSONImpl();
           JSONObject jsonRecords = new JSONObject();
           if (recordIn.isCollection()) {
+            logger.debug(this.getClass().getName() + " found collection, adding Instance JSONs to collection:[]");
             Collection<Record> subrecords = recordIn.getSubRecords();
             jsonRecords.put("collection", new JSONArray());
+            int i=0;
             for (Record rec : subrecords) {
               try {
+                logger.debug("Sub record " + ++i);
                 JSONObject json = makeInstanceJson(rec);
                 ((JSONArray)(jsonRecords.get("collection"))).add(json);
               } catch(Exception e) {
@@ -118,6 +128,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             }
             recordOut.setJsonObject(jsonRecords);
           } else {
+            logger.debug("Record is not a collection, creating one Instance JSON");
             JSONObject jsonRecord = makeInstanceJson(recordIn);
             recordOut.setJsonObject(jsonRecord);
           }
@@ -186,7 +197,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   }
 
   /**
-   * 
+   *
    * @param XML element
    * @return JSONObject created from the XML element
    */
