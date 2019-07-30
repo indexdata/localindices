@@ -109,11 +109,11 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         if (((RecordDOM) recordIn).toNode().getChildNodes().getLength() == 0) {
           logger.debug("Empty record came in from queue, skipping further processing of this document");
         } else {
-          logger.debug(this.getClass().getTypeName() + " has Record with " + ((RecordDOM) recordIn).toNode().getChildNodes().getLength() + " child nodes. Iterating:");
+          logger.debug(this.getClass().getSimpleName() + " has Record with " + ((RecordDOM) recordIn).toNode().getChildNodes().getLength() + " child nodes. Iterating:");
           RecordJSON recordOut = new RecordJSONImpl();
           JSONObject jsonRecords = new JSONObject();
           if (recordIn.isCollection()) {
-            logger.debug(this.getClass().getName() + " found collection, adding Instance JSONs to collection:[]");
+            logger.debug(this.getClass().getSimpleName() + " found collection, adding Instance JSONs to collection:[]");
             Collection<Record> subrecords = recordIn.getSubRecords();
             jsonRecords.put("collection", new JSONArray());
             int i=0;
