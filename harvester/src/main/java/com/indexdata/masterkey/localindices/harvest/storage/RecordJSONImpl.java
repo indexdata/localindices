@@ -29,7 +29,7 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
 
   @Override
   public Collection<Record> getSubRecords() {
-    List<Record> list = new ArrayList<Record>();
+    List<Record> list = new ArrayList<>();
     JSONArray records = (JSONArray)json.get("collection");
     if (records != null) {
       Iterator collectionIterator = records.iterator();

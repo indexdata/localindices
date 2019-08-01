@@ -167,21 +167,37 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
+      logger.debug(this.getClass().getSimpleName() + ": incoming record is a collection");
       Collection<Record> subrecords = recordJson.getSubRecords();
-        for (Record subRecord : subrecords) {
-          try {
-            addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
-            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
-          } catch(UnsupportedEncodingException uee) {
-            ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-            logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
-          } catch(IOException ioe) {
-            ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-            logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
-          }
+      if (recordJson.getOriginalContent() != null) {
+        try {
+          logger.debug(this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
+        } catch (UnsupportedEncodingException uee) { logger.debug("Exception in log statement: "+ uee);}
+      } else {
+        logger.debug(this.getClass().getSimpleName() + ": found collection of " + recordJson.getSubRecords().size() + " record(s), no original content attached.");
+      }
+      for (Record subRecord : subrecords) {
+        try {
+          addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
+          ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+        } catch(UnsupportedEncodingException uee) {
+          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+          logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+        } catch(IOException ioe) {
+          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+          logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
         }
+      }
     } else {
-      try {
+      logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
+      if (recordJson.getOriginalContent() != null) {
+        try {
+          logger.debug(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
+        } catch (UnsupportedEncodingException uee) {}
+      } else {
+        logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
+      }
+        try {
         addInstanceRecord(this.client, ((RecordJSON)recordJson).toJson(), this.folioTenant, this.authToken);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
       } catch(UnsupportedEncodingException uee) {

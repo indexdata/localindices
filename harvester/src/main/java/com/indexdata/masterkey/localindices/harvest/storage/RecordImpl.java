@@ -36,6 +36,7 @@ public class RecordImpl implements Record {
     return content;
   }
   
+  @Override
   public void setOriginalContent(byte[] content) {
     this.content = content;
   }

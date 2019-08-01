@@ -127,10 +127,13 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
               }
             }
             recordOut.setJsonObject(jsonRecords);
+            logger.debug(this.getClass().getSimpleName() + " setting original source on outgoing record: " + new String(recordIn.getOriginalContent(), "UTF-8"));
+            recordOut.setOriginalContent(recordIn.getOriginalContent());
           } else {
             logger.debug("Record is not a collection, creating one Instance JSON");
             JSONObject jsonRecord = makeInstanceJson(recordIn);
             recordOut.setJsonObject(jsonRecord);
+            recordOut.setOriginalContent(recordIn.getOriginalContent());
           }
           produce(recordOut);
         }
