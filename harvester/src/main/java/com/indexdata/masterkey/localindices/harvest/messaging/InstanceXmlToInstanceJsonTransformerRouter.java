@@ -106,10 +106,10 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       } catch (UnsupportedEncodingException uee) { logger.debug("Unsupported encoding in log statement");}
 
       try {
-        if (((RecordDOM) recordIn).toNode().getChildNodes().getLength() == 0) {
+        if (recordIn.getSubRecords().isEmpty()) {
           logger.debug("Empty record came in from queue, skipping further processing of this document");
         } else {
-          logger.debug(this.getClass().getSimpleName() + " has Record with " + ((RecordDOM) recordIn).toNode().getChildNodes().getLength() + " child nodes. Iterating:");
+          logger.debug(this.getClass().getSimpleName() + " has Record with " + recordIn.getSubRecords().size() + " sub record(s). Iterating:");
           RecordJSON recordOut = new RecordJSONImpl();
           JSONObject jsonRecords = new JSONObject();
           if (recordIn.isCollection()) {
