@@ -208,7 +208,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
     for (Node objectProperty : iterable(objectProperties)) {
-      jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+      if (!objectProperty.getTextContent().isEmpty()) {
+        jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+      }
     }
     return jsonObject;
   }
@@ -216,11 +218,12 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   /**
    *
    * @param node
-   * @return true if element is simple scalar
+   * @return true if element is simple, non-empty scalar
    */
   private static boolean isSimpleElement(Node node) {
     return (node.hasChildNodes()
-            && node.getFirstChild().getNodeType() == Node.TEXT_NODE);
+            && node.getFirstChild().getNodeType() == Node.TEXT_NODE
+            && !node.getFirstChild().getTextContent().isEmpty());
   }
 
   /**
@@ -272,5 +275,5 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             return nodeList.item(index++);
         }
     };
-}
+  }
 }

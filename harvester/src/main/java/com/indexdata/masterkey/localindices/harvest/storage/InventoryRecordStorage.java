@@ -263,7 +263,7 @@ public class InventoryRecordStorage implements RecordStorage {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
               response.getStatusLine().getReasonPhrase(),
-              record.get("title")));
+              record.toJSONString()));
       throw new IOException(String.format("Error adding record %s: %s (%s)",
               record.get("title"),
               response.getStatusLine().getReasonPhrase(),
