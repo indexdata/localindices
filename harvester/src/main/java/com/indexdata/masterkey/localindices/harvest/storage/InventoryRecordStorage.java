@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -178,11 +180,22 @@ public class InventoryRecordStorage implements RecordStorage {
       }
       for (Record subRecord : subrecords) {
         try {
-          addInstanceRecord(this.client, ((RecordJSON)subRecord).toJson(), this.folioTenant, this.authToken);
-          ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+          JSONObject instance = ((RecordJSON) subRecord).toJson();
+          if (instance.containsKey("holdingsRecords")) {
+            JSONArray holdingsRecords = extractJsonArrayFromObject(instance, "holdingsRecords");
+            JSONObject instanceResponse = addInstanceRecord(instance);
+            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+            addHoldingsRecordsAndItems(holdingsRecords, instanceResponse.get("id").toString());
+          } else {
+            addInstanceRecord(instance);
+            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+          }
         } catch(UnsupportedEncodingException uee) {
           ((InventoryStorageStatus) storageStatus).incrementAdd(0);
           logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+        } catch(ParseException pe) {
+          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+          logger.error("Failed to parse response on push of record to storage as JSON: " + pe.getLocalizedMessage());
         } catch(IOException ioe) {
           ((InventoryStorageStatus) storageStatus).incrementAdd(0);
           logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
@@ -197,17 +210,66 @@ public class InventoryRecordStorage implements RecordStorage {
       } else {
         logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
       }
-        try {
-        addInstanceRecord(this.client, ((RecordJSON)recordJson).toJson(), this.folioTenant, this.authToken);
+      try {
+        addInstanceRecord(((RecordJSON)recordJson).toJson());
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
       } catch(UnsupportedEncodingException uee) {
         ((InventoryStorageStatus) storageStatus).incrementAdd(0);
         logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+      } catch(ParseException pe) {
+        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+        logger.error("Failed to parse response on push of record to storage as JSON: " + pe.getLocalizedMessage());
       } catch(IOException ioe) {
         ((InventoryStorageStatus) storageStatus).incrementAdd(0);
         logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
       }
     }
+  }
+
+  /**
+   * Iterate holdings records of the instance, and items of the holdings records, POST to Inventory
+   * @param holdingsRecords
+   * @param instanceId
+   * @throws ParseException
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   */
+  private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId)
+            throws ParseException, UnsupportedEncodingException, IOException {
+    Iterator holdingsrecords = holdingsRecords.iterator();
+    while (holdingsrecords.hasNext()) {
+      JSONObject holdingsRecord = (JSONObject) holdingsrecords.next();
+      holdingsRecord.put("instanceId", instanceId);
+      if (holdingsRecord.containsKey("items")) {
+        JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
+        JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
+        Iterator itemsIterator = items.iterator();
+        while (itemsIterator.hasNext()) {
+          JSONObject item = (JSONObject) itemsIterator.next();
+          item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
+          addItem(item);
+        }
+      } else {
+        addHoldingsRecord(holdingsRecord);
+      }
+    }
+  }
+
+  /**
+   * Creates a deep clone of a JSONArray from a JSONObject, removes the array from the source object and returns the clone
+   * @param jsonObject Source object containing the array to extract
+   * @param arrayName Property name of the array to extract
+   * @return
+   * @throws ParseException
+   */
+  private static JSONArray extractJsonArrayFromObject(JSONObject jsonObject, String arrayName) throws ParseException {
+    JSONArray array = new JSONArray();
+    if (jsonObject.containsKey(arrayName)) {
+      JSONParser parser = new JSONParser();
+      array = (JSONArray) parser.parse(((JSONArray) jsonObject.get(arrayName)).toJSONString());
+      jsonObject.remove(arrayName);
+    }
+    return array;
   }
 
   @Override
@@ -245,30 +307,116 @@ public class InventoryRecordStorage implements RecordStorage {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  private void addInstanceRecord(CloseableHttpClient client, JSONObject record,
-      String tenant, String authToken)
-      throws UnsupportedEncodingException, IOException {
+  /**
+   * POST instance to Inventory
+   * @param instanceRecord
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONObject addInstanceRecord(JSONObject instanceRecord)
+      throws UnsupportedEncodingException, IOException, ParseException {
     String url = okapiUrl + "/instance-storage/instances";
     HttpPost httpPost = new HttpPost(url);
-    StringEntity entity = new StringEntity(record.toJSONString());
+    StringEntity entity = new StringEntity(instanceRecord.toJSONString());
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
     httpPost.setHeader("Content-type", "application/json");
     httpPost.setHeader("X-Okapi-Token", authToken);
-    httpPost.setHeader("X-Okapi-Tenant", tenant);
+    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
     CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + record.get("title"));
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + instanceRecord.get("title"));
+    JSONParser parser = new JSONParser();
+    JSONObject instanceResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
+    logger.info("Pushed Instance to Inventory. UUID: " + instanceResponse.get("id"));
     response.close();
     if(response.getStatusLine().getStatusCode() != 201) {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
               response.getStatusLine().getReasonPhrase(),
-              record.toJSONString()));
+              instanceRecord.toJSONString()));
       throw new IOException(String.format("Error adding record %s: %s (%s)",
-              record.get("title"),
+              instanceRecord.get("title"),
               response.getStatusLine().getReasonPhrase(),
               response.getStatusLine().getStatusCode()));
     }
+    return instanceResponse;
+  }
+
+  /**
+   * POST holdings record to Inventory
+   * @param holdingsRecord
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONObject addHoldingsRecord(JSONObject holdingsRecord)
+      throws UnsupportedEncodingException, IOException, ParseException {
+    String url = okapiUrl + "/holdings-storage/holdings";
+    HttpPost httpPost = new HttpPost(url);
+    StringEntity entity = new StringEntity(holdingsRecord.toJSONString());
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Accept", "application/json");
+    httpPost.setHeader("Content-type", "application/json");
+    httpPost.setHeader("X-Okapi-Token", authToken);
+    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
+    CloseableHttpResponse response = client.execute(httpPost);
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record: " + holdingsRecord.get("callNumber"));
+    JSONParser parser = new JSONParser();
+    JSONObject holdingsRecordResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
+    logger.info("Pushed holdings record to Inventory. UUID: " + holdingsRecordResponse.get("id"));
+    response.close();
+    if(response.getStatusLine().getStatusCode() != 201) {
+      logger.error(String.format("Got error %s, %s adding record: %s",
+              response.getStatusLine().getStatusCode(),
+              response.getStatusLine().getReasonPhrase(),
+              holdingsRecord.toJSONString()));
+      throw new IOException(String.format("Error adding record %s: %s (%s)",
+              holdingsRecord.get("title"),
+              response.getStatusLine().getReasonPhrase(),
+              response.getStatusLine().getStatusCode()));
+    }
+    return holdingsRecordResponse;
+  }
+
+  /**
+   * POST item to Inventory
+   * @param item
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONObject addItem(JSONObject item)
+      throws UnsupportedEncodingException, IOException, ParseException {
+    String url = okapiUrl + "/item-storage/items";
+    HttpPost httpPost = new HttpPost(url);
+    StringEntity entity = new StringEntity(item.toJSONString());
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Accept", "application/json");
+    httpPost.setHeader("Content-type", "application/json");
+    httpPost.setHeader("X-Okapi-Token", authToken);
+    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
+    CloseableHttpResponse response = client.execute(httpPost);
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of item record: " + item.get("barcode"));
+    JSONParser parser = new JSONParser();
+    JSONObject itemResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
+    logger.info("Pushed item to Inventory. UUID: " + itemResponse.get("id"));
+    response.close();
+    if(response.getStatusLine().getStatusCode() != 201) {
+      logger.error(String.format("Got error %s, %s adding record: %s",
+              response.getStatusLine().getStatusCode(),
+              response.getStatusLine().getReasonPhrase(),
+              item.toJSONString()));
+      throw new IOException(String.format("Error adding record %s: %s (%s)",
+              item.get("barcode"),
+              response.getStatusLine().getReasonPhrase(),
+              response.getStatusLine().getStatusCode()));
+    }
+    return itemResponse;
+
   }
 
   private JSONObject getInstanceRecord(CloseableHttpClient client, String id,

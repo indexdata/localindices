@@ -165,11 +165,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   }
 
   /**
-   * Handles incoming XML containing: simple fields, objects with simple fields,
-   * arrays of simple fields and arrays of objects with simple fields.
-   * It thus support limited nesting but e.g. not objects with nested objects,
-   * objects with nested arrays, or arrays of arrays. For support of deeper
-   * nesting the method should be refactored to recurse.
+   * Recursively transforms incoming XML to JSON.
+   * Would not handle arrays of arrays but otherwise handles arbitrary nesting,
+   * ie arrays of objects themselves containing arrays and objects.
    * @param record
    * @return a JSON representation of the XML record
    */
@@ -199,18 +197,27 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     return instanceJson;
   }
 
-  /**
-   *
-   * @param XML element
-   * @return JSONObject created from the XML element
-   */
   private static JSONObject makeJsonObject (Node node) {
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
     for (Node objectProperty : iterable(objectProperties)) {
-      if (!objectProperty.getTextContent().isEmpty()) {
+      if (isSimpleElement(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+      } else if (isObject(objectProperty)) {
+        jsonObject.put(objectProperty.getLocalName(), makeJsonObject(objectProperty));
+      } else if (isArray(objectProperty)) {
+        JSONArray jsonArray = new JSONArray();
+        NodeList items = objectProperty.getFirstChild().getChildNodes();
+        for (Node item : iterable(items)) {
+          if (isSimpleElement(item)) {
+            jsonArray.add(item.getTextContent());
+          } else if (isObject(item)) {
+            jsonArray.add(makeJsonObject(item));
+          }
+        }
+        jsonObject.put(objectProperty.getLocalName(), jsonArray);
       }
+
     }
     return jsonObject;
   }

@@ -248,6 +248,36 @@
           </arr>
         </subjects>
       </xsl:if>
+
+      <!-- holdings -->
+      <xsl:if test="marc:datafield[@tag='900']">
+        <holdingsRecords>
+           <arr>
+             <i>
+               <xsl:for-each select="marc:datafield[@tag='900']">
+                 <callNumber>
+                   <xsl:value-of select="marc:subfield[@code='h']"/>
+                 </callNumber>
+                 <items>
+                   <arr>
+                     <i>
+                       <barcode>
+                         <xsl:value-of select="marc:subfield[@code='8']"/>
+                       </barcode>
+                       <permanentLoanTypeId>2b94c631-fca9-4892-a730-03ee529ffe27</permanentLoanTypeId> <!-- Can circulate -->
+                       <materialTypeId>1a54b431-2e4f-452d-9cae-9cee66c9a892</materialTypeId>           <!-- Book -->
+                       <status>
+                         <name>Available</name>
+                       </status>
+                     </i>
+                   </arr>
+                 </items>
+               </xsl:for-each>
+             </i>
+           </arr>
+        </holdingsRecords>
+      </xsl:if>
+
     </record>
   </xsl:template>
 
