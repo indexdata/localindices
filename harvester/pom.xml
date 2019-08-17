@@ -67,8 +67,10 @@
         <configuration>
           <testSourceDirectory>src/test/java</testSourceDirectory>
           <excludes>
-            <exclude>**/Test*</exclude>
-            <exclude>**/*Test.java</exclude>
+              <!--  <exclude>**/Test*</exclude> -->
+              <!-- <exclude>**/*Test.java</exclude> -->
+              <exclude>**/integrationtests/*</exclude>
+              <exclude>**/harvest/*</exclude>
           </excludes>
           <systemPropertyVariables>
             <file.encoding>UTF-8</file.encoding>
