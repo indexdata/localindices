@@ -24,6 +24,7 @@ public class HttpClientTransport implements ClientTransport {
   private Integer timeout;
   private final ClientTransportFactory clientTransportFactory;
   private boolean isRecursive;
+  public final static String USER_AGENT_STRING = "IndexData Masterkey Harvesting Client";
 
   public HttpClientTransport(ClientTransportFactory clientTransportFactory, StorageJobLogger logger) {
     this.clientTransportFactory = clientTransportFactory;
@@ -33,6 +34,7 @@ public class HttpClientTransport implements ClientTransport {
   @Override
   public void connect(URL url) throws IOException {
     conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("User-Agent", USER_AGENT_STRING);
     if (timeout != null) {
       conn.setConnectTimeout(timeout);
       conn.setReadTimeout(timeout);
