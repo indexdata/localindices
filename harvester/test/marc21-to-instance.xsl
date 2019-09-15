@@ -146,8 +146,15 @@
         <title>
           <xsl:call-template name="remove-characters-last">
             <xsl:with-param  name="input" select="marc:subfield[@code='a']" />
-            <xsl:with-param  name="characters">,-./ :</xsl:with-param>
+            <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
           </xsl:call-template>
+          <xsl:if test="marc:subfield[@code='b']">
+           <xsl:text>; </xsl:text>
+            <xsl:call-template name="remove-characters-last">
+              <xsl:with-param  name="input" select="marc:subfield[@code='b']" />
+              <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:if>
         </title>
       </xsl:for-each>
 
@@ -228,6 +235,22 @@
         </publication>
       </xsl:if>
 
+      <!-- physicalDescriptions -->
+      <xsl:if test="marc:datafield[@tag='300']">
+        <physicalDescriptions>
+          <arr>
+            <xsl:for-each select="marc:datafield[@tag='300']">
+              <i>
+                <xsl:call-template name="remove-characters-last">
+                  <xsl:with-param  name="input" select="marc:subfield[@code='a']" />
+                  <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+                </xsl:call-template>
+              </i>
+            </xsl:for-each>
+          </arr>
+        </physicalDescriptions>
+      </xsl:if>
+
       <!-- Subjects -->
       <xsl:if test="marc:datafield[@tag='600' or @tag='610' or @tag='611' or @tag='630' or @tag='648' or @tag='650' or @tag='651' or @tag='653' or @tag='654' or @tag='655' or @tag='656' or @tag='657' or @tag='658' or @tag='662' or @tag='69X']">
         <subjects>
@@ -277,7 +300,6 @@
            </arr>
         </holdingsRecords>
       </xsl:if>
-
     </record>
   </xsl:template>
 
