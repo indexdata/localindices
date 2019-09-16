@@ -134,6 +134,12 @@
                     </classificationNumber>
                     <classificationTypeId>42471af9-7d25-4f3a-bf78-60d29dcf463b</classificationTypeId> <!-- Dewey -->
                   </xsl:when>
+                  <xsl:when test="current()[@tag='086']">
+                    <classificationNumber>
+                      <xsl:value-of select="marc:subfield[@code='a']"/>
+                    </classificationNumber>
+                    <classificationTypeId>9075b5f8-7d97-49e1-a431-73fdd468d476</classificationTypeId> <!-- SuDoc (note: not yet preloaded in Inventory storage -->
+                  </xsl:when>
                 </xsl:choose>
               </i>
             </xsl:for-each>
