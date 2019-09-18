@@ -155,7 +155,7 @@
             <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
           </xsl:call-template>
           <xsl:if test="marc:subfield[@code='b']">
-           <xsl:text>; </xsl:text>
+           <xsl:text> : </xsl:text>
             <xsl:call-template name="remove-characters-last">
               <xsl:with-param  name="input" select="marc:subfield[@code='b']" />
               <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
