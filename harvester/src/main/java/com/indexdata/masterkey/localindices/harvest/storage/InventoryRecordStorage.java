@@ -10,8 +10,10 @@ import java.util.UUID;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -31,10 +33,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
  * @author kurt
  */
 public class InventoryRecordStorage implements RecordStorage {
-  private String okapiUrl;
-  private String folioUsername;
-  private String folioPassword;
-  private String folioTenant;
   private String authToken;
   private CloseableHttpClient client;
   protected StorageJobLogger logger;
@@ -43,6 +41,15 @@ public class InventoryRecordStorage implements RecordStorage {
   private String database;
   private Map<String, String> databaseProperties;
   private StorageStatus storageStatus;
+
+  private static final String FOLIO_ADDRESS = "folioAddress";
+  private static final String FOLIO_AUTH_PATH = "folioAuthPath";
+  private static final String FOLIO_TENANT = "folioTenant";
+  private static final String FOLIO_USERNAME = "folioUsername";
+  private static final String FOLIO_PASSWORD = "folioPassword";
+  private static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
+  private static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
+  private static final String ITEM_STORAGE_PATH = "itemStoragePath";
 
   public InventoryRecordStorage() {
   }
@@ -107,18 +114,19 @@ public class InventoryRecordStorage implements RecordStorage {
     this.database = database;
     try {
       client = HttpClients.createDefault();
-      okapiUrl = "http://10.0.2.2:9130";
-      folioUsername = InventoryRecordStorage.this.getConfigurationValue("folioUsername");
-      folioPassword = InventoryRecordStorage.this.getConfigurationValue("folioPassword");
-      folioTenant   = getConfigurationValue("folioTenant", "diku");
+      String folioAddress = getConfigurationValue(FOLIO_ADDRESS);
+      String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);
+      String folioUsername = getConfigurationValue(FOLIO_USERNAME);
+      String folioPassword = getConfigurationValue(FOLIO_PASSWORD);
+      String folioTenant   = getConfigurationValue(FOLIO_TENANT, "diku");
       if (folioUsername != null && folioPassword != null && folioTenant != null) {
-        authToken = getAuthtoken(client, folioUsername, folioPassword, folioTenant);
+        authToken = getAuthtoken(client, folioAddress, folioAuthPath, folioUsername, folioPassword, folioTenant);
       } else {
         logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
                 + "Will attempt to continue without for tenant [" + folioTenant + "]."
                 + "This would only work for a FOLIO instance with no authentication enabled.");
       }
-      storageStatus = new InventoryStorageStatus(okapiUrl, authToken);
+      storageStatus = new InventoryStorageStatus(folioAddress + folioAuthPath, authToken);
     } catch (StorageException se) {
       throw se;
     } catch (IOException ioe) {
@@ -317,16 +325,22 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addInstanceRecord(JSONObject instanceRecord)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = okapiUrl + "/instance-storage/instances";
-    HttpPost httpPost = new HttpPost(url);
+    String url = getConfigurationValue(FOLIO_ADDRESS) +
+                 getConfigurationValue(INSTANCE_STORAGE_PATH);
+    HttpEntityEnclosingRequestBase httpUpdate = null;
+    if (url.contains("instance-storage-match")) {
+      httpUpdate = new HttpPut(url);
+    } else {
+      httpUpdate = new HttpPost(url);
+    }
     StringEntity entity = new StringEntity(instanceRecord.toJSONString());
-    httpPost.setEntity(entity);
-    httpPost.setHeader("Accept", "application/json");
-    httpPost.setHeader("Content-type", "application/json");
-    httpPost.setHeader("X-Okapi-Token", authToken);
-    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
-    CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of record: " + instanceRecord.get("title"));
+    httpUpdate.setEntity(entity);
+    httpUpdate.setHeader("Accept", "application/json");
+    httpUpdate.setHeader("Content-type", "application/json");
+    httpUpdate.setHeader("X-Okapi-Token", authToken);
+    httpUpdate.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpUpdate);
+    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for update of record: " + instanceRecord.get("title"));
     JSONParser parser = new JSONParser();
     JSONObject instanceResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
     logger.info("Pushed Instance to Inventory. UUID: " + instanceResponse.get("id"));
@@ -354,14 +368,14 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addHoldingsRecord(JSONObject holdingsRecord)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = okapiUrl + "/holdings-storage/holdings";
+    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(HOLDINGS_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(holdingsRecord.toJSONString());
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
     httpPost.setHeader("Content-type", "application/json");
     httpPost.setHeader("X-Okapi-Token", authToken);
-    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
+    httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpPost);
     logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record: " + holdingsRecord.get("callNumber"));
     JSONParser parser = new JSONParser();
@@ -391,14 +405,14 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addItem(JSONObject item)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = okapiUrl + "/item-storage/items";
+    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(ITEM_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(item.toJSONString());
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
     httpPost.setHeader("Content-type", "application/json");
     httpPost.setHeader("X-Okapi-Token", authToken);
-    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
+    httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpPost);
     logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of item record: " + item.get("barcode"));
     JSONParser parser = new JSONParser();
@@ -422,7 +436,7 @@ public class InventoryRecordStorage implements RecordStorage {
   private JSONObject getInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken)
       throws IOException, ParseException {
-    String url = String.format("%s/instances/%s", okapiUrl, id);
+    String url = String.format("%s/instances/%s", getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -441,7 +455,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private void deleteInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken) throws IOException {
-    String url = String.format("%s/instances/%s", okapiUrl, id);
+    String url = String.format("%s/instances/%s", getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
     HttpDelete httpDelete = new HttpDelete(url);
     httpDelete.setHeader("Accept", "application/json");
     httpDelete.setHeader("Content-type", "application/json");
@@ -454,11 +468,14 @@ public class InventoryRecordStorage implements RecordStorage {
     }
   }
 
-  private String getAuthtoken(CloseableHttpClient client, String username,
-      String password, String tenant)
+  private String getAuthtoken(CloseableHttpClient client,
+                              String folioAddress,
+                              String folioAuthPath,
+                              String username,
+                              String password,
+                              String tenant)
       throws UnsupportedEncodingException, IOException, StorageException {
-    String url = okapiUrl + "/bl-users/login";
-    HttpPost httpPost = new HttpPost(url);
+    HttpPost httpPost = new HttpPost(folioAddress + folioAuthPath);
     JSONObject loginJson = new JSONObject();
     loginJson.put("username", username);
     loginJson.put("password", password);
