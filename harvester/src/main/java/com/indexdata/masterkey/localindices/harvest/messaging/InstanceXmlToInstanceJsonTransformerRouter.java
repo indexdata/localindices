@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -101,9 +100,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     if (documentIn instanceof Record) {
 
       Record recordIn = (Record) documentIn;
-      try {
-        logger.debug(this.getClass().getSimpleName() + " received record with originalContent "+ new String(recordIn.getOriginalContent(), "UTF-8"));
-      } catch (UnsupportedEncodingException uee) { logger.debug("Unsupported encoding in log statement");}
 
       try {
         if (recordIn.getSubRecords().isEmpty()) {
@@ -127,7 +123,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
               }
             }
             recordOut.setJsonObject(jsonRecords);
-            logger.debug(this.getClass().getSimpleName() + " setting original source on outgoing record: " + new String(recordIn.getOriginalContent(), "UTF-8"));
             recordOut.setOriginalContent(recordIn.getOriginalContent());
           } else {
             logger.debug("Record is not a collection, creating one Instance JSON");
