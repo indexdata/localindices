@@ -327,7 +327,7 @@ public class InventoryRecordStorage implements RecordStorage {
       throws UnsupportedEncodingException, IOException, ParseException {
     String url = getConfigurationValue(FOLIO_ADDRESS) +
                  getConfigurationValue(INSTANCE_STORAGE_PATH);
-    HttpEntityEnclosingRequestBase httpUpdate = null;
+    HttpEntityEnclosingRequestBase httpUpdate;
     if (url.contains("instance-storage-match")) {
       httpUpdate = new HttpPut(url);
     } else {
@@ -345,7 +345,7 @@ public class InventoryRecordStorage implements RecordStorage {
     JSONObject instanceResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
     logger.info("Pushed Instance to Inventory. UUID: " + instanceResponse.get("id"));
     response.close();
-    if(response.getStatusLine().getStatusCode() != 201) {
+    if(response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
               response.getStatusLine().getReasonPhrase(),
@@ -368,7 +368,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addHoldingsRecord(JSONObject holdingsRecord)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(HOLDINGS_STORAGE_PATH);
+    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(HOLDINGS_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(holdingsRecord.toJSONString());
     httpPost.setEntity(entity);
