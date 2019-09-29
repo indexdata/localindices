@@ -41,8 +41,8 @@ public class InventoryRecordStorage implements RecordStorage {
   private String database;
   private Map<String, String> databaseProperties;
   private StorageStatus storageStatus;
+  private String folioAddress;
 
-  private static final String FOLIO_ADDRESS = "folioAddress";
   private static final String FOLIO_AUTH_PATH = "folioAuthPath";
   private static final String FOLIO_TENANT = "folioTenant";
   private static final String FOLIO_USERNAME = "folioUsername";
@@ -64,6 +64,7 @@ public class InventoryRecordStorage implements RecordStorage {
       if(harvestable != null) {
         storage = harvestable.getStorage();
       }
+      this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
@@ -114,7 +115,6 @@ public class InventoryRecordStorage implements RecordStorage {
     this.database = database;
     try {
       client = HttpClients.createDefault();
-      String folioAddress = getConfigurationValue(FOLIO_ADDRESS);
       String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);
       String folioUsername = getConfigurationValue(FOLIO_USERNAME);
       String folioPassword = getConfigurationValue(FOLIO_PASSWORD);
@@ -160,7 +160,7 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   private String getConfigurationValue (String key, String defaultValue) {
-    String value = InventoryRecordStorage.this.getConfigurationValue (key);
+    String value = getConfigurationValue (key);
     return value != null ? value : defaultValue;
   }
 
@@ -325,7 +325,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addInstanceRecord(JSONObject instanceRecord)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = getConfigurationValue(FOLIO_ADDRESS) +
+    String url = folioAddress +
                  getConfigurationValue(INSTANCE_STORAGE_PATH);
     HttpEntityEnclosingRequestBase httpUpdate;
     if (url.contains("instance-storage-match")) {
@@ -368,7 +368,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addHoldingsRecord(JSONObject holdingsRecord)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(HOLDINGS_STORAGE_PATH);
+    String url = folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(holdingsRecord.toJSONString());
     httpPost.setEntity(entity);
@@ -405,7 +405,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONObject addItem(JSONObject item)
       throws UnsupportedEncodingException, IOException, ParseException {
-    String url = getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(ITEM_STORAGE_PATH);
+    String url = folioAddress + getConfigurationValue(ITEM_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
     StringEntity entity = new StringEntity(item.toJSONString());
     httpPost.setEntity(entity);
@@ -436,7 +436,7 @@ public class InventoryRecordStorage implements RecordStorage {
   private JSONObject getInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken)
       throws IOException, ParseException {
-    String url = String.format("%s/instances/%s", getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
+    String url = String.format("%s/instances/%s", folioAddress + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -455,7 +455,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private void deleteInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken) throws IOException {
-    String url = String.format("%s/instances/%s", getConfigurationValue(FOLIO_ADDRESS) + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
+    String url = String.format("%s/instances/%s", folioAddress + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
     HttpDelete httpDelete = new HttpDelete(url);
     httpDelete.setHeader("Accept", "application/json");
     httpDelete.setHeader("Content-type", "application/json");
