@@ -138,7 +138,7 @@
                     <classificationNumber>
                       <xsl:value-of select="marc:subfield[@code='a']"/>
                     </classificationNumber>
-                    <classificationTypeId>9075b5f8-7d97-49e1-a431-73fdd468d476</classificationTypeId> <!-- SuDoc (note: not yet preloaded in Inventory storage -->
+                    <classificationTypeId>9075b5f8-7d97-49e1-a431-73fdd468d476</classificationTypeId>
                   </xsl:when>
                 </xsl:choose>
               </i>
@@ -221,25 +221,38 @@
       </xsl:if>
 
       <!-- Publication -->
-      <xsl:if test="marc:datafield[@tag='260' or @tag='264']">
-        <publication>
-          <arr>
-            <xsl:for-each select="marc:datafield[@tag='260' or @tag='264']">
+      <xsl:choose>
+        <xsl:when test="marc:datafield[@tag='260' or @tag='264']">
+          <publication>
+            <arr>
+              <xsl:for-each select="marc:datafield[@tag='260' or @tag='264']">
+                <i>
+                  <publisher>
+                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                  </publisher>
+                  <place>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                  </place>
+                  <dateOfPublication>
+                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                  </dateOfPublication>
+                </i>
+              </xsl:for-each>
+            </arr>
+          </publication>
+        </xsl:when>
+        <xsl:otherwise>
+          <publication>
+            <arr>
               <i>
-                <publisher>
-                  <xsl:value-of select="marc:subfield[@code='b']"/>
-                </publisher>
-                <place>
-                  <xsl:value-of select="marc:subfield[@code='a']"/>
-                </place>
                 <dateOfPublication>
-                  <xsl:value-of select="marc:subfield[@code='c']"/>
+                  <xsl:value-of select="substring(marc:controlfield[@tag='008'],8,4)"/>
                 </dateOfPublication>
               </i>
-            </xsl:for-each>
-          </arr>
-        </publication>
-      </xsl:if>
+            </arr>
+          </publication>
+        </xsl:otherwise>
+      </xsl:choose>
 
       <!-- physicalDescriptions -->
       <xsl:if test="marc:datafield[@tag='300']">
