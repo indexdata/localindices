@@ -161,6 +161,13 @@
               <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
             </xsl:call-template>
           </xsl:if>
+          <xsl:if test="marc:subfield[@code='h']">
+            <xsl:text> </xsl:text>
+            <xsl:call-template name="remove-characters-last">
+              <xsl:with-param  name="input" select="marc:subfield[@code='h']" />
+              <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:if>
         </title>
       </xsl:for-each>
 
