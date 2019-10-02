@@ -138,7 +138,7 @@
                     <classificationNumber>
                       <xsl:value-of select="marc:subfield[@code='a']"/>
                     </classificationNumber>
-                    <classificationTypeId>9075b5f8-7d97-49e1-a431-73fdd468d476</classificationTypeId>
+                    <classificationTypeId>9075b5f8-7d97-49e1-a431-73fdd468d476</classificationTypeId> <!-- SUDOC -->
                   </xsl:when>
                 </xsl:choose>
               </i>
