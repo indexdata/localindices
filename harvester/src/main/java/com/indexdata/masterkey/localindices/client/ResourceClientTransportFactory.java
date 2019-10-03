@@ -21,7 +21,7 @@ public class ResourceClientTransportFactory implements ClientTransportFactory {
   public ClientTransport lookup(URL url) throws ClientTransportError {
 
     ClientTransport transport = null;
-    if ("http".equals(url.getProtocol())) {
+    if ("https".startsWith(url.getProtocol())) {
       transport = new HttpClientTransport(this, logger);
     } else if (url.getProtocol().equals("ftp")) {
       String authority = url.getAuthority();
