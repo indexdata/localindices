@@ -12,7 +12,7 @@
 LOCK TABLES `STORAGE` WRITE;
 /*!40000 ALTER TABLE `STORAGE` DISABLE KEYS */;
 INSERT INTO `STORAGE` VALUES (204,'InventoryStorageEntity',1,'TODO','FOLIO @ localhost',NULL,NULL,'FOLIO','http://10.0.2.2:9130',NULL,NULL,NULL,NULL,1000,60,2,60);
-INSERT INTO `STORAGE` VALUES (205,'InventoryStorageEntity',1,'TODO','Demo server @ amazonws',NULL,NULL,'FOLIO','http://ec2-34-229-181-20.compute-1.amazonaws.com:9130',NULL,NULL,NULL,NULL,1000,60,2,60);
+INSERT INTO `STORAGE` VALUES (205,'InventoryStorageEntity',1,'TODO','Reshare demo FOLIO server',NULL,NULL,'FOLIO','http://shared-index.reshare-dev.indexdata.com:9130',NULL,NULL,NULL,NULL,1000,60,2,60);
 /* INSERT INTO `STORAGE` VALUES (205,'InventoryStorageEntity',1,'TODO','FOLIO Inventory Match @ localhost',NULL,NULL,'Inventory Match at localhost','http://10.0.2.2:9130/instance-storage-match/instances',NULL,NULL,NULL,NULL,1000,60,2,60); */
 /*!40000 ALTER TABLE `STORAGE` ENABLE KEYS */;
 UNLOCK TABLES;
