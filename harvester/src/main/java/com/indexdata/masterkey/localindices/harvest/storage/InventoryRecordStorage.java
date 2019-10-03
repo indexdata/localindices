@@ -331,6 +331,9 @@ public class InventoryRecordStorage implements RecordStorage {
     if (url.contains("instance-storage-match")) {
       httpUpdate = new HttpPut(url);
     } else {
+      if (instanceRecord.containsKey("matchKey")) {
+        instanceRecord.remove("matchKey");
+      }
       httpUpdate = new HttpPost(url);
     }
     StringEntity entity = new StringEntity(instanceRecord.toJSONString());

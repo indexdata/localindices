@@ -171,6 +171,44 @@
         </title>
       </xsl:for-each>
 
+      <matchKey>
+        <xsl:for-each select="marc:datafield[@tag='245']">
+          <title>
+            <xsl:call-template name="remove-characters-last">
+              <xsl:with-param  name="input" select="marc:subfield[@code='a']" />
+              <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+            </xsl:call-template>
+          </title>
+          <remainder-of-title>
+           <xsl:text> : </xsl:text>
+            <xsl:call-template name="remove-characters-last">
+              <xsl:with-param  name="input" select="marc:subfield[@code='b']" />
+              <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+            </xsl:call-template>
+          </remainder-of-title>
+          <medium>
+            <xsl:call-template name="remove-characters-last">
+              <xsl:with-param  name="input" select="marc:subfield[@code='h']" />
+              <xsl:with-param  name="characters">,-./ :;</xsl:with-param>
+            </xsl:call-template>
+          </medium>
+          <!-- Only fields that are actually included in
+               the instance somewhere - for example in 'title' -
+               should be included as 'matchKey' elements lest
+               the instance "magically" splits on "invisible"
+               properties.
+          <name-of-part-section-of-work>
+            <xsl:value-of select="marc:subfield[@code='p']" />
+          </name-of-part-section-of-work>
+          <number-of-part-section-of-work>
+            <xsl:value-of select="marc:subfield[@code='n']" />
+          </number-of-part-section-of-work>
+          <inclusive-dates>
+            <xsl:value-of select="marc:subfield[@code='f']" />
+          </inclusive-dates> -->
+        </xsl:for-each>
+      </matchKey>
+
       <!-- Contributors -->
       <xsl:if test="marc:datafield[@tag='100' or @tag='110' or @tag='111' or @tag='700' or @tag='710' or @tag='711']">
         <contributors>
