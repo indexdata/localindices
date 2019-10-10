@@ -1,0 +1,18 @@
+<Configure id="wac" class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="mydb" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg></Arg>
+    <Arg>localindicesDS</Arg>
+    <Arg>
+        <New class="com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource">
+            <Set name="Url"><Env name="MYSQLURL"/></Set>
+            <Set name="User"><Env name="MYSQLUSER"/></Set>
+            <Set name="Password"><Env name="MYSQLPASS"/></Set>
+            <!--
+            <Set name="Url">jdbc:mysql://172.17.0.1:3306/localindices?autoReconnect=true</Set>
+            <Set name="User">localidxadm</Set>
+            <Set name="Password">localidxadmpass</Set>
+            -->
+        </New>
+    </Arg>
+  </New>
+</Configure>
