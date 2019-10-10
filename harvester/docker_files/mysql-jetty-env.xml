@@ -1,0 +1,13 @@
+<Configure id="wac" class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="mydb" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg></Arg>
+    <Arg>localindicesDS</Arg>
+    <Arg>
+        <New class="com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource">
+            <Set name="Url"><Env name="MYSQLURL"/></Set>
+            <Set name="User"><Env name="MYSQLUSER"/></Set>
+            <Set name="Password"><Env name="MYSQLPASS"/></Set>
+        </New>
+    </Arg>
+  </New>
+</Configure>
