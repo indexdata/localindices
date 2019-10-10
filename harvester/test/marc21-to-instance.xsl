@@ -56,16 +56,10 @@
           <arr>
           <xsl:for-each select="marc:controlfield[@tag='001']">
             <i>
-              <xsl:choose>
-                <xsl:when test="../marc:datafield[@tag='900']/marc:subfield[@code='b']='EAST'">
-                  <value><xsl:value-of select="."/></value>
-                  <identifierTypeId>47a65482-f104-45e8-aead-1f12d70dcf32</identifierTypeId>
-                </xsl:when>
-                <xsl:when test="../marc:datafield[@tag='900']/marc:subfield[@code='b']='WEST'">
-                  <value><xsl:value-of select="."/></value>
-                  <identifierTypeId>9db07825-8035-4d9a-8a41-d59a5f1c337b</identifierTypeId>
-                </xsl:when>
-              </xsl:choose>
+              <value><xsl:value-of select="."/></value>
+              <identifierType>
+                <xsl:value-of select="../marc:datafield[@tag='900']/marc:subfield[@code='b']"/>
+              </identifierType>
             </i>
           </xsl:for-each>
           <xsl:for-each select="marc:datafield[@tag='001' or @tag='010' or @tag='020' or @tag='022' or @tag='024' or @tag='028' or @tag='035' or @tag='074']">
@@ -357,10 +351,7 @@
            <arr>
              <i>
                <xsl:for-each select="marc:datafield[@tag='900']">
-                 <xsl:choose>
-                   <xsl:when test="marc:subfield[@code='b']='EAST'"><permanentLocationId>81582666-305d-4c8e-82cc-061fd00e9c42</permanentLocationId></xsl:when>
-                   <xsl:when test="marc:subfield[@code='b']='WEST'"><permanentLocationId>d05b8941-a7b3-4519-b450-06d72ca13a0c</permanentLocationId></xsl:when>
-                 </xsl:choose>
+                 <permanentLocation><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocation>
                  <callNumber>
                    <xsl:value-of select="marc:subfield[@code='h']"/>
                  </callNumber>
