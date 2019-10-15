@@ -353,6 +353,13 @@
                <xsl:for-each select="marc:datafield[@tag='900']">
                  <xsl:variable name="holdingsId" select="marc:subfield[@code='8']"/>
                  <i>
+                   <formerIds>
+                     <arr>
+                       <i>
+                         <xsl:value-of select="marc:subfield[@code='8']"/>
+                       </i>
+                     </arr>
+                   </formerIds>
                    <permanentLocation><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocation>
                    <callNumber>
                      <xsl:for-each select="marc:subfield[@code='f']">
@@ -367,6 +374,9 @@
                        <xsl:for-each select="../marc:datafield[@tag='995']">
                         <xsl:if test="marc:subfield[@code='ff']=$holdingsId">
                           <i>
+                            <itemIdentifier>
+                              <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </itemIdentifier>
                             <barcode>
                               <xsl:value-of select="marc:subfield[@code='s']"/>
                             </barcode>
@@ -395,9 +405,20 @@
             <arr>
               <xsl:for-each select="marc:datafield[@tag='995']">
                 <i>
+                  <!-- No "900" tag (no holdings record), use ID of item as holdingsRecord ID as well -->
+                  <formerIds>
+                    <arr>
+                      <i>
+                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                      </i>
+                    </arr>
+                  </formerIds>
                   <items>
                     <arr>
                       <i>
+                        <itemIdentifier>
+                          <xsl:value-of select="marc:subfield[@code='a']"/>
+                        </itemIdentifier>
                         <barcode>
                           <xsl:value-of select="../marc:subfield[@code='s']"/>
                         </barcode>
