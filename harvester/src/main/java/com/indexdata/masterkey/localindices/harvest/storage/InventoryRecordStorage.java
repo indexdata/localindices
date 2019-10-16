@@ -189,6 +189,15 @@ public class InventoryRecordStorage implements RecordStorage {
       for (Record subRecord : subrecords) {
         try {
           JSONObject instance = ((RecordJSON) subRecord).toJson();
+          if (instance.containsKey("passthrough")) {
+          /* 'passthrough' is a naming convention that the transformation pipeline can 
+           use for a container that holds raw elements passed through the pipeline
+           for subsequent transformation steps to take care of them. 
+           If no transformation step is configured to handle the `passthrough` 
+           the element might show up at this point and it should be removed since
+           it's not a valid Instance property */
+            instance.remove("passthrough");
+          }
           if (instance.containsKey("holdingsRecords")) {
             JSONArray holdingsRecords = extractJsonArrayFromObject(instance, "holdingsRecords");
             JSONObject instanceResponse = addInstanceRecord(instance);
@@ -246,19 +255,25 @@ public class InventoryRecordStorage implements RecordStorage {
             throws ParseException, UnsupportedEncodingException, IOException {
     Iterator holdingsrecords = holdingsRecords.iterator();
     while (holdingsrecords.hasNext()) {
-      JSONObject holdingsRecord = (JSONObject) holdingsrecords.next();
-      holdingsRecord.put("instanceId", instanceId);
-      if (holdingsRecord.containsKey("items")) {
-        JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
-        JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
-        Iterator itemsIterator = items.iterator();
-        while (itemsIterator.hasNext()) {
-          JSONObject item = (JSONObject) itemsIterator.next();
-          item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
-          addItem(item);
+      JSONObject holdingsRecord;
+      Object holdingsObject = holdingsrecords.next();
+      if (holdingsObject instanceof JSONObject) {
+        holdingsRecord = (JSONObject) holdingsObject;
+        holdingsRecord.put("instanceId", instanceId);
+        if (holdingsRecord.containsKey("items")) {
+          JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
+          JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
+          Iterator itemsIterator = items.iterator();
+          while (itemsIterator.hasNext()) {
+            JSONObject item = (JSONObject) itemsIterator.next();
+            item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
+            addItem(item);
+          }
+        } else {
+          addHoldingsRecord(holdingsRecord);
         }
-      } else {
-        addHoldingsRecord(holdingsRecord);
+      } else if (holdingsObject instanceof String) {
+        throw new IOException("Could not parse holdings record from JSONArray: " + holdingsObject);
       }
     }
   }
