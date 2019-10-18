@@ -65,7 +65,7 @@ public class InventoryRecordStorage implements RecordStorage {
         storage = harvestable.getStorage();
       }
       this.folioAddress = storage.getUrl();
-      logger = new FileStorageJobLogger(InventoryRecordStorage.class, storage);
+      logger = new FileStorageJobLogger(InventoryRecordStorage.class, harvestable);
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -190,10 +190,10 @@ public class InventoryRecordStorage implements RecordStorage {
         try {
           JSONObject instance = ((RecordJSON) subRecord).toJson();
           if (instance.containsKey("passthrough")) {
-          /* 'passthrough' is a naming convention that the transformation pipeline can 
+          /* 'passthrough' is a naming convention that the transformation pipeline can
            use for a container that holds raw elements passed through the pipeline
-           for subsequent transformation steps to take care of them. 
-           If no transformation step is configured to handle the `passthrough` 
+           to be handled by subsequent transformation steps.
+           If no transformation step is configured to handle the `passthrough`
            the element might show up at this point and it should be removed since
            it's not a valid Instance property */
             instance.remove("passthrough");
@@ -358,20 +358,27 @@ public class InventoryRecordStorage implements RecordStorage {
     httpUpdate.setHeader("X-Okapi-Token", authToken);
     httpUpdate.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpUpdate);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for update of record: " + instanceRecord.get("title"));
     JSONParser parser = new JSONParser();
-    JSONObject instanceResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-    logger.info("Pushed Instance to Inventory. UUID: " + instanceResponse.get("id"));
+    String responseAsString = EntityUtils.toString(response.getEntity());
+    JSONObject instanceResponse = null;
+    try {
+      instanceResponse= (JSONObject) parser.parse(responseAsString);
+    } catch (ParseException pe) {
+      instanceResponse = new JSONObject();
+      instanceResponse.put("wrappedErrorMessage", responseAsString);
+    }
     response.close();
     if(response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
-              response.getStatusLine().getReasonPhrase(),
+              responseAsString,
               instanceRecord.toJSONString()));
       throw new IOException(String.format("Error adding record %s: %s (%s)",
               instanceRecord.get("title"),
-              response.getStatusLine().getReasonPhrase(),
+              responseAsString,
               response.getStatusLine().getStatusCode()));
+    } else {
+      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST/PUT of Instance " + instanceRecord.get("title") + " UUID: " + instanceResponse.get("id"));
     }
     return instanceResponse;
   }
@@ -395,20 +402,27 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("X-Okapi-Token", authToken);
     httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record: " + holdingsRecord.get("callNumber"));
     JSONParser parser = new JSONParser();
-    JSONObject holdingsRecordResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-    logger.info("Pushed holdings record to Inventory. UUID: " + holdingsRecordResponse.get("id"));
+    String responseAsString = EntityUtils.toString(response.getEntity());
+    JSONObject holdingsRecordResponse = null;
+    try {
+      holdingsRecordResponse= (JSONObject) parser.parse(responseAsString);
+    } catch (ParseException pe) {
+      holdingsRecordResponse = new JSONObject();
+      holdingsRecordResponse.put("wrappedErrorMessage", responseAsString);
+    }
     response.close();
     if(response.getStatusLine().getStatusCode() != 201) {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
-              response.getStatusLine().getReasonPhrase(),
+              responseAsString,
               holdingsRecord.toJSONString()));
       throw new IOException(String.format("Error adding record %s: %s (%s)",
-              holdingsRecord.get("title"),
-              response.getStatusLine().getReasonPhrase(),
+              holdingsRecord.get("callNumber"),
+              responseAsString,
               response.getStatusLine().getStatusCode()));
+    } else {
+      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record " + holdingsRecord.get("callNumber") + " UUID: " + holdingsRecordResponse.get("id"));
     }
     return holdingsRecordResponse;
   }
@@ -432,20 +446,27 @@ public class InventoryRecordStorage implements RecordStorage {
     httpPost.setHeader("X-Okapi-Token", authToken);
     httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpPost);
-    logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of item record: " + item.get("barcode"));
     JSONParser parser = new JSONParser();
-    JSONObject itemResponse= (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-    logger.info("Pushed item to Inventory. UUID: " + itemResponse.get("id"));
+    String responseAsString = EntityUtils.toString(response.getEntity());
+    JSONObject itemResponse = null;
+    try {
+      itemResponse= (JSONObject) parser.parse(responseAsString);
+    } catch (ParseException pe) {
+      itemResponse = new JSONObject();
+      itemResponse.put("wrappedErrorMessage", responseAsString);
+    }
     response.close();
     if(response.getStatusLine().getStatusCode() != 201) {
       logger.error(String.format("Got error %s, %s adding record: %s",
               response.getStatusLine().getStatusCode(),
-              response.getStatusLine().getReasonPhrase(),
+              responseAsString,
               item.toJSONString()));
       throw new IOException(String.format("Error adding record %s: %s (%s)",
               item.get("barcode"),
-              response.getStatusLine().getReasonPhrase(),
+              responseAsString,
               response.getStatusLine().getStatusCode()));
+    } else {
+      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of Item " + item.get("barcode") + " UUID: " + itemResponse.get("id"));
     }
     return itemResponse;
 
