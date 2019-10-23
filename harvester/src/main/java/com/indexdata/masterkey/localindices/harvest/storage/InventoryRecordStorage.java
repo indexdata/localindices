@@ -371,7 +371,7 @@ public class InventoryRecordStorage implements RecordStorage {
       }
       httpUpdate = new HttpPost(url);
     }
-    StringEntity entity = new StringEntity(instanceRecord.toJSONString());
+    StringEntity entity = new StringEntity(instanceRecord.toJSONString(),"UTF-8");
     httpUpdate.setEntity(entity);
     httpUpdate.setHeader("Accept", "application/json");
     httpUpdate.setHeader("Content-type", "application/json");
@@ -418,7 +418,7 @@ public class InventoryRecordStorage implements RecordStorage {
     holdingsRecordsProcessed++;
     String url = folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
-    StringEntity entity = new StringEntity(holdingsRecord.toJSONString());
+    StringEntity entity = new StringEntity(holdingsRecord.toJSONString(),"UTF-8");
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
     httpPost.setHeader("Content-type", "application/json");
@@ -465,7 +465,7 @@ public class InventoryRecordStorage implements RecordStorage {
     itemsProcessed++;
     String url = folioAddress + getConfigurationValue(ITEM_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
-    StringEntity entity = new StringEntity(item.toJSONString());
+    StringEntity entity = new StringEntity(item.toJSONString(),"UTF-8");
     httpPost.setEntity(entity);
     httpPost.setHeader("Accept", "application/json");
     httpPost.setHeader("Content-type", "application/json");
