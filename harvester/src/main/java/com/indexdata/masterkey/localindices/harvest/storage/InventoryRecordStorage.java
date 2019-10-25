@@ -194,8 +194,8 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
-      logger.debug(this.getClass().getSimpleName() + ": incoming record is a collection");
       Collection<Record> subrecords = recordJson.getSubRecords();
+      logger.debug(this.getClass().getSimpleName() + ": incoming record is a collection with " + subrecords.size() + " sub records");
       if (recordJson.getOriginalContent() != null) {
         try {
           // Note: this log level is not electable in the admin UI at time of writing
@@ -205,37 +205,8 @@ public class InventoryRecordStorage implements RecordStorage {
         logger.debug(this.getClass().getSimpleName() + ": found collection of " + recordJson.getSubRecords().size() + " record(s), no original content attached.");
       }
       for (Record subRecord : subrecords) {
-        try {
-          JSONObject instance = ((RecordJSON) subRecord).toJson();
-          if (instance.containsKey("passthrough")) {
-          /* 'passthrough' is a naming convention that the transformation pipeline can
-           use for a container that holds raw elements passed through the pipeline
-           to be handled by subsequent transformation steps.
-           If no transformation step is configured to handle the `passthrough`
-           the element might show up at this point and it should be removed since
-           it's not a valid Instance property */
-            instance.remove("passthrough");
-          }
-          if (instance.containsKey("holdingsRecords")) {
-            JSONArray holdingsRecords = extractJsonArrayFromObject(instance, "holdingsRecords");
-            JSONObject instanceResponse = addInstanceRecord(instance);
-            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
-            addHoldingsRecordsAndItems(holdingsRecords, instanceResponse.get("id").toString());
-          } else {
-            addInstanceRecord(instance);
-            ((InventoryStorageStatus) storageStatus).incrementAdd(1);
-
-          }
-        } catch(UnsupportedEncodingException uee) {
-          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-          logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
-        } catch(ParseException pe) {
-          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-          logger.error("Failed to parse response on push of record to storage as JSON: " + pe.getLocalizedMessage());
-        } catch(IOException ioe) {
-          ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-          logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
-        }
+        JSONObject instanceWithHoldingsAndItems = ((RecordJSON) subRecord).toJson();
+        addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
       }
     } else {
       logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
@@ -246,24 +217,46 @@ public class InventoryRecordStorage implements RecordStorage {
       } else {
         logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
       }
-      try {
-        addInstanceRecord(((RecordJSON)recordJson).toJson());
-        ((InventoryStorageStatus) storageStatus).incrementAdd(1);
-      } catch(UnsupportedEncodingException uee) {
-        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-        logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
-      } catch(ParseException pe) {
-        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-        logger.error("Failed to parse response on push of record to storage as JSON: " + pe.getLocalizedMessage());
-      } catch(IOException ioe) {
-        ((InventoryStorageStatus) storageStatus).incrementAdd(0);
-        logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
+      JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
+      addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+    }
+  }
+
+  private void addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
+    try {
+      //JSONObject instanceWithHoldingsItems = ((RecordJSON)recordJson).toJson();
+      if (instanceWithHoldingsItems.containsKey("passthrough")) {
+      /* 'passthrough' is a naming convention that the transformation pipeline can
+       use for a container that holds raw elements passed through the pipeline
+       to be handled by subsequent transformation steps.
+       If no transformation step is configured to handle the `passthrough`
+       the element might show up at this point and it should be removed since
+       it's not a valid Instance property */
+        instanceWithHoldingsItems.remove("passthrough");
       }
+      if (instanceWithHoldingsItems.containsKey("holdingsRecords")) {
+        JSONArray holdingsRecords = extractJsonArrayFromObject(instanceWithHoldingsItems, "holdingsRecords");
+        JSONObject instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
+        ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+        addHoldingsRecordsAndItems(holdingsRecords, instanceResponse.get("id").toString());
+      } else {
+        addInstanceRecord(instanceWithHoldingsItems);
+        ((InventoryStorageStatus) storageStatus).incrementAdd(1);
+      }
+    } catch(UnsupportedEncodingException uee) {
+      ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+      logger.error("Encoding error when adding record: " + uee.getLocalizedMessage(), uee);
+    } catch(ParseException pe) {
+      ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+      logger.error("Failed to parse response on push of record to storage as JSON: " + pe.getLocalizedMessage());
+    } catch(IOException ioe) {
+      ((InventoryStorageStatus) storageStatus).incrementAdd(0);
+      logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
     }
   }
 
   /**
-   * Iterate holdings records of the instance, and items of the holdings records, POST to Inventory
+   * Iterate holdings records of the instanceWithHoldingsAndItems, and items of the holdings records, POST to Inventory
    * @param holdingsRecords
    * @param instanceId
    * @throws ParseException
@@ -400,7 +393,7 @@ public class InventoryRecordStorage implements RecordStorage {
               response.getStatusLine().getStatusCode()));
     } else {
       instancesLoaded++;
-      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST/PUT of Instance " + instanceRecord.get("title") + " UUID: " + instanceResponse.get("id"));
+      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST/PUT of Instance " + instancesLoaded + ", " + instanceRecord.get("title") + " UUID: " + instanceResponse.get("id"));
     }
     return instanceResponse;
   }

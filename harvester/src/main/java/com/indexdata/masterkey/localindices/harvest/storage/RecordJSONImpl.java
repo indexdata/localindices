@@ -42,4 +42,10 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
     }
     return list;
   }
+
+  @Override
+  public String toString()  {
+    return toJson().toJSONString();
+  }
+
 }
