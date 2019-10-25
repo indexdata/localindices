@@ -98,24 +98,21 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
   private void consume(Object documentIn) {
     if (documentIn instanceof Record) {
-
       Record recordIn = (Record) documentIn;
-
+      RecordJSON recordOut = new RecordJSONImpl();
       try {
-        if (recordIn.getSubRecords().isEmpty()) {
-          logger.debug("Empty record came in from queue, skipping further processing of this document");
-        } else {
-          logger.debug(this.getClass().getSimpleName() + " has Record with " + recordIn.getSubRecords().size() + " sub record(s). Iterating:");
-          RecordJSON recordOut = new RecordJSONImpl();
-          JSONObject jsonRecords = new JSONObject();
-          if (recordIn.isCollection()) {
-            logger.debug(this.getClass().getSimpleName() + " found collection, adding Instance JSONs to collection:[]");
+        if (recordIn.isCollection()) {
+          if (recordIn.getSubRecords().isEmpty()) {
+            logger.debug(this.getClass().getSimpleName() + ": Empty collection came in from queue, skipping further processing of this document (split level could be set too high)");
+          } else {
+            logger.debug(this.getClass().getSimpleName() + " has Record with " + recordIn.getSubRecords().size() + " sub record(s). Iterating:");
+            JSONObject jsonRecords = new JSONObject();
             Collection<Record> subrecords = recordIn.getSubRecords();
             jsonRecords.put("collection", new JSONArray());
             int i=0;
             for (Record rec : subrecords) {
               try {
-                logger.debug("Sub record " + ++i);
+                logger.debug(this.getClass().getSimpleName() + ": Sub record " + ++i);
                 JSONObject json = makeInstanceJson(rec);
                 ((JSONArray)(jsonRecords.get("collection"))).add(json);
               } catch(Exception e) {
@@ -124,12 +121,12 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             }
             recordOut.setJsonObject(jsonRecords);
             recordOut.setOriginalContent(recordIn.getOriginalContent());
-          } else {
-            logger.debug("Record is not a collection, creating one Instance JSON");
-            JSONObject jsonRecord = makeInstanceJson(recordIn);
-            recordOut.setJsonObject(jsonRecord);
-            recordOut.setOriginalContent(recordIn.getOriginalContent());
+            produce(recordOut);
           }
+        } else {
+          JSONObject jsonRecord = makeInstanceJson(recordIn);
+          recordOut.setJsonObject(jsonRecord);
+          recordOut.setOriginalContent(recordIn.getOriginalContent());
           produce(recordOut);
         }
       } catch (Exception e) {
@@ -188,6 +185,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         }
         instanceJson.put(node.getLocalName(), jsonArray);
       }
+    }
+    if (instanceJson.containsKey("record")) {
+      instanceJson = (JSONObject) (instanceJson.get("record"));
     }
     return instanceJson;
   }
