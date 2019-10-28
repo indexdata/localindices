@@ -541,7 +541,7 @@
       <xsl:when test="marc:subfield[@code='4']='fmd' or marc:subfield[@code='4']='film director'">f5f9108a-9afc-4ea9-9b99-4f83dcf51204</xsl:when>
       <xsl:when test="marc:subfield[@code='4']='pra' or marc:subfield[@code='4']='praeses'">08cb225a-302c-4d5a-a6a3-fa90850babcd</xsl:when>
       <xsl:when test="marc:subfield[@code='4']='ape' or marc:subfield[@code='4']='appellee'">f0061c4b-df42-432f-9d1a-3873bb27c8e6</xsl:when>
-      <xsl:otherwise></xsl:otherwise>
+      <xsl:otherwise>9f0a2cf0-7a9b-45a2-a403-f68d2850d07c</xsl:otherwise> <!-- 'contributor' -->
     </xsl:choose>          
   </xsl:template>
 </xsl:stylesheet>
