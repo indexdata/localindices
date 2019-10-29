@@ -1,0 +1,16 @@
+version: '2'
+services:
+  harvester:
+    build: ./harvester
+    ports:
+      - "8080" 
+    environment:
+      - MYSQLUSER=localidxadm
+      - MYSQLPASS=localidxadmpass
+      - MYSQLURL=jdbc:mysql://172.17.0.1:3306/localindices?autoReconnect=true 
+  harvester_admin:
+    build: ./harvester-admin
+    ports:
+      - "8081:8081"
+    environment:
+      - HARVESTER_HOST=harvester

@@ -2,6 +2,7 @@
 - hosts: default
 
   vars:
+    container: true
     mysql_root_password: id3636mysql
     tomcat_admin:
       user: admin
@@ -15,6 +16,7 @@
     - name: Clone lui-solr repo into development tree
       connection: local
       git: repo=ssh://git.indexdata.com:222/home/git/pub/lui-solr dest=./lui-solr version={{ lui_version }} accept_hostkey=yes
+      when: not container
 
     - name: Create deployment environment
       become: yes
@@ -26,6 +28,7 @@
         - /etc/masterkey/lui
         - /var/log/masterkey/harvester
         - /etc/masterkey/harvester
+      when: not container
 
     - name: Install prerequisites from apt
       become: yes
@@ -33,6 +36,8 @@
         update-cache: yes
         name:
           - python-apt
+          - python-pip
+          - python-virtualenv
           - apt-transport-https
           - ca-certificates
           - openjdk-8-jdk
@@ -42,6 +47,39 @@
           - python-mysqldb
           - maven 
 
+    - name: Install Docker prerequisites from apt
+      become: yes
+      apt:
+        update-cache: yes
+        name:
+          - python-pip
+          - python-virtualenv
+      when: container
+
+    - name: Install docker-compose
+      become: yes
+      pip:
+        name: docker-compose
+      when: container
+
+    - name: add Docker gpg key
+      become: yes
+      apt_key: url=https://download.docker.com/linux/debian/gpg
+      when: container
+
+    - name: add Docker apt repo
+      become: yes
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/{{ansible_distribution|lower}} {{ansible_distribution_release}} stable
+      when: container
+
+    - name: Install Docker
+      become: yes
+      apt:
+        name: docker-ce
+        update_cache: yes
+      when: container
+
     - name: Create tomcat administrative user
       become: yes
       lineinfile: dest=/etc/tomcat8/tomcat-users.xml insertbefore="</tomcat-users>" line={{ item }}
@@ -49,16 +87,19 @@
         - '  <role rolename="manager-gui"/>'
         - '  <user username="{{ tomcat_admin.user }}" password="{{ tomcat_admin.password }}" roles="manager-gui"/>'
       notify: Restart Tomcat
+      when: not container
 
     - name: Update permissions on harvester directories
       become: yes
       file: path={{ item }} owner=tomcat8
       with_items:
         - /var/log/masterkey/harvester
+      when: not container
 
     - name: Create lui-solr account
       become: yes
       user: name=lui-solr state=present system=yes home=/var/lib/masterkey/lui
+      when: not container
 
     - name: Update permissions on lui-solr directories
       become: yes
@@ -66,18 +107,22 @@
       with_items:
         - /var/lib/masterkey/lui
         - /var/log/masterkey/lui
+      when: not container
 
     - name: Link Solr configuration
       become: yes
       file: src=/vagrant/lui-solr/conf/solr path=/etc/masterkey/lui/solr state=link
+      when: not container
 
     - name: Link Solr defaults
       become: yes
       file: src=/etc/masterkey/lui/solr/lui-solr.in.sh path=/etc/default/lui-solr.in.sh state=link
+      when: not container
 
     - name: Install Solr binary
       become: yes
       command: /vagrant/lui-solr/dist/install_solr6_service.sh /vagrant/lui-solr/dist/solr-6.1.0.tgz -d /var/lib/masterkey/lui -i /usr/share/masterkey/lui -s lui-solr -u lui-solr -f creates=/usr/share/masterkey/lui/solr-6.1.0
+      when: not container
 
     - name: Remove extra files created by Solr install
       become: yes
@@ -86,10 +131,12 @@
         - /var/lib/masterkey/lui/log4j.properties
         - /var/lib/masterkey/lui/logs
         - /var/lib/masterkey/lui/data
+      when: not container
 
     - name: Start lui-solr service
       become: yes
       service: name=lui-solr state=started
+      when: not container
 
     - name: Update MySQL root password
       become: yes
@@ -105,6 +152,17 @@
           user=root
           password={{ mysql_root_password }}
 
+    - name: configure mariadb to bind to all addresses
+      become: yes
+      lineinfile:
+        path: /etc/mysql/mariadb.conf.d/50-server.cnf
+        regexp: ^bind-address
+        line: bind-address = 0.0.0.0
+        state: present
+        backup: yes
+      when: container
+      notify: Restart DB
+
     - name: Create localindices database
       become: yes
       mysql_db: name=localindices state=present
@@ -112,6 +170,12 @@
     - name: Create the mysql user
       become: yes
       mysql_user: name={{ mysql_credentials.user }} password={{ mysql_credentials.password }} priv="localindices.*:all" append_privs=yes state=present
+      when: not container
+
+    - name: Create the mysql user
+      become: yes
+      mysql_user: name={{ mysql_credentials.user }} password={{ mysql_credentials.password }} priv="localindices.*:all" append_privs=yes state=present host=%
+      when: container
 
     # These tasks are not idempotent - they will zap all tables in the database
 
@@ -171,13 +235,20 @@
       shell: mvn install > mvn-install.log creates=/vagrant/mvn-install.log chdir=/vagrant/
       notify: Restart Tomcat
 
+    - name: Build and start Harvester/Harvester Admin containers
+      become: yes
+      docker_service:
+        project_src: /vagrant
+
     - name: Link Harvester web app
       become: yes
       file: src=/vagrant/harvester/target/harvester path=/usr/share/masterkey/harvester state=link
+      when: not container
 
     - name: Link Harvester configuration
       become: yes
       file: src=/vagrant/harvester/target/harvester/WEB-INF/harvester.properties path=/etc/masterkey/harvester/harvester.properties state=link
+      when: not container
 
     - name: Link Harvester stylesheets
       become: yes
@@ -203,31 +274,42 @@
         - snippet2pz.xsl
         - solr-subject-split.xsl
         - map-relator-to-contributor-type.xsl
+      when: not container
 
     - name: Create Harvester cache directory
       become: yes
       file: path=/var/cache/harvester owner=tomcat8 group=adm state=directory
+      when: not container
 
     - name: Provide access to Harvester test data
       become: yes
       lineinfile: dest=/etc/tomcat8/server.xml line="\t<Context docBase=\"/vagrant/harvester/test\" path=\"/test\" />" insertbefore="</Host>"
       notify: Restart Tomcat
+      when: not container
 
     - name: Deploy Tomcat context fragment for Harvester
       become: yes
       file: src=/vagrant/etc/harvester-context.xml path=/etc/tomcat8/Catalina/localhost/harvester.xml state=link
       notify: Restart Tomcat
+      when: not container
 
     - name: Link Harvester Admin web app
       become: yes
       file: src=/vagrant/harvester-admin/target/harvester-admin path=/usr/share/masterkey/harvester-admin state=link
       notify: Restart Tomcat
+      when: not container
 
     - name: Deploy Tomcat context fragment for Harvester Admin
       become: yes
       file: src=/vagrant/etc/harvester-admin-context.xml path=/etc/tomcat8/Catalina/localhost/harvester-admin.xml state=link
+      when: not container
 
   handlers:
     - name: Restart Tomcat
       become: yes
       service: name=tomcat8 state=restarted
+      when: not container
+
+    - name: Restart DB
+      become: yes
+      service: name=mysql state=restarted

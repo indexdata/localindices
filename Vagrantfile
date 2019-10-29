@@ -7,6 +7,7 @@ Vagrant.configure(2) do |config|
 
   # Set up a forwarded port for testing
   config.vm.network "forwarded_port", guest: 8080, host: 8080
+  config.vm.network "forwarded_port", guest: 8081, host: 8888
   config.vm.network "forwarded_port", guest: 8983, host: 8983
 
   config.vm.provision "ansible" do |ansible|
