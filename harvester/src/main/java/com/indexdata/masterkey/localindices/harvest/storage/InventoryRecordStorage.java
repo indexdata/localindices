@@ -28,6 +28,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
  *
@@ -199,8 +200,12 @@ public class InventoryRecordStorage implements RecordStorage {
       if (recordJson.getOriginalContent() != null) {
         try {
           // Note: this log level is not electable in the admin UI at time of writing
-          logger.log(Level.TRACE,this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
-        } catch (UnsupportedEncodingException uee) { logger.debug("Exception in log statement: "+ uee);}
+          logger.info(this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
+          JSONObject marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(recordJson.getOriginalContent(), "UTF-8"));
+          logger.info(marcJson.toJSONString());
+        } catch (UnsupportedEncodingException uee) { logger.error("Exception in log statement: "+ uee);}
+        catch( Exception e ) { logger.error("Exception caught: " + e); }
+
       } else {
         logger.debug(this.getClass().getSimpleName() + ": found collection of " + recordJson.getSubRecords().size() + " record(s), no original content attached.");
       }
@@ -212,10 +217,10 @@ public class InventoryRecordStorage implements RecordStorage {
       logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
       if (recordJson.getOriginalContent() != null) {
         try {
-          logger.debug(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
+          logger.info(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
         } catch (UnsupportedEncodingException uee) {}
       } else {
-        logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
+        logger.info(this.getClass().getSimpleName() + ": no original content found for single record");
       }
       JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
       addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
