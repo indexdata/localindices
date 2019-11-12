@@ -28,24 +28,24 @@ public class OaiPmhLookupsController implements Serializable {
   private List<SelectItem> metadataFormatSelectItems = new ArrayList<SelectItem>();
   Sets sets = new Sets();
   MetadataFormats metadataFormats = new MetadataFormats();
-  com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify identify 
+  com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify identify
      = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 4673759604059297999L;
-  
+
   @ManagedProperty("#{resourceController}")
   public JobController resourceController;
-  
+
   public void setResourceController(JobController resourceController) {
     this.resourceController = resourceController;
   }
-  
+
   public JobController getResourceController () {
     return this.resourceController;
   }
-  
+
 
   public OaiPmhLookupsController() {
     // TODO Auto-generated constructor stub
@@ -72,17 +72,21 @@ public class OaiPmhLookupsController implements Serializable {
         // TODO This renders on update, how to render error message on initial page display?
         // Use case: repository stops returning a valid response after the job has been set up
         e.printStackTrace();
+        // sets or metadata formats failed to load for the URL, clear related selection lists
+        setSelectItems = new ArrayList<SelectItem>();
+        metadataFormatSelectItems = metadataFormatSelectItems = new ArrayList<SelectItem>();
+        identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
         setMessage("jobForm:resourceUrl",e.getMessage(),e.getMessage());
       }
     }
   }
 
-  
+
   /**
-   * For early caching (before request for select items), 
+   * For early caching (before request for select items),
    * provided a change event is sent. Whatever resource URL is set on the
    * controller takes precedence however, ref. getSelectItems().
-   * 
+   *
    * @param e
    */
   public void resourceUrlChanged(ValueChangeEvent e) {
@@ -90,19 +94,19 @@ public class OaiPmhLookupsController implements Serializable {
     logger.debug("resourceUrl is ["+ resourceUrl+"], will be: ["+newUrl+"]");
     setOaiRepositoryUrl(newUrl);
   }
-  
+
   public List<SelectItem> getSetSelectItems () {
     return setSelectItems;
   }
-  
+
   public List<SelectItem> getMetadataFormatSelectItems () {
     return metadataFormatSelectItems;
   }
-  
+
   public Identify getIdentify () {
     return identify;
   }
-  
+
   private void loadSetSelectItems() throws OaiPmhResourceException {
     setSelectItems = new ArrayList<SelectItem>();
     List<Set> sets = lookups.getSets(resourceUrl);
@@ -110,7 +114,7 @@ public class OaiPmhLookupsController implements Serializable {
       setSelectItems.add(new SelectItem(set.getSetSpec(),set.getSetName()));
     }
   }
-  
+
   private void loadMetadataFormats() throws OaiPmhResourceException  {
     metadataFormatSelectItems = new ArrayList<SelectItem>();
     List<MetadataFormat> metadataFormats = lookups.getMetadataFormats(resourceUrl);
@@ -118,20 +122,20 @@ public class OaiPmhLookupsController implements Serializable {
       metadataFormatSelectItems.add(new SelectItem(metadataFormat.getMetadataPrefix(),metadataFormat.getMetadataPrefix()));
     }
   }
-  
+
   private void loadIdentify () throws OaiPmhResourceException {
     identify = new com.indexdata.masterkey.localindices.web.admin.controller.lookups.Identify();
     identify = lookups.getIdentify(resourceUrl);
   }
-  
+
   public Boolean getLongDate () {
     resolveDateFormat();
     return resourceController.getLongDate();
   }
-  
+
   /**
    * Sets the date format according to users choice, except if user chooses
-   * a long date format for a resource that does not support it. 
+   * a long date format for a resource that does not support it.
    * @param useLongDate
    */
   public void setLongDate(Boolean useLongDate) {
@@ -143,8 +147,8 @@ public class OaiPmhLookupsController implements Serializable {
       resourceController.setLongDate(useLongDate);
     }
   }
-  
-  /** 
+
+  /**
    *  Returns current date format from the resource, but, if not defined for the
    *  resource yet, defaults it from the Identify lookup.
    */
@@ -160,10 +164,10 @@ public class OaiPmhLookupsController implements Serializable {
       }
     }
   }
-  
+
   private void setMessage (String clientId, String summary, String detail) {
     FacesContext context = FacesContext.getCurrentInstance();
-    context.addMessage(clientId, 
+    context.addMessage(clientId,
         new FacesMessage(FacesMessage.SEVERITY_WARN,summary, detail));
   }
 
