@@ -3,7 +3,9 @@ package com.indexdata.masterkey.localindices.harvest.storage;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +53,8 @@ public class InventoryRecordStorage implements RecordStorage {
   private static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
   private static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
   private static final String ITEM_STORAGE_PATH = "itemStoragePath";
+
+  private final Map<String,String> locationsToInstitutionsMap = new HashMap();
 
   private int instancesProcessed = 0;
   private int instancesLoaded = 0;
@@ -137,15 +141,62 @@ public class InventoryRecordStorage implements RecordStorage {
                 + "Will attempt to continue without for tenant [" + folioTenant + "]."
                 + "This would only work for a FOLIO instance with no authentication enabled.");
       }
+      try {
+        cacheLocationsMap();
+      } catch (IOException ioe) {
+        logger.error("Failed to initialize storage for the harvest job, could not load locations from Inventory: " + ioe.getMessage());
+        throw new StorageException(ioe.getMessage());
+      }  catch (ParseException pe) {
+        logger.error("Failed to initialize storage for the harvest job, could not parse Inventory locations response: " + pe.getMessage());
+        throw new StorageException(pe.getMessage());
+      }
       storageStatus = new InventoryStorageStatus(folioAddress + folioAuthPath, authToken);
     } catch (StorageException se) {
       throw se;
     } catch (IOException ioe) {
       throw new StorageException("IO exception setting up access to FOLIO ", ioe);
     }
-
   }
 
+  /**
+   * Retrieve a mapping from locations to institutions from Inventory storage
+   * Used for holdings/items deletion logic.
+   * @throws IOException
+   * @throws ParseException
+   */
+  private void cacheLocationsMap() throws IOException, ParseException {
+    String url = String.format("%s", folioAddress + "locations");
+    HttpGet httpGet = new HttpGet(url);
+    httpGet.setHeader("Accept", "application/json");
+    httpGet.setHeader("Content-type", "application/json");
+    httpGet.setHeader("X-Okapi-Token", authToken);
+    httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpGet);
+    if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+      throw new IOException(String.format("Got error retrieving locations",
+           EntityUtils.toString(response.getEntity())));
+    }
+    JSONObject jsonResponse;
+    JSONParser parser = new JSONParser();
+    String responseString = EntityUtils.toString(response.getEntity());
+    jsonResponse = (JSONObject) parser.parse(responseString);
+    JSONArray locationsJson = (JSONArray) (jsonResponse.get("locations"));
+    if (locationsJson != null) {
+      Iterator<JSONObject> locationsIterator = locationsJson.iterator();
+      while (locationsIterator.hasNext()) {
+        JSONObject location = locationsIterator.next();
+        locationsToInstitutionsMap.put((String)location.get("id"), (String)location.get("institutionId"));
+      }
+    } else {
+      throw new StorageException("Failed to retrieve any locations from Inventory, found no 'locations' in response");
+    }
+  }
+
+  /**
+   * Retrieves setting by name from the free-form JSON config column of Harvestable
+   * @param key
+   * @return
+   */
   private String getConfigurationValue(String key) {
     String value = null;
     if (harvestable != null) {
@@ -218,7 +269,11 @@ public class InventoryRecordStorage implements RecordStorage {
         logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
       }
       JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
-      addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+      if (instanceWithHoldingsAndItems.containsKey("title")) {
+        addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+      } else {
+        logger.info("Inventory record storage received instance record with no 'title' property, cannot create in Inventory, skipping.");
+      }
     }
   }
 
@@ -238,7 +293,11 @@ public class InventoryRecordStorage implements RecordStorage {
         JSONArray holdingsRecords = extractJsonArrayFromObject(instanceWithHoldingsItems, "holdingsRecords");
         JSONObject instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
-        addHoldingsRecordsAndItems(holdingsRecords, instanceResponse.get("id").toString());
+        String instanceId = instanceResponse.get("id").toString();
+        // delete existing holdings/items from the same institution
+        // before attaching new holdings/items to the instance
+        deleteExistingHoldingsAndItems(instanceId, holdingsRecords);
+        addHoldingsRecordsAndItems(holdingsRecords, instanceId);
       } else {
         addInstanceRecord(instanceWithHoldingsItems);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
@@ -256,7 +315,8 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   /**
-   * Iterate holdings records of the instanceWithHoldingsAndItems, and items of the holdings records, POST to Inventory
+   * Iterate holdings records and items of the instanceWithHoldingsAndItems object,
+   * and POST them to Inventory
    * @param holdingsRecords
    * @param instanceId
    * @throws ParseException
@@ -265,28 +325,178 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId)
             throws ParseException, UnsupportedEncodingException, IOException {
-    Iterator holdingsrecords = holdingsRecords.iterator();
-    while (holdingsrecords.hasNext()) {
-      JSONObject holdingsRecord;
-      Object holdingsObject = holdingsrecords.next();
-      if (holdingsObject instanceof JSONObject) {
-        holdingsRecord = (JSONObject) holdingsObject;
-        holdingsRecord.put("instanceId", instanceId);
-        if (holdingsRecord.containsKey("items")) {
-          JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
-          JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
-          Iterator itemsIterator = items.iterator();
-          while (itemsIterator.hasNext()) {
-            JSONObject item = (JSONObject) itemsIterator.next();
-            item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
-            addItem(item);
+    if (holdingsRecords != null) {
+      Iterator holdingsrecords = holdingsRecords.iterator();
+      while (holdingsrecords.hasNext()) {
+        JSONObject holdingsRecord;
+        Object holdingsObject = holdingsrecords.next();
+        if (holdingsObject instanceof JSONObject) {
+          holdingsRecord = (JSONObject) holdingsObject;
+          holdingsRecord.put("instanceId", instanceId);
+          if (holdingsRecord.containsKey("items")) {
+            JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
+            JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
+            Iterator itemsIterator = items.iterator();
+            while (itemsIterator.hasNext()) {
+              JSONObject item = (JSONObject) itemsIterator.next();
+              item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
+              addItem(item);
+            }
+          } else {
+            addHoldingsRecord(holdingsRecord);
           }
-        } else {
-          addHoldingsRecord(holdingsRecord);
+        } else if (holdingsObject instanceof String) {
+          throw new IOException("Could not parse holdings record from JSONArray: " + holdingsObject);
         }
-      } else if (holdingsObject instanceof String) {
-        throw new IOException("Could not parse holdings record from JSONArray: " + holdingsObject);
       }
+    } else {
+      logger.warn("Inventory record storage found empty list of holdings records in instance input");
+    }
+  }
+
+  /**
+   * Determines if two holdings records are assigned to locations within the same
+   * institution.
+   * @param holdingsRecordLeft
+   * @param holdingsRecordRight
+   * @return
+   */
+  private boolean fromSameInstitution(JSONObject holdingsRecordLeft, JSONObject holdingsRecordRight) {
+    String leftLocationId = (String) holdingsRecordLeft.get("permanentLocationId");
+    String rightLocationId = (String) holdingsRecordRight.get("permanentLocationId");
+    return (locationsToInstitutionsMap.get(leftLocationId).equals(locationsToInstitutionsMap.get(rightLocationId)));
+  }
+
+  /**
+   * Wipes out existing holdings and items belonging to the institution from
+   * which we are currently loading new holdings and items
+   * @param instanceId
+   * @throws IOException
+   * @throws ParseException
+   */
+  private void deleteExistingHoldingsAndItems (String instanceId, JSONArray holdingsRecords) throws IOException, ParseException {
+    logger.debug("Deleting holdings and items for Instance Id " + instanceId + " if coming from same institution");
+
+    JSONObject newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
+
+    JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
+    if (existingHoldingsRecords != null) {
+      Iterator<JSONObject> existingHoldingsRecordsIterator = existingHoldingsRecords.iterator();
+      while (existingHoldingsRecordsIterator.hasNext()) {
+        JSONObject existingHoldingsRecord = existingHoldingsRecordsIterator.next();
+        String existingHoldingsRecordId = (String) existingHoldingsRecord.get("id");
+        if (fromSameInstitution(existingHoldingsRecord, newHoldingsRecord)) {
+          JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
+          if (items != null) {
+            Iterator<JSONObject> itemsIterator = items.iterator();
+            while (itemsIterator.hasNext()) {
+              JSONObject item = itemsIterator.next();
+              String itemId = (String) item.get("id");
+              deleteItem(itemId);
+            }
+          }
+          deleteHoldingsRecord(existingHoldingsRecordId);
+        } else {
+          logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") +"), not deleting it.");
+        }
+      }
+    } else {
+      logger.info("No existing holdingsRecords found for the instance, nothing to delete.");
+    }
+  }
+
+  /**
+   * Get holdings records for an instance
+   * @param instanceId
+   * @return
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONArray getHoldingsRecordsByInstanceId(String instanceId)
+      throws IOException, ParseException {
+    String url = String.format("%s?query=instanceId%%3D%%3D%s", folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH), instanceId);
+    HttpGet httpGet = new HttpGet(url);
+    httpGet.setHeader("Accept", "application/json");
+    httpGet.setHeader("Content-type", "application/json");
+    httpGet.setHeader("X-Okapi-Token", authToken);
+    httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpGet);
+    if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+      throw new IOException(String.format("Got error retrieving holdings records for instance with id '%s': %s",
+          instanceId, EntityUtils.toString(response.getEntity())));
+    }
+    JSONObject jsonResponse;
+    JSONParser parser = new JSONParser();
+    String responseString = EntityUtils.toString(response.getEntity());
+    jsonResponse = (JSONObject) parser.parse(responseString);
+    JSONArray holdingsRecordsJson = (JSONArray) (jsonResponse.get("holdingsRecords"));
+    return holdingsRecordsJson;
+  }
+
+  /**
+   * Get items for a holdings record
+   * @param holdingsRecordId
+   * @return
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONArray getItemsByHoldingsRecordId(String holdingsRecordId)
+      throws IOException, ParseException {
+    String url = String.format("%s?query=holdingsRecordId%%3D%%3D%s", folioAddress + getConfigurationValue(ITEM_STORAGE_PATH), holdingsRecordId);
+    HttpGet httpGet = new HttpGet(url);
+    httpGet.setHeader("Accept", "application/json");
+    httpGet.setHeader("Content-type", "application/json");
+    httpGet.setHeader("X-Okapi-Token", authToken);
+    httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpGet);
+    if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+      throw new IOException(String.format("Got error retrieving items for holdingsRecord with id '%s': %s",
+          holdingsRecordId, EntityUtils.toString(response.getEntity())));
+    }
+    JSONObject jsonResponse;
+    JSONParser parser = new JSONParser();
+    jsonResponse = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
+    JSONArray itemsJson = (JSONArray) (jsonResponse.get("items"));
+    return itemsJson;
+  }
+
+  /**
+   * Delete a holdings record by ID
+   * @param uuid
+   * @throws IOException
+   */
+  private void deleteHoldingsRecord (String uuid) throws IOException{
+    logger.debug("Deleting holdingsRecord with ID: " + uuid);
+    String url = String.format("%s/%s", folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH), uuid);
+    HttpDelete httpDelete = new HttpDelete(url);
+    httpDelete.setHeader("Accept", "text/plain");
+    httpDelete.setHeader("Content-type", "application/json");
+    httpDelete.setHeader("X-Okapi-Token", authToken);
+    httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpDelete);
+    if(response.getStatusLine().getStatusCode() != 204) {
+      throw new IOException(String.format("Got error deleting record record with id '%s': %s",
+          uuid, EntityUtils.toString(response.getEntity())));
+    }
+  }
+
+  /**
+   * Delete an item by ID
+   * @param uuid
+   * @throws IOException
+   */
+  private void deleteItem (String uuid) throws IOException {
+    logger.debug("Deleting item with ID: " + uuid);
+    String url = String.format("%s/%s", folioAddress + getConfigurationValue(ITEM_STORAGE_PATH), uuid);
+    HttpDelete httpDelete = new HttpDelete(url);
+    httpDelete.setHeader("Accept", "text/plain");
+    httpDelete.setHeader("Content-type", "application/json");
+    httpDelete.setHeader("X-Okapi-Token", authToken);
+    httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpDelete);
+    if(response.getStatusLine().getStatusCode() != 204) {
+      throw new IOException(String.format("Got error deleting record record with id '%s': %s",
+          uuid, EntityUtils.toString(response.getEntity())));
     }
   }
 
