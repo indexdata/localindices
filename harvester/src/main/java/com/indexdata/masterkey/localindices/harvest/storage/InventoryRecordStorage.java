@@ -30,6 +30,7 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
  *
@@ -246,27 +247,37 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
       Collection<Record> subrecords = recordJson.getSubRecords();
+      JSONObject marcJson = null;
       logger.debug(this.getClass().getSimpleName() + ": incoming record is a collection with " + subrecords.size() + " sub records");
       if (recordJson.getOriginalContent() != null) {
         try {
           // Note: this log level is not electable in the admin UI at time of writing
-          logger.log(Level.TRACE,this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
-        } catch (UnsupportedEncodingException uee) { logger.debug("Exception in log statement: "+ uee);}
+          logger.info(this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
+          marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(recordJson.getOriginalContent(), "UTF-8"));
+          logger.info(marcJson.toJSONString());
+        } catch (UnsupportedEncodingException uee) { logger.error("Exception in log statement: "+ uee);}
+        catch( Exception e ) { logger.error("Exception caught: " + e); }
+
       } else {
         logger.debug(this.getClass().getSimpleName() + ": found collection of " + recordJson.getSubRecords().size() + " record(s), no original content attached.");
       }
       for (Record subRecord : subrecords) {
         JSONObject instanceWithHoldingsAndItems = ((RecordJSON) subRecord).toJson();
-        addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+        JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+        try {
+          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+        } catch(Exception e) {
+          logger.error("Failed to add marcJson: " + e);
+        }
       }
     } else {
       logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
       if (recordJson.getOriginalContent() != null) {
         try {
-          logger.debug(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
+          logger.info(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
         } catch (UnsupportedEncodingException uee) {}
       } else {
-        logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
+        logger.info(this.getClass().getSimpleName() + ": no original content found for single record");
       }
       JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
       if (instanceWithHoldingsAndItems.containsKey("title")) {
@@ -277,7 +288,8 @@ public class InventoryRecordStorage implements RecordStorage {
     }
   }
 
-  private void addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
+  private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
+    JSONObject instanceResponse = null;
     try {
       //JSONObject instanceWithHoldingsItems = ((RecordJSON)recordJson).toJson();
       if (instanceWithHoldingsItems.containsKey("passthrough")) {
@@ -291,7 +303,7 @@ public class InventoryRecordStorage implements RecordStorage {
       }
       if (instanceWithHoldingsItems.containsKey("holdingsRecords")) {
         JSONArray holdingsRecords = extractJsonArrayFromObject(instanceWithHoldingsItems, "holdingsRecords");
-        JSONObject instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
+        instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
         String instanceId = instanceResponse.get("id").toString();
         // delete existing holdings/items from the same institution
@@ -299,7 +311,7 @@ public class InventoryRecordStorage implements RecordStorage {
         deleteExistingHoldingsAndItems(instanceId, holdingsRecords);
         addHoldingsRecordsAndItems(holdingsRecords, instanceId);
       } else {
-        addInstanceRecord(instanceWithHoldingsItems);
+        instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
         ((InventoryStorageStatus) storageStatus).incrementAdd(1);
       }
     } catch(UnsupportedEncodingException uee) {
@@ -312,6 +324,7 @@ public class InventoryRecordStorage implements RecordStorage {
       ((InventoryStorageStatus) storageStatus).incrementAdd(0);
       logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
     }
+    return instanceResponse;
   }
 
   /**
@@ -550,6 +563,47 @@ public class InventoryRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limit) {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId) throws IOException {
+    String url = folioAddress + "/marc-records"; //TODO: Add configuration value
+    HttpEntityEnclosingRequestBase httpPost;
+    httpPost = new HttpPost(url);
+
+    JSONObject marcPostJson = new JSONObject();
+    marcPostJson.put("instanceId", instanceId);
+    marcPostJson.put("parsedMarc", marcJson);
+    StringEntity entity = new StringEntity(marcPostJson.toJSONString(),"UTF-8");
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Accept", "application/json");
+    httpPost.setHeader("Content-type", "application/json");
+    httpPost.setHeader("X-Okapi-Token", authToken);
+    httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpPost);
+    JSONParser parser = new JSONParser();
+    String responseAsString = EntityUtils.toString(response.getEntity());
+    JSONObject marcResponse = null;
+    try {
+      marcResponse= (JSONObject) parser.parse(responseAsString);
+    } catch (ParseException pe) {
+      marcResponse = new JSONObject();
+      marcResponse.put("wrappedErrorMessage", responseAsString);
+    }
+    response.close();
+    if(response.getStatusLine().getStatusCode() != 201) {
+      logger.error(String.format("Got error %s, %s adding record: %s",
+              response.getStatusLine().getStatusCode(),
+              responseAsString,
+              marcPostJson.toJSONString()));
+      throw new IOException(String.format("Error adding record %s: %s (%s)",
+              marcJson.toJSONString(),
+              responseAsString,
+              response.getStatusLine().getStatusCode()));
+    } else {
+      logger.info("Status code: " + response.getStatusLine().getStatusCode()
+          + " for POST of marc json " + marcPostJson.toJSONString());
+    }
+    return marcResponse;
   }
 
   /**
