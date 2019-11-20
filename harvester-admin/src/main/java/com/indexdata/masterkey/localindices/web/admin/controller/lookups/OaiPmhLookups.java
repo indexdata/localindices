@@ -74,7 +74,7 @@ public class OaiPmhLookups {
     if (sets != null) {
       return sets.getSets();
     } else {
-      return null;
+      throw new OaiPmhResourceException("No sets found at " + oaiRepositoryUrl);
     }
   }
   
@@ -98,7 +98,7 @@ public class OaiPmhLookups {
     if (metadataFormats != null) {
       return metadataFormats.getMetadataFormats();
     } else {
-      return null;
+      throw new OaiPmhResourceException("Could not fetch metadata formats from " + oaiRepositoryUrl);
     }
   }
   
