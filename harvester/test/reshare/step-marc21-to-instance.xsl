@@ -35,11 +35,11 @@
           <xsl:when test="substring(marc:leader,7,1)='c'">497b5090-3da2-486c-b57f-de5bb3c2e26d</xsl:when> <!-- notated music : notated music -->
           <xsl:when test="substring(marc:leader,7,1)='d'">497b5090-3da2-486c-b57f-de5bb3c2e26d</xsl:when> <!-- manuscript notated music : notated music -> notated music -->
           <xsl:when test="substring(marc:leader,7,1)='e'">526aa04d-9289-4511-8866-349299592c18</xsl:when> <!-- cartographic material : cartographic image -->
-          <xsl:when test="substring(marc:leader,7,1)='f'"></xsl:when>                                     <!-- manuscript cartographic material : ? -->
+          <xsl:when test="substring(marc:leader,7,1)='f'">a2c91e87-6bab-44d6-8adb-1fd02481fc4f</xsl:when> <!-- other --> <!-- manuscript cartographic material : ? -->
           <xsl:when test="substring(marc:leader,7,1)='g'">535e3160-763a-42f9-b0c0-d8ed7df6e2a2</xsl:when> <!-- projected image : still image -->
           <xsl:when test="substring(marc:leader,7,1)='i'">9bce18bd-45bf-4949-8fa8-63163e4b7d7f</xsl:when> <!-- nonmusical sound recording : sounds -->
           <xsl:when test="substring(marc:leader,7,1)='j'">3be24c14-3551-4180-9292-26a786649c8b</xsl:when> <!-- musical sound recording : performed music -->
-          <xsl:when test="substring(marc:leader,7,1)='k'"></xsl:when>                                     <!-- two-dimensional nonprojectable graphic : ?-->
+          <xsl:when test="substring(marc:leader,7,1)='k'">a2c91e87-6bab-44d6-8adb-1fd02481fc4f</xsl:when> <!-- other --> <!-- two-dimensional nonprojectable graphic : ?-->
           <xsl:when test="substring(marc:leader,7,1)='m'">df5dddff-9c30-4507-8b82-119ff972d4d7</xsl:when> <!-- computer file : computer dataset -->
           <xsl:when test="substring(marc:leader,7,1)='o'">a2c91e87-6bab-44d6-8adb-1fd02481fc4f</xsl:when> <!-- kit : other -->
           <xsl:when test="substring(marc:leader,7,1)='p'">a2c91e87-6bab-44d6-8adb-1fd02481fc4f</xsl:when> <!-- mixed material : other -->
@@ -248,6 +248,9 @@
                   <xsl:when test="@tag='111' or @tage='711'">
                     <contributorNameTypeId>e8b311a6-3b21-43f2-a269-dd9310cb2d0a</contributorNameTypeId> <!-- meeting name -->
                   </xsl:when>
+                  <xsl:otherwise>
+                    <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId> <!-- personal name -->
+                  </xsl:otherwise>
                 </xsl:choose>
                 <xsl:if test="marc:subfield[@code='e' or @code='4']">
                   <contributorTypeId>
@@ -347,10 +350,10 @@
 
       <!-- holdings and items -->
       <passthrough>
-        <xsl:for-each select="marc:datafield[@tag='900' or @tag='995']">
+        <xsl:for-each select="marc:datafield[@tag='852' or @tag='900' or @tag='954' or @tag='995']">
           <xsl:copy-of select="."/>
         </xsl:for-each>
-      </passthrough>      
+      </passthrough>
     </record>
   </xsl:template>
 
@@ -374,3 +377,4 @@
   </xsl:template>
 
 </xsl:stylesheet>
+
