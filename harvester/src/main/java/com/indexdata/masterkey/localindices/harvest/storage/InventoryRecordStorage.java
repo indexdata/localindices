@@ -390,7 +390,12 @@ public class InventoryRecordStorage implements RecordStorage {
   private void deleteExistingHoldingsAndItems (String instanceId, JSONArray holdingsRecords) throws IOException, ParseException {
     logger.debug("Deleting holdings and items for Instance Id " + instanceId + " if coming from same institution");
 
-    JSONObject newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
+    JSONObject newHoldingsRecord = null;
+    try {
+      newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
+    } catch (ClassCastException cce) {
+      logger.warn("Could not get holdingsRecord object from " + holdingsRecords.get(0) + " " + cce.getMessage());
+    }
 
     JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
     if (existingHoldingsRecords != null) {
