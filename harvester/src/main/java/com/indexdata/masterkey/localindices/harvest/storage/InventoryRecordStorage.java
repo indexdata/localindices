@@ -166,7 +166,7 @@ public class InventoryRecordStorage implements RecordStorage {
    * @throws ParseException
    */
   private void cacheLocationsMap() throws IOException, ParseException {
-    String url = String.format("%s", folioAddress + "locations");
+    String url = String.format("%s", folioAddress + "locations?limit=9999");
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -377,6 +377,9 @@ public class InventoryRecordStorage implements RecordStorage {
   private boolean fromSameInstitution(JSONObject holdingsRecordLeft, JSONObject holdingsRecordRight) {
     String leftLocationId = (String) holdingsRecordLeft.get("permanentLocationId");
     String rightLocationId = (String) holdingsRecordRight.get("permanentLocationId");
+    if (locationsToInstitutionsMap.get(leftLocationId) == null) {
+      logger.error("Could not find location [" + leftLocationId + "] in locations map " + locationsToInstitutionsMap.toString());
+    }
     return (locationsToInstitutionsMap.get(leftLocationId).equals(locationsToInstitutionsMap.get(rightLocationId)));
   }
 
