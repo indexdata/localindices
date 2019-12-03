@@ -18,13 +18,7 @@
 
   <!-- Map legacy location code to a FOLIO location UUID -->
   <xsl:template match="holdingsRecords/arr/i/permanentLocation">
-    <permanentLocationId>
-      <xsl:choose>
-        <xsl:when test=".='ASRS'">07d43ef5-b53c-4b5a-bafa-e86e28f8babc</xsl:when>
-        <xsl:when test=".='MAIN'">8b0fa6c3-d77e-4321-936c-07f623b386fa</xsl:when>
-        <xsl:otherwise>87038e41-0990-49ea-abd9-1ad00a786e45</xsl:otherwise>  <!-- Any Temple location -->
-      </xsl:choose>
-    </permanentLocationId>
+    <permanentLocationId>87038e41-0990-49ea-abd9-1ad00a786e45</permanentLocationId> <!-- Temple -->
   </xsl:template>
 
 </xsl:stylesheet>
