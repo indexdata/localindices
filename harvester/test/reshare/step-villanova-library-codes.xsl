@@ -18,13 +18,7 @@
 
   <!-- Map legacy location code to a FOLIO location UUID -->
   <xsl:template match="holdingsRecords/arr/i/permanentLocation">
-    <permanentLocationId>
-      <xsl:choose>
-        <xsl:when test=".='MAIN'">42e5ba2f-d935-44f9-87e5-d6e9f01d2fb1</xsl:when>      <!-- Villanova -->
-                   <xsl:otherwise>42e5ba2f-d935-44f9-87e5-d6e9f01d2fb1</xsl:otherwise> <!-- Villanova -->
-      </xsl:choose>
-    </permanentLocationId>
+    <permanentLocationId>42e5ba2f-d935-44f9-87e5-d6e9f01d2fb1</permanentLocationId> <!-- Villanova -->
   </xsl:template>
 
 </xsl:stylesheet>
-
