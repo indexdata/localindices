@@ -27,7 +27,7 @@
                  </i>
                </arr>
              </formerIds>
-             <permanentLocation><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocation>
+             <permanentLocationIdHere><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocationIdHere>
              <callNumber>
                <xsl:value-of select="marc:subfield[@code='h']"/>
              </callNumber>

@@ -12,7 +12,7 @@
        it originated from in context of a shared index setup where the Instance
        represents bib records from multiple libraries.
   -->
-  <xsl:template match="identifiers/arr/i/identifierType">
+  <xsl:template match="identifiers/arr/i/identifierTypeIdHere">
     <identifierTypeId>17bb9b44-0063-44cc-8f1a-ccbb6188060b</identifierTypeId>
   </xsl:template>
 

@@ -57,9 +57,10 @@
           <xsl:for-each select="marc:controlfield[@tag='001']">
             <i>
               <value><xsl:value-of select="."/></value>
-              <identifierType>
-                <xsl:value-of select="../marc:datafield[@tag='900']/marc:subfield[@code='b']"/>
-              </identifierType>
+              <!-- A subsequent library specific transformation (style sheet)
+                   must replace this tag with the actual identifierTypeId for
+                   the record identifer type of the given library -->
+              <identifierTypeIdHere/>
             </i>
           </xsl:for-each>
           <xsl:for-each select="marc:datafield[@tag='001' or @tag='010' or @tag='020' or @tag='022' or @tag='024' or @tag='028' or @tag='035' or @tag='074']">
@@ -348,7 +349,7 @@
         </subjects>
       </xsl:if>
 
-      <!-- holdings and items -->
+      <!-- holdings and items, MARC fields to be processed by subsequent transformations or be removed before FOLIO -->
       <passthrough>
         <xsl:for-each select="marc:datafield[@tag='852' or @tag='900' or @tag='954' or @tag='995']">
           <xsl:copy-of select="."/>

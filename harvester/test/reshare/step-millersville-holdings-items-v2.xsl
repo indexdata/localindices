@@ -29,7 +29,7 @@
                      </i>
                    </arr>
                  </formerIds>
-                 <permanentLocation><xsl:value-of select="marc:subfield[@code='d']"/></permanentLocation>
+                 <permanentLocationIdHere><xsl:value-of select="marc:subfield[@code='d']"/></permanentLocationIdHere>
                  <callNumber>
                    <xsl:for-each select="marc:subfield[@code='f']">
                      <xsl:if test="position() > 1">
