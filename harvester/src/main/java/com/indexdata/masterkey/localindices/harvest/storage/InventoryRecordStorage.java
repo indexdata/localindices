@@ -398,31 +398,34 @@ public class InventoryRecordStorage implements RecordStorage {
       newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
     } catch (ClassCastException cce) {
       logger.warn("Could not get holdingsRecord object from " + holdingsRecords.get(0) + " " + cce.getMessage());
+    } catch (IndexOutOfBoundsException ioobe) {
+      logger.error("Found incoming holdingsRecords element but no holdings records in it. Will skip deleting any existing holdings records");
     }
-
-    JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
-    if (existingHoldingsRecords != null) {
-      Iterator<JSONObject> existingHoldingsRecordsIterator = existingHoldingsRecords.iterator();
-      while (existingHoldingsRecordsIterator.hasNext()) {
-        JSONObject existingHoldingsRecord = existingHoldingsRecordsIterator.next();
-        String existingHoldingsRecordId = (String) existingHoldingsRecord.get("id");
-        if (fromSameInstitution(existingHoldingsRecord, newHoldingsRecord)) {
-          JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
-          if (items != null) {
-            Iterator<JSONObject> itemsIterator = items.iterator();
-            while (itemsIterator.hasNext()) {
-              JSONObject item = itemsIterator.next();
-              String itemId = (String) item.get("id");
-              deleteItem(itemId);
+    if (newHoldingsRecord != null) {
+      JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
+      if (existingHoldingsRecords != null) {
+        Iterator<JSONObject> existingHoldingsRecordsIterator = existingHoldingsRecords.iterator();
+        while (existingHoldingsRecordsIterator.hasNext()) {
+          JSONObject existingHoldingsRecord = existingHoldingsRecordsIterator.next();
+          String existingHoldingsRecordId = (String) existingHoldingsRecord.get("id");
+          if (fromSameInstitution(existingHoldingsRecord, newHoldingsRecord)) {
+            JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
+            if (items != null) {
+              Iterator<JSONObject> itemsIterator = items.iterator();
+              while (itemsIterator.hasNext()) {
+                JSONObject item = itemsIterator.next();
+                String itemId = (String) item.get("id");
+                deleteItem(itemId);
+              }
             }
+            deleteHoldingsRecord(existingHoldingsRecordId);
+          } else {
+            logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") +"), not deleting it.");
           }
-          deleteHoldingsRecord(existingHoldingsRecordId);
-        } else {
-          logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") +"), not deleting it.");
         }
+      } else {
+        logger.info("No existing holdingsRecords found for the instance, nothing to delete.");
       }
-    } else {
-      logger.info("No existing holdingsRecords found for the instance, nothing to delete.");
     }
   }
 
