@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet 
-  version="1.0" 
+<xsl:stylesheet
+  version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:marc="http://www.loc.gov/MARC21/slim"
   >
@@ -16,10 +16,10 @@
 
   <xsl:template match="passthrough">
     <xsl:choose>
-      <xsl:when test="marc:datafield[@tag='900']">
+      <xsl:when test="marc:datafield[@tag='900' and @ind1!='4']">
         <holdingsRecords>
            <arr>
-             <xsl:for-each select="marc:datafield[@tag='900']">
+             <xsl:for-each select="marc:datafield[@tag='900' and @ind1!='4']">
                <xsl:variable name="holdingsId" select="marc:subfield[@code='8']"/>
                <i>
                  <formerIds>
@@ -29,7 +29,7 @@
                      </i>
                    </arr>
                  </formerIds>
-                 <permanentLocation><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocation>
+                 <permanentLocation><xsl:value-of select="marc:subfield[@code='d']"/></permanentLocation>
                  <callNumber>
                    <xsl:for-each select="marc:subfield[@code='f']">
                      <xsl:if test="position() > 1">
@@ -118,5 +118,5 @@
         </holdingsRecords>
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>    
+  </xsl:template>
 </xsl:stylesheet>
