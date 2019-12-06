@@ -16,10 +16,10 @@
 
   <xsl:template match="passthrough">
     <xsl:choose>
-      <xsl:when test="marc:datafield[@tag='900' and @ind1!='4']">
+      <xsl:when test="marc:datafield[@tag='900' and @ind1!='4' and @ind1!=' ']">
         <holdingsRecords>
            <arr>
-             <xsl:for-each select="marc:datafield[@tag='900' and @ind1!='4']">
+             <xsl:for-each select="marc:datafield[@tag='900' and @ind1!='4' and @ind1!=' ']">
                <xsl:variable name="holdingsId" select="marc:subfield[@code='8']"/>
                <i>
                  <formerIds>
