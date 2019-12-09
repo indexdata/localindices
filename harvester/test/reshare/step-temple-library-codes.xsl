@@ -17,7 +17,7 @@
   </xsl:template>
 
   <!-- Map legacy location code to a FOLIO location UUID -->
-  <xsl:template match="holdingsRecords/arr/i/permanentLocation">
+  <xsl:template match="holdingsRecords/arr/i/permanentLocationIdHere">
     <permanentLocationId>87038e41-0990-49ea-abd9-1ad00a786e45</permanentLocationId> <!-- Temple -->
   </xsl:template>
 
