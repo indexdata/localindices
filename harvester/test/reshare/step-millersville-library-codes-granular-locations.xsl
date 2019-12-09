@@ -17,7 +17,7 @@
   </xsl:template>
 
   <!-- Map legacy location code to a FOLIO location UUID -->
-  <xsl:template match="holdingsRecords/arr/i/permanentLocation">
+  <xsl:template match="holdingsRecords/arr/i/permanentLocationIdHere">
     <permanentLocationId>
       <xsl:choose>
         <xsl:when test=".='AID'">6aa3da20-8c2c-44a8-a339-16613ba9e42f</xsl:when>
@@ -123,3 +123,4 @@
   </xsl:template>
 
 </xsl:stylesheet>
+
