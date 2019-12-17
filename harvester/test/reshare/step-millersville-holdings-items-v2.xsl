@@ -14,6 +14,9 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:variable name="WILL_LEND">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:variable> <!-- FOLIO Inventory ILL Policy value 'Will lend' -->
+  <xsl:variable name="WILL_NOT_LEND">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:variable> <!-- FOLIO Inventory ILL Policy value 'Will not lend' -->
+
   <xsl:template match="passthrough">
     <xsl:choose>
       <xsl:when test="marc:datafield[@tag='900' and @ind1!='4' and @ind1!=' ']">
@@ -31,104 +34,104 @@
                  </formerIds>
                  <illPolicyId>
                   <xsl:choose>
-                    <xsl:when test="marc:subfield[@code='d']='AID'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='B'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='BD'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='BDVD'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='BIND'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='BO'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='CAT'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='CKT'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='CPOS'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='CT'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='CTO'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EA_AUDIO'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_ACLS'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_CHO'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_EAI'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_EBRARY'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_EBRARYK'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_JSTOR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_JSTOR15'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_LCL'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_NETL'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_NETLK'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_OXFORD'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_03'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_13'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_14'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_15'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EB_PLNT_03'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EI'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EN_ZZZ'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EP'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EP_JST'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EP_PJM'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EP_SAGE'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EP_ZZZ'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='ER'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EXHIBIT'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EZB'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EZB_LEND'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='EZBM'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GD'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GDER'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GDMC'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GDMF'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GDML'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='GDR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='I'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='ILLB'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='J'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='JEB'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='JO'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='MEND'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='MF'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='MFD'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='N'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='N_M'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='OBOC'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='ONORDER'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='P'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='P_C'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='P_M'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='P_P'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='PROBLEM'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='PROC'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='PROCCA'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='PROCLA'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='R'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RE'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RESE'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RESM'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RESP'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RESS'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='RLAW'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SC'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCAR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCBN'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCCR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCD'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCDH'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCERS'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCH'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCM'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCMAP'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCMAPD'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCME'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCMS'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCPR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCRB'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCRBD'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCRR'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCSTORAGE'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCT'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='SCW'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='STORAGE_02'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:when test="marc:subfield[@code='d']='UNASSIGNED'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='UNUSED'">b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:when> <!-- Will not lend -->
-                    <xsl:when test="marc:subfield[@code='d']='VC'">46970b40-918e-47a4-a45d-b1677a2d3d46</xsl:when> <!-- will lend -->
-                    <xsl:otherwise>b0f97013-87f5-4bab-87f2-ac4a5191b489</xsl:otherwise> <!-- Will not lend -->
+                    <xsl:when test="marc:subfield[@code='d']='AID'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='B'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='BD'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='BDVD'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='BIND'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='BO'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='CAT'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='CKT'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='CPOS'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='CT'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='CTO'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EA_AUDIO'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_ACLS'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_CHO'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_EAI'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_EBRARY'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_EBRARYK'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_JSTOR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_JSTOR15'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_LCL'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_NETL'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_NETLK'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_OXFORD'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_03'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_13'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_14'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_PLCI_15'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EB_PLNT_03'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EI'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EN_ZZZ'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EP'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EP_JST'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EP_PJM'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EP_SAGE'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EP_ZZZ'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='ER'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EXHIBIT'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EZB'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EZB_LEND'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='EZBM'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GD'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GDER'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GDMC'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GDMF'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GDML'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='GDR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='I'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='ILLB'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='J'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='JEB'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='JO'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='MEND'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='MF'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='MFD'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='N'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='N_M'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='OBOC'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='ONORDER'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='P'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='P_C'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='P_M'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='P_P'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='PROBLEM'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='PROC'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='PROCCA'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='PROCLA'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='R'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RE'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RESE'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RESM'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RESP'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RESS'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='RLAW'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SC'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCAR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCBN'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCCR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCD'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCDH'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCERS'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCH'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCM'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCMAP'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCMAPD'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCME'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCMS'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCPR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCRB'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCRBD'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCRR'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCSTORAGE'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCT'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='SCW'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='STORAGE_02'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='UNASSIGNED'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='UNUSED'"><xsl:value-of select="$WILL_NOT_LEND"/></xsl:when>
+                    <xsl:when test="marc:subfield[@code='d']='VC'"><xsl:value-of select="$WILL_LEND"/></xsl:when>
+                    <xsl:otherwise><xsl:value-of select="$WILL_NOT_LEND"/></xsl:otherwise>
                   </xsl:choose>
                  </illPolicyId>
                  <permanentLocationIdHere><xsl:value-of select="marc:subfield[@code='d']"/></permanentLocationIdHere>
