@@ -277,7 +277,7 @@ public class InventoryRecordStorage implements RecordStorage {
           logger.info(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
         } catch (UnsupportedEncodingException uee) {}
       } else {
-        logger.info(this.getClass().getSimpleName() + ": no original content found for single record");
+        logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
       }
       JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
       if (instanceWithHoldingsAndItems.containsKey("title")) {
@@ -323,6 +323,12 @@ public class InventoryRecordStorage implements RecordStorage {
     } catch(IOException ioe) {
       ((InventoryStorageStatus) storageStatus).incrementAdd(0);
       logger.error("IO exception when adding record: " + ioe.getLocalizedMessage());
+    }
+    if (instancesLoaded % 100 == 0) {
+      logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, and " + itemsLoaded + " items ingested");
+      if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
+        logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items");
+      }
     }
     return instanceResponse;
   }
@@ -611,7 +617,7 @@ public class InventoryRecordStorage implements RecordStorage {
               responseAsString,
               response.getStatusLine().getStatusCode()));
     } else {
-      logger.info("Status code: " + response.getStatusLine().getStatusCode()
+      logger.debug("Status code: " + response.getStatusLine().getStatusCode()
           + " for POST of marc json " + marcPostJson.toJSONString());
     }
     return marcResponse;
@@ -668,7 +674,7 @@ public class InventoryRecordStorage implements RecordStorage {
               response.getStatusLine().getStatusCode()));
     } else {
       instancesLoaded++;
-      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST/PUT of Instance " + instancesLoaded + ", " + instanceRecord.get("title") + " UUID: " + instanceResponse.get("id"));
+      logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST/PUT of Instance " + instancesLoaded + ", " + instanceRecord.get("title") + " UUID: " + instanceResponse.get("id"));
     }
     return instanceResponse;
   }
@@ -715,7 +721,7 @@ public class InventoryRecordStorage implements RecordStorage {
               response.getStatusLine().getStatusCode()));
     } else {
       holdingsRecordsLoaded++;
-      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record " + holdingsRecord.get("callNumber") + " UUID: " + holdingsRecordResponse.get("id"));
+      logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of holdings record " + holdingsRecord.get("callNumber") + " UUID: " + holdingsRecordResponse.get("id"));
     }
     return holdingsRecordResponse;
   }
@@ -762,7 +768,7 @@ public class InventoryRecordStorage implements RecordStorage {
               response.getStatusLine().getStatusCode()));
     } else {
       itemsLoaded++;
-      logger.info("Status code: " + response.getStatusLine().getStatusCode() + " for POST of Item " + item.get("barcode") + " UUID: " + itemResponse.get("id"));
+      logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of Item " + item.get("barcode") + " UUID: " + itemResponse.get("id"));
     }
     return itemResponse;
 
