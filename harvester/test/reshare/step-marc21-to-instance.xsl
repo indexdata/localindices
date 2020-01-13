@@ -2,7 +2,8 @@
 <xsl:stylesheet
     version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:marc="http://www.loc.gov/MARC21/slim">
+    xmlns:marc="http://www.loc.gov/MARC21/slim"
+    xmlns:oai20="http://www.openarchives.org/OAI/2.0/">
 
   <xsl:import href="map-relator-to-contributor-type.xsl"/>
 
@@ -18,8 +19,13 @@
     </collection>
   </xsl:template>
 
-  <xsl:template match="//delete">
-     <xsl:copy-of select="."/>
+  <xsl:template match="//oai20:header[@status='deleted']">
+    <record status="deleted">
+      <status>deleted</status>
+      <identifier><xsl:value-of select="oai20:identifier"/></identifier>
+      <identifierTypeIdHere/>
+      <permanentLocationIdHere/>
+    </record>
   </xsl:template>
 
   <xsl:template match="//marc:record">
