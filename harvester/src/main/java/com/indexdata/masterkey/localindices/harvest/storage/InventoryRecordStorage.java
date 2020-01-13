@@ -320,6 +320,7 @@ public class InventoryRecordStorage implements RecordStorage {
           deleteExistingHoldingsAndItems(instanceId, holdingsRecords);
           addHoldingsRecordsAndItems(holdingsRecords, instanceId);
         } catch (ParseException | ClassCastException | IOException e) {
+          logger.error("Error adding holdings record and/or items: " + e.getLocalizedMessage());
           holdingsRecordsFailed++;
         }
       }
@@ -356,11 +357,13 @@ public class InventoryRecordStorage implements RecordStorage {
           if (holdingsRecord.containsKey("items")) {
             JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
             JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
-            Iterator itemsIterator = items.iterator();
-            while (itemsIterator.hasNext()) {
-              JSONObject item = (JSONObject) itemsIterator.next();
-              item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
-              addItem(item);
+            if (holdingsRecordResponse != null && holdingsRecordResponse.get("id") != null) {
+              Iterator itemsIterator = items.iterator();
+              while (itemsIterator.hasNext()) {
+                JSONObject item = (JSONObject) itemsIterator.next();
+                item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
+                addItem(item);
+              }
             }
           } else {
             addHoldingsRecord(holdingsRecord);
@@ -505,7 +508,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpDelete);
     if(response.getStatusLine().getStatusCode() != 204) {
-      throw new IOException(String.format("Got error deleting record record with id '%s': %s",
+      throw new IOException(String.format("Got error deleting holdingsRecord with id '%s': %s",
           uuid, EntityUtils.toString(response.getEntity())));
     }
   }
@@ -525,7 +528,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
     CloseableHttpResponse response = client.execute(httpDelete);
     if(response.getStatusLine().getStatusCode() != 204) {
-      throw new IOException(String.format("Got error deleting record record with id '%s': %s",
+      throw new IOException(String.format("Got error deleting item with id '%s': %s",
           uuid, EntityUtils.toString(response.getEntity())));
     }
   }
@@ -670,10 +673,10 @@ public class InventoryRecordStorage implements RecordStorage {
         } else {
           instanceExceptionCounts.put(errorMessage, 1);
         }
-        if (instanceExceptionCounts.get(errorMessage) % 100 == 0) {
+        if (instanceExceptionCounts.get(errorMessage) < 10 || instanceExceptionCounts.get(errorMessage) % 100 == 0) {
           logger.error(String.format("%d instances failed with %s", instanceExceptionCounts.get(errorMessage),errorMessage));
         }
-        logger.debug(String.format("Got error %s, %s adding record: %s",
+        logger.debug(String.format("Got error %s, %s adding Instance record: %s",
                 response.getStatusLine().getStatusCode(),
                 responseAsString,
                 instanceRecord.toJSONString()));
@@ -689,7 +692,7 @@ public class InventoryRecordStorage implements RecordStorage {
       } else {
         instanceExceptionCounts.put(errorMessage, 1);
       }
-      if (instanceExceptionCounts.get(errorMessage) % 100 == 0) {
+      if (instanceExceptionCounts.get(errorMessage) < 10 || instanceExceptionCounts.get(errorMessage) % 100 == 0) {
         logger.error(String.format("%d instances failed with %s", instanceExceptionCounts.get(errorMessage),errorMessage));
       }
       logger.debug("Error storing Instance record: %s " + e.getLocalizedMessage());
@@ -729,7 +732,7 @@ public class InventoryRecordStorage implements RecordStorage {
       response.close();
       if(response.getStatusLine().getStatusCode() != 201) {
         holdingsRecordsFailed++;
-        logger.error(String.format("Got error %s, %s adding record: %s",
+        logger.error(String.format("Got error %s, %s adding holdingsRecord: %s",
                 response.getStatusLine().getStatusCode(),
                 responseAsString,
                 holdingsRecord.toJSONString()));
@@ -775,7 +778,7 @@ public class InventoryRecordStorage implements RecordStorage {
       response.close();
       if(response.getStatusLine().getStatusCode() != 201) {
         itemsFailed++;
-        logger.error(String.format("Got error %s, %s adding record: %s",
+        logger.error(String.format("Got error %s, %s adding item record: %s",
                 response.getStatusLine().getStatusCode(),
                 responseAsString,
                 item.toJSONString()));
@@ -800,7 +803,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpGet.setHeader("X-Okapi-Tenant", tenant);
     CloseableHttpResponse response = client.execute(httpGet);
     if(response.getStatusLine().getStatusCode() != 200) {
-      throw new IOException(String.format("Got error retrieving record record with id '%s': %s",
+      throw new IOException(String.format("Got error retrieving instance with id '%s': %s",
           id, EntityUtils.toString(response.getEntity())));
     }
     JSONObject recordJson;
@@ -819,7 +822,7 @@ public class InventoryRecordStorage implements RecordStorage {
     httpDelete.setHeader("X-Okapi-Tenant", tenant);
     CloseableHttpResponse response = client.execute(httpDelete);
     if(response.getStatusLine().getStatusCode() != 204) {
-      throw new IOException(String.format("Got error deleting record record with id '%s': %s",
+      throw new IOException(String.format("Got error deleting instance record with id '%s': %s",
           id, EntityUtils.toString(response.getEntity())));
     }
   }
