@@ -44,6 +44,11 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
   }
 
   @Override
+  public boolean isDeleted() {
+    return (json != null && json.containsKey("status") && json.get("status").toString().equalsIgnoreCase("deleted"));
+  }
+
+  @Override
   public String toString()  {
     return toJson().toJSONString();
   }

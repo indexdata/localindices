@@ -287,7 +287,11 @@ public class InventoryRecordStorage implements RecordStorage {
       if (instanceWithHoldingsAndItems.containsKey("title")) {
         addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
       } else {
-        logger.info("Inventory record storage received instance record with no 'title' property, cannot create in Inventory, skipping.");
+        if (recordJson.isDeleted()) {
+          logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON)recordJson).toJson() + "]");
+        } else {
+          logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, ["+((RecordJSON)recordJson).toJson() +"] cannot create in Inventory, skipping. ");          
+        }
       }
     }
   }
