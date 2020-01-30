@@ -1,13 +1,18 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import static java.util.Comparator.comparing;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -67,6 +72,9 @@ public class InventoryRecordStorage implements RecordStorage {
   private int itemsProcessed = 0;
   private int itemsLoaded = 0;
   private int itemsFailed = 0;
+  private final ExecutionTimeStats timingsEntireRecord = new ExecutionTimeStats();
+  private final ExecutionTimeStats timingsStoreInstance = new ExecutionTimeStats();
+
 
   public InventoryRecordStorage() {
   }
@@ -239,6 +247,7 @@ public class InventoryRecordStorage implements RecordStorage {
     for (String key : instanceExceptionCounts.keySet()) {
       logger.info(String.format("%d Instance records failed with %s", instanceExceptionCounts.get(key),key));
     }
+    timingsEntireRecord.writeLog();
     harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage);
   }
 
@@ -290,13 +299,14 @@ public class InventoryRecordStorage implements RecordStorage {
         if (recordJson.isDeleted()) {
           logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON)recordJson).toJson() + "]");
         } else {
-          logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, ["+((RecordJSON)recordJson).toJson() +"] cannot create in Inventory, skipping. ");          
+          logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, ["+((RecordJSON)recordJson).toJson() +"] cannot create in Inventory, skipping. ");
         }
       }
     }
   }
 
   private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
+    long startStorageEntireRecord = System.currentTimeMillis();
     JSONObject instanceResponse = null;
     //JSONObject instanceWithHoldingsItems = ((RecordJSON)recordJson).toJson();
     if (instanceWithHoldingsItems.containsKey("passthrough")) {
@@ -335,7 +345,7 @@ public class InventoryRecordStorage implements RecordStorage {
         }
       }
     }
-
+    timingsEntireRecord.time(startStorageEntireRecord);
     return instanceResponse;
   }
 
@@ -859,5 +869,78 @@ public class InventoryRecordStorage implements RecordStorage {
     return UUID.randomUUID().toString();
   }
 
+  private class ExecutionTimeStats {
+    private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-DD:HH");
+    private final Map<String, HourStats> execTimes = new HashMap<>();
+
+    HourStats hourstats = null;
+
+    public void time(long start) {
+      long end = System.currentTimeMillis();
+      String hour = HOUR.format(new Date());
+      if (execTimes.containsKey(hour)) {
+        execTimes.get(hour).log(start, end);
+      } else {
+        writeLog(); // at top of the hour, write logs up until previous hour
+        hourstats = new HourStats();
+        hourstats.log(start, end);
+        execTimes.put(hour,hourstats);
+      }
+    }
+
+    public void writeLog() {
+      execTimes.entrySet().stream()
+      .sorted(comparing(Entry::getKey))
+      .forEach(e -> { // for each hour
+        HourStats hr = e.getValue();
+        StringBuilder totals1 = new StringBuilder();
+        totals1.append(e.getKey()).append(": ")
+               .append(hr.execCount).append(" records processed in ").append(hr.totalExecTime/1000).append(" secs.")
+               .append("~").append(hr.totalExecTime/60000).append(" mins. of execution time");
+        logger.info(totals1.toString());
+
+        StringBuilder totals2 = new StringBuilder();
+        totals2.append("Average: ").append(hr.totalExecTime/hr.execCount).append(" ms. ")
+               .append("Fastest: ").append(hr.minExecTime).append(" ms. ")
+               .append("Slowest: ").append(hr.maxExecTime).append(" ms. ");
+        logger.info(totals2.toString());
+
+        e.getValue().execTimeIntervals.entrySet().stream()
+                .sorted(comparing(Entry::getKey))
+                .forEach(f -> { // for each response time interval
+                  StringBuilder intv = new StringBuilder();
+                  intv.append("Up to ").append(f.getKey()).append(" ms for ").append(f.getValue()).append(" records. ");
+                  if (f.getValue()*100/hr.execCount>0)
+                    intv.append("(").append(f.getValue()*100/hr.execCount).append("%)");
+                  logger.info(intv.toString());
+                });}
+      );
+    }
+  }
+
+  private class HourStats {
+    int execCount = 0;
+    long totalExecTime = 0;
+    long maxExecTime = 0;
+    long minExecTime = Long.MAX_VALUE;
+    Map <Long, Integer> execTimeIntervals = new HashMap<>();
+    Map <String, Long> execTimeByOperation = new HashMap<>();
+
+    public void log (long start, long end) {
+      long execTime = end - start;
+      execCount++;
+      totalExecTime += execTime;
+      maxExecTime = Math.max(maxExecTime, execTime);
+      minExecTime = Math.min(minExecTime, execTime);
+      long execTimeRounded = execTime<1000 ? ((execTime + 99) / 100) * 100 :
+                                                       ((execTime + 999) / 1000) * 1000;
+
+      if (execTimeIntervals.containsKey(execTimeRounded)) {
+        execTimeIntervals.put(execTimeRounded,execTimeIntervals.get(execTimeRounded)+1);
+      } else {
+        execTimeIntervals.put(execTimeRounded,1);
+      }
+    }
+  }
 
 }
