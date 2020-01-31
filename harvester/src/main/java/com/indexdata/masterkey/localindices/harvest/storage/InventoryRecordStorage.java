@@ -338,7 +338,7 @@ public class InventoryRecordStorage implements RecordStorage {
           holdingsRecordsFailed++;
         }
       }
-      if (instanceResponse != null && instancesLoaded % 100 == 0) {
+      if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
         logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, and " + itemsLoaded + " items ingested");
         if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
           logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items");
@@ -416,7 +416,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private void deleteExistingHoldingsAndItems (String instanceId, JSONArray holdingsRecords) throws IOException, ParseException {
     logger.debug("Deleting holdings and items for Instance Id " + instanceId + " if coming from same institution");
-
+    int itemsToDelete = 0;
     JSONObject newHoldingsRecord = null;
     try {
       newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
@@ -434,6 +434,7 @@ public class InventoryRecordStorage implements RecordStorage {
           if (fromSameInstitution(existingHoldingsRecord, newHoldingsRecord)) {
             JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
             if (items != null) {
+              itemsToDelete = items.size();
               Iterator<JSONObject> itemsIterator = items.iterator();
               while (itemsIterator.hasNext()) {
                 JSONObject item = itemsIterator.next();
@@ -441,7 +442,15 @@ public class InventoryRecordStorage implements RecordStorage {
                 deleteItem(itemId);
               }
             }
-            deleteHoldingsRecord(existingHoldingsRecordId);
+            try {
+              deleteHoldingsRecord(existingHoldingsRecordId);
+            } catch (IOException ioe) {
+              if (ioe.getMessage().contains("still referenced")) {
+                logger.info("Holdings record for deletion: " + existingHoldingsRecord.toJSONString() + " had " + itemsToDelete + " items.");
+                logger.info("Items referencing the holdings record: " + getItemsByHoldingsRecordId(existingHoldingsRecordId).toJSONString());
+              }
+              throw ioe;
+            }
           } else {
             logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") +"), not deleting it.");
           }
@@ -461,7 +470,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONArray getHoldingsRecordsByInstanceId(String instanceId)
       throws IOException, ParseException {
-    String url = String.format("%s?query=instanceId%%3D%%3D%s", folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH), instanceId);
+    String url = String.format("%s?limit=1000&query=instanceId%%3D%%3D%s", folioAddress + getConfigurationValue(HOLDINGS_STORAGE_PATH), instanceId);
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -489,7 +498,7 @@ public class InventoryRecordStorage implements RecordStorage {
    */
   private JSONArray getItemsByHoldingsRecordId(String holdingsRecordId)
       throws IOException, ParseException {
-    String url = String.format("%s?query=holdingsRecordId%%3D%%3D%s", folioAddress + getConfigurationValue(ITEM_STORAGE_PATH), holdingsRecordId);
+    String url = String.format("%s?limit=1000&query=holdingsRecordId%%3D%%3D%s", folioAddress + getConfigurationValue(ITEM_STORAGE_PATH), holdingsRecordId);
     HttpGet httpGet = new HttpGet(url);
     httpGet.setHeader("Accept", "application/json");
     httpGet.setHeader("Content-type", "application/json");
@@ -520,10 +529,15 @@ public class InventoryRecordStorage implements RecordStorage {
     httpDelete.setHeader("Content-type", "application/json");
     httpDelete.setHeader("X-Okapi-Token", authToken);
     httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
-    CloseableHttpResponse response = client.execute(httpDelete);
-    if(response.getStatusLine().getStatusCode() != 204) {
-      throw new IOException(String.format("Got error deleting holdingsRecord with id '%s': %s",
-          uuid, EntityUtils.toString(response.getEntity())));
+    CloseableHttpResponse response = null;
+    try {
+      response = client.execute(httpDelete);
+      if(response.getStatusLine().getStatusCode() != 204) {
+        throw new IOException(String.format("Got error deleting holdingsRecord with id '%s': %s",
+            uuid, EntityUtils.toString(response.getEntity())));
+      }
+    } finally {
+      if (response != null) response.close();
     }
   }
 
@@ -540,10 +554,15 @@ public class InventoryRecordStorage implements RecordStorage {
     httpDelete.setHeader("Content-type", "application/json");
     httpDelete.setHeader("X-Okapi-Token", authToken);
     httpDelete.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
-    CloseableHttpResponse response = client.execute(httpDelete);
-    if(response.getStatusLine().getStatusCode() != 204) {
-      throw new IOException(String.format("Got error deleting item with id '%s': %s",
-          uuid, EntityUtils.toString(response.getEntity())));
+    CloseableHttpResponse response = null;
+    try {
+      response = client.execute(httpDelete);
+      if(response.getStatusLine().getStatusCode() != 204) {
+        throw new IOException(String.format("Got error deleting item with id '%s': %s",
+            uuid, EntityUtils.toString(response.getEntity())));
+      }
+    } finally {
+      if (response != null) response.close();
     }
   }
 
