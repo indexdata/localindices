@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -331,7 +330,8 @@ public class InventoryRecordStorage implements RecordStorage {
         // delete existing holdings/items from the same institution
         // before attaching new holdings/items to the instance
         try {
-          deleteExistingHoldingsAndItems(instanceId, holdingsRecords);
+          String institutionId = getInstitutionId(holdingsRecords);
+          deleteHoldingsAndItemsForInstitution(instanceId, institutionId);
           addHoldingsRecordsAndItems(holdingsRecords, instanceId);
         } catch (ParseException | ClassCastException | IOException e) {
           logger.error("Error adding holdings record and/or items: " + e.getLocalizedMessage());
@@ -392,46 +392,24 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   /**
-   * Determines if two holdings records are assigned to locations within the same
-   * institution.
-   * @param holdingsRecordLeft
-   * @param holdingsRecordRight
-   * @return
-   */
-  private boolean fromSameInstitution(JSONObject holdingsRecordLeft, JSONObject holdingsRecordRight) {
-    String leftLocationId = (String) holdingsRecordLeft.get("permanentLocationId");
-    String rightLocationId = (String) holdingsRecordRight.get("permanentLocationId");
-    if (locationsToInstitutionsMap.get(leftLocationId) == null) {
-      logger.error("Could not find location [" + leftLocationId + "] in locations map " + locationsToInstitutionsMap.toString());
-    }
-    return (locationsToInstitutionsMap.get(leftLocationId).equals(locationsToInstitutionsMap.get(rightLocationId)));
-  }
-
-  /**
    * Wipes out existing holdings and items belonging to the institution from
    * which we are currently loading new holdings and items
    * @param instanceId
    * @throws IOException
    * @throws ParseException
    */
-  private void deleteExistingHoldingsAndItems (String instanceId, JSONArray holdingsRecords) throws IOException, ParseException {
-    logger.debug("Deleting holdings and items for Instance Id " + instanceId + " if coming from same institution");
+  private void deleteHoldingsAndItemsForInstitution (String instanceId, String institutionId) throws IOException, ParseException {
+    logger.debug("Deleting holdings and items for Instance Id " + instanceId + " for institution " + institutionId);
     int itemsToDelete = 0;
-    JSONObject newHoldingsRecord = null;
-    try {
-      newHoldingsRecord = (JSONObject) holdingsRecords.get(0);
-    } catch (ClassCastException cce) {
-      logger.error("Could not get holdingsRecord JSON object from " + holdingsRecords.get(0) + " " + cce.getMessage());
-      throw cce;
-    }
-    if (newHoldingsRecord != null) {
+    if (institutionId != null) {
       JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
       if (existingHoldingsRecords != null) {
         Iterator<JSONObject> existingHoldingsRecordsIterator = existingHoldingsRecords.iterator();
         while (existingHoldingsRecordsIterator.hasNext()) {
           JSONObject existingHoldingsRecord = existingHoldingsRecordsIterator.next();
+          String institutionIdExistingHoldingsRecord = getInstitutionId(existingHoldingsRecord);
           String existingHoldingsRecordId = (String) existingHoldingsRecord.get("id");
-          if (fromSameInstitution(existingHoldingsRecord, newHoldingsRecord)) {
+          if (institutionIdExistingHoldingsRecord.equals(institutionId)) {
             JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
             if (items != null) {
               itemsToDelete = items.size();
@@ -825,26 +803,6 @@ public class InventoryRecordStorage implements RecordStorage {
     return itemResponse;
   }
 
-  private JSONObject getInstanceRecord(CloseableHttpClient client, String id,
-      String tenant, String authToken)
-      throws IOException, ParseException {
-    String url = String.format("%s/instances/%s", folioAddress + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
-    HttpGet httpGet = new HttpGet(url);
-    httpGet.setHeader("Accept", "application/json");
-    httpGet.setHeader("Content-type", "application/json");
-    httpGet.setHeader("X-Okapi-Token", authToken);
-    httpGet.setHeader("X-Okapi-Tenant", tenant);
-    CloseableHttpResponse response = client.execute(httpGet);
-    if(response.getStatusLine().getStatusCode() != 200) {
-      throw new IOException(String.format("Got error retrieving instance with id '%s': %s",
-          id, EntityUtils.toString(response.getEntity())));
-    }
-    JSONObject recordJson;
-    JSONParser parser = new JSONParser();
-    recordJson = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-    return recordJson;
-  }
-
   private void deleteInstanceRecord(CloseableHttpClient client, String id,
       String tenant, String authToken) throws IOException {
     String url = String.format("%s/instances/%s", folioAddress + getConfigurationValue(INSTANCE_STORAGE_PATH), id);
@@ -884,9 +842,41 @@ public class InventoryRecordStorage implements RecordStorage {
     return response.getFirstHeader("X-Okapi-Token").getValue();
   }
 
-  private String getResourceTypeUUID(CloseableHttpClient client, String name) {
-    return UUID.randomUUID().toString();
+  private String getInstitutionId(JSONArray holdingsRecords) {
+    String locationId = getLocationId(holdingsRecords);
+    if (locationId != null) {
+      return locationsToInstitutionsMap.get(locationId);
+    } else {
+      return null;
+    }
   }
+
+  private String getInstitutionId(JSONObject holdingsRecord) {
+    if (holdingsRecord != null) {
+      String locationId = getLocationId(holdingsRecord);
+      if (locationId != null) {
+        return locationsToInstitutionsMap.get(locationId);
+      }
+    }
+    return null;
+  }
+
+  private String getLocationId(JSONArray holdingsRecords) {
+    if (holdingsRecords != null && holdingsRecords.get(0) instanceof JSONObject ) {
+      return getLocationId((JSONObject)(holdingsRecords.get(0)));
+    } else {
+      return null;
+    }
+  }
+
+  private String getLocationId(JSONObject holdingsRecord) {
+    if (holdingsRecord != null) {
+      return (String) holdingsRecord.get("permanentLocationId");
+    } else {
+      return null;
+    }
+  }
+
 
   private class ExecutionTimeStats {
     private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-DD:HH");
