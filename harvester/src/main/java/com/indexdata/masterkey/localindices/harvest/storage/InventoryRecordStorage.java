@@ -392,8 +392,7 @@ public class InventoryRecordStorage implements RecordStorage {
   }
 
   /**
-   * Wipes out existing holdings and items belonging to the institution from
-   * which we are currently loading new holdings and items
+   * Wipes out existing holdings and items belonging to the institution
    * @param instanceId
    * @throws IOException
    * @throws ParseException
@@ -436,6 +435,41 @@ public class InventoryRecordStorage implements RecordStorage {
       } else {
         logger.info("No existing holdingsRecords found for the instance, nothing to delete.");
       }
+    }
+  }
+
+  /**
+   * Gets an instance from FOLIO Inventory by identifier (type and value)
+   * @param localIdentifier  Identifier value
+   * @param identifierTypeId  Inventory identifier type ID
+   * @return
+   * @throws IOException
+   * @throws ParseException
+   */
+  private JSONObject getInstance (String localIdentifier, String identifierTypeId)
+    throws IOException, ParseException {
+    String url = String.format("%s?query=%%28identifiers%%20%%3D%%2F%%40value%%2F%%40identifierTypeId%%3D%%22%s%%22%%20%%22%s%%22%%29", folioAddress + "instance-storage/instances", identifierTypeId, localIdentifier);
+    HttpGet httpGet = new HttpGet(url);
+    httpGet.setHeader("Accept", "application/json");
+    httpGet.setHeader("Content-type", "application/json");
+    httpGet.setHeader("X-Okapi-Token", authToken);
+    httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    CloseableHttpResponse response = client.execute(httpGet);
+    if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+      throw new IOException(String.format("Got error retrieving instance by local identifier %s and identifierTypeId %s: %s",
+          localIdentifier, identifierTypeId, EntityUtils.toString(response.getEntity())));
+    }
+    JSONObject jsonResponse;
+    JSONParser parser = new JSONParser();
+    String responseString = EntityUtils.toString(response.getEntity());
+    logger.info("getInstanceId response: " + responseString);
+    jsonResponse = (JSONObject) parser.parse(responseString);
+    Long totalRecords = (Long)jsonResponse.getOrDefault("totalRecords",0);
+    if (totalRecords == 1 && jsonResponse.get("instances") != null) {
+      return ((JSONObject)((JSONArray) jsonResponse.get("instances")).get(0));
+    } else {
+      logger.info("totalRecords for instance query by identifier was " + totalRecords);
+      return null;
     }
   }
 
@@ -568,7 +602,94 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void delete(String id) {
-    throw new UnsupportedOperationException("delete by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("delete by id Not supported."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  /**
+   * Deletes a bib record with holdings and items from a shared inventory,
+   * which doesn't mean removing the Instance and all it's holdings entirely,
+   * but rather removing the identifier for the current library from the shared
+   * instance as well as the holdings for the current library, while leaving the
+   * master instance and the holdings of other institutions intact.
+   *
+   * @param id
+   */
+  @Override
+  public void delete(Record record) {
+    logger.info("Delete request received for record with ID [" + record.getId() + "] "
+                + "Delete request argument of type " + record.getClass());
+    JSONObject deletionJson = ((record instanceof RecordJSONImpl) ? ((RecordJSON) record).toJson() : null);
+    logger.info("Content of deletion record: " + (deletionJson != null ? deletionJson.toJSONString() : " [Record not JSON, cannot display content]"));
+    if (deletionJson != null) {
+      String oaiId = (String) deletionJson.get("identifier");
+      String id = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
+      String identifierTypeId = (String) deletionJson.get("identifierTypeId");
+      String permanentLocationId = (String) deletionJson.get("permanentLocationId");
+      if (id != null && identifierTypeId != null && permanentLocationId != null) {
+        // This is assumed to be a deletion record targeted for a shared inventory
+        logger.info("Storage class received a deletion record with ID: [" + id +"], identifierTypeId ["+identifierTypeId+"], permanentLocationId ["+permanentLocationId+"]");
+        try {
+          JSONObject instance = getInstance(id, identifierTypeId);
+          if (instance != null) {
+            String instanceId = (String) instance.get("id");
+            logger.info("Found instance ID: " + instanceId);
+            JSONArray identifiers = (JSONArray)instance.get("identifiers");
+            JSONObject identifier = null;
+            Iterator iter = identifiers.iterator();
+            while (iter.hasNext()) {
+              JSONObject identifierObject = (JSONObject) iter.next();
+              if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
+                 && id.equals(identifierObject.get("value"))) {
+                identifier = identifierObject;
+                break;
+              }
+            }
+            identifiers.remove(identifier);
+            logger.info("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
+            deleteHoldingsAndItemsForInstitution(instanceId, locationsToInstitutionsMap.get(permanentLocationId));
+            updateInstance(instance);
+          } else {
+            logger.info("No instance found for local id ["+id+"] and identifierTypeId ["+identifierTypeId+"]. Cannot perform delete.");
+          }
+
+        } catch (IOException ioe) {
+          logger.error(ioe.getMessage());
+        } catch (ParseException pe) {
+          logger.error(pe.getMessage());
+        }
+      } else if (id != null) {
+        // This is assumed to be a deletion record targeted for a simple inventory
+        logger.info("Storage class received a deletion record with ID: [" + id +"]");
+      } else if (oaiId != null && id == null) {
+        logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
+      } else if (oaiId == null) {
+        logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
+      }
+    }
+  }
+
+  /**
+   * PUTs the instance object argument to Inventory
+   * @param instance
+   */
+  public void updateInstance (JSONObject instance) {
+    logger.info("Updating Instance with " + instance.toJSONString());
+    try {
+      String url = folioAddress + "instance-storage/instances/" + instance.get("id");
+      HttpEntityEnclosingRequestBase httpUpdate;
+      httpUpdate = new HttpPut(url);
+      StringEntity entity = new StringEntity(instance.toJSONString(),"UTF-8");
+      httpUpdate.setEntity(entity);
+      httpUpdate.setHeader("Accept", "text/plain");
+      httpUpdate.setHeader("Content-type", "application/json");
+      httpUpdate.setHeader("X-Okapi-Token", authToken);
+      httpUpdate.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+      CloseableHttpResponse response = client.execute(httpUpdate);
+      response.close();
+      logger.info("Updated instance " + instance.get("id"));
+    } catch (IOException ioe) {
+      logger.error("IO error updating instance: " + ioe.getMessage());
+    }
   }
 
   @Override
