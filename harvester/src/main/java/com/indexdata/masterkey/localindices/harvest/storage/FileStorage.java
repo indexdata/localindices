@@ -14,19 +14,19 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
  * Simple console storage that prints out the harvested data.
- * 
+ *
  * @author Jakub
  */
 public class FileStorage implements RecordStorage {
   private boolean overwriteMode = false;
-  File current; 
+  File current;
   Harvestable harvestable;
   OutputStream out;
   private String database;
@@ -35,13 +35,13 @@ public class FileStorage implements RecordStorage {
   private long adds;
   private StorageJobLogger logger = null;
   public FileStorage() {
-    
+
   }
-  
+
   public void setHarvestable(Harvestable harvestable) {
-    this.harvestable = harvestable; 
+    this.harvestable = harvestable;
   }
-  
+
   public void begin() throws IOException {
     Storage storage = harvestable.getStorage();
     if (storage instanceof FileStorageEntity) {
@@ -124,18 +124,23 @@ public class FileStorage implements RecordStorage {
 
   @Override
   public Record get(String id) {
-    // Won't implement. 
+    // Won't implement.
     return null;
   }
 
   @Override
   public void delete(String id) {
-    // Won't implement. 
+    // Won't implement.
+  }
+
+  @Override
+  public void delete(Record record) {
+    // Won't implement
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
-    this.logger = logger; 
+    this.logger = logger;
   }
 
   @Override

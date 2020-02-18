@@ -59,10 +59,10 @@ import ORG.oclc.oai.harvester2.verb.OaiPmhException;
  * the scheduler through the HarvestJob interface. This class updates some of
  * the Harvestable's properties excluding the STATUS, the status has to be
  * handled on the higher level.
- * 
+ *
  * @author jakub
  * @author Dennis
- * 
+ *
  */
 public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
@@ -164,7 +164,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
         /*
          * } catch (ResponseParsingException e) { if (!isKillSent()) {
          * setStatus(HarvestStatus.ERROR, e.getMessage());
-         * 
+         *
          * }
          */
       } catch (StopException e) {
@@ -358,10 +358,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
           for (int index = 0; index < count; index++) {
             Node node = list.item(index);
             Record record = createRecord(node);
-            if (record.isDeleted())
-              getStorage().delete(record.getId());
-            else
+            if (record.isDeleted()) {
+              getStorage().delete(record);
+            } else {
               getStorage().add(record);
+            }
           }
           resumptionToken = listRecords.getResumptionToken();
         } catch (StopException e) {
@@ -437,7 +438,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
 
   protected RecordDOMImpl createRecord(Node node) throws TransformerException {
     String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
-    String isDeleted = HarvesterVerb.getSingleString(node, "attribute::status");
+    String isDeleted = HarvesterVerb.getSingleString(node, "./oai20:header/@status");
     byte[] original = null;
     if (resource.isStoreOriginal()) {
       originalBuff.reset();
@@ -446,8 +447,9 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       original = originalBuff.toByteArray();
     }
     RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node, original);
-    if ("deleted".equalsIgnoreCase(isDeleted))
+    if ("deleted".equalsIgnoreCase(isDeleted)) {
       record.setDeleted(true);
+    }
     return record;
   }
 

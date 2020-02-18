@@ -15,16 +15,16 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   private String database = null;
   StorageJobLogger logger;
   private int added;
-  private int deleted; 
-  boolean committed; 
-  
+  private int deleted;
+  boolean committed;
+
   private void message(Object msg) {
     System.out.println(msg);
     if (logger != null) {
       	logger.info(msg.toString());
     }
   }
-  
+
   @Override
   public void begin() throws IOException {
     added = 0;
@@ -76,12 +76,12 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   }
 
   Map<String, Integer> keyMap = new HashMap<String, Integer>();
-  
+
   @Override
   public void add(Record record) {
     String key = record.getId();
     Integer count = keyMap.get(key);
-    if (count == null) 
+    if (count == null)
       count = new Integer(0);
     else {
       count = new Integer(count + 1);
@@ -89,7 +89,7 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
       message("Record: " + record);
     }
     keyMap.put(key, count);
-    
+
     added++;
   }
 
@@ -102,6 +102,12 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   @Override
   public void delete(String id) {
     message("Delete Record{id=" + id + "}");
+    deleted++;
+  }
+
+  @Override
+  public void delete(Record record) {
+    message("Delete Record{id=" + record.getId() + "}");
     deleted++;
   }
 
@@ -133,5 +139,5 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limt) {
   }
-  
+
 }

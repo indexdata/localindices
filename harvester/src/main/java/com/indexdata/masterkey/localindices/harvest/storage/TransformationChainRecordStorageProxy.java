@@ -18,8 +18,8 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
   private PipedInputStream input;
   private Thread thread = null;
   private StorageJobLogger logger;
-  
-  public TransformationChainRecordStorageProxy(RecordStorage storage, XMLReader xmlFilteredReader, 
+
+  public TransformationChainRecordStorageProxy(RecordStorage storage, XMLReader xmlFilteredReader,
       RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     this.logger = job.getLogger();
@@ -36,7 +36,7 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
       // Close the output so the PipedInputStream will get the EOF.
       output.close();
     } catch (IOException e) {
-      if (logger != null) 
+      if (logger != null)
 	logger.error("IOException on close.", e);
       e.printStackTrace();
     }
@@ -45,13 +45,13 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
     try {
       thread.join();
     } catch (InterruptedException e) {
-      if (logger != null) 
+      if (logger != null)
 	logger.error("Interrupted before joined", e);
       e.printStackTrace();
     }
 /*
     if (transformException != null) {
-      if (logger != null) 
+      if (logger != null)
 	logger.error("Throw saved Transformation exception as IOException", transformException);
       throw new IOException("Transformation failed", transformException);
     }
@@ -85,5 +85,5 @@ public class TransformationChainRecordStorageProxy extends RecordStorageProxy {
   public void setBatchLimit(int limit) {
     getTarget().setBatchLimit(limit);
   }
-  
+
 }

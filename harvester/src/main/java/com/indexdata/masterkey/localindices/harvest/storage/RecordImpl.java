@@ -35,7 +35,7 @@ public class RecordImpl implements Record {
   public byte[] getOriginalContent() {
     return content;
   }
-  
+
   @Override
   public void setOriginalContent(byte[] content) {
     this.content = content;
@@ -56,8 +56,7 @@ public class RecordImpl implements Record {
 
   @Override
   public boolean isDeleted() {
-    // TODO Auto-generated method stub
-    return false;
+    return this.isDeleted;
   }
 
   public void setDeleted(boolean isDeleted) {
@@ -73,7 +72,7 @@ public class RecordImpl implements Record {
     record.append("database=").append(database);
     for (String key : valueMap.keySet()) {
       record.append(", ");
-      // TODO serialize the Collection.. 
+      // TODO serialize the Collection..
       record.append(key).append(" => {").append(valueMap.get(key)).append("}");
     }
     record.append("]");
@@ -84,7 +83,7 @@ public class RecordImpl implements Record {
   public boolean isCollection() {
     return false;
   }
-  
+
   @Override
   public Collection<Record> getSubRecords() {
     return null;

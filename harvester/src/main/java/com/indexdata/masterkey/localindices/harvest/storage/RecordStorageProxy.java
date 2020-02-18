@@ -79,7 +79,12 @@ public abstract class RecordStorageProxy implements RecordStorage {
   public void delete(String id) {
     storage.delete(id);
   }
-  
+
+  @Override
+  public void delete(Record record) {
+    storage.delete(record);
+  }
+
   @Override
   public void setHarvestable(Harvestable harvestable) {
     storage.setHarvestable(harvestable);

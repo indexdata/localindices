@@ -6,9 +6,6 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,9 +14,12 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 /**
  * Simple, single file storage.
- * 
+ *
  * @author jakub
  */
 public class SingleFileStorage implements RecordStorage {
@@ -62,7 +62,7 @@ public class SingleFileStorage implements RecordStorage {
   @Override
   public void setHarvestable(Harvestable harvestable) {
     // TODO Auto-generated method stub
-    
+
   }
 
   public void setOverwriteMode(boolean mode) {
@@ -113,13 +113,17 @@ public class SingleFileStorage implements RecordStorage {
   @Override
   public void delete(String id) {
     // TODO Auto-generated method stub
-    
+  }
+
+  @Override
+  public void delete(Record record) {
+    // Not implemented
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
@@ -146,5 +150,5 @@ public class SingleFileStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limt) {
   }
-   
+
 }

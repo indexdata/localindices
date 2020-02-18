@@ -20,7 +20,7 @@ import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
 public class TransformationRecordStorageProxy extends AbstractTransformationRecordStorageProxy  {
   private StorageJobLogger logger;
   private List<TransformationStep> steps;
-  
+
   private RecordHarvestJob job;
   private MessageRouter<Object>[] messageRouters;
   private MessageProducer<Object> source;
@@ -28,7 +28,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   private MessageQueue<Object> errors = new BlockingMessageQueue<Object>();
   private int count = 0;
   private Integer limit = null;
-  
+
   public TransformationRecordStorageProxy(RecordStorage storage, List<TransformationStep> steps, RecordHarvestJob job) throws IOException,
       TransformerConfigurationException {
     setTarget(storage);
@@ -54,7 +54,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
     }
     return null;
   }
-    
+
   private void testLimit() {
     if (limit != null && limit > 0 && count >= limit) {
       String msg = "Stop requested after " + limit + " records";
@@ -63,7 +63,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
     }
   }
 
-  @Override 
+  @Override
   public void add(Record record) {
     if (job.isKillSent())
       throw new RuntimeException("Job killed");
@@ -91,31 +91,40 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
 
   @Override
   public void delete(String id) {
-    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null, null);
     while (true) {
       if (job.isKillSent())
-	      throw new RuntimeException("Job killed");
+	throw new RuntimeException("Job killed");
+      getTarget().delete(id);
+    }
+  }
+
+  @Override
+  public void delete(Record record) {
+    RecordDOMImpl recordDOM = new RecordDOMImpl(record);
+    while (true) {
+      if (job.isKillSent()) {
+        throw new RuntimeException("Job killed");
+      }
       try {
-	Record transformed = transformNode(recordDOM);
-	if (transformed != null)
-	  getTarget().delete(transformed.getId());
-	else {
-	  logger.warn("Record filtered out. " + recordDOM);
-	}
-	break;
+        Record transformed = transformNode(recordDOM);
+        if (transformed != null)
+          getTarget().delete(transformed);
+        else {
+          logger.warn("Unable to transform deletion record. No action taken for: " + recordDOM);
+        }
+        break;
       } catch (InterruptedException e) {
-	e.printStackTrace();
-	try {
-	  errors.put(e);
-	} catch (InterruptedException e1) {
-	  logger.error("Record not added to error. " + recordDOM);
-	  e1.printStackTrace();
-	}
+        logger.error("Error attempting to delete record " + e.getMessage());
+        try {
+          errors.put(e);
+        } catch (InterruptedException e1) {
+          logger.error("Record deletion error not added to errors. " + recordDOM);
+          logger.error("Error: " + e1.getMessage());
+        }
       }
     }
   }
 
-  
   @Override
   public void commit() throws IOException {
     if (count == 0) {
@@ -184,5 +193,5 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   public void setBatchLimit(int limit) {
     getTarget().setBatchLimit(limit);
   }
-   
+
 }
