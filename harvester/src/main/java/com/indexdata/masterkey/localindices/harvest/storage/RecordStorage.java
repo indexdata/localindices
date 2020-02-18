@@ -12,35 +12,35 @@ public interface RecordStorage  {
 
   /**
    * Opens the storage and prepares output stream for writes.
-   * 
+   *
    * @throws java.io.IOException
    */
   public void begin() throws IOException;
 
   /**
    * Commits the current harvest and closes output stream.
-   * 
+   *
    * @throws java.io.IOException
    */
   public void commit() throws IOException;
 
   /**
    * Rolls back the current write and closes the output stream.
-   * 
+   *
    * @throws java.io.IOException
    */
   public void rollback() throws IOException;
 
   /**
    * Purges all data written so far (drops the whole storage).
-   * 
+   *
    * @throws java.io.IOException
    */
   public void purge(boolean commit) throws IOException;
 
   //public void purgeCommit() throws IOException;
 
-  
+
   /**
    * Set/get a flag that indicates the overwrite mode Normally a storage is in
    * append mode, so new transactions (begin-write-commit) are appended to the
@@ -52,7 +52,7 @@ public interface RecordStorage  {
 
   public boolean getOverwriteMode();
 
-  
+
   public void setHarvestable(Harvestable harvestable);
 
   void databaseStart(String database, Map<String, String> properties);
@@ -71,20 +71,22 @@ public interface RecordStorage  {
    */
   void delete(String id);
 
+  void delete(Record record);
+
   void setLogger(StorageJobLogger logger);
-  
+
   StorageStatus getStatus() throws StatusNotImplemented;
-  
+
   // SAX ContentHandler
   DatabaseContenthandler getContentHandler();
-  
-  // Some storages needs to close resources/shutdown connections. 
+
+  // Some storages needs to close resources/shutdown connections.
   void shutdown() throws IOException;
-  
+
   /**
    * Sets number of record stored within a single batch.
-   * 
-   * @param limit 
+   *
+   * @param limit
    */
   void setBatchLimit(int limit);
 }

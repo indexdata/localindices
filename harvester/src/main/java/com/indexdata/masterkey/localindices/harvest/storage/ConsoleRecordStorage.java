@@ -14,17 +14,17 @@ public class ConsoleRecordStorage implements RecordStorage {
   private String database = null;
   StorageJobLogger logger;
   private int added;
-  private int deleted; 
-  boolean committed; 
+  private int deleted;
+  boolean committed;
   Harvestable harvestable;
-  
+
   private void message(Object msg) {
     System.out.println(msg);
     if (logger != null) {
       	logger.info(msg.toString());
     }
   }
-  
+
   @Override
   public void begin() throws IOException {
     message("Begin");
@@ -101,6 +101,12 @@ public class ConsoleRecordStorage implements RecordStorage {
   }
 
   @Override
+  public void delete(Record record) {
+    message("Delete Record{id=" + record.getId() + "}");
+    deleted++;
+  }
+
+  @Override
   public void setLogger(StorageJobLogger logger) {
     this.logger = logger;
   }
@@ -128,5 +134,5 @@ public class ConsoleRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limt) {
   }
-  
+
 }

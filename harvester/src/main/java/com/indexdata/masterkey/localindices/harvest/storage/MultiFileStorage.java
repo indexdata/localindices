@@ -6,9 +6,6 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,24 +16,26 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+
 /**
  * This class stores the harvested resources onto the file system and indexes them with Zebra
- * 
+ *
  * Directory structure
  *    /basepath
  *       /committed
  *           /job-NNN
- *              file-DDDD 
+ *              file-DDDD
  *       /incoming
  *           /job-NNN
  *              file-DDDD
  * The jobs are harvested into the incoming directory, and when committed, are moved
  * to the committed directory.
- * 
+ *
  * @author Heikki
  */
 public class MultiFileStorage implements RecordStorage {
@@ -65,7 +64,7 @@ public class MultiFileStorage implements RecordStorage {
    * Check if the incoming directory exists, and if not, create it. Actually,
    * delete the old one if it exists, and create a new one. That way, we roll
    * back what ever old cruft we may have had in the incoming directory
-   * 
+   *
    * @throws java.io.IOException
    */
   private void checkIncomingDir() throws IOException {
@@ -91,7 +90,7 @@ public class MultiFileStorage implements RecordStorage {
   /**
    * Open a new putput file in the incoming directory Checks that the directory
    * exists, creates if necessary
-   * 
+   *
    * @throws java.io.IOException
    */
   public void begin() throws IOException {
@@ -105,7 +104,7 @@ public class MultiFileStorage implements RecordStorage {
    * Closes and commits the output file Makes sure the committed directory
    * exists Moves the harvested file into the committed dir Removes the
    * directory from incoming
-   * 
+   *
    * @throws java.io.IOException
    */
   public void commit() throws IOException {
@@ -134,7 +133,7 @@ public class MultiFileStorage implements RecordStorage {
 
   /**
    * Recursively deletes the given directory
-   * 
+   *
    * @param f
    *          the directory (or file) to be deleted
    * @throws java.io.IOException
@@ -158,7 +157,7 @@ public class MultiFileStorage implements RecordStorage {
 
   /**
    * Remove all that we have on this job
-   * 
+   *
    * @throws java.io.IOException
    */
   public void purge(boolean commit) throws IOException {
@@ -172,7 +171,7 @@ public class MultiFileStorage implements RecordStorage {
 
   /**
    * Close the output and remove the current file
-   * 
+   *
    * @throws java.io.IOException
    */
   public void rollback() throws IOException {
@@ -224,25 +223,25 @@ public class MultiFileStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void databaseEnd() {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void add(Map<String, Collection<Serializable>> keyValues) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void add(Record record) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
@@ -254,13 +253,17 @@ public class MultiFileStorage implements RecordStorage {
   @Override
   public void delete(String id) {
     // TODO Auto-generated method stub
-    
+  }
+
+  @Override
+  public void delete(Record record) {
+    // TODO Auto-generated method stub
   }
 
   @Override
   public void setLogger(StorageJobLogger logger) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override

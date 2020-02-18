@@ -20,10 +20,10 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   private PipedInputStream input;
   private Thread thread = null;
   private TransformerException transformException = null;
-  private StorageJobLogger logger; 
+  private StorageJobLogger logger;
   private boolean closed = false;
-  
-  public SplitTransformationChainRecordStorageProxy(RecordStorage storage, final XMLReader xmlFilter, RecordHarvestJob job) 
+
+  public SplitTransformationChainRecordStorageProxy(RecordStorage storage, final XMLReader xmlFilter, RecordHarvestJob job)
   	throws IOException, TransformerConfigurationException {
     this.logger = job.getLogger();
     this.
@@ -48,11 +48,11 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
 	} catch (IOException ioe) {
 	  transformException = new TransformerException("IO Error while parsing/transforming: "
 	      + ioe.getMessage(), ioe);
-	  if (logger != null) 
+	  if (logger != null)
 	    logger.error("IOException in XML split", ioe);
 	  ioe.printStackTrace();
 	} catch (SAXException e) {
-	  if (logger != null) 
+	  if (logger != null)
 	    logger.error("SAXException in XML split", e);
 	  e.printStackTrace();
 	  transformException = new TransformerException("SAX Exception: " + e.getMessage(), e);
@@ -78,7 +78,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
       thread.join();
       thread = null;
     } catch (InterruptedException e) {
-      if (logger != null) 
+      if (logger != null)
 	logger.error("Interrupted before joined", e);
       e.printStackTrace();
     }

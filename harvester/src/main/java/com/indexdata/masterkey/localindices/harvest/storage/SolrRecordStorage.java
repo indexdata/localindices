@@ -41,8 +41,8 @@ public class SolrRecordStorage implements RecordStorage {
   private String transactionIdField = "transactionId";
   private String harvestDateField = "harvest-timestamp";
   private String harvestDateStringField = "harvest-date";
-  private String harvestDate; 
-  private String harvestDateShort; 
+  private String harvestDate;
+  private String harvestDateShort;
   private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   private SimpleDateFormat formatterShort = new SimpleDateFormat("yyyy-MM-dd");
   public String POST_ENCODING = "UTF-8";
@@ -53,16 +53,16 @@ public class SolrRecordStorage implements RecordStorage {
   protected StorageJobLogger logger;
   protected Collection<SolrInputDocument> documentList = null;
   private boolean override = false;
-  String storageId = "";  
+  String storageId = "";
   protected StorageStatus storageStatus;
   private boolean waitFlush = true;
 
   @SuppressWarnings("unused")
   private SolrServerFactory factory;
-  
+
   public SolrRecordStorage() {
   }
-  
+
   public SolrRecordStorage(Harvestable harvestable) {
     setHarvestable(harvestable);
   }
@@ -82,7 +82,7 @@ public class SolrRecordStorage implements RecordStorage {
         storage = harvestable.getStorage();
       }
       if (storage == null) {
-	throw new RuntimeException("Fail to init Storage " + this.getClass().getCanonicalName() 
+	throw new RuntimeException("Fail to init Storage " + this.getClass().getCanonicalName()
 	    	+ " No Storage Entity on Harvestable(" + harvestable.getId() + " - " + harvestable.getName() + ")");
       }
       setStorageId(storage.getId().toString());
@@ -96,7 +96,7 @@ public class SolrRecordStorage implements RecordStorage {
       server.setConnectionTimeout(10000);
       server.setParser(new XMLResponseParser());
       this.server = server;
-      
+
       storageStatus = new SolrStorageStatus(server, DATABASE_FIELD + ":" + harvestable.getId());
     } catch (Exception e) {
       throw new RuntimeException("Unable to init Solr Server: " + e.getMessage(), e);
@@ -105,7 +105,7 @@ public class SolrRecordStorage implements RecordStorage {
 
   public SolrRecordStorage(SolrServer server, Harvestable harvestable) {
     this.harvestable = harvestable;
-    this.server = server; 
+    this.server = server;
     Storage storage = null;
     if (harvestable != null) {
       storage = harvestable.getStorage();
@@ -134,11 +134,11 @@ public class SolrRecordStorage implements RecordStorage {
 	purgeByTransactionId(false);
       }
       logger.info("Committing " + storageStatus.getOutstandingAdds() + " added and " + storageStatus.getOutstandingDeletes() + " deleted records to database " + database);
-      // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers. 
+      // Testing waitFlush=true, waitSearcher=false. Not good for indexes with searchers, but better for crawlers.
       UpdateResponse response = server.commit(true, waitSearcher);
       if (response.getStatus() != 0)
 	logger.error("Error while COMMITING records.");
-      else {	
+      else {
 	storageStatus.setTransactionState(TransactionState.Committed);
       }
     } catch (SolrServerException e) {
@@ -171,7 +171,7 @@ public class SolrRecordStorage implements RecordStorage {
       }
       else {
 	logger.info("Performing purge later.");
-	isPurged = true; 
+	isPurged = true;
       }
     } catch (SolrServerException e) {
       e.printStackTrace();
@@ -179,12 +179,12 @@ public class SolrRecordStorage implements RecordStorage {
     }
   }
 
-  /** 
-   * purgeByTransactionId can delete all records either with or without the current transaction id. 
-   * rollback would call this to delete all records with the current transaction id. 
-   * TODO: Verify that this works on non-committed records... 
-   * Delayed purge would delete all records without the id, thus simulating a purge of all other records.  
-   * 
+  /**
+   * purgeByTransactionId can delete all records either with or without the current transaction id.
+   * rollback would call this to delete all records with the current transaction id.
+   * TODO: Verify that this works on non-committed records...
+   * Delayed purge would delete all records without the id, thus simulating a purge of all other records.
+   *
    * @param hasId
    * @throws IOException
    */
@@ -207,7 +207,7 @@ public class SolrRecordStorage implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     databaseProperties = properties;
-    if (this.database != null && !this.database.equals(database)) { 
+    if (this.database != null && !this.database.equals(database)) {
       logger.debug("Current Database " + this.database + ". New database: " + database);
     }
     this.database = database;
@@ -231,7 +231,7 @@ public class SolrRecordStorage implements RecordStorage {
       document.setField(ID_FIELD, database + "-" + record.getId());
     } else if (record.getValues().get(ID_FIELD) != null) {
       document.setField(ID_FIELD, database + record.getValues().get(ID_FIELD).toString());
-    } else { 
+    } else {
       logger.error("Failed to get Record Id for record: " + record);
       return null;
     }
@@ -240,7 +240,7 @@ public class SolrRecordStorage implements RecordStorage {
     }
     setConstantFields(document, harvestable);
     document.setField(DATABASE_FIELD, database);
-    
+
     if (transactionId  != null) {
       document.setField(transactionIdField, transactionId.getTime());
       document.setField(harvestDateField, harvestDate);
@@ -248,7 +248,7 @@ public class SolrRecordStorage implements RecordStorage {
     }
     return document;
   }
-  
+
   /**
    * Applies constant fields defined for the harvestable to each record
    * @param document
@@ -364,6 +364,15 @@ public class SolrRecordStorage implements RecordStorage {
   }
 
   @Override
+  public void delete(Record record) {
+    if (record.getId() != null) {
+      delete(record.getId());
+    } else {
+      logger.error("No ID found on deletion record. Cannot make delete request. " + record);
+    }
+  }
+
+  @Override
   public void databaseEnd() {
     logger.info("Database " + database + " ended.");
   }
@@ -426,7 +435,7 @@ public class SolrRecordStorage implements RecordStorage {
   public void setStorageId(String storageId) {
     this.storageId = storageId;
   }
-  
+
   public StorageStatus getStatus() {
     return storageStatus;
   }
@@ -448,5 +457,5 @@ public class SolrRecordStorage implements RecordStorage {
   @Override
   public void setBatchLimit(int limt) {
   }
-  
+
 }
