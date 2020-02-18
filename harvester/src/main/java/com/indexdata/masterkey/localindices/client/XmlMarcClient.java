@@ -1,5 +1,34 @@
 package com.indexdata.masterkey.localindices.client;
 
+import static com.indexdata.utils.TextUtils.joinPath;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Proxy;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
+
+import javax.xml.transform.dom.DOMResult;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.net.ftp.FTPConnectionClosedException;
+import org.marc4j.MarcException;
+import org.marc4j.MarcStreamReader;
+import org.marc4j.MarcStreamWriter;
+import org.marc4j.MarcWriter;
+import org.marc4j.MarcXmlWriter;
+import org.marc4j.TurboMarcXmlWriter;
+import org.xml.sax.SAXException;
+
 import com.indexdata.masterkey.localindices.client.filefilters.CompositeEntryFilter;
 import com.indexdata.masterkey.localindices.client.filefilters.EntryFilter;
 import com.indexdata.masterkey.localindices.client.filefilters.EntryFilterExcludePattern;
@@ -16,33 +45,8 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
-import static com.indexdata.utils.TextUtils.joinPath;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Proxy;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
-import javax.xml.transform.dom.DOMResult;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.net.ftp.FTPConnectionClosedException;
-import org.marc4j.MarcException;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcStreamWriter;
-import org.marc4j.MarcWriter;
-import org.marc4j.MarcXmlWriter;
-import org.marc4j.TurboMarcXmlWriter;
-import org.xml.sax.SAXException;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -125,7 +129,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 retryFtpDownload(clientTransport, rf, se);
               } else {
                 throw se;
-              } 
+              }
             } catch (Exception e) {
               if (job.isKillSent()) throw e;
               logger.info("Problem occured during download/store: " + e.getMessage());
@@ -180,7 +184,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     return 0;
   }
-  
+
   private void storeAny(RemoteFile file, String cacheFile) throws IOException {
     storeAny(file, cacheFile, true);
   }
@@ -188,7 +192,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
     EOFException, FTPConnectionClosedException, IOException  {
     //buffer reads
-    InputStream input = shouldBuffer 
+    InputStream input = shouldBuffer
       ? new BufferedInputStream(file.getInputStream())
       : file.getInputStream();
     MimeTypeCharSet mimeType = deduceMimeType(input, file.getName(), file.getContentType());
@@ -227,7 +231,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
       TarArchiveInputStream tis = new TarArchiveInputStream(input);
       try {
-        
+
         RemoteFileIterator it = new TarRemoteFileIterator(file.getURL(),
           tis, null, logger, entryFilter);
         int count = 0;
@@ -288,12 +292,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.debug("StoreAny: Input stream closed.");
     }
   }
-  
+
   private boolean isMarc(InputStream is) throws IOException {
     // If we can't read ahead safely, just give up on guessing
     if (!is.markSupported())
         return false;
-    
+
     is.mark(22);
     int pos = 0;
     //0-4
@@ -337,7 +341,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     is.reset();
     return true;
   }
-  
+
   private boolean isMarkup(InputStream is) throws IOException {
     if (!is.markSupported())
       return false;
@@ -347,7 +351,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       return false;
     }
     int startChar = is.read();
-    if (startChar != '?' && startChar != '!' && 
+    if (startChar != '?' && startChar != '!' &&
       !Character.isLetter(startChar)) {
       is.reset();
       return false;
@@ -357,7 +361,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   }
 
   private MimeTypeCharSet deduceMimeType(InputStream input, String fileName, String contentTypeHint)
-    throws IOException { 
+    throws IOException {
     //if transport does not provide content type
     //we attempt to deduce it
     String guess = null;
@@ -371,7 +375,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         guess = URLConnection.guessContentTypeFromStream(input);
         if (guess == null) {
           guess = isMarc(input)
-            ? "application/marc" 
+            ? "application/marc"
             : isMarkup(input)
               ? "application/xml" //lucky assumption
               : null;
@@ -403,8 +407,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     //missing and some deduced or provided content type may not be enough
     //we check the extension in this case anyway
-    if (mimeType.isUndefined() 
-      || mimeType.isBinary() 
+    if (mimeType.isUndefined()
+      || mimeType.isBinary()
       || mimeType.isPlainText()
       || mimeType.isGzip() /* tar or plain gzip */) {
       if (fileName != null) {
@@ -440,7 +444,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     reader.setBadIndicators(false);
     boolean isTurboMarc = false;
     //check what MARC output we want
-    MimeTypeCharSet mimeType = 
+    MimeTypeCharSet mimeType =
       new MimeTypeCharSet(getResource().getOutputSchema());
     if (mimeType.isMimeType("application/tmarc")) {
       isTurboMarc = true;
@@ -451,7 +455,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     long index = 0;
     MarcWriter writer;
     RecordStorage storage = job.getStorage();
-    
+
     ByteArrayOutputStream baos = null;
     MarcStreamWriter iso2709writer = null;
     if (resource.isStoreOriginal()) {
@@ -480,7 +484,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
             getNode(), baos != null ? baos.toByteArray() : null));
         }
         if (job.isKillSent()) {
-          // Close to end the pipe 
+          // Close to end the pipe
           writer.close();
           throw new IOException("Download interruted with a kill signal.");
         }
@@ -510,7 +514,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     logger.debug("XML splitting depth: "+splitAt);
     SplitContentHandler handler = new SplitContentHandler(
       new RecordStorageConsumer(storage, job.getLogger(), resource.isStoreOriginal()), splitAt);
-    XmlSplitter xmlSplitter = new XmlSplitter(storage, logger, 
+    XmlSplitter xmlSplitter = new XmlSplitter(logger,
       handler, resource.isLaxParsing());
     try {
       xmlSplitter.processDataFromInputStream(is);
@@ -518,15 +522,15 @@ public class XmlMarcClient extends AbstractHarvestClient {
       throw new IOException(se);
     }
   }
-  
+
   /**
    * Reconnects to a FTP server and retries download of a file.
-   *  
+   *
    * To be invoked in case a FTP connection dropped while downloading the file.
-   * 
-   * If reconnecting fails or another IO error occurs during this download attempt, the 
+   *
+   * If reconnecting fails or another IO error occurs during this download attempt, the
    * file is skipped (if allow-errors is on) or a ClientTransporError is thrown.
-   * 
+   *
    * @param clientTransport
    * @param rf
    * @param ex
