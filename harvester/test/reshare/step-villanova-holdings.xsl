@@ -15,24 +15,35 @@
   </xsl:template>
 
   <xsl:template match="passthrough">
-    <xsl:if test="marc:datafield[@tag='852']">
-      <holdingsRecords>
-         <arr>
-           <xsl:for-each select="marc:datafield[@tag='852']">
-             <i>
-               <permanentLocationIdHere><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocationIdHere>
-               <callNumber>
-                 <xsl:for-each select="marc:subfield[@code='h']">
-                   <xsl:if test="position() > 1">
-                     <xsl:text> </xsl:text>
-                   </xsl:if>
-                   <xsl:value-of select="."/>
-                 </xsl:for-each>
-               </callNumber>
-             </i>
-           </xsl:for-each>
-         </arr>
-      </holdingsRecords>
-    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="marc:datafield[@tag='852']">
+        <holdingsRecords>
+           <arr>
+             <xsl:for-each select="marc:datafield[@tag='852']">
+               <i>
+                 <permanentLocationIdHere><xsl:value-of select="marc:subfield[@code='b']"/></permanentLocationIdHere>
+                 <callNumber>
+                   <xsl:for-each select="marc:subfield[@code='h']">
+                     <xsl:if test="position() > 1">
+                       <xsl:text> </xsl:text>
+                     </xsl:if>
+                     <xsl:value-of select="."/>
+                   </xsl:for-each>
+                 </callNumber>
+               </i>
+             </xsl:for-each>
+           </arr>
+        </holdingsRecords>
+      </xsl:when>
+      <xsl:otherwise>
+        <holdingsRecords>
+          <arr>
+            <i>
+              <permanentLocationIdHere/>
+            </i>
+          </arr>
+        </holdingsRecords>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 </xsl:stylesheet>

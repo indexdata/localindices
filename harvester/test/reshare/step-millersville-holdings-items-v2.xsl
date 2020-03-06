@@ -173,6 +173,9 @@
                               <xsl:value-of select="marc:subfield[@code='g']"/>
                             </volume>
                           </xsl:if>
+                         <status>
+                          <name>Unknown</name>
+                         </status>
                         </i>
                       </xsl:if>
                      </xsl:for-each>
@@ -183,7 +186,7 @@
            </arr>
         </holdingsRecords>
       </xsl:when>
-      <xsl:otherwise>
+      <xsl:when test="marc:datafield[@tag='995']">
         <holdingsRecords>
           <arr>
             <xsl:for-each select="marc:datafield[@tag='995']">
@@ -196,6 +199,7 @@
                     </i>
                   </arr>
                 </formerIds>
+                <permanentLocationIdHere/>
                 <items>
                   <arr>
                     <i>
@@ -203,7 +207,7 @@
                         <xsl:value-of select="marc:subfield[@code='a']"/>
                       </itemIdentifier>
                       <barcode>
-                        <xsl:value-of select="../marc:subfield[@code='s']"/>
+                        <xsl:value-of select="marc:subfield[@code='s']"/>
                       </barcode>
                       <permanentLoanTypeId>2b94c631-fca9-4892-a730-03ee529ffe27</permanentLoanTypeId>                      <!-- Can circulate -->
                       <materialTypeId>
@@ -224,11 +228,23 @@
                           <xsl:value-of select="marc:subfield[@code='g']"/>
                         </volume>
                       </xsl:if>
+                      <status>
+                        <name>Unknown</name>
+                      </status>
                     </i>
                   </arr>
                 </items>
               </i>
             </xsl:for-each>
+          </arr>
+        </holdingsRecords>
+      </xsl:when>
+      <xsl:otherwise>
+        <holdingsRecords>
+          <arr>
+            <i>
+              <permanentLocationIdHere/>
+            </i>
           </arr>
         </holdingsRecords>
       </xsl:otherwise>

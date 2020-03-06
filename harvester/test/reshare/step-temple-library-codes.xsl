@@ -12,12 +12,12 @@
        it originated from in context of a shared index setup where the Instance
        represents bib records from multiple libraries.
   -->
-  <xsl:template match="identifiers/arr/i/identifierTypeIdHere">
+  <xsl:template match="//identifierTypeIdHere">
     <identifierTypeId>17bb9b44-0063-44cc-8f1a-ccbb6188060b</identifierTypeId>
   </xsl:template>
 
   <!-- Map legacy location code to a FOLIO location UUID -->
-  <xsl:template match="holdingsRecords/arr/i/permanentLocationIdHere">
+  <xsl:template match="//permanentLocationIdHere">
     <permanentLocationId>87038e41-0990-49ea-abd9-1ad00a786e45</permanentLocationId> <!-- Temple -->
   </xsl:template>
 
