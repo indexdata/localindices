@@ -234,7 +234,7 @@
                 <name>
                 <xsl:for-each select="marc:subfield[@code='a' or @code='b' or @code='c' or @code='d' or @code='f' or @code='g' or @code='j' or @code='k' or @code='l' or @code='n' or @code='p' or @code='q' or @code='t' or @code='u']">
                   <xsl:if test="position() > 1">
-                    <xsl:text>; </xsl:text>
+                    <xsl:text>, </xsl:text>
                   </xsl:if>
                   <xsl:call-template name="remove-characters-last">
                     <xsl:with-param  name="input" select="." />
