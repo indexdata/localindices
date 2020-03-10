@@ -1,10 +1,10 @@
-host=$1
-tenant=$2
-username=$3
-password=$4
-protocol=$5
+tenant=$1
+username=$2
+password=$3
+protocol=$4
+host=$5
 
-token=$(./get-token.sh $host $tenant $username $password $protocol)
+token=$(./get-token.sh $tenant $username $password $protocol $host)
 
 curl -w '\n' -X POST -D - \
   -H "Content-type: application/json" \
