@@ -270,47 +270,49 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
       Collection<Record> subrecords = recordJson.getSubRecords();
-      for (Record subRecord : subrecords) {
-        long startStorageEntireRecord = System.currentTimeMillis();
-        JSONObject instanceWithHoldingsAndItems = ((RecordJSON) subRecord).toJson();
-        JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
-        if (instanceResponse != null && harvestable.isStoreOriginal()) {
-          sourceRecordsProcessed++;
-          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+      if (subrecords.size()==1) {
+        for (Record subRecord : subrecords) {
+          subRecord.setOriginalContent(recordJson.getOriginalContent());
+          processAddRecord(subRecord);
         }
-        timingsEntireRecord.time(startStorageEntireRecord);
-        if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
-          logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, " + itemsLoaded + " items, and " + sourceRecordsLoaded + " source records ingested.");
-          if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
-            logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items, and " + sourceRecordsFailed + " source records.");
-          }
+      } else { // Cannot get original content with a collection of multiple records
+        if (harvestable.isStoreOriginal()) {
+          logger.warn("Store original content selected for this job, "
+                  + "but storage layer received "
+                  + "result wiht multiple metadata records and original content "
+                  + "cannot be stored in that scenario.");
+        }
+        for (Record subRecord : subrecords) {
+          processAddRecord(subRecord);
         }
       }
     } else {
-      logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
-      long startStorageEntireRecord = System.currentTimeMillis();
-      JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
-      if (instanceWithHoldingsAndItems.containsKey("title")) {
-        JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
-        if (instanceResponse != null && harvestable.isStoreOriginal()) {
-          sourceRecordsProcessed++;
-          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+      processAddRecord(recordJson);
+    }
+  }
+
+  private void processAddRecord(Record recordJson) {
+    long startStorageEntireRecord = System.currentTimeMillis();
+    JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
+    if (instanceWithHoldingsAndItems.containsKey("title")) {
+      JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+      if (instanceResponse != null && harvestable.isStoreOriginal()) {
+        sourceRecordsProcessed++;
+        JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
+        addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+      }
+      timingsEntireRecord.time(startStorageEntireRecord);
+      if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
+        logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, " + itemsLoaded + " items, and " + sourceRecordsLoaded + " source records ingested.");
+        if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
+          logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items, and " + sourceRecordsFailed + " source records.");
         }
-        timingsEntireRecord.time(startStorageEntireRecord);
-        if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
-          logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, " + itemsLoaded + " items, and " + sourceRecordsLoaded + " source records ingested.");
-          if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
-            logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items, and " + sourceRecordsFailed + " source records.");
-          }
-        }
+      }
+    } else {
+      if (recordJson.isDeleted()) {
+        logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON)recordJson).toJson() + "]");
       } else {
-        if (recordJson.isDeleted()) {
-          logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON)recordJson).toJson() + "]");
-        } else {
-          logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, ["+((RecordJSON)recordJson).toJson() +"] cannot create in Inventory, skipping. ");
-        }
+        logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, ["+((RecordJSON)recordJson).toJson() +"] cannot create in Inventory, skipping. ");
       }
     }
   }
