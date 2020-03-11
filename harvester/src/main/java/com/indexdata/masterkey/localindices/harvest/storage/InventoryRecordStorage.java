@@ -5,6 +5,7 @@ import static java.util.Comparator.comparing;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,6 +14,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -29,6 +32,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.xml.sax.SAXException;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
@@ -71,6 +75,9 @@ public class InventoryRecordStorage implements RecordStorage {
   private int itemsProcessed = 0;
   private int itemsLoaded = 0;
   private int itemsFailed = 0;
+  private int sourceRecordsProcessed = 0;
+  private int sourceRecordsLoaded = 0;
+  private int sourceRecordsFailed = 0;
   private final ExecutionTimeStats timingsEntireRecord = new ExecutionTimeStats();
   private final ExecutionTimeStats timingsStoreInstance = new ExecutionTimeStats();
 
@@ -237,17 +244,21 @@ public class InventoryRecordStorage implements RecordStorage {
 
   @Override
   public void databaseEnd() {
-    String instancesMessage = "Instances processed: " + instancesProcessed + ". Loaded: " + instancesLoaded + ". Failed: " + instancesFailed + ". ";
-    String holdingsRecordsMessage = "Holdings records processed: " + holdingsRecordsProcessed + ". Loaded: " + holdingsRecordsLoaded + ". Failed: " + holdingsRecordsFailed + ". ";
-    String itemsMessage = "Items processed: " + itemsProcessed + ". Loaded: " + itemsLoaded + ". Failed: " + itemsFailed + ".";
+    String instancesMessage = "Instances processed/loaded/failed: " + instancesProcessed + "/" + instancesLoaded + "/" + instancesFailed + ". ";
+    String holdingsRecordsMessage = "Holdings records processed/loaded/failed: " + holdingsRecordsProcessed + "/" + holdingsRecordsLoaded + "/" + holdingsRecordsFailed + ". ";
+    String itemsMessage = "Items processed/loaded/failed: " + itemsProcessed + "/" + itemsLoaded + "/" + itemsFailed + ".";
+    String sourceRecordsMessage = "Source records processed/loaded/failed: " + sourceRecordsProcessed + "/" + sourceRecordsLoaded + "/" + sourceRecordsFailed + ".";
+
     logger.log((instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
     logger.log((holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
     logger.log((itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+    logger.log((sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+
     for (String key : instanceExceptionCounts.keySet()) {
       logger.info(String.format("%d Instance records failed with %s", instanceExceptionCounts.get(key),key));
     }
     timingsEntireRecord.writeLog();
-    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage);
+    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
   }
 
   @Override
@@ -259,41 +270,41 @@ public class InventoryRecordStorage implements RecordStorage {
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
       Collection<Record> subrecords = recordJson.getSubRecords();
-      JSONObject marcJson = null;
-      logger.debug(this.getClass().getSimpleName() + ": incoming record is a collection with " + subrecords.size() + " sub records");
-      if (recordJson.getOriginalContent() != null) {
-        try {
-          // Note: this log level is not electable in the admin UI at time of writing
-          logger.info(this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + recordJson.getSubRecords().size() + " record(s):" +  new String(recordJson.getOriginalContent(), "UTF-8"));
-          marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(recordJson.getOriginalContent(), "UTF-8"));
-          logger.info(marcJson.toJSONString());
-        } catch (UnsupportedEncodingException uee) { logger.error("Exception in log statement: "+ uee);}
-        catch( Exception e ) { logger.error("Exception caught: " + e); }
-
-      } else {
-        logger.debug(this.getClass().getSimpleName() + ": found collection of " + recordJson.getSubRecords().size() + " record(s), no original content attached.");
-      }
       for (Record subRecord : subrecords) {
+        long startStorageEntireRecord = System.currentTimeMillis();
         JSONObject instanceWithHoldingsAndItems = ((RecordJSON) subRecord).toJson();
         JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
-        try {
+        if (instanceResponse != null && harvestable.isStoreOriginal()) {
+          sourceRecordsProcessed++;
+          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
           addMarcRecord(marcJson, (String)instanceResponse.get("id"));
-        } catch(Exception e) {
-          logger.error("Failed to add marcJson: " + e);
+        }
+        timingsEntireRecord.time(startStorageEntireRecord);
+        if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
+          logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, " + itemsLoaded + " items, and " + sourceRecordsLoaded + " source records ingested.");
+          if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
+            logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items, and " + sourceRecordsFailed + " source records.");
+          }
         }
       }
     } else {
       logger.debug(this.getClass().getSimpleName() + ": incoming record is a single record");
-      if (recordJson.getOriginalContent() != null) {
-        try {
-          logger.info(this.getClass().getSimpleName() + " originalContent to store: " + new String(recordJson.getOriginalContent(), "UTF-8"));
-        } catch (UnsupportedEncodingException uee) {}
-      } else {
-        logger.debug(this.getClass().getSimpleName() + ": no original content found for single record");
-      }
+      long startStorageEntireRecord = System.currentTimeMillis();
       JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
       if (instanceWithHoldingsAndItems.containsKey("title")) {
-        addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+        JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
+        if (instanceResponse != null && harvestable.isStoreOriginal()) {
+          sourceRecordsProcessed++;
+          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
+          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+        }
+        timingsEntireRecord.time(startStorageEntireRecord);
+        if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
+          logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, " + itemsLoaded + " items, and " + sourceRecordsLoaded + " source records ingested.");
+          if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
+            logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items, and " + sourceRecordsFailed + " source records.");
+          }
+        }
       } else {
         if (recordJson.isDeleted()) {
           logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON)recordJson).toJson() + "]");
@@ -304,8 +315,27 @@ public class InventoryRecordStorage implements RecordStorage {
     }
   }
 
+  private JSONObject getMarcJson(RecordJSON record) {
+    JSONObject marcJson = null;
+    if (record.getOriginalContent() != null) {
+      try {
+      logger.debug(this.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + record.getSubRecords().size() + " record(s):" +  new String(record.getOriginalContent(), "UTF-8"));
+      marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
+      logger.debug(marcJson.toJSONString());
+      } catch (IOException | ParserConfigurationException | SAXException e) {
+        logger.error("Error creating MARC JSON for source record: " + e.getLocalizedMessage());
+        sourceRecordsFailed++;
+      }
+    } else {
+      if (harvestable.isStoreOriginal()) {
+        logger.error("Job set to store original source but no original content found.");
+        sourceRecordsFailed++;
+      }
+    }
+    return marcJson;
+  }
+
   private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
-    long startStorageEntireRecord = System.currentTimeMillis();
     JSONObject instanceResponse = null;
     //JSONObject instanceWithHoldingsItems = ((RecordJSON)recordJson).toJson();
     if (instanceWithHoldingsItems.containsKey("passthrough")) {
@@ -338,14 +368,7 @@ public class InventoryRecordStorage implements RecordStorage {
           holdingsRecordsFailed++;
         }
       }
-      if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
-        logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, and " + itemsLoaded + " items ingested");
-        if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
-          logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items");
-        }
-      }
     }
-    timingsEntireRecord.time(startStorageEntireRecord);
     return instanceResponse;
   }
 
@@ -717,43 +740,48 @@ public class InventoryRecordStorage implements RecordStorage {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId) throws IOException {
-    String url = folioAddress + "/marc-records"; //TODO: Add configuration value
-    HttpEntityEnclosingRequestBase httpPost;
-    httpPost = new HttpPost(url);
-
-    JSONObject marcPostJson = new JSONObject();
-    marcPostJson.put("instanceId", instanceId);
-    marcPostJson.put("parsedMarc", marcJson);
-    StringEntity entity = new StringEntity(marcPostJson.toJSONString(),"UTF-8");
-    httpPost.setEntity(entity);
-    httpPost.setHeader("Accept", "application/json");
-    httpPost.setHeader("Content-type", "application/json");
-    httpPost.setHeader("X-Okapi-Token", authToken);
-    httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
-    CloseableHttpResponse response = client.execute(httpPost);
-    JSONParser parser = new JSONParser();
-    String responseAsString = EntityUtils.toString(response.getEntity());
+  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId)  {
     JSONObject marcResponse = null;
-    try {
-      marcResponse= (JSONObject) parser.parse(responseAsString);
-    } catch (ParseException pe) {
-      marcResponse = new JSONObject();
-      marcResponse.put("wrappedErrorMessage", responseAsString);
-    }
-    response.close();
-    if(response.getStatusLine().getStatusCode() != 201) {
-      logger.error(String.format("Got error %s, %s adding record: %s",
-              response.getStatusLine().getStatusCode(),
-              responseAsString,
-              marcPostJson.toJSONString()));
-      throw new IOException(String.format("Error adding record %s: %s (%s)",
-              marcJson.toJSONString(),
-              responseAsString,
-              response.getStatusLine().getStatusCode()));
-    } else {
-      logger.debug("Status code: " + response.getStatusLine().getStatusCode()
-          + " for POST of marc json " + marcPostJson.toJSONString());
+    if (marcJson != null) {
+      try {
+      String url = folioAddress + "/marc-records"; //TODO: Add configuration value
+      HttpEntityEnclosingRequestBase httpPost;
+      httpPost = new HttpPost(url);
+
+      JSONObject marcPostJson = new JSONObject();
+      marcPostJson.put("instanceId", instanceId);
+      marcPostJson.put("parsedMarc", marcJson);
+      StringEntity entity = new StringEntity(marcPostJson.toJSONString(),"UTF-8");
+      httpPost.setEntity(entity);
+      httpPost.setHeader("Accept", "application/json");
+      httpPost.setHeader("Content-type", "application/json");
+      httpPost.setHeader("X-Okapi-Token", authToken);
+      httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+      CloseableHttpResponse response = client.execute(httpPost);
+      JSONParser parser = new JSONParser();
+      String responseAsString = EntityUtils.toString(response.getEntity());
+      try {
+        marcResponse= (JSONObject) parser.parse(responseAsString);
+      } catch (ParseException pe) {
+        marcResponse = new JSONObject();
+        marcResponse.put("wrappedErrorMessage", responseAsString);
+      }
+      response.close();
+      if(response.getStatusLine().getStatusCode() != 201) {
+        logger.error(String.format("Got error %s, %s adding record: %s",
+                response.getStatusLine().getStatusCode(),
+                responseAsString,
+                marcPostJson.toJSONString()));
+        sourceRecordsFailed++;
+      } else {
+        logger.debug("Status code: " + response.getStatusLine().getStatusCode()
+            + " for POST of marc json " + marcPostJson.toJSONString());
+        sourceRecordsLoaded++;
+      }
+      } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
+        logger.error("Error adding MARC source record: " + e.getLocalizedMessage());
+        sourceRecordsFailed++;
+      }
     }
     return marcResponse;
   }
