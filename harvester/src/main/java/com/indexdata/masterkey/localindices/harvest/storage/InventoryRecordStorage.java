@@ -276,10 +276,12 @@ public class InventoryRecordStorage implements RecordStorage {
       for (Record subRecord : subrecords) {
         JSONObject instanceWithHoldingsAndItems = ((RecordJSON) subRecord).toJson();
         JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
-        try {
-          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
-        } catch(Exception e) {
-          logger.error("Failed to add marcJson: " + e);
+        if (harvestable.isStoreOriginal()) {
+          try {
+            addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+          } catch(Exception e) {
+            logger.error("Failed to add marcJson: " + e);
+          }
         }
       }
     } else {
