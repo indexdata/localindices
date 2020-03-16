@@ -346,6 +346,14 @@ public class InventoryRecordStorage implements RecordStorage {
           logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items");
         }
       }
+    } else {
+      instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
+      if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
+        logger.info("" + instancesLoaded + " instances, " + holdingsRecordsLoaded + " holdings records, and " + itemsLoaded + " items ingested");
+        if (instancesFailed+holdingsRecordsFailed+itemsFailed>0) {
+          logger.info("Failed: " + instancesFailed + " instances, " + holdingsRecordsFailed + " holdings records, " + itemsFailed + " items");
+        }
+      }
     }
     timingsEntireRecord.time(startStorageEntireRecord);
     return instanceResponse;
