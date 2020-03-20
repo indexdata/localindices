@@ -6,29 +6,31 @@
 
 package com.indexdata.masterkey.localindices.web.service;
 
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
-import javax.ws.rs.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestablesConverter;
-import java.util.ArrayList;
-import java.util.List;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 
 /**
  * RESTful WS (resource) that maps to the Harvestables collection.
- * 
+ *
  * @author jakub
  */
 @Path("/harvestables/")
@@ -44,7 +46,7 @@ public class HarvestablesResource {
   /**
    * Constructor used for instantiating an instance of the Harvestables
    * resource.
-   * 
+   *
    * @param context
    *          HttpContext inherited from the parent resource
    */
@@ -55,7 +57,7 @@ public class HarvestablesResource {
   /**
    * Get method for retrieving a collection of Harvestable instance in XML
    * format.
-   * 
+   *
    * @param start
    *          optional start item argument
    * @param max
@@ -68,26 +70,31 @@ public class HarvestablesResource {
   @QueryParam("start") @DefaultValue("0") int start,
   @QueryParam("max") @DefaultValue("100") int max,
   @QueryParam("sort") @DefaultValue("") String sortSpec,
-  @QueryParam("filter") @DefaultValue("") String filterString) {
+  @QueryParam("filter") @DefaultValue("") String filter,
+  @QueryParam("acl") @DefaultValue("") String acl) {
     String sortKey = null;
     boolean isAsc = true;
+    EntityQuery query = new EntityQuery();
     if (!sortSpec.isEmpty()) {
       isAsc = !sortSpec.startsWith("~");
       sortKey = isAsc ? sortSpec : sortSpec.substring(1);
     }
     List<Harvestable> entities;
-    if (max <= 0)
+    if (max <= 0) {
       entities = new ArrayList<Harvestable>();
-    else
-      entities = dao.retrieve(start, max, sortKey, isAsc, filterString);
+    } else {
+      query.setFilter(filter);
+      query.setAcl(acl);
+      entities = dao.retrieve(start, max, sortKey, isAsc, query);
+    }
     return new HarvestablesConverter(entities, context.getAbsolutePath(), start, max,
-	dao.getCount(filterString));
+	dao.getCount(query));
   }
 
   /**
    * Post method for creating an instance of Harvestable using XML as the input
    * format.
-   * 
+   *
    * @param data
    *          an HarvestableConverter entity that is deserialized from an XML
    *          stream
@@ -104,7 +111,7 @@ public class HarvestablesResource {
 
   /**
    * Entry point to the Harvestable WS.
-   * 
+   *
    * @param id
    *          resource id
    * @return an instance of HarvestableResource (WS)

@@ -6,13 +6,6 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.DAOException;
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,8 +18,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 
 /**
  *
@@ -186,19 +189,19 @@ public class HarvestableDAOFake implements HarvestableDAO {
   }
 
   @Override
-  public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString) {
+  public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString) {
+  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, EntityQuery query) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public int getCount(String filterString) {
+  public int getCount(EntityQuery query) {
     // TODO Auto-generated method stub
     return 0;
   }

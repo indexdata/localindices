@@ -6,8 +6,37 @@
 
 package com.indexdata.masterkey.localindices.web.admin.controller;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.TimeZone;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.model.DataModel;
+import javax.faces.model.ListDataModel;
+import javax.faces.model.SelectItem;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOException;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAOFactory;
@@ -25,38 +54,11 @@ import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.utils.CronLine;
 import com.indexdata.utils.CronLineParseException;
 import com.indexdata.utils.ISOLikeDateParser;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Stack;
-import java.util.TimeZone;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.model.DataModel;
-import javax.faces.model.ListDataModel;
-import javax.faces.model.SelectItem;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  * The controller for the Admin interface, implements all the business logic and
  * controls data access through DAO object
- * 
+ *
  * @author jakub
  * @author Dennis
  */
@@ -80,7 +82,7 @@ public class JobController {
   private int firstItem = 0;
   private int batchSize = 20;
   private int itemCount = -1;
-  private String filterString = "";
+  private EntityQuery query = new EntityQuery();
   @SuppressWarnings("serial")
   private Map<String,Boolean> filterUpdate = new HashMap<String,Boolean>() {{put("list", false);
                                                                              put("count", false);}};
@@ -117,7 +119,7 @@ public class JobController {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public List<SelectItem> getMetadataPrefixes() {
     List<SelectItem> list = new ArrayList<SelectItem>();
-    Properties prefixes = new Properties(); 
+    Properties prefixes = new Properties();
     try {
       prefixes.load(getClass().getResourceAsStream("/prefixes.properties"));
     } catch (IOException e) {
@@ -346,7 +348,7 @@ public class JobController {
     if (itemCount == -1 || req.getAttribute("countRequestSeenFlag") == null && filterUpdate.get("count")) {
       req.setAttribute("countRequestSeenFlag", "yes");
       filterUpdate.put("count",false);
-      itemCount = dao.getCount(filterString);
+      itemCount = dao.getCount(query);
     }
     return itemCount;
   }
@@ -371,39 +373,39 @@ public class JobController {
     itemCount = -1;
     return "list_resources";
   }
-  
+
   public void setFilter(String filterString) {
-    if (!this.filterString.equals(filterString)) {
+    if (!query.getFilter().equals(filterString)) {
       filterUpdate.put("list", true);
       filterUpdate.put("count", true);
     }
-    this.filterString = filterString;
+    query.setFilter(filterString);
   }
-  
+
   public String getFilter () {
-    return filterString;
+    return query.getFilter();
   }
-  
+
   public boolean isDescending() {
     return !isAsc;
   }
-  
+
   public String getSortKey() {
     return sortKey;
   }
-  
+
   public String sortByName() {
     isAsc = "name".equals(sortKey) ? !isAsc : true;
     sortKey = "name";
     return listResources();
   }
-  
+
   public String sortByStatus() {
     isAsc = "currentStatus".equals(sortKey) ? !isAsc : true;
     sortKey = "currentStatus";
     return listResources();
   }
-  
+
   public String sortByLastHarvest() {
     isAsc = "lastHarvestStartedOrFinished".equals(sortKey) ? !isAsc : true;
     sortKey = "lastHarvestStartedOrFinished";
@@ -418,7 +420,7 @@ public class JobController {
 
   // </editor-fold>
   // <editor-fold defaultstate="collapsed" desc="DAO methods">
-  
+
   public void prepareOaiPmhResourceToAdd() {
     //avoid resetting on partial updates (ajax)
     if (!FacesContext.getCurrentInstance().isPostback())
@@ -460,23 +462,23 @@ public class JobController {
       return "edit_" + type;
     }
   }
-  
+
   public String addResource() {
     resource.setHarvestImmediately(false);
     return createResource();
   }
-  
+
   public String addRunResource() {
     resource.setHarvestImmediately(true);
     return createResource();
   }
-  
+
   public String addAndRunFromCache() {
     resource.setDiskRun(true);
     return addRunResource();
-    
+
   }
-  
+
   public void prepareResourceToEdit() {
     //avoid retrieving instances on partial (ajax) updates
     if (!FacesContext.getCurrentInstance().isPostback()) {
@@ -523,7 +525,7 @@ public class JobController {
     }
     return listResources();
   }
-  
+
   private String updateResource() {
     try {
       prePersist();
@@ -545,7 +547,7 @@ public class JobController {
     resource.setHarvestImmediately(true);
     return updateResource();
   }
-  
+
   public String runFromCache() {
     resource.setDiskRun(true);
     return runResource();
@@ -560,11 +562,7 @@ public class JobController {
     if (resources == null || req.getAttribute("listRequestSeen") == null || filterUpdate.get("list")) {
       req.setAttribute("listRequestSeen", "yes");
       filterUpdate.put("list", false);
-      if (filterString.length()>0) {
-        resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc, filterString);
-      } else {
-        resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc);
-      }
+      resources = (List) dao.retrieveBriefs(firstItem, batchSize, sortKey, isAsc, query);
     }
     return new ListDataModel(resources);
   }
@@ -608,14 +606,14 @@ public class JobController {
   public String reset() {
     resource.setLastUpdated(new Date());
     dao.reset(resource.getId());
-    // Reload resource. 
+    // Reload resource.
     resource = dao.retrieveById(resource.getId());
     String type = resource.getClass().getSimpleName();
     return "edit_" + type;
     //resource = null;
     //return listResources();
   }
-  
+
   public String resetCache() {
     try {
       dao.resetCache(resource.getId());
@@ -648,11 +646,11 @@ public class JobController {
 	longDate = false;
     }
   }
-  
+
   private Date logFrom;
   //TODO keep this in one place in case log format changes
   private final static int dateFieldLength = "YYYY-mm-dd HH:mm:ss,SSS".length();
-  
+
   public void prepareJobLog() {
     if (!FacesContext.getCurrentInstance().isPostback()) {
       resource = getResourceFromRequestParam();
@@ -729,7 +727,7 @@ public class JobController {
     }
     return o;
   }
-  
+
   public String getTransformation() {
     if (resource != null && resource.getTransformation() != null)
       return resource.getTransformation().getId().toString();
@@ -804,7 +802,7 @@ public class JobController {
   }
 
   String[] logLevels = {"DEBUG", "INFO", "WARN", "ERROR"};
-  public List<SelectItem> getLogLevelItems() 
+  public List<SelectItem> getLogLevelItems()
   {
     List<SelectItem> list = new LinkedList<SelectItem>();
     for (String logLevel : logLevels) {
