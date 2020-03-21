@@ -73,7 +73,7 @@ public class TransformationsResource {
     EntityQuery query = new EntityQuery().withAcl(acl);
     List<Transformation> entities;
     if (max <= 0)
-      entities = new ArrayList<Transformation>();
+      entities = new ArrayList();
     else
       entities = dao.retrieve(start, max, query);
     return new TransformationsConverter(entities, context.getAbsolutePath(), start, max,

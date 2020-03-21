@@ -36,7 +36,7 @@ import com.indexdata.masterkey.localindices.entity.Setting;
  * Context listener for the scheduler application. Starts the scheduling thread
  * when the the application is deployed, and kills it when the server is going
  * down. Places the schedulerThread in application context.
- * 
+ *
  * @author jakub
  */
 public class SchedulerUpDownListener implements ServletContextListener {
@@ -70,7 +70,7 @@ public class SchedulerUpDownListener implements ServletContextListener {
     //override with user configuration
     String configPath = ctx.getInitParameter(USER_CONFIG_PATH_PARAM);
     if (configPath == null) {
-      logger.log(Level.WARN, "Init param " + USER_CONFIG_PATH_PARAM 
+      logger.log(Level.WARN, "Init param " + USER_CONFIG_PATH_PARAM
         + " not specified, will use defaults");
     } else {
       try {
@@ -93,9 +93,10 @@ public class SchedulerUpDownListener implements ServletContextListener {
     //read DB settings with prefix 'harvester.'
     logger.debug("Attempting to read 'harvester.' settings from the DB...");
     dao = new SettingDAOJPA();
-    String prefix = "harvester.";
-    EntityQuery query = new EntityQuery();
-    List<Setting> settings = dao.retrieve(0, dao.getCount(prefix, query), prefix, false, query);
+    EntityQuery query = new EntityQuery()
+            .withStartsWith("harvester.", "name");
+
+    List<Setting> settings = dao.retrieve(0, dao.getCount(query), query);
     for (Setting setting : settings) {
       logger.debug("Setting "+setting.getName()+"="+setting.getValue());
       props.put(setting.getName(), setting.getValue());

@@ -240,10 +240,10 @@ public class SearchablesConverter extends Records {
     }
     
     settingsPrefixes.add("job." + entity.getId() + ".searchables.");
-    EntityQuery query = new EntityQuery();
     for (String prefix: settingsPrefixes) {
       if (prefix != null) {
-	List<Setting> settings = dao.retrieve(0, dao.getCount(prefix, query), prefix, false, new EntityQuery());
+        EntityQuery query = new EntityQuery().withStartsWith(prefix, "name");
+	List<Setting> settings = dao.retrieve(0, dao.getCount(query), prefix, false, query);
 	for (Setting setting : settings) {
 	  overrideSetting(layer, setting.getName().substring(prefix.length()), setting.getValue());
 	}

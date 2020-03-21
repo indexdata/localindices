@@ -83,7 +83,7 @@ public class HarvestablesResource {
             .withFilter(filter, Harvestable.KEYWORD_ALL_FIELDS)
             .withAcl(acl);
     if (max <= 0) {
-      entities = new ArrayList<Harvestable>();
+      entities = new ArrayList();
     } else {
       entities = dao.retrieve(start, max, sortKey, isAsc, query);
     }

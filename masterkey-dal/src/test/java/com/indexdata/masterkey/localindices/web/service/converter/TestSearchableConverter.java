@@ -4,8 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import junit.framework.TestCase;
-
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestableDAOFake;
 import com.indexdata.masterkey.localindices.dao.bean.SettingDAOFake;
 import com.indexdata.masterkey.localindices.dao.bean.StorageDAOFake;
@@ -16,18 +15,21 @@ import com.indexdata.torus.Record;
 import com.indexdata.torus.layer.KeyValue;
 import com.indexdata.torus.layer.SearchableTypeLayer;
 
+import junit.framework.TestCase;
+
 public class TestSearchableConverter extends TestCase {
 
   public void testSearchableConverter() throws URISyntaxException {
 
     HarvestableDAOFake dao = new HarvestableDAOFake();
     StorageDAOFake storageDAO = new StorageDAOFake();
-    for (Harvestable harvestable : dao.retrieve(0, dao.getCount())) {
+    EntityQuery qry = new EntityQuery();
+    for (Harvestable harvestable : dao.retrieve(0, dao.getCount(qry), qry)) {
       harvestable.setStorage(storageDAO.retrieveById(new Long(1)));
     }
 
     SettingDAOFake settingDAO = new SettingDAOFake();
-    SearchablesConverter searchables = new SearchablesConverter(dao.retrieve(0, dao.getCount()),
+    SearchablesConverter searchables = new SearchablesConverter(dao.retrieve(0, dao.getCount(qry), qry),
 	new URI("http://localhost/records/searchables"), settingDAO);
 
     assertTrue(searchables.getRecords() != null);
@@ -55,14 +57,15 @@ public class TestSearchableConverter extends TestCase {
       List<KeyValue> dynamicElements = searchableLayer.getDynamicElements();
 
       String prefix = "solr.searchables.";
+      EntityQuery solrQry = new EntityQuery().withStartsWith(prefix, "name");
       for (KeyValue keyValue : dynamicElements) {
 	if (keyValue.getName().equals("facetmap_author")) {
 	  String[] facetmap_author_override = { "author_exact", "FACETMAP_JSON_OVERRIDE",
 	      "author_exact" };
 	  assertEquals(facetmap_author_override[index], keyValue.getValue());
 	} else {
-	  List<Setting> foundSetting = settingDAO.retrieveWithPrefix(0, settingDAO.getCount(),
-	      prefix + keyValue.getName());
+	  List<Setting> foundSetting = settingDAO.retrieve(0, settingDAO.getCount(solrQry),
+	      qry);
 	  if (foundSetting.size() == 1)
 	    assertEquals(foundSetting.get(0).getValue(), keyValue.getValue());
 	}

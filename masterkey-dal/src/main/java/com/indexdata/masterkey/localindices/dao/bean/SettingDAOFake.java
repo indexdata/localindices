@@ -16,7 +16,7 @@ import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.entity.Setting;
 
 /**
- * 
+ *
  * @author Dennis
  */
 public class SettingDAOFake implements SettingDAO {
@@ -25,14 +25,14 @@ public class SettingDAOFake implements SettingDAO {
 
   public SettingDAOFake() {
     settings = new HashMap<Long, Setting>();
-    String[][] settingsArray = 
-      { 
+    String[][] settingsArray =
+      {
 	{ "solr.searchables.cclmapTerm", "Term Attributes",   "1=text" },
 	{ "solr.searchables.cclmapTi",   "Title Attributes",  "1=title" },
 	{ "solr.searchables.cclmapAu",   "Author Attributes", "1=author" },
 	{ "solr.searchables.cclmapSu",   "Subject Attributes","1=subject" },
 	{ "solr.searchables.cclmapSu",   "Date Attributes",   "1=date r=r" },
-	{ "solr.searchables.cclmapJournalTitle", 
+	{ "solr.searchables.cclmapJournalTitle",
 	  				 "JournalTitle Attributes",  "1=journal-title" },
 	{ "solr.searchables.cclmapIssn", "ISSN Attributes",  "1=issn" },
 	{ "solr.searchables.cclmapIsbn", "ISBN Attributes",  "1=isbn" },
@@ -95,37 +95,31 @@ public class SettingDAOFake implements SettingDAO {
     return settings.put(setting.getId(), updSetting);
   }
 
+  @Override
   public void delete(Setting setting) {
     settings.remove(setting.getId());
   }
 
+  @Override
   public List<Setting> retrieve(int start, int max, EntityQuery query) {
-    return retrieveWithPrefix(start, max, "", query);
-  }
-
-  public List<Setting> retrieveWithPrefix(int start, int max, String prefix, EntityQuery query) {
     List<Setting> list = new LinkedList<Setting>();
     for (Setting setting : settings.values()) {
-      if (setting.getName().startsWith(prefix))
+      if (setting.getName().startsWith(query.getStartsWith()))
 	list.add(setting);
       if (list.size() >= max)
-	break; 
+	break;
     }
     return list;
   }
 
+  @Override
   public int getCount(EntityQuery query) {
     return settings.keySet().size();
   }
 
-  // Misuse to do filtering
   @Override
   public List<Setting> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-    return retrieveWithPrefix(start, max, sortKey, query);
+    return retrieve(start, max, query);
   }
 
-  @Override
-  public int getCount(String prefix, EntityQuery query) {
-    return retrieveWithPrefix(0, settings.keySet().size(), prefix, query).size();
-  }
 }

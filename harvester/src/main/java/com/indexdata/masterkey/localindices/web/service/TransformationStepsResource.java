@@ -30,7 +30,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
 
 /**
  * RESTful WS (resource) that maps to the Transformation collection.
- * 
+ *
  * @author Dennis
  */
 @Path("/steps/")
@@ -46,7 +46,7 @@ public class TransformationStepsResource {
   /**
    * Constructor used for instantiating an instance of the Transformations
    * resource.
-   * 
+   *
    * @param context
    *          HttpContext inherited from the parent resource
    */
@@ -57,7 +57,7 @@ public class TransformationStepsResource {
   /**
    * Get method for retrieving a collection of Transformation instance in XML
    * format.
-   * 
+   *
    * @param start
    *          optional start item argument
    * @param max
@@ -73,7 +73,7 @@ public class TransformationStepsResource {
     EntityQuery query = new EntityQuery().withAcl(acl);
     List<TransformationStep> entities;
     if (max <= 0)
-      entities = new ArrayList<TransformationStep>();
+      entities = new ArrayList();
     else
       entities = dao.retrieve(start, max, query);
     return new TransformationStepsConverter(entities, context.getAbsolutePath(), start, max,
@@ -83,7 +83,7 @@ public class TransformationStepsResource {
   /**
    * Post method for creating an instance of Transformation using XML as the
    * input format.
-   * 
+   *
    * @param data
    *          an TransformationConverter entity that is deserialized from an XML
    *          stream
@@ -99,7 +99,7 @@ public class TransformationStepsResource {
 
   /**
    * Entry point to the Transformation WS.
-   * 
+   *
    * @param id
    *          resource id
    * @return an instance of TransformationResource (WS)

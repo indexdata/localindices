@@ -301,7 +301,8 @@ public class StorageController {
 
   public List<SelectItem> getStorageItems() {
     List<SelectItem> list = new LinkedList<SelectItem>();
-    List<StorageBrief> storages = dao.retrieveBriefs(0, dao.getCount(new EntityQuery()), new EntityQuery());
+    EntityQuery qry = new EntityQuery();
+    List<StorageBrief> storages = dao.retrieveBriefs(0, dao.getCount(qry), qry);
     list.add(new SelectItem("", "<Select Storage>"));
     if (storages != null)
       for (StorageBrief storage : (List<StorageBrief>) storages) {

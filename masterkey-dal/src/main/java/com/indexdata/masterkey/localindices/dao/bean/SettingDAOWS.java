@@ -118,21 +118,10 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
 
   @Override
   public List<Setting> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-    return retrieveWithPrefix(start, max, sortKey, query);
-  }
-  
-  @Override
-  public List<Setting> retrieve(int start, int max, EntityQuery query) {
-    return retrieveWithPrefix(start, max, null, query);
-  }
-  
-  private List<Setting> retrieveWithPrefix(int start, int max, String prefix, EntityQuery query) {
     try {
       ResourceConnector<SettingsConverter> connector =
         new ResourceConnector<SettingsConverter>(
-        new URL(prefix == null 
-        ? serviceBaseURL
-        : joinPath(serviceBaseURL, "?prefix="+URLEncoder.encode(prefix, "UTF-8")+query.asUrlParameters())),
+        new URL(joinPath(serviceBaseURL, "?start="+start+"&max="+max+query.asUrlParameters())),
         "com.indexdata.masterkey.localindices.entity"
         + ":com.indexdata.masterkey.localindices.web.service.converter");
       SettingsConverter hc = connector.get();
@@ -147,6 +136,11 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
   }
 
+  @Override
+  public List<Setting> retrieve(int start, int max, EntityQuery query) {
+    return retrieve(start, max, null, false, query);
+  }
+
   @SuppressWarnings("unused")
   private String pushParams(String url, String... params) throws UnsupportedEncodingException {
     StringBuilder uB = new StringBuilder(url);
@@ -158,7 +152,7 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
     return uB.toString();
   }
-  
+
   @Override
   public int getCount(EntityQuery query) {
     String url = serviceBaseURL + "?start=0&max=0"+query.asUrlParameters();
@@ -175,22 +169,4 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
       return 0;
     }
   }
-    
-  @Override
-  public int getCount(String prefix, EntityQuery query) {
-    try {
-      String url = serviceBaseURL + "?start=0&max=0&prefix=" + URLEncoder.encode(prefix, "UTF-8") + query.asUrlParameters();
-      ResourceConnector<SettingsConverter> connector =
-        new ResourceConnector<SettingsConverter>(
-        new URL(url),
-        "com.indexdata.masterkey.localindices.entity"
-        + ":com.indexdata.masterkey.localindices.web.service.converter");
-      SettingsConverter hc = connector.get();
-      return hc.getCount();
-    } catch (Exception male) {
-      logger.log(Level.DEBUG, male);
-      return 0;
-    }
-  }
-
 }

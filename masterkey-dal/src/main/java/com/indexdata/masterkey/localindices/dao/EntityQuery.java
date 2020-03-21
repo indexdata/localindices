@@ -5,9 +5,13 @@
  */
 package com.indexdata.masterkey.localindices.dao;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.entity.Filterable;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -24,7 +28,7 @@ public class EntityQuery {
   private String acl = "";
   private String startsWithField = "";
   private String startsWith = "";
-
+  private static Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester");
   public String getFilter() {
     return filter;
   }
@@ -63,13 +67,15 @@ public class EntityQuery {
   }
 
   public EntityQuery withAcl(String acl) {
-    setAcl(acl);
+    if (isNotEmpty(acl)) setAcl(acl);
     return this;
   }
 
   public void setStartsWith(String startsWith, String field) {
-    this.startsWith = startsWith;
-    this.startsWithField = field;
+    if (isNotEmpty(startsWith) && isNotEmpty(field)) {
+      this.startsWith = startsWith;
+      this.startsWithField = field;
+    }
   }
 
   public boolean hasStartsWith () {
@@ -99,9 +105,15 @@ public class EntityQuery {
   }
 
   public String asUrlParameters () {
-    return (hasFilter() ? "&filter="+filter : "") +
-           (hasAcl() ? "&acl="+acl : "") +
-           (hasStartsWith() ? "&prefix="+startsWith : "");
+    String UTF8 = "UTF-8";
+    try {
+      return (hasFilter() ? "&filter="+URLEncoder.encode(filter, UTF8) : "") +
+             (hasAcl() ? "&acl="+URLEncoder.encode(acl, UTF8) : "") +
+             (hasStartsWith() ? "&prefix="+URLEncoder.encode(startsWith, UTF8) : "");
+    } catch (UnsupportedEncodingException e) {
+      LOGGER.error("Error generating URL query parameters: "+e);
+      return "";
+    }
   }
 
 
@@ -182,6 +194,10 @@ public class EntityQuery {
       }
     }
     return whereClause;
+  }
+
+  private static boolean isNotEmpty(String str) {
+    return str != null && !str.isEmpty();
   }
 
   @Override

@@ -42,31 +42,31 @@ public class SettingsController {
       logger.log(Level.FATAL, "Exception when retrieving DAO", ex);
     }
   }
-  
+
   public void initialize() {
     logger.info("Retrieving settings from the harvester...");
     settings = dao.retrieve(0, 100, new EntityQuery());
   }
-  
+
   /**
    * Lists available connector engine URLs.
-   * @return 
+   * @return
    */
   public List<Setting> getConnectorEngines() {
-    return dao.retrieve(0, 100, "cf.engine.url.", false, new EntityQuery());
+    return dao.retrieve(0, 100, new EntityQuery().withStartsWith("cf.engine.url.", "name"));
   }
-  
+
   public List<Setting> getSettings() {
     return settings;
   }
-  
-  
+
+
     /**
    * Lists available connector repo URLs.
-   * @return 
+   * @return
    */
   public List<Setting> getConnectorRepos() {
-    return dao.retrieve(0, 100, "cf.repo.url.", false, new EntityQuery());
+    return dao.retrieve(0, 100, new EntityQuery().withStartsWith("cf.repo.url.", "name"));
   }
 
   public Setting getSetting() {
@@ -76,20 +76,20 @@ public class SettingsController {
   public void setSetting(Setting setting) {
     this.setting = setting;
   }
-  
+
   //ui methods
-  
+
   public String save(Setting s) {
     dao.update(s);
     return null; //same page
   }
-  
+
   public String add() {
     dao.create(setting);
     setting = new Setting();
     return null;
   }
-  
+
   public String delete(Setting s) {
     try {
       dao.delete(s);
@@ -98,9 +98,9 @@ public class SettingsController {
     }
     return null;
   }
-  
+
   public String list() {
     return "settings";
   }
-  
+
 }
