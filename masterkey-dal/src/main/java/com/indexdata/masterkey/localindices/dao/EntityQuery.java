@@ -202,9 +202,14 @@ public class EntityQuery {
 
   @Override
   public boolean equals(Object o) {
+    String.join(", ", keywordAllFields);
     if (o instanceof EntityQuery) {
       EntityQuery p = (EntityQuery)o;
-      return (p.filter.equals(this.filter) && p.acl.equals(this.acl));
+      return (p.filter.equals(this.filter)
+              && p.acl.equals(this.acl)
+              && p.startsWith.equals(this.startsWith)
+              && p.startsWithField.equals(this.startsWithField)
+              && String.join(",", p.keywordAllFields).equals(String.join(",", this.keywordAllFields)));
     }
     return false;
   }
@@ -214,6 +219,9 @@ public class EntityQuery {
     int hash = 7;
     hash = 29 * hash + (this.filter != null ? this.filter.hashCode() : 0);
     hash = 29 * hash + (this.acl != null ? this.acl.hashCode() : 0);
+    hash = 29 * hash + (this.startsWith != null ? this.startsWith.hashCode() : 0);
+    hash = 29 * hash + (this.startsWithField != null ? this.startsWithField.hashCode() : 0);
+    hash = 29 * hash + (this.keywordAllFields != null ? this.keywordAllFields.hashCode() : 0);
     return hash;
   }
 
