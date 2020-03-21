@@ -379,7 +379,7 @@ public class JobController {
       filterUpdate.put("list", true);
       filterUpdate.put("count", true);
     }
-    query.setFilter(filterString);
+    query.setFilter(filterString,Harvestable.KEYWORD_ALL_FIELDS);
   }
 
   public String getFilter () {

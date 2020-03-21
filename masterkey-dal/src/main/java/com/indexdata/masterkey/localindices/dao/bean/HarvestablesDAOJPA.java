@@ -8,7 +8,6 @@ package com.indexdata.masterkey.localindices.dao.bean;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,17 +31,7 @@ import com.indexdata.utils.persistence.EntityUtil;
  * @author jakub
  */
 public class HarvestablesDAOJPA implements HarvestableDAO {
-    private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
-
-  private final static List<String> filterByColumns = Arrays.asList(
-              "name",
-              "description",
-              "technicalNotes",
-              "contactNotes",
-              "serviceProvider",
-              "usedBy",
-              "managedBy",
-              "currentStatus");
+  private static final Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
 
   @Override
   public List<Harvestable> retrieve(int start, int max, EntityQuery query) {
@@ -100,11 +89,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.persist(harvestable);
             tx.commit();
         } catch (Exception ex) {
-            logger.log(Level.DEBUG, ex);
+            LOGGER.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                logger.log(Level.DEBUG, e);
+                LOGGER.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -129,11 +118,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             harvestable = em.merge(updHarvestable);
             tx.commit();
         } catch (Exception ex) {
-            logger.log(Level.DEBUG, ex);
+            LOGGER.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                logger.log(Level.DEBUG, e);
+                LOGGER.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -151,11 +140,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.remove(harvestable);
             tx.commit();
         } catch (Exception ex) {
-            logger.log(Level.DEBUG, ex);
+            LOGGER.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                logger.log(Level.DEBUG, e);
+                LOGGER.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -182,7 +171,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             }
           }
           orderBy += (asc ? " ASC" : " DESC");
-          String whereClause = query.asWhereClause(filterByColumns,"o",true);
+          String whereClause = query.asWhereClause("o",true);
           String qs = "select object(o) from Harvestable as o " + whereClause + " order by "
             + orderBy;
           Query q = em.createQuery(qs);
@@ -191,12 +180,16 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
           hables = q.getResultList();
           tx.commit();
       } catch (Exception ex) {
-          logger.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
+          LOGGER.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
           try {
               tx.rollback();
           } catch (Exception e) {
-              logger.log(Level.DEBUG, e);
+              LOGGER.log(Level.DEBUG, e);
           }
+          // Some sort of analysis on the exception is required.
+          // Temporary should either ignored or throw as Interrupted
+          // Fatals should be re-thrown.
+          // For now every one is logged but otherwise ignored.
           // Some sort of analysis on the exception is required.
           // Temporary should either ignored or throw as Interrupted
           // Fatals should be re-thrown.
@@ -211,7 +204,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause(filterByColumns, "o", true)).getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause("o", true)).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();

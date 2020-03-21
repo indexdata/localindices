@@ -7,8 +7,10 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,7 +38,7 @@ import com.indexdata.utils.CronLineParseException;
 @Entity
 @NamedQueries({ @NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Harvestable implements Serializable, Cloneable {
+public abstract class Harvestable implements Serializable, Cloneable, Filterable {
 
   protected static final long serialVersionUID = 1L;
   // user-set properties
@@ -124,6 +126,17 @@ public abstract class Harvestable implements Serializable, Cloneable {
   private boolean storeOriginal = false;
   @Column(nullable=true)
   private String acl = null;
+
+  @Transient
+  public static List<String> KEYWORD_ALL_FIELDS = Arrays.asList(
+                                    "name",
+                                    "description",
+                                    "technicalNotes",
+                                    "contactNotes",
+                                    "serviceProvider",
+                                    "usedBy",
+                                    "managedBy",
+                                    "currentStatus");
 
   public String getDescription() {
     return description;
@@ -530,4 +543,8 @@ public abstract class Harvestable implements Serializable, Cloneable {
     this.acl = acl;
   }
 
+  @Transient
+  public List<String> getKeywordAllFields () {
+    return KEYWORD_ALL_FIELDS;
+  }
 }
