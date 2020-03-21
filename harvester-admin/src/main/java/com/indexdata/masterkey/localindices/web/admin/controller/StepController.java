@@ -33,6 +33,7 @@ import org.reflections.Reflections;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
@@ -124,7 +125,7 @@ public class StepController {
 	.getExternalContext().getRequest();
     if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
       req.setAttribute("countRequestSeenFlag", "yes");
-      itemCount = dao.getCount();
+      itemCount = dao.getCount(new EntityQuery());
     }
     return itemCount;
   }
@@ -330,7 +331,7 @@ public class StepController {
 	.getExternalContext().getRequest();
     if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
-      resources = (List) dao.retrieveBriefs(firstItem, batchSize);
+      resources = (List) dao.retrieveBriefs(firstItem, batchSize, new EntityQuery());
     }
     if (resources != null)
       Collections.sort(resources);

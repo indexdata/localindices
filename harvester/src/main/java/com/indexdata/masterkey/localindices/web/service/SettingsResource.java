@@ -5,13 +5,9 @@
  */
 package com.indexdata.masterkey.localindices.web.service;
 
-import com.indexdata.masterkey.localindices.dao.SettingDAO;
-import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
-import com.indexdata.masterkey.localindices.entity.Setting;
-import com.indexdata.masterkey.localindices.web.service.converter.SettingConverter;
-import com.indexdata.masterkey.localindices.web.service.converter.SettingsConverter;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -24,7 +20,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-/** 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Setting;
+import com.indexdata.masterkey.localindices.web.service.converter.SettingConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.SettingsConverter;
+
+/**
  * Harvester settings web-service endpoint
  * @author jakub
  */
@@ -43,7 +46,7 @@ public class SettingsResource {
 
   /**
    * Get method for retrieving a collection of Settings.
-   * 
+   *
    * @param start
    *          optional start item argument
    * @param max
@@ -55,22 +58,24 @@ public class SettingsResource {
   public SettingsConverter get(
   @QueryParam("start") @DefaultValue("0") int start,
   @QueryParam("max") @DefaultValue("100") int max,
-  @QueryParam("prefix") String prefix) {
+  @QueryParam("prefix") String prefix,
+  @QueryParam("acl") String acl) {
+    EntityQuery query = new EntityQuery().withAcl(acl);
     List<Setting> entities;
     if (max <= 0) {
       entities = new ArrayList<Setting>();
     } else {
-      entities = prefix == null 
-        ? dao.retrieve(start, max) 
-        : dao.retrieve(start, max, prefix, false);
+      entities = prefix == null
+        ? dao.retrieve(start, max, query)
+        : dao.retrieve(start, max, prefix, false, query);
     }
-    int count = prefix == null ? dao.getCount() : dao.getCount(prefix);
+    int count = prefix == null ? dao.getCount(query) : dao.getCount(prefix, query);
     return new SettingsConverter(entities, context.getAbsolutePath(), start, max, count);
   }
 
   /**
    * Post method for creating an instance of Setting.
-   * 
+   *
    * @param data
    *          an SettingConverter entity that is deserialized from an XML stream
    * @return Http 201 response code.
@@ -85,7 +90,7 @@ public class SettingsResource {
 
   /**
    * Entry point to the Storage WS.
-   * 
+   *
    * @param id
    *          resource id
    * @return an instance of StorageResource (WS)
@@ -94,5 +99,5 @@ public class SettingsResource {
   public SettingResource getSettingResource(@PathParam("id") Long id) {
     return new SettingResource(id, context);
   }
-  
+
 }

@@ -17,6 +17,7 @@ import javax.persistence.Query;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -107,14 +108,14 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
     }
 
     @SuppressWarnings("unchecked")
-    public List<TransformationStep> retrieve(int start, int max) {
+    public List<TransformationStep> retrieve(int start, int max, EntityQuery query) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         // HACK: Hides database errors but does not crash the Scheduler
         List<TransformationStep> hables = new LinkedList<TransformationStep>();
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from TransformationStep as o order by o.name");
+            Query q = em.createQuery("select object(o) from TransformationStep as o " + query.getAclWhereClause("o", true) + " order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -133,9 +134,9 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
     }
 
     @Override
-    public List<TransformationStepBrief> retrieveBriefs(int start, int max) {
+    public List<TransformationStepBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<TransformationStepBrief> hrefs = new ArrayList<TransformationStepBrief>();
-        for (TransformationStep hable : retrieve(start, max)) {
+        for (TransformationStep hable : retrieve(start, max, query)) {
             TransformationStepBrief href = new TransformationStepBrief(hable, null, false);
             hrefs.add(href);
         }
@@ -147,10 +148,10 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
         return retrieveById(href.getId());
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from TransformationStep as o").getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from TransformationStep as o " + query.getAclWhereClause("o", true)).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();
@@ -171,13 +172,13 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
 
   @Override
   public List<TransformationStep> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationStepBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 }

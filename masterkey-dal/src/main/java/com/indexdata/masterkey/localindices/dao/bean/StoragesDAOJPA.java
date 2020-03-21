@@ -6,7 +6,6 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +16,14 @@ import javax.persistence.Query;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.eclipse.persistence.exceptions.DatabaseException;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
 import com.indexdata.utils.persistence.EntityUtil;
-import org.eclipse.persistence.exceptions.DatabaseException;
 
 
 /**
@@ -116,14 +117,14 @@ public class StoragesDAOJPA implements StorageDAO {
 
     @SuppressWarnings("unchecked")
 	@Override
-    public List<Storage> retrieve(int start, int max) {
+    public List<Storage> retrieve(int start, int max, EntityQuery query) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         // HACK: Hides any Database errors with a null pointer 
         List<Storage> hables = null;
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Storage as o order by o.name");
+            Query q = em.createQuery("select object(o) from Storage as o " + query.getAclWhereClause("o", true) + " order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -142,8 +143,8 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
     @Override
-    public List<StorageBrief> retrieveBriefs(int start, int max) {
-        List<Storage> list = retrieve(start, max);
+    public List<StorageBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+        List<Storage> list = retrieve(start, max, query);
         if (list == null)
           return null;
         List<StorageBrief> hrefs = new ArrayList<StorageBrief>();
@@ -160,10 +161,10 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
     @Override
-    public int getCount() {
+    public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Storage as o").getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from Storage as o " + query.getAclWhereClause("o", true)).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();
@@ -177,14 +178,14 @@ public class StoragesDAOJPA implements StorageDAO {
     }
 
   @Override
-  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieve(start, max);
+  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<StorageBrief> retrieveBriefs(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieveBriefs(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 
 }

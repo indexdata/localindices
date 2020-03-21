@@ -21,6 +21,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationsDAOJPA;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
@@ -68,15 +69,14 @@ public class TransformationStepAssociationsResource {
   public TransformationStepAssociationsConverter get(
 
   @QueryParam("start") @DefaultValue("0") int start,
-
   @QueryParam("max") @DefaultValue("100") int max) {
     List<TransformationStepAssociation> entities;
     if (max <= 0)
       entities = new ArrayList<TransformationStepAssociation>();
     else
-      entities = dao.retrieve(start, max);
+      entities = dao.retrieve(start, max, new EntityQuery());
     return new TransformationStepAssociationsConverter(entities, context.getAbsolutePath(), start,
-	max, dao.getCount());
+	max, dao.getCount(new EntityQuery()));
   }
 
   /**

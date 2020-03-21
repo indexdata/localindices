@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationBrief;
@@ -25,33 +26,33 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
 public class TransformationStepAssociationDAOFake implements TransformationStepAssociationDAO {
     private Map<Long, TransformationStepAssociation> transformationStepAssociations = new HashMap<Long, TransformationStepAssociation>();
     private static Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
-    
-    public TransformationStepAssociationDAOFake() 
+
+    public TransformationStepAssociationDAOFake()
     {
     }
 
 	@Override
     public void create(TransformationStepAssociation entity) {
-    	long newId = 1; 
+    	long newId = 1;
     	for (Long id : transformationStepAssociations.keySet()) {
-    		if (id != null) 
-    			if (newId <= id) 
-    				newId = id + 1; 
+    		if (id != null)
+    			if (newId <= id)
+    				newId = id + 1;
     	}
     	entity.setId(newId);
     	transformationStepAssociations.put(newId, entity);
     }
-    
+
     public TransformationStepAssociation retrieveById(Long id) {
     	return transformationStepAssociations.get(id);
     }
-    
-    public TransformationStepAssociation update(TransformationStepAssociation entity) { 
+
+    public TransformationStepAssociation update(TransformationStepAssociation entity) {
     	TransformationStepAssociation hclone = null;
         try {
             hclone = (TransformationStepAssociation) entity.clone();
         } catch (CloneNotSupportedException cle) {
-            logger.log(Level.DEBUG, cle);                    
+            logger.log(Level.DEBUG, cle);
         }
         transformationStepAssociations.put(hclone.getId(), hclone);
         return hclone;
@@ -76,20 +77,20 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
     public List<TransformationStepAssociation> retrieveByStepId(Long id) {
     	List<TransformationStepAssociation> list = new LinkedList<TransformationStepAssociation>();
     	/* TODO filter right records */
-    	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+    	for (TransformationStepAssociation transform: transformationStepAssociations.values())
     		if (transform.getStep().getId() == id)
     		list.add(transform);
     	return list;
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
     	return transformationStepAssociations.size();
     }
 
 	@Override
 	public int getStepCountByTransformationId(Long id) {
     	int count = 0;
-		for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+		for (TransformationStepAssociation transform: transformationStepAssociations.values())
     		if (transform.getTransformation().getId() == id)
     			count++;
 		return count;
@@ -98,25 +99,25 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 	@Override
 	public int getTransformationCountByStepId(Long id) {
     	int count = 0;
-		for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+		for (TransformationStepAssociation transform: transformationStepAssociations.values())
     		if (transform.getStep().getId() == id)
     			count++;
 		return count;
 	}
 
 	@Override
-	public List<TransformationStepAssociation> retrieve(int start, int max) {
+	public List<TransformationStepAssociation> retrieve(int start, int max, EntityQuery query) {
     	List<TransformationStepAssociation> list = new LinkedList<TransformationStepAssociation>();
-    	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+    	for (TransformationStepAssociation transform: transformationStepAssociations.values())
     		list.add(transform);
     	return list;
 	}
 
 	@Override
-	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) 
+	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max, EntityQuery query)
 	{
     	List<TransformationStepAssociationBrief> list = new LinkedList<TransformationStepAssociationBrief>();
-    	for (TransformationStepAssociation transform: transformationStepAssociations.values()) 
+    	for (TransformationStepAssociation transform: transformationStepAssociations.values())
     		list.add(new TransformationStepAssociationBrief(transform));
     	return list;
 	}
@@ -124,18 +125,18 @@ public class TransformationStepAssociationDAOFake implements TransformationStepA
 	@Override
 	public TransformationStepAssociation retrieveFromBrief(
 			TransformationStepAssociationBrief brief) {
-		return retrieveById(brief.getId()); 
+		return retrieveById(brief.getId());
 	}
 
   @Override
   public List<TransformationStepAssociation> retrieve(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieve(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
-    int max, String sortKey, boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 }

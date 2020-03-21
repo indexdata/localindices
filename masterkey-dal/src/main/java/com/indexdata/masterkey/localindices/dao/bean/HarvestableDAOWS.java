@@ -85,34 +85,6 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
         }
         return hable;
     }
-    /**
-     * Retrieve list of all harvestables from the Web Service
-     * @return
-     */
-    @Override
-    public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
-        if (sortKey != null && !sortKey.isEmpty()) {
-          try {
-            url += "&sort="+ URLEncoder.encode((asc ? "" : "~") + sortKey, "UTF-8");
-          } catch (UnsupportedEncodingException enc) {
-            logger.error("Error encoding sort spec", enc);
-          }
-        }
-        try {
-            ResourceConnector<HarvestablesConverter> harvestablesConnector =
-                    new ResourceConnector<HarvestablesConverter>(
-                    new URL(url),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            HarvestablesConverter hc = harvestablesConnector.get();
-            return hc.getReferences();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
-        }
-        return null;
-    }
-
 
     /**
      * Retrieve harvestable from the Web Service using it's reference (URL)
@@ -172,11 +144,11 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
     }
 
     @Override
-    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc) {
+    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
        List<Harvestable> hables = new ArrayList<Harvestable>();
-       List<HarvestableBrief> hrefs = retrieveBriefs(start, max, sortKey, asc);
+       List<HarvestableBrief> hrefs = retrieveBriefs(start, max, sortKey, asc, query);
        if (hrefs != null) {
             for (HarvestableBrief href : hrefs) {
                 Harvestable hable = retrieveFromBrief(href);
@@ -184,21 +156,6 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
             }
        }
        return hables;
-    }
-
-    @Override
-    public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-      //TODO this cannot be more stupid
-      logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveHarvestableBrief instead.");
-      List<Harvestable> hables = new ArrayList<Harvestable>();
-      List<HarvestableBrief> hrefs = retrieveBriefs(start, max, sortKey, asc, query);
-      if (hrefs != null) {
-           for (HarvestableBrief href : hrefs) {
-               Harvestable hable = retrieveFromBrief(href);
-               hables.add(hable);
-           }
-      }
-      return hables;
     }
 
     @Override
@@ -224,24 +181,6 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
           logger.log(Level.DEBUG, male);
       }
       return null;
-    }
-
-    @Override
-    public int getCount() {
-        String url = serviceBaseURL + "?start=0&max=0";
-        try {
-            ResourceConnector<HarvestablesConverter> harvestablesConnector =
-                    new ResourceConnector<HarvestablesConverter>(
-                    new URL(url),
-                    "com.indexdata.masterkey.localindices.entity" +
-                    ":com.indexdata.masterkey.localindices.web.service.converter");
-            HarvestablesConverter hc = harvestablesConnector.get();
-            return hc.getCount();
-        } catch (Exception male) {
-            logger.log(Level.DEBUG, male);
-            return 0;
-        }
-
     }
 
     @Override
@@ -294,13 +233,13 @@ public class HarvestableDAOWS extends CommonDAOWS implements HarvestableDAO {
     }
 
   @Override
-  public List<Harvestable> retrieve(int start, int max) {
-    return retrieve(start, max, null, true);
+  public List<Harvestable> retrieve(int start, int max, EntityQuery query) {
+    return retrieve(start, max, null, true, query);
   }
 
   @Override
-  public List<HarvestableBrief> retrieveBriefs(int start, int max) {
-    return retrieveBriefs(start, max, null, true);
+  public List<HarvestableBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+    return retrieveBriefs(start, max, null, true, query);
   }
 
   @Override

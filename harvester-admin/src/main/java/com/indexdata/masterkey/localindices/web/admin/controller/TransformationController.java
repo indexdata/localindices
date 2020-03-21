@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationDAOFactory;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
@@ -30,10 +31,10 @@ import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAOFactory;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
 /**
@@ -115,7 +116,7 @@ public class TransformationController {
 	.getExternalContext().getRequest();
     if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
       req.setAttribute("countRequestSeenFlag", "yes");
-      itemCount = dao.getCount();
+      itemCount = dao.getCount(new EntityQuery());
     }
     return itemCount;
   }
@@ -207,7 +208,7 @@ public class TransformationController {
 	.getExternalContext().getRequest();
     if (resources == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
-      resources = (List) dao.retrieveBriefs(firstItem, batchSize);
+      resources = (List) dao.retrieveBriefs(firstItem, batchSize, new EntityQuery());
     }
     if (resources != null)
       Collections.sort(resources);
@@ -490,7 +491,7 @@ public class TransformationController {
 
   public List<SelectItem> getTransformationItems() {
     List<SelectItem> list = new LinkedList<SelectItem>();
-    List<TransformationBrief> resources = dao.retrieveBriefs(0, dao.getCount()); 
+    List<TransformationBrief> resources = dao.retrieveBriefs(0, dao.getCount(new EntityQuery()), new EntityQuery()); 
     list.add(new SelectItem("", "<Select Transformation>"));
     if (resources != null)
       for (TransformationBrief transformation : (List<TransformationBrief>) resources) {

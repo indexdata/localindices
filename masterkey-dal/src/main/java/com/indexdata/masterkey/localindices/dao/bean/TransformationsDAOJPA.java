@@ -17,6 +17,7 @@ import javax.persistence.Query;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
@@ -107,14 +108,14 @@ public class TransformationsDAOJPA implements TransformationDAO {
 
     @SuppressWarnings("unchecked")
 	@Override
-    public List<Transformation> retrieve(int start, int max) {
+    public List<Transformation> retrieve(int start, int max, EntityQuery query) {
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         // HACK: Hides database errors but does not crash the Scheduler
         List<Transformation> hables = new LinkedList<Transformation>();
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Transformation as o order by o.name");
+            Query q = em.createQuery("select object(o) from Transformation as o " + query.getAclWhereClause("o", true) + " order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -133,9 +134,9 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public List<TransformationBrief> retrieveBriefs(int start, int max) {
+    public List<TransformationBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<TransformationBrief> hrefs = new ArrayList<TransformationBrief>();
-        for (Transformation hable : retrieve(start, max)) {
+        for (Transformation hable : retrieve(start, max, query)) {
             TransformationBrief href = new TransformationBrief(hable);
             hrefs.add(href);
         }
@@ -148,10 +149,10 @@ public class TransformationsDAOJPA implements TransformationDAO {
     }
 
     @Override
-    public int getCount() {
+    public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Transformation as o").getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from Transformation as o "+query.getAclWhereClause("o", true)).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();
@@ -160,13 +161,13 @@ public class TransformationsDAOJPA implements TransformationDAO {
 
   @Override
   public List<Transformation> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 }

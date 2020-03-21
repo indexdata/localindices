@@ -25,12 +25,22 @@ public class EntityQuery {
     this.filter = (filter == null ? "" : filter);
   }
 
+  public EntityQuery withFilter(String filter) {
+    setFilter(filter);
+    return this;
+  }
+
   public String getAcl() {
     return acl;
   }
 
   public void setAcl(String acl) {
     this.acl = (acl == null ? "" : acl);
+  }
+
+  public EntityQuery withAcl(String acl) {
+    setAcl(acl);
+    return this;
   }
 
   public boolean hasAcl () {
@@ -82,13 +92,14 @@ public class EntityQuery {
 
   public String getAclWhereClause (String tableAlias, boolean withWHERE ) {
     StringBuilder expr = new StringBuilder("");
-    expr.append(withWHERE ? " WHERE " : "")
-            .append(tableAlias)
-            .append(".")
-            .append("acl='")
-            .append(acl)
-            .append("' ");
-
+    if (hasAcl()) {
+      expr.append(withWHERE ? " WHERE " : "")
+              .append(tableAlias)
+              .append(".")
+              .append("acl='")
+              .append(acl)
+              .append("' ");
+    }
     return expr.toString();
   }
 

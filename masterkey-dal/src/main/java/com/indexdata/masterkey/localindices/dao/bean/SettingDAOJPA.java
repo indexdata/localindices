@@ -5,17 +5,21 @@
  */
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.EntityInUse;
-import com.indexdata.masterkey.localindices.dao.SettingDAO;
-import com.indexdata.masterkey.localindices.entity.Setting;
-import com.indexdata.utils.persistence.EntityUtil;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.persistence.exceptions.DatabaseException;
+
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.entity.Setting;
+import com.indexdata.utils.persistence.EntityUtil;
 
 /**
  *
@@ -122,17 +126,17 @@ public class SettingDAOJPA implements SettingDAO {
    * @return 
    */
   @Override
-  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieveWithPrefix(start, max, sortKey);
+  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieveWithPrefix(start, max, sortKey, query);
   }
   
   @Override
-  public List<Setting> retrieve(int start, int max) {
-    return retrieveWithPrefix(start, max, null);
+  public List<Setting> retrieve(int start, int max, EntityQuery query) {
+    return retrieveWithPrefix(start, max, null, query);
   }
 
   @SuppressWarnings("unchecked")
-  public List<Setting> retrieveWithPrefix(int start, int max, String prefix) {
+  public List<Setting> retrieveWithPrefix(int start, int max, String prefix, EntityQuery query) {
     EntityManager em = getEntityManager();
     EntityTransaction tx = em.getTransaction();
     List<Setting> entities = null;
@@ -140,9 +144,9 @@ public class SettingDAOJPA implements SettingDAO {
       tx.begin();
       Query q;
       if (prefix == null) {
-        q = em.createQuery("select object(o) from Setting as o order by o.name");
+        q = em.createQuery("select object(o) from Setting as o order by o.name" + query.getAclWhereClause("o", true));
       } else {
-        q = em.createQuery("select object(o) from Setting as o where o.name like CONCAT(:prefix, '%') order by o.name");
+        q = em.createQuery("select object(o) from Setting as o where o.name like CONCAT(:prefix, '%') " + (query.hasAcl() ? " and "  + query.getAclWhereClause("o", false) : "") + " order by o.name");
         q.setParameter("prefix", prefix);
       }
       q.setMaxResults(max);
@@ -163,10 +167,10 @@ public class SettingDAOJPA implements SettingDAO {
   }
   
   @Override
-  public int getCount() {
+  public int getCount(EntityQuery query) {
     EntityManager em = getEntityManager();
     try {
-      int count = ((Long) em.createQuery("select count(o) from Setting as o").
+      int count = ((Long) em.createQuery("select count(o) from Setting as o" + query.getAclWhereClause("o", true)).
         getSingleResult()).intValue();
       return count;
     } finally {
@@ -176,11 +180,11 @@ public class SettingDAOJPA implements SettingDAO {
   
 
   @Override
-  public int getCount(String prefix) {
+  public int getCount(String prefix, EntityQuery query) {
     EntityManager em = getEntityManager();
     try {
       int count = ((Long) 
-        em.createQuery("select count(o) from Setting as o where o.name like CONCAT(:prefix, '%')")
+        em.createQuery("select count(o) from Setting as o where o.name like CONCAT(:prefix, '%')" + (query.hasAcl() ? " and " + query.getAclWhereClause("o", false) : ""))
           .setParameter("prefix", prefix)
           .getSingleResult()).intValue();
       return count;

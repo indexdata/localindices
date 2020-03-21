@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationStepAssociationBrief;
@@ -106,8 +107,8 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
     }
 
 	@Override
-	public List<TransformationStepAssociation> retrieve(int start, int max) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+	public List<TransformationStepAssociation> retrieve(int start, int max, EntityQuery query) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
                     new ResourceConnector<TransformationStepAssociationsConverter>(
@@ -124,8 +125,8 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 	}
 
 	@Override
-	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+	public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
                     new ResourceConnector<TransformationStepAssociationsConverter>(
@@ -147,8 +148,8 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 	}
 
 	@Override
-	public int getCount() {
-        String url = serviceBaseURL + "?start=0&max=0";
+	public int getCount(EntityQuery query) {
+        String url = serviceBaseURL + "?start=0&max=0" + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
                     new ResourceConnector<TransformationStepAssociationsConverter>(
@@ -188,14 +189,14 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 
   @Override
   public List<TransformationStepAssociation> retrieve(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieve(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
-    int max, String sortKey, boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 
 	

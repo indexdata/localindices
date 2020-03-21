@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.entity.Setting;
 
@@ -98,11 +99,11 @@ public class SettingDAOFake implements SettingDAO {
     settings.remove(setting.getId());
   }
 
-  public List<Setting> retrieve(int start, int max) {
-    return retrieveWithPrefix(start, max, "");
+  public List<Setting> retrieve(int start, int max, EntityQuery query) {
+    return retrieveWithPrefix(start, max, "", query);
   }
 
-  public List<Setting> retrieveWithPrefix(int start, int max, String prefix) {
+  public List<Setting> retrieveWithPrefix(int start, int max, String prefix, EntityQuery query) {
     List<Setting> list = new LinkedList<Setting>();
     for (Setting setting : settings.values()) {
       if (setting.getName().startsWith(prefix))
@@ -113,18 +114,18 @@ public class SettingDAOFake implements SettingDAO {
     return list;
   }
 
-  public int getCount() {
+  public int getCount(EntityQuery query) {
     return settings.keySet().size();
   }
 
   // Misuse to do filtering
   @Override
-  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieveWithPrefix(start, max, sortKey);
+  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieveWithPrefix(start, max, sortKey, query);
   }
 
   @Override
-  public int getCount(String prefix) {
-    return retrieveWithPrefix(0, settings.keySet().size(), prefix).size();
+  public int getCount(String prefix, EntityQuery query) {
+    return retrieveWithPrefix(0, settings.keySet().size(), prefix, query).size();
   }
 }

@@ -5,12 +5,8 @@
  */
 package com.indexdata.masterkey.localindices.scheduler;
 
-import com.indexdata.masterkey.localindices.dao.SettingDAO;
-import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
-import com.indexdata.masterkey.localindices.entity.Setting;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -20,11 +16,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
+import com.indexdata.masterkey.localindices.entity.Setting;
 
 //import com.indexdata.masterkey.localindices.harvest.storage.backend.StorageBackend;
 //import com.indexdata.masterkey.localindices.harvest.storage.backend.ZebraStorageBackend;
@@ -91,7 +94,8 @@ public class SchedulerUpDownListener implements ServletContextListener {
     logger.debug("Attempting to read 'harvester.' settings from the DB...");
     dao = new SettingDAOJPA();
     String prefix = "harvester.";
-    List<Setting> settings = dao.retrieve(0, dao.getCount(prefix), prefix, false);
+    EntityQuery query = new EntityQuery();
+    List<Setting> settings = dao.retrieve(0, dao.getCount(prefix, query), prefix, false, query);
     for (Setting setting : settings) {
       logger.debug("Setting "+setting.getName()+"="+setting.getValue());
       props.put(setting.getName(), setting.getValue());

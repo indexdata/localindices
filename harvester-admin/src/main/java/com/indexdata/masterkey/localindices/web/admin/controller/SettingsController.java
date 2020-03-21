@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.dao.SettingDAOFactory;
 import com.indexdata.masterkey.localindices.entity.Setting;
@@ -44,7 +45,7 @@ public class SettingsController {
   
   public void initialize() {
     logger.info("Retrieving settings from the harvester...");
-    settings = dao.retrieve(0, 100);
+    settings = dao.retrieve(0, 100, new EntityQuery());
   }
   
   /**
@@ -52,7 +53,7 @@ public class SettingsController {
    * @return 
    */
   public List<Setting> getConnectorEngines() {
-    return dao.retrieve(0, 100, "cf.engine.url.", false);
+    return dao.retrieve(0, 100, "cf.engine.url.", false, new EntityQuery());
   }
   
   public List<Setting> getSettings() {
@@ -65,7 +66,7 @@ public class SettingsController {
    * @return 
    */
   public List<Setting> getConnectorRepos() {
-    return dao.retrieve(0, 100, "cf.repo.url.", false);
+    return dao.retrieve(0, 100, "cf.repo.url.", false, new EntityQuery());
   }
 
   public Setting getSetting() {

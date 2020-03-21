@@ -102,7 +102,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	harvestables.put(entity.getId(), entity);
     }
 
-    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : harvestables.values()) {
             try {
@@ -144,7 +144,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	harvestables.remove(harvestable.getId());
     }
 
-    public List<Harvestable> retrieve(int start, int max) {
+    public List<Harvestable> retrieve(int start, int max, EntityQuery query) {
     	List<Harvestable> list = new LinkedList<Harvestable>();
     	int index = 0; 
     	for (Harvestable entity : harvestables.values()) {
@@ -157,7 +157,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	return list;
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
     	return harvestables.size();
     }
 
@@ -168,14 +168,14 @@ public class HarvestableDAOFake implements HarvestableDAO {
 
   @Override
   public List<Harvestable> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<HarvestableBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 
   @Override
@@ -187,23 +187,4 @@ public class HarvestableDAOFake implements HarvestableDAO {
   public void resetCache(long id) throws DAOException {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
-
-  @Override
-  public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public int getCount(EntityQuery query) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
- 
 }

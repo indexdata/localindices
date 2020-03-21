@@ -9,6 +9,7 @@ package com.indexdata.masterkey.localindices.entity;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,6 +45,7 @@ public class Transformation implements Serializable, Cloneable {
   protected String description;
   protected Boolean enabled;
   protected Boolean parallel;
+  protected String acl;
 
   @OneToMany(mappedBy = "transformation", cascade = CascadeType.REMOVE)
   @OrderBy("position")
@@ -79,11 +81,11 @@ public class Transformation implements Serializable, Cloneable {
     if (id == null) return null;
     return id.toString();
   }
-  
+
   void setStringId(String id) {
     this.id = Long.parseLong(id);
   }
-  
+
   @XmlTransient
   public Long getId() {
     return id;
@@ -172,6 +174,14 @@ public class Transformation implements Serializable, Cloneable {
 
   public void setParallel(Boolean parallel) {
     this.parallel = parallel;
+  }
+
+  public String getAcl() {
+    return acl;
+  }
+
+  public void setAcl(String acl) {
+    this.acl = acl;
   }
 
 }
