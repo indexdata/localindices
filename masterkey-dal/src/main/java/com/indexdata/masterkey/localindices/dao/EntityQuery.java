@@ -38,10 +38,8 @@ public class EntityQuery {
   }
 
   public void setFilter(String filter, List<String> keywordAllFields) {
-    if (filter != null && !filter.isEmpty()) {
-      this.filter = filter;
-      this.keywordAllFields = keywordAllFields;
-    }
+    this.filter = filter == null ? "" : filter;
+    this.keywordAllFields = keywordAllFields;
   }
 
   public EntityQuery withFilter(String filter, Filterable entity) {
