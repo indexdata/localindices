@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -81,8 +82,8 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
      * @return
      */
     @Override
-    public List<TransformationStepBrief> retrieveBriefs(int start, int max) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+    public List<TransformationStepBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepsConverter> connector =
                     new ResourceConnector<TransformationStepsConverter>(
@@ -155,8 +156,8 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
     }
 
     @Override
-    public int getCount() {
-        String url = serviceBaseURL + "?start=0&max=0";
+    public int getCount(EntityQuery query) {
+        String url = serviceBaseURL + "?start=0&max=0" + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepsConverter> rc =
                     new ResourceConnector<TransformationStepsConverter>(
@@ -172,7 +173,7 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
     }
 
 	@Override
-	public List<TransformationStep> retrieve(int start, int max) {
+	public List<TransformationStep> retrieve(int start, int max, EntityQuery query) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -191,13 +192,13 @@ public class TransformationStepDAOWS extends CommonDAOWS implements Transformati
 
   @Override
   public List<TransformationStep> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationStepBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 }

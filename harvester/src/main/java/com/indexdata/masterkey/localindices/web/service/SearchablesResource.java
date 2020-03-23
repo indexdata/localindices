@@ -15,6 +15,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.web.service.converter.SearchablesConverter;
@@ -57,9 +58,9 @@ public class SearchablesResource {
   @GET
   @Produces("application/xml")
   public SearchablesConverter get(@QueryParam("start") @DefaultValue("0") int start,
-
-  @QueryParam("max") @DefaultValue("100") int max) {
-    return new SearchablesConverter(dao.retrieve(start, max), context.getAbsolutePath());
+  @QueryParam("max") @DefaultValue("100") int max,
+  @QueryParam("acl") @DefaultValue("") String acl) {
+    return new SearchablesConverter(dao.retrieve(start, max, new EntityQuery().withAcl(acl)), context.getAbsolutePath());
   }
 
   @Path("{id}/")

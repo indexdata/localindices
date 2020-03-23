@@ -6,6 +6,7 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,6 +34,7 @@ public class Setting implements Serializable {
   private String name;
   private String value;
   private String label;
+  private String acl;
 
   public Setting() {
   }
@@ -80,6 +82,14 @@ public class Setting implements Serializable {
 
   public void setLabel(String label) {
     this.label = label;
+  }
+
+  public String getAcl() {
+    return acl;
+  }
+
+  public void setAcl(String acl) {
+    this.acl = acl;
   }
 
   @Override

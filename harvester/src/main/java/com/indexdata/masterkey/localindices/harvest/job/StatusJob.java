@@ -18,6 +18,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Level;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -74,7 +75,8 @@ public class StatusJob extends AbstractRecordHarvestJob {
         if (hasUsedByFilter()) mailMessage.append(" Usage tags: " + statusJob.getUsedBy());
         if (hasManagedByFilter()) mailMessage.append(" Admin tags: " + statusJob.getManagedBy());
       }
-      List<Harvestable> allHarvestables = dao.retrieve(0,dao.getCount());
+      EntityQuery query = new EntityQuery();
+      List<Harvestable> allHarvestables = dao.retrieve(0,dao.getCount(query), query);
       // Filter harvestables by criteria specified on the status job
       List<Harvestable> harvestables = applyStatusJobFilters(allHarvestables);
 

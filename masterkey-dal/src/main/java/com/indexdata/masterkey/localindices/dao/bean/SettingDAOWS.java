@@ -5,26 +5,26 @@
  */
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.EntityInUse;
-import com.indexdata.masterkey.localindices.dao.SettingDAO;
-import com.indexdata.masterkey.localindices.entity.Setting;
-import com.indexdata.masterkey.localindices.web.service.converter.SettingConverter;
-import com.indexdata.masterkey.localindices.web.service.converter.SettingsConverter;
-import com.indexdata.rest.client.ResourceConnectionException;
-import com.indexdata.rest.client.ResourceConnector;
+import static com.indexdata.utils.TextUtils.joinPath;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import static com.indexdata.utils.TextUtils.joinPath;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.SettingDAO;
+import com.indexdata.masterkey.localindices.entity.Setting;
+import com.indexdata.masterkey.localindices.web.service.converter.SettingConverter;
+import com.indexdata.masterkey.localindices.web.service.converter.SettingsConverter;
+import com.indexdata.rest.client.ResourceConnectionException;
+import com.indexdata.rest.client.ResourceConnector;
 
 /**
  *
@@ -117,22 +117,11 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
   }
 
   @Override
-  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieveWithPrefix(start, max, sortKey);
-  }
-  
-  @Override
-  public List<Setting> retrieve(int start, int max) {
-    return retrieveWithPrefix(start, max, null);
-  }
-  
-  private List<Setting> retrieveWithPrefix(int start, int max, String prefix) {
+  public List<Setting> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
     try {
       ResourceConnector<SettingsConverter> connector =
         new ResourceConnector<SettingsConverter>(
-        new URL(prefix == null 
-        ? serviceBaseURL
-        : joinPath(serviceBaseURL, "?prefix="+URLEncoder.encode(prefix, "UTF-8"))),
+        new URL(joinPath(serviceBaseURL, "?start="+start+"&max="+max+query.asUrlParameters())),
         "com.indexdata.masterkey.localindices.entity"
         + ":com.indexdata.masterkey.localindices.web.service.converter");
       SettingsConverter hc = connector.get();
@@ -147,6 +136,11 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
   }
 
+  @Override
+  public List<Setting> retrieve(int start, int max, EntityQuery query) {
+    return retrieve(start, max, null, false, query);
+  }
+
   @SuppressWarnings("unused")
   private String pushParams(String url, String... params) throws UnsupportedEncodingException {
     StringBuilder uB = new StringBuilder(url);
@@ -158,39 +152,21 @@ public class SettingDAOWS extends CommonDAOWS implements SettingDAO {
     }
     return uB.toString();
   }
-  
-  @Override
-  public int getCount() {
-    String url = serviceBaseURL + "?start=0&max=0";
-    try {
-      ResourceConnector<SettingsConverter> connector =
-        new ResourceConnector<SettingsConverter>(
-        new URL(url),
-        "com.indexdata.masterkey.localindices.entity"
-        + ":com.indexdata.masterkey.localindices.web.service.converter");
-      SettingsConverter hc = connector.get();
-      return hc.getCount();
-    } catch (Exception male) {
-      logger.log(Level.DEBUG, male);
-      return 0;
-    }
-  }
-    
-  @Override
-  public int getCount(String prefix) {
-    try {
-      String url = serviceBaseURL + "?start=0&max=0&prefix=" + URLEncoder.encode(prefix, "UTF-8");
-      ResourceConnector<SettingsConverter> connector =
-        new ResourceConnector<SettingsConverter>(
-        new URL(url),
-        "com.indexdata.masterkey.localindices.entity"
-        + ":com.indexdata.masterkey.localindices.web.service.converter");
-      SettingsConverter hc = connector.get();
-      return hc.getCount();
-    } catch (Exception male) {
-      logger.log(Level.DEBUG, male);
-      return 0;
-    }
-  }
 
+  @Override
+  public int getCount(EntityQuery query) {
+    String url = serviceBaseURL + "?start=0&max=0"+query.asUrlParameters();
+    try {
+      ResourceConnector<SettingsConverter> connector =
+        new ResourceConnector<SettingsConverter>(
+        new URL(url),
+        "com.indexdata.masterkey.localindices.entity"
+        + ":com.indexdata.masterkey.localindices.web.service.converter");
+      SettingsConverter hc = connector.get();
+      return hc.getCount();
+    } catch (Exception male) {
+      logger.log(Level.DEBUG, male);
+      return 0;
+    }
+  }
 }

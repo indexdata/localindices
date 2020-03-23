@@ -21,9 +21,9 @@ public interface BasicCommonDAO<Entity> {
 
   void delete(Entity entity) throws EntityInUse;
 
-  List<Entity> retrieve(int start, int max);
+  List<Entity> retrieve(int start, int max, EntityQuery query);
 
-  List<Entity> retrieve(int start, int max, String sortKey, boolean asc);
+  List<Entity> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query);
 
-  int getCount();
+  int getCount(EntityQuery query);
 }

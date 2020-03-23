@@ -11,13 +11,13 @@ public interface TransformationDAO extends CommonDAO<Transformation, Transformat
     public Transformation update(Transformation entity);
     public void delete(Transformation entity);
     // Is this redudant? 
-    public List<Transformation> retrieve(int start, int max);
+    public List<Transformation> retrieve(int start, int max, EntityQuery query);
 
     /**
      * Retrieve a list of brief (listing) storages.
      * @return
      */
-    List<TransformationBrief> retrieveBriefs(int start, int max);
+    List<TransformationBrief> retrieveBriefs(int start, int max, EntityQuery query);
     /**
      * Retrieves a Storage using it's listing reference (brief)
      * @param hbrief brief (listing) Storage
@@ -25,7 +25,7 @@ public interface TransformationDAO extends CommonDAO<Transformation, Transformat
      */
     Transformation retrieveFromBrief(TransformationBrief tbrief);
     
-    int getCount();
+    int getCount(EntityQuery query);
 	
 	
 

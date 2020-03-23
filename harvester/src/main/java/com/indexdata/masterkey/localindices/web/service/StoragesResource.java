@@ -21,6 +21,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Storage;
@@ -59,6 +60,7 @@ public class StoragesResource {
    *          optional start item argument
    * @param max
    *          optional max results argument
+   * @param acl
    * @return an instance of StorageConverter
    */
   @GET
@@ -66,14 +68,15 @@ public class StoragesResource {
   public StoragesConverter get(
 
   @QueryParam("start") @DefaultValue("0") int start,
-
-  @QueryParam("max") @DefaultValue("100") int max) {
+  @QueryParam("max") @DefaultValue("100") int max,
+  @QueryParam("acl") @DefaultValue("") String acl) {
+    EntityQuery query = new EntityQuery().withAcl(acl);
     List<Storage> entities;
     if (max <= 0)
       entities = new ArrayList<Storage>();
     else
-      entities = dao.retrieve(start, max);
-    return new StoragesConverter(entities, context.getAbsolutePath(), start, max, dao.getCount());
+      entities = dao.retrieve(start, max, query);
+    return new StoragesConverter(entities, context.getAbsolutePath(), start, max, dao.getCount(query));
   }
 
   /**

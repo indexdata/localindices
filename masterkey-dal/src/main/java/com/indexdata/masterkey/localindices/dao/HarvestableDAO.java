@@ -21,7 +21,7 @@ public interface HarvestableDAO extends CommonDAO<Harvestable, HarvestableBrief>
 	public InputStream getLog(long id, Date from) throws DAOException;
 	public InputStream reset(long id);
         public void resetCache(long id) throws DAOException;
-  List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString);
-  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString);
-  public int getCount(String filterString);
+  List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query);
+  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, EntityQuery query);
+  public int getCount(EntityQuery query);
 }

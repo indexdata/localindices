@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.dao.StorageDAOFactory;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
@@ -91,7 +92,7 @@ public class StorageController {
 	.getExternalContext().getRequest();
     if (itemCount == -1 || !isPb() && req.getAttribute("countRequestSeenFlag") == null) {
       req.setAttribute("countRequestSeenFlag", "yes");
-      itemCount = dao.getCount();
+      itemCount = dao.getCount(new EntityQuery());
     }
     return itemCount;
   }
@@ -198,7 +199,7 @@ public class StorageController {
 	.getExternalContext().getRequest();
     if (storages == null || !isPb() && req.getAttribute("listRequestSeen") == null) {
       req.setAttribute("listRequestSeen", "yes");
-      storages = (List) dao.retrieveBriefs(firstItem, batchSize);
+      storages = (List) dao.retrieveBriefs(firstItem, batchSize, new EntityQuery());
     }
     if (storages != null)
       Collections.sort(storages);
@@ -300,7 +301,8 @@ public class StorageController {
 
   public List<SelectItem> getStorageItems() {
     List<SelectItem> list = new LinkedList<SelectItem>();
-    List<StorageBrief> storages = dao.retrieveBriefs(0, dao.getCount());
+    EntityQuery qry = new EntityQuery();
+    List<StorageBrief> storages = dao.retrieveBriefs(0, dao.getCount(qry), qry);
     list.add(new SelectItem("", "<Select Storage>"));
     if (storages != null)
       for (StorageBrief storage : (List<StorageBrief>) storages) {
