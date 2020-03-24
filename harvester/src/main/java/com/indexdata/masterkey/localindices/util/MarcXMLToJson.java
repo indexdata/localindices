@@ -7,9 +7,11 @@ package com.indexdata.masterkey.localindices.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
@@ -25,7 +27,7 @@ import org.xml.sax.SAXException;
  */
 public class MarcXMLToJson {
 
-  public static JSONObject convertMarcXMLToJson(String marcXML) 
+  public static JSONObject convertMarcXMLToJson(String marcXML)
       throws SAXException, IOException, ParserConfigurationException {
     JSONObject marcJson = new JSONObject();
     JSONArray fields = new JSONArray();
@@ -34,11 +36,13 @@ public class MarcXMLToJson {
     Document document = documentBuilder.parse(new InputSource(new StringReader(marcXML)));
     Element root = document.getDocumentElement();
     Element record = null;
-    if(root.getTagName().equals("OAI-PMH")) {
+    if(root.getTagName().equals("OAI-PMH")) { // probably a static OAI-PMH file
       Element listRecords = (Element)root.getElementsByTagName("ListRecords").item(0);
       Element topRecord = (Element)listRecords.getElementsByTagName("record").item(0);
       Element metadata = (Element)topRecord.getElementsByTagName("metadata").item(0);
       record = (Element) metadata.getElementsByTagName("record").item(0);
+    } else if (root.getTagName().equals("record")) {
+      record = (Element) root.getElementsByTagName("record").item(0);
     }
     if(record == null) {
       throw new IOException("No record element found");
