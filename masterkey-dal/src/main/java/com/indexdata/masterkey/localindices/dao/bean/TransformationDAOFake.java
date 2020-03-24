@@ -15,11 +15,12 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.entity.BasicTransformation;
-import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
+import com.indexdata.masterkey.localindices.entity.XmlTransformationStep;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
 
 /**
@@ -69,7 +70,7 @@ public class TransformationDAOFake implements TransformationDAO {
     }
 
 	@Override
-    public List<TransformationBrief> retrieveBriefs(int start, int max) {
+    public List<TransformationBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<TransformationBrief> srefs = new ArrayList<TransformationBrief>();
         for (Transformation transformation : transformations.values()) {
             TransformationBrief brief = new TransformationBrief(transformation);
@@ -111,6 +112,7 @@ public class TransformationDAOFake implements TransformationDAO {
     }
     
 
+    @Override
     public Transformation retrieveById(Long id) {
     	return transformations.get(id);
     }
@@ -121,12 +123,14 @@ public class TransformationDAOFake implements TransformationDAO {
     	return transformations.put(updTransformation.getId(), updTransformation);
     }
 
+    @Override
     public void delete(Transformation transformation) {
 		transformations.remove(transformation.getId());
     }
     
 
-    public List<Transformation> retrieve(int start, int max) {
+    @Override
+    public List<Transformation> retrieve(int start, int max, EntityQuery query) {
     	List<Transformation> list = new LinkedList<Transformation>();
     	/* TODO filter right records */
     	for (Transformation transform: transformations.values()) 
@@ -134,19 +138,20 @@ public class TransformationDAOFake implements TransformationDAO {
     	return list;
     }
 
-    public int getCount() {
+    @Override
+    public int getCount(EntityQuery query) {
     	return transformations.size();
     }
 
   @Override
   public List<Transformation> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 }

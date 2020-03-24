@@ -6,10 +6,10 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,8 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityInUse;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.web.service.converter.StorageBrief;
@@ -24,7 +26,6 @@ import com.indexdata.masterkey.localindices.web.service.converter.StorageConvert
 import com.indexdata.masterkey.localindices.web.service.converter.StoragesConverter;
 import com.indexdata.rest.client.ResourceConnectionException;
 import com.indexdata.rest.client.ResourceConnector;
-import java.net.MalformedURLException;
 
 /**
  *
@@ -81,8 +82,8 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
      * @return
      */
     @Override
-    public List<StorageBrief> retrieveBriefs(int start, int max) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+    public List<StorageBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<StoragesConverter> storagesConnector =
                     new ResourceConnector<StoragesConverter>(
@@ -158,11 +159,11 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
     }
 
     @Override
-    public List<Storage> retrieve(int start, int max) {
+    public List<Storage> retrieve(int start, int max, EntityQuery query) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveBrief instead.");
        List<Storage> hables = new ArrayList<Storage>();
-       List<StorageBrief> hrefs = retrieveBriefs(start, max);
+       List<StorageBrief> hrefs = retrieveBriefs(start, max, query);
        if (hrefs != null) {
             for (StorageBrief href : hrefs) {
                 Storage hable = retrieveFromBrief(href);
@@ -173,8 +174,8 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
     }
     
     @Override
-    public int getCount() {
-        String url = serviceBaseURL + "?start=0&max=0";
+    public int getCount(EntityQuery query) {
+        String url = serviceBaseURL + "?start=0&max=0" + query.asUrlParameters();
         try {
             ResourceConnector<StoragesConverter> storagesConnector =
                     new ResourceConnector<StoragesConverter>(
@@ -207,13 +208,13 @@ public class StorageDAOWS extends CommonDAOWS implements StorageDAO {
     }
 
   @Override
-  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieve(start, max);
+  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<StorageBrief> retrieveBriefs(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 }

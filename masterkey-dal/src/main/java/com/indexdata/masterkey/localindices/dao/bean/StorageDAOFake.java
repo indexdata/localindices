@@ -16,6 +16,7 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.StorageDAO;
 import com.indexdata.masterkey.localindices.entity.SolrStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
@@ -54,7 +55,7 @@ public class StorageDAOFake implements StorageDAO {
 		storages.put(storage3.getId(), storage3);
     }
 
-    public List<StorageBrief> retrieveBriefs(int start, int max) {
+    public List<StorageBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<StorageBrief> srefs = new ArrayList<StorageBrief>();
         for (Storage storage : storages.values()) {
             StorageBrief sref = new StorageBrief(storage);
@@ -115,14 +116,14 @@ public class StorageDAOFake implements StorageDAO {
     	storages.remove(storage.getId());
     }
 
-    public List<Storage> retrieve(int start, int max) {
+    public List<Storage> retrieve(int start, int max, EntityQuery query) {
     	List<Storage> list = new LinkedList<Storage>();
     	for (Storage storage : storages.values()) 
     		list.add(storage);
     	return list;
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
         return storages.values().size();
     }
 
@@ -132,13 +133,13 @@ public class StorageDAOFake implements StorageDAO {
     }
 
   @Override
-  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc) {
-    return retrieve(start, max);
+  public List<Storage> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<StorageBrief> retrieveBriefs(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 }

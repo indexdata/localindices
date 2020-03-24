@@ -7,8 +7,10 @@
 package com.indexdata.masterkey.localindices.entity;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,14 +31,14 @@ import com.indexdata.utils.CronLineParseException;
 
 /**
  * Corresponds to version 1 update
- * 
+ *
  * @author Jakub
  * @author Dennis
  */
 @Entity
 @NamedQueries({ @NamedQuery(name = "Harvestable.findById", query = "SELECT o FROM Harvestable o WHERE o.id = :id") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Harvestable implements Serializable, Cloneable {
+public abstract class Harvestable implements Serializable, Cloneable, Filterable {
 
   protected static final long serialVersionUID = 1L;
   // user-set properties
@@ -96,11 +98,11 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @Column(nullable=false)
   private Integer retryWait = 60; //SECS
   @Column(nullable=true)
-  private Integer recordLimit = null; 
+  private Integer recordLimit = null;
 
 
-  private String logLevel  = "INFO"; 
-  private String mailLevel = "WARN"; 
+  private String logLevel  = "INFO";
+  private String mailLevel = "WARN";
   private String mailAddress = null;
   private boolean diskRun = false;
   private boolean cacheEnabled = false;
@@ -118,11 +120,24 @@ public abstract class Harvestable implements Serializable, Cloneable {
   @Temporal(TemporalType.TIMESTAMP)
   private Date untilDate;
   @Column(nullable=true)
-  private Integer storageBatchLimit = null; 
+  private Integer storageBatchLimit = null;
   private String constantFields = null;
   @Column(nullable=false)
   private boolean storeOriginal = false;
-  
+  @Column(nullable=true)
+  private String acl = null;
+
+  @Transient
+  public static List<String> KEYWORD_ALL_FIELDS = Arrays.asList(
+                                    "name",
+                                    "description",
+                                    "technicalNotes",
+                                    "contactNotes",
+                                    "serviceProvider",
+                                    "usedBy",
+                                    "managedBy",
+                                    "currentStatus");
+
   public String getDescription() {
     return description;
   }
@@ -218,11 +233,11 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setServiceProvider(String serviceProvider) {
     this.serviceProvider = serviceProvider;
   }
-  
+
   public String getUsedBy() {
     return usedBy;
   }
-  
+
   public void setUsedBy(String usedBy) {
     this.usedBy = usedBy;
   }
@@ -230,11 +245,11 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public String getManagedBy() {
     return managedBy;
   }
-  
+
   public void setManagedBy(String managedBy) {
     this.managedBy = managedBy;
   }
-  
+
   public Date getInitiallyHarvested() {
     return initiallyHarvested;
   }
@@ -354,7 +369,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   }
 
   public void setEncoding(String encoding) {
-    //Force null on empty string 
+    //Force null on empty string
     if ("".equals(encoding))
       	encoding = null;
     this.encoding = encoding;
@@ -391,7 +406,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setRetryWait(Integer retryWait) {
     this.retryWait = retryWait;
   }
-  
+
   public void reset() {
     setAmountHarvested(null);
     setInitiallyHarvested(null);
@@ -479,7 +494,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public boolean isLaxParsing() {
     return laxParsing;
   }
-  
+
   public Date getFromDate() {
     return fromDate;
   }
@@ -487,7 +502,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setFromDate(Date fromDate) {
     this.fromDate = fromDate;
   }
-  
+
   public Date getUntilDate() {
     return untilDate;
   }
@@ -503,7 +518,7 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setStorageBatchLimit(Integer storageBatchLimit) {
     this.storageBatchLimit = storageBatchLimit;
   }
-  
+
   public String getConstantFields() {
     return constantFields;
   }
@@ -519,5 +534,17 @@ public abstract class Harvestable implements Serializable, Cloneable {
   public void setStoreOriginal(boolean storeOriginal) {
     this.storeOriginal = storeOriginal;
   }
-  
+
+  public String getAcl() {
+    return acl;
+  }
+
+  public void setAcl(String acl) {
+    this.acl = acl;
+  }
+
+  @Transient
+  public List<String> getKeywordAllFields () {
+    return KEYWORD_ALL_FIELDS;
+  }
 }

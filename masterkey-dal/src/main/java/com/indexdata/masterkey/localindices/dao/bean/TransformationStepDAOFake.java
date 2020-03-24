@@ -15,6 +15,7 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.entity.TransformationStep;
@@ -46,7 +47,7 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
     	return steps.get(id);
     }
 
-    public List<TransformationStep> retrieve(int start, int max) {
+    public List<TransformationStep> retrieve(int start, int max, EntityQuery query) {
     	List<TransformationStep> list = new LinkedList<TransformationStep>();
     	/* TODO filter right records */
     	for (TransformationStep transform: steps.values()) 
@@ -55,7 +56,7 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
     }
 
     @Override
-    public List<TransformationStepBrief> retrieveBriefs(int start, int max) {
+    public List<TransformationStepBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<TransformationStepBrief> srefs = new ArrayList<TransformationStepBrief>();
         for (TransformationStep transformation : steps.values()) {
         	TransformationStepBrief brief = new TransformationStepBrief(transformation, null, false);
@@ -89,7 +90,7 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
 	steps.remove(transformation.getId());	
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
     	return steps.size();
     }
 
@@ -107,13 +108,13 @@ public class TransformationStepDAOFake implements TransformationStepDAO {
 
   @Override
   public List<TransformationStep> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<TransformationStepBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 }

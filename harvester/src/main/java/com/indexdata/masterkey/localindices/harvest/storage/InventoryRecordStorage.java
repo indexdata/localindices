@@ -275,11 +275,11 @@ public class InventoryRecordStorage implements RecordStorage {
           subRecord.setOriginalContent(recordJson.getOriginalContent());
           processAddRecord(subRecord);
         }
-      } else { // Cannot get original content with a collection of multiple records
+      } else { 
         if (harvestable.isStoreOriginal()) {
           logger.warn("Store original content selected for this job, "
                   + "but storage layer received "
-                  + "result wiht multiple metadata records and original content "
+                  + "result with multiple metadata records and original content "
                   + "cannot be stored in that scenario.");
         }
         for (Record subRecord : subrecords) {
@@ -297,9 +297,11 @@ public class InventoryRecordStorage implements RecordStorage {
     if (instanceWithHoldingsAndItems.containsKey("title")) {
       JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
       if (instanceResponse != null && harvestable.isStoreOriginal()) {
-        sourceRecordsProcessed++;
-        JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-        addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+        if (harvestable.isStoreOriginal()) {
+          sourceRecordsProcessed++;
+          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
+          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+        }
       }
       timingsEntireRecord.time(startStorageEntireRecord);
       if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
@@ -337,26 +339,26 @@ public class InventoryRecordStorage implements RecordStorage {
     return marcJson;
   }
 
-  private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceWithHoldingsItems) {
+  private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceHoldingsItems) {
     JSONObject instanceResponse = null;
-    //JSONObject instanceWithHoldingsItems = ((RecordJSON)recordJson).toJson();
-    if (instanceWithHoldingsItems.containsKey("passthrough")) {
+    //JSONObject instanceHoldingsItems = ((RecordJSON)recordJson).toJson();
+    if (instanceHoldingsItems.containsKey("passthrough")) {
     /* 'passthrough' is a naming convention that the transformation pipeline can
      use for a container that holds raw elements passed through the pipeline
      to be handled by subsequent transformation steps.
      If no transformation step is configured to handle the `passthrough`
      the element might show up at this point and it should be removed since
      it's not a valid Instance property */
-      instanceWithHoldingsItems.remove("passthrough");
+      instanceHoldingsItems.remove("passthrough");
     }
-    if (instanceWithHoldingsItems.containsKey("holdingsRecords")) {
+    if (instanceHoldingsItems.containsKey("holdingsRecords")) {
       JSONArray holdingsRecords = null;
       try {
-        holdingsRecords = extractJsonArrayFromObject(instanceWithHoldingsItems, "holdingsRecords");
+        holdingsRecords = extractJsonArrayFromObject(instanceHoldingsItems, "holdingsRecords");
       } catch (ParseException pe) {
         logger.error("Failed to extract holdings records as JSONArray from the Instance JSON object: " + pe.getLocalizedMessage());
       }
-      instanceResponse = addInstanceRecord(instanceWithHoldingsItems);
+      instanceResponse = addInstanceRecord(instanceHoldingsItems);
       if (instanceResponse != null && instanceResponse.get("id") != null && holdingsRecords != null && holdingsRecords.size()>0) {
         String instanceId = instanceResponse.get("id").toString();
         // delete existing holdings/items from the same institution
@@ -370,6 +372,8 @@ public class InventoryRecordStorage implements RecordStorage {
           holdingsRecordsFailed++;
         }
       }
+    } else {
+      instanceResponse = addInstanceRecord(instanceHoldingsItems);
     }
     return instanceResponse;
   }
@@ -1030,7 +1034,7 @@ public class InventoryRecordStorage implements RecordStorage {
 
 
   private class ExecutionTimeStats {
-    private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-DD:HH");
+    private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-dd HH");
     private final Map<String, HourStats> execTimes = new HashMap<>();
 
     HourStats hourstats = null;
@@ -1054,7 +1058,7 @@ public class InventoryRecordStorage implements RecordStorage {
       .forEach(e -> { // for each hour
         HourStats hr = e.getValue();
         StringBuilder totals1 = new StringBuilder();
-        totals1.append(e.getKey()).append(": ")
+        totals1.append(e.getKey()).append(":00: ")
                .append(hr.execCount).append(" records processed in ").append(hr.totalExecTime/1000).append(" secs.")
                .append("~").append(hr.totalExecTime/60000).append(" mins. of execution time");
         logger.info(totals1.toString());

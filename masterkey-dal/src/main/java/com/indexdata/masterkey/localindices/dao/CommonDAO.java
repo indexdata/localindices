@@ -8,10 +8,10 @@ public interface CommonDAO<Entity, EntityBrief> extends BasicCommonDAO<Entity> {
    *
    * @return
    */
-  List<EntityBrief> retrieveBriefs(int start, int max);
+  List<EntityBrief> retrieveBriefs(int start, int max, EntityQuery query);
 
   List<EntityBrief> retrieveBriefs(int start, int max, String sortKey,
-    boolean asc);
+    boolean asc, EntityQuery query);
 
   /**
    * Convert from EntityBrief to Entity

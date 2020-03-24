@@ -12,5 +12,4 @@ import com.indexdata.masterkey.localindices.entity.Setting;
  * @author jakub
  */
 public interface SettingDAO extends BasicCommonDAO<Setting> {
-  public int getCount(String prefix);
 }

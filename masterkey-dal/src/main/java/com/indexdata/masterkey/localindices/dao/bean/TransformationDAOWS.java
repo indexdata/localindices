@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationDAO;
 import com.indexdata.masterkey.localindices.entity.Transformation;
 import com.indexdata.masterkey.localindices.web.service.converter.TransformationBrief;
@@ -80,8 +81,8 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
      * @return
      */
     @Override
-    public List<TransformationBrief> retrieveBriefs(int start, int max) {
-        String url = serviceBaseURL + "?start=" + start + "&max=" + max;
+    public List<TransformationBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+        String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationsConverter> storagesConnector =
                     new ResourceConnector<TransformationsConverter>(
@@ -154,11 +155,11 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
     }
 
     @Override
-    public List<Transformation> retrieve(int start, int max) {
+    public List<Transformation> retrieve(int start, int max, EntityQuery query) {
        //TODO this cannot be more stupid
        logger.log(Level.WARN, "This method id deprecetated and should not be used, use retrieveStorageBrief instead.");
        List<Transformation> hables = new ArrayList<Transformation>();
-       List<TransformationBrief> hrefs = retrieveBriefs(start, max);
+       List<TransformationBrief> hrefs = retrieveBriefs(start, max, new EntityQuery());
        if (hrefs != null) {
             for (TransformationBrief href : hrefs) {
             	Transformation hable = retrieveFromBrief(href);
@@ -169,8 +170,8 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
     }
     
     @Override
-    public int getCount() {
-        String url = serviceBaseURL + "?start=0&max=0";
+    public int getCount(EntityQuery query) {
+        String url = serviceBaseURL + "?start=0&max=0" + query.asUrlParameters();
         try {
             ResourceConnector<TransformationsConverter> connector =
                     new ResourceConnector<TransformationsConverter>(
@@ -188,13 +189,13 @@ public class TransformationDAOWS extends CommonDAOWS implements TransformationDA
 
   @Override
   public List<Transformation> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max, sortKey, asc);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, sortKey, asc, query);
   }
 
   @Override
   public List<TransformationBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max, sortKey, asc);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, sortKey, asc, query);
   }
 }

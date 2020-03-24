@@ -6,13 +6,6 @@
 
 package com.indexdata.masterkey.localindices.dao.bean;
 
-import com.indexdata.masterkey.localindices.dao.DAOException;
-import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
-import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
-import com.indexdata.masterkey.localindices.entity.Harvestable;
-import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
-import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,8 +18,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import com.indexdata.masterkey.localindices.dao.DAOException;
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
+import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
+import com.indexdata.masterkey.localindices.entity.HarvestConnectorResource;
+import com.indexdata.masterkey.localindices.entity.Harvestable;
+import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
+import com.indexdata.masterkey.localindices.web.service.converter.HarvestableBrief;
 
 /**
  *
@@ -99,7 +102,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	harvestables.put(entity.getId(), entity);
     }
 
-    public List<HarvestableBrief> retrieveBriefs(int start, int max) {
+    public List<HarvestableBrief> retrieveBriefs(int start, int max, EntityQuery query) {
         List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
         for (Harvestable hable : harvestables.values()) {
             try {
@@ -141,7 +144,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	harvestables.remove(harvestable.getId());
     }
 
-    public List<Harvestable> retrieve(int start, int max) {
+    public List<Harvestable> retrieve(int start, int max, EntityQuery query) {
     	List<Harvestable> list = new LinkedList<Harvestable>();
     	int index = 0; 
     	for (Harvestable entity : harvestables.values()) {
@@ -154,7 +157,7 @@ public class HarvestableDAOFake implements HarvestableDAO {
     	return list;
     }
 
-    public int getCount() {
+    public int getCount(EntityQuery query) {
     	return harvestables.size();
     }
 
@@ -165,14 +168,14 @@ public class HarvestableDAOFake implements HarvestableDAO {
 
   @Override
   public List<Harvestable> retrieve(int start, int max, String sortKey,
-    boolean asc) {
-    return retrieve(start, max);
+    boolean asc, EntityQuery query) {
+    return retrieve(start, max, query);
   }
 
   @Override
   public List<HarvestableBrief> retrieveBriefs(int start, int max,
-    String sortKey, boolean asc) {
-    return retrieveBriefs(start, max);
+    String sortKey, boolean asc, EntityQuery query) {
+    return retrieveBriefs(start, max, query);
   }
 
   @Override
@@ -184,23 +187,4 @@ public class HarvestableDAOFake implements HarvestableDAO {
   public void resetCache(long id) throws DAOException {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
-
-  @Override
-  public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, String filterString) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, String filterString) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public int getCount(String filterString) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
- 
 }

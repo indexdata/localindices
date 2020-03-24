@@ -16,6 +16,7 @@ import java.util.Properties;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.HarvestableDAO;
 import com.indexdata.masterkey.localindices.dao.bean.HarvestablesDAOJPA;
 import com.indexdata.masterkey.localindices.dao.bean.StoragesDAOJPA;
@@ -53,9 +54,10 @@ public class JobScheduler {
    */
   public void updateJobs() {
     String maxJobs = (String) config.get("harvester.max-jobs");
+    EntityQuery query = new EntityQuery();
     Collection<HarvestableBrief> hbriefs =
         dao.retrieveBriefs(0,
-          (maxJobs == null ? dao.getCount() : Integer.parseInt(maxJobs)));
+          (maxJobs == null ? dao.getCount(query) : Integer.parseInt(maxJobs)),query);
     if (hbriefs == null) {
       logger.log(Level.ERROR, "Cannot update harvesting jobs, retrieved list is empty.");
       return;

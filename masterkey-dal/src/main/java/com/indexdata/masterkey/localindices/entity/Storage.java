@@ -51,6 +51,7 @@ public abstract class Storage implements Serializable, Cloneable {
   private Integer retryCount;
   private Integer retryWait;
   protected Integer bulkSize; 
+  private String acl = null;
 
   /*
    * @OneToMany(mappedBy="storage") // try @XmlTransient private
@@ -182,6 +183,14 @@ public abstract class Storage implements Serializable, Cloneable {
 
   public Integer getBulkSize() {
     return new Integer(1000);
+  }
+
+  public String getAcl() {
+    return acl;
+  }
+
+  public void setAcl(String acl) {
+    this.acl = acl;
   }
 
   @Transient

@@ -6,6 +6,23 @@
 
 package com.indexdata.masterkey.localindices.web.service.converter;
 
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.log4j.Logger;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.SettingDAO;
 import com.indexdata.masterkey.localindices.dao.bean.SettingDAOJPA;
 import com.indexdata.masterkey.localindices.entity.Harvestable;
@@ -18,19 +35,6 @@ import com.indexdata.torus.Records;
 import com.indexdata.torus.layer.KeyValue;
 import com.indexdata.torus.layer.SearchableTypeLayer;
 import com.indexdata.utils.DateUtil;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import javax.xml.bind.annotation.XmlRootElement;
-import org.apache.log4j.Logger;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  * Converter to TORUS records of type searchable.
@@ -236,10 +240,10 @@ public class SearchablesConverter extends Records {
     }
     
     settingsPrefixes.add("job." + entity.getId() + ".searchables.");
-
     for (String prefix: settingsPrefixes) {
       if (prefix != null) {
-	List<Setting> settings = dao.retrieve(0, dao.getCount(prefix), prefix, false);
+        EntityQuery query = new EntityQuery().withStartsWith(prefix, "name");
+	List<Setting> settings = dao.retrieve(0, dao.getCount(query), prefix, false, query);
 	for (Setting setting : settings) {
 	  overrideSetting(layer, setting.getName().substring(prefix.length()), setting.getValue());
 	}

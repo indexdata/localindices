@@ -21,6 +21,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.indexdata.masterkey.localindices.dao.EntityQuery;
 import com.indexdata.masterkey.localindices.dao.TransformationStepAssociationDAO;
 import com.indexdata.masterkey.localindices.dao.bean.TransformationStepAssociationsDAOJPA;
 import com.indexdata.masterkey.localindices.entity.TransformationStepAssociation;
@@ -29,7 +30,7 @@ import com.indexdata.masterkey.localindices.web.service.converter.Transformation
 
 /**
  * RESTful WS (resource) that maps to the Transformation collection.
- * 
+ *
  * @author Dennis
  */
 @Path("/tsas/")
@@ -45,7 +46,7 @@ public class TransformationStepAssociationsResource {
   /**
    * Constructor used for instantiating an instance of the Transformations
    * resource.
-   * 
+   *
    * @param context
    *          HttpContext inherited from the parent resource
    */
@@ -56,7 +57,7 @@ public class TransformationStepAssociationsResource {
   /**
    * Get method for retrieving a collection of Transformation instance in XML
    * format.
-   * 
+   *
    * @param start
    *          optional start item argument
    * @param max
@@ -68,21 +69,21 @@ public class TransformationStepAssociationsResource {
   public TransformationStepAssociationsConverter get(
 
   @QueryParam("start") @DefaultValue("0") int start,
-
   @QueryParam("max") @DefaultValue("100") int max) {
     List<TransformationStepAssociation> entities;
+    EntityQuery qry = new EntityQuery();
     if (max <= 0)
-      entities = new ArrayList<TransformationStepAssociation>();
+      entities = new ArrayList();
     else
-      entities = dao.retrieve(start, max);
+      entities = dao.retrieve(start, max, qry);
     return new TransformationStepAssociationsConverter(entities, context.getAbsolutePath(), start,
-	max, dao.getCount());
+	max, dao.getCount(qry));
   }
 
   /**
    * Post method for creating an instance of Transformation using XML as the
    * input format.
-   * 
+   *
    * @param data
    *          an TransformationConverter entity that is deserialized from an XML
    *          stream
@@ -100,7 +101,7 @@ public class TransformationStepAssociationsResource {
 
   /**
    * Entry point to the Transformation WS.
-   * 
+   *
    * @param id
    *          resource id
    * @return an instance of TransformationResource (WS)

@@ -46,10 +46,10 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   protected String description;
 
   protected String type;
- 
+
   protected String inputFormat;
   protected String outputFormat;
-  
+
   protected Boolean enabled;
   @Lob
   protected String script = "";
@@ -58,12 +58,14 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   protected String testData = "";
   @Lob
   protected String testOutput = "";
-  
+
   @OneToMany(mappedBy = "step")
   @OrderBy("position")
   protected List<TransformationStepAssociation> stepAssociations;
 
   protected String customClass;
+
+  protected String acl;
 
   public TransformationStep() {
   }
@@ -91,7 +93,7 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
   }
-  
+
   @XmlID
   @XmlElement(name = "id")
   public String getStringId() {
@@ -99,11 +101,11 @@ public abstract class TransformationStep implements Serializable, Cloneable {
       return id.toString();
     return null;
   }
-  
+
   void setStringId(String id) {
     this.id = Long.parseLong(id);
   }
-  
+
   @XmlTransient
   public Long getId() {
     return id;
@@ -120,6 +122,15 @@ public abstract class TransformationStep implements Serializable, Cloneable {
   public void setName(String name) {
     this.name = name;
   }
+
+  public String getAcl() {
+    return acl;
+  }
+
+  public void setAcl(String acl) {
+    this.acl = acl;
+  }
+
 
   @Override
   public int hashCode() {

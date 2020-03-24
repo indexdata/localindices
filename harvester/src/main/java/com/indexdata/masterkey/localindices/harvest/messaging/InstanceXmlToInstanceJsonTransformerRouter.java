@@ -1,7 +1,9 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.json.simple.JSONArray;
@@ -132,7 +134,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       } catch (Exception e) {
         logger.error("Error in consume: ", e);
       }
-
     }
   }
 
@@ -166,9 +167,11 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   private static JSONObject makeInstanceJson(Record record) {
 
     JSONObject instanceJson = new JSONObject();
-    NodeList nodeList = ((RecordDOM) record).toNode().getChildNodes();
+    Node recordNode = ((RecordDOM) record).toNode();
 
-    for (Node node : iterable(nodeList)) {
+    stripWhiteSpaceNodes(recordNode);
+
+    for (Node node : iterable(recordNode)) {
       if (isSimpleElement(node)) {
         instanceJson.put(node.getLocalName(), node.getTextContent());
       } else if (isObject(node)) {
@@ -192,6 +195,34 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     return instanceJson;
   }
 
+  /**
+   * Remove whitespace text nodes (indentation) between elements
+   * @param node
+   */
+  private static void stripWhiteSpaceNodes(Node node) {
+    // Clean up whitespace text nodes between elements
+    List<Node> whiteSpaceNodes = new ArrayList();
+    findWhiteSpaceNodes(node, whiteSpaceNodes);
+    for (Node nodeToDelete : whiteSpaceNodes) {
+      nodeToDelete.getParentNode().removeChild(nodeToDelete);
+    }
+  }
+
+  /**
+   * Recursively finds whitespace text nodes between elements and adds them to the list
+   * @param node the element to find whitespace in (at arbitrary depth)
+   * @param whiteSpaceNodes adds text nodes to the list as they are found
+   */
+   private static void findWhiteSpaceNodes (Node node, List<Node> whiteSpaceNodes) {
+    for (Node child : iterable(node)) {
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
+        findWhiteSpaceNodes(child, whiteSpaceNodes);
+      } else if (child.getTextContent().matches("\\s+")) {
+        whiteSpaceNodes.add(child);
+      }
+    }
+  }
+
   private static JSONObject makeJsonObject (Node node) {
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
@@ -212,7 +243,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         }
         jsonObject.put(objectProperty.getLocalName(), jsonArray);
       }
-
     }
     return jsonObject;
   }
@@ -249,7 +279,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             && node.getFirstChild().getLocalName().equals("arr"));
   }
 
-
   @Override
   public void onMessage(Object documentIn) {
     consume(documentIn);
@@ -260,6 +289,11 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
      throw new RuntimeException("Not implemented");
   }
 
+  /**
+   * Creates an Iterable for a nodeList
+   * @param nodeList
+   * @return
+   */
   private static Iterable<Node> iterable(final NodeList nodeList) {
     return () -> new Iterator<Node>() {
 
@@ -277,5 +311,14 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             return nodeList.item(index++);
         }
     };
+  }
+
+  /**
+   * Creates an Iterable for the childNodes of node
+   * @param node
+   * @return
+   */
+  private static Iterable<Node> iterable(Node node) {
+    return iterable(node.getChildNodes());
   }
 }
