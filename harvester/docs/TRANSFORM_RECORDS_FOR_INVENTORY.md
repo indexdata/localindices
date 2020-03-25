@@ -22,7 +22,7 @@ Yet, in the Harvester there _are_ a few conventions, which are necessary to comp
 
 Firstly, due to the conceptual differences between XML and JSON in how each data framework expresses repeatable elements, the output of the XSLT transformation must specifically encode repeatable elements as arrays, in a way that will be understood be the Harvester in phase 2 (transform the XML to JSON).
 
-The convention is to define arrays by the tag <arr> and within the array define each element by the tag <i>
+The convention is to define arrays by the tag `<arr>` and within the array define each element by the tag `<i>`
 
 Repeatable elements structured like that, for example
 
