@@ -1,5 +1,5 @@
 NAME=masterkey-harvester
-VERSION=2.12.0
+VERSION=2.12.1
 DEBIAN_DIST="jessie wheezy"
 UBUNTU_DIST=""
 OMIT_FROM_DIST="solr lib webapps harvester/src/main/webapp/WEB-INF/harvester-dev.properties"

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Transforming bibliographic records for ingestion to FOLIO Inventory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+  <body style="font: normal 100%/100% Verdana, Arial, sans-serif;">
+    <div><h2>Harvesting bibliographic records into FOLIO Inventory</h2>
+      <h3>Transform to JSON and ingest</h3>
+      <p>There are three phases to the ingestion of harvested bibliographic XML records into FOLIO Inventory</p>
+      <ol>
+        <li>XSLT transformation of bibliographic records with holdings and items to an XML format suitable for
+          transformation to Inventory JSON records.</li>
+        <li>Transform the XML records to JSON</li>
+        <li>Push the JSON records to Inventory</li>
+      </ol>
+      <h3>Writing the style sheets for phase 1</h3>
+      <p>The input to phase 1 could be OAI-PMH MARC21 records for example.</p>
+      <p>The Harvester itself does not have any particular expectations with regards
+        to which elements should be present and what the content should be, since
+        ultimately it will be Inventory validating the contents of the instances,
+        holdings and items records pushed to it. If using standard FOLIO Inventory modules,
+        these FOLIO Inventory schemas define required/allowed data and structures:</p>
+      <ul>
+        <li><a href="https://github.com/folio-org/mod-inventory-storage/blob/master/ramls/instance.json" target="_blank">instance.json</a></li>
+        <li><a href="https://github.com/folio-org/mod-inventory-storage/blob/master/ramls/holdingsrecord.json" target="_blank">holdingsrecord.json</a></li>
+        <li><a href="https://github.com/folio-org/mod-inventory-storage/blob/master/ramls/item.json" target="_blank">item.json</a></li>
+      </ul>
+      <p>Yet, in the Harvester there <i>are</i> a few conventions, which are necessary
+        to comply with in order to produce valid FOLIO JSON records, say, from
+        incoming MARC XML records.</p>
+      <p>Firstly, due to the conceptual differences between XML and JSON in how
+        each data framework expresses repeatable elements, the output of the XSLT transformation
+        must specifically encode repeatable elements as arrays, in a way that
+        will be understood be the Harvester in phase 2 (transform the XML to JSON).</p>
+      <p>The convention is to define arrays by the tag &lt;arr&gt; and within the
+      array define each element by the tag &lt;i&gt;</p>
+      <p>Repeatable elements structured like that, for example </p>
+      <pre>  &lt;myelement&gt;
+    &lt;arr&gt;
+       &lt;i&gt;value 1&lt;/i&gt;
+       &lt;i&gt;value 2&lt;/i&gt;
+     &lt;/arr&gt;
+   &lt;myelement&gt;</pre>
+      <p>would subsequently be transformed to JSON arrays, like this</p>
+      <pre>  "myelement":  ["value1", "value2"]</pre>
+      <p>Or for complex elements:</p>
+      <pre>  &lt;myelement&gt;
+    &lt;arr&gt;
+       &lt;i&gt;
+          &lt;x&gt;a&lt;/x&gt;
+          &lt;y&gt;b&lt;/y&gt;
+        &lt;/i&gt;
+        &lt;i&gt;
+          &lt;x&gt;c&lt;/a&gt;
+          &lt;y&gt;d&lt;/y&gt;
+        &lt;/i&gt;
+     &lt;/arr&gt;
+  &lt;/myelement&gt;</pre>
+      <p>would end up as this before being pushed to Inventory:</p>
+      <pre>  "myelement": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]</pre>
+      <p>Secondly, any holdings records must be embedded as an array of holdings
+        in the instance XML, and items must be embedded in the holdings elements.
+        The above examples illustrate that too. The convention is:</p>
+      <pre>&lt;record&gt;
+  [instance properties]
+  &lt;holdingsRecords&gt;
+    &lt;arr&gt;
+      &lt;i&gt;
+        [holdings properties]
+        &lt;items&gt;
+          &lt;arr&gt;
+            &lt;i&gt;
+              [item properties]
+            &lt;/i&gt;
+          &lt;/arr&gt;
+        &lt;/items&gt;
+      &lt;/i
+    &lt;/arr&gt;
+  &lt;/holdingsRecords&gt;
+&lt;/record&gt;</pre>
+      <label>Applying these conventions to an actual sample MARC record:</label>
+      <textarea cols="140" rows="16">  &lt;record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" &gt;
+    &lt;leader&gt;00683cam a2200253I  4500&lt;/leader&gt;
+    &lt;controlfield tag="005"&gt;20131024131349.0&lt;/controlfield&gt;
+    &lt;controlfield tag="008"&gt;750603s1959    nyua   j      000 0beng  &lt;/controlfield&gt;
+    &lt;controlfield tag="001"&gt;991256103569&lt;/controlfield&gt;
+    &lt;datafield tag="010" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;   59011414 &lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="035" ind1=" " ind2=" "&gt;
+      &lt;subfield code="9"&gt;186613&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="035" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;ocm01369356&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="035" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;125&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="035" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;(PMilS)125-millerdb-Voyager&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="040" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;DLC&lt;/subfield&gt;
+      &lt;subfield code="c"&gt;ORL&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;OCL&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;m.c.&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;OCL&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;MVS&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="049" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;MVSC&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="050" ind1="0" ind2=" "&gt;
+      &lt;subfield code="a"&gt;QC16.E5&lt;/subfield&gt;
+      &lt;subfield code="b"&gt;B4&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="082" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;925.3&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="092" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;921&lt;/subfield&gt;
+      &lt;subfield code="b"&gt;E35b&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="100" ind1="1" ind2=" "&gt;
+      &lt;subfield code="a"&gt;Beckhard, Arthur J.&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="245" ind1="1" ind2="0"&gt;
+      &lt;subfield code="a"&gt;Albert Einstein.&lt;/subfield&gt;
+      &lt;subfield code="c"&gt;Illustrated by Charles Beck.&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="260" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;New York,&lt;/subfield&gt;
+      &lt;subfield code="b"&gt;Putnam&lt;/subfield&gt;
+      &lt;subfield code="c"&gt;[1959]&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="300" ind1=" " ind2=" "&gt;
+      &lt;subfield code="a"&gt;126 p.&lt;/subfield&gt;
+      &lt;subfield code="b"&gt;illus.&lt;/subfield&gt;
+      &lt;subfield code="c"&gt;21 cm.&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="490" ind1="1" ind2=" "&gt;
+      &lt;subfield code="a"&gt;Lives to remember&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="600" ind1="1" ind2="0"&gt;
+      &lt;subfield code="a"&gt;Einstein, Albert,&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;1879-1955&lt;/subfield&gt;
+      &lt;subfield code="v"&gt;Juvenile literature.&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="830" ind1=" " ind2="0"&gt;
+      &lt;subfield code="a"&gt;Lives to remember.&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="900" ind1="0" ind2=" "&gt;
+      &lt;subfield code="b"&gt;MILL&lt;/subfield&gt;
+      &lt;subfield code="d"&gt;J&lt;/subfield&gt;
+      &lt;subfield code="f"&gt;QC16.E5&lt;/subfield&gt;
+      &lt;subfield code="f"&gt;B4&lt;/subfield&gt;
+      &lt;subfield code="8"&gt;2220300860003569&lt;/subfield&gt;
+    &lt;/datafield&gt;
+    &lt;datafield tag="995" ind1=" " ind2=" "&gt;
+      &lt;subfield code="ff"&gt;2220300860003569&lt;/subfield&gt;
+      &lt;subfield code="u"&gt;1&lt;/subfield&gt;
+      &lt;subfield code="j"&gt;0&lt;/subfield&gt;
+      &lt;subfield code="aa"&gt;J&lt;/subfield&gt;
+      &lt;subfield code="t"&gt;BOOK&lt;/subfield&gt;
+      &lt;subfield code="s"&gt;33151001864364&lt;/subfield&gt;
+      &lt;subfield code="z"&gt;J&lt;/subfield&gt;
+      &lt;subfield code="q"&gt;ON_RESERVE: N | RESERVE_CHARGES: 0 | RECALLS_PLACED: 0 | HOLDS_PLACED: 0 | HISTORICAL_BOOKINGS: 0 | SHORT_LOAN_CHARGES: 0 | &lt;/subfield&gt;
+      &lt;subfield code="a"&gt;2320300850003569&lt;/subfield&gt;
+      &lt;subfield code="c"&gt;J&lt;/subfield&gt;
+      &lt;subfield code="bb"&gt;QC16.E5 B4&lt;/subfield&gt;
+      &lt;subfield code="v"&gt;false&lt;/subfield&gt;
+      &lt;subfield code="b"&gt;0&lt;/subfield&gt;
+      &lt;subfield code="r"&gt;Suppressed for Renovation&lt;/subfield&gt;
+      &lt;subfield code="h"&gt;MILL&lt;/subfield&gt;
+      &lt;subfield code="i"&gt;MILL&lt;/subfield&gt;
+    &lt;/datafield&gt;
+  &lt;/record&gt;
+      </textarea>
+      <p>the style sheets could transform that OAI-PMH record to this, a format the Harvester would know how to produce FOLIO JSON from:</p>
+      <textarea cols="140" rows="16">&lt;?xml version="1.0"?&gt;
+  &lt;collection xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:oai20="http://www.openarchives.org/OAI/2.0/"&gt;
+    &lt;record&gt;
+      &lt;source&gt;MARC&lt;/source&gt;
+      &lt;instanceTypeId&gt;6312d172-f0cf-40f6-b27d-9fa8feaf332f&lt;/instanceTypeId&gt;
+      &lt;identifiers&gt;
+        &lt;arr&gt;
+          &lt;i&gt;
+            &lt;value&gt;991256103569&lt;/value&gt;
+            &lt;identifierTypeId&gt;04d081a1-5c52-4b84-8962-949fc5f6773c&lt;/identifierTypeId&gt;
+          &lt;/i&gt;
+          &lt;i&gt;
+            &lt;value&gt;   59011414 &lt;/value&gt;
+            &lt;identifierTypeId&gt;c858e4f2-2b6b-4385-842b-60732ee14abb&lt;/identifierTypeId&gt;
+          &lt;/i&gt;
+          &lt;i/&gt;
+          &lt;i&gt;
+            &lt;value&gt;ocm01369356&lt;/value&gt;
+            &lt;identifierTypeId&gt;7e591197-f335-4afb-bc6d-a6d76ca3bace&lt;/identifierTypeId&gt;
+          &lt;/i&gt;
+          &lt;i&gt;
+            &lt;value&gt;125&lt;/value&gt;
+            &lt;identifierTypeId&gt;7e591197-f335-4afb-bc6d-a6d76ca3bace&lt;/identifierTypeId&gt;
+          &lt;/i&gt;
+          &lt;i&gt;
+            &lt;value&gt;(PMilS)125-millerdb-Voyager&lt;/value&gt;
+            &lt;identifierTypeId&gt;7e591197-f335-4afb-bc6d-a6d76ca3bace&lt;/identifierTypeId&gt;
+          &lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/identifiers&gt;
+      &lt;classifications&gt;
+        &lt;arr&gt;
+          &lt;i&gt;
+            &lt;classificationNumber&gt;QC16.E5; B4&lt;/classificationNumber&gt;
+            &lt;classificationTypeId&gt;ce176ace-a53e-4b4d-aa89-725ed7b2edac&lt;/classificationTypeId&gt;
+          &lt;/i&gt;
+          &lt;i&gt;
+            &lt;classificationNumber&gt;925.3&lt;/classificationNumber&gt;
+            &lt;classificationTypeId&gt;42471af9-7d25-4f3a-bf78-60d29dcf463b&lt;/classificationTypeId&gt;
+          &lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/classifications&gt;
+      &lt;title&gt;Albert Einstein&lt;/title&gt;
+      &lt;matchKey&gt;
+        &lt;title&gt;Albert Einstein&lt;/title&gt;
+        &lt;remainder-of-title&gt; : &lt;/remainder-of-title&gt;
+        &lt;medium/&gt;
+      &lt;/matchKey&gt;
+      &lt;contributors&gt;
+        &lt;arr&gt;
+          &lt;i&gt;
+            &lt;name&gt;Beckhard, Arthur J&lt;/name&gt;
+            &lt;contributorNameTypeId&gt;2b94c631-fca9-4892-a730-03ee529ffe2a&lt;/contributorNameTypeId&gt;
+            &lt;primary&gt;true&lt;/primary&gt;
+          &lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/contributors&gt;
+      &lt;publication&gt;
+        &lt;arr&gt;
+          &lt;i&gt;
+            &lt;publisher&gt;Putnam&lt;/publisher&gt;
+            &lt;place&gt;New York,&lt;/place&gt;
+            &lt;dateOfPublication&gt;[1959]&lt;/dateOfPublication&gt;
+          &lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/publication&gt;
+      &lt;physicalDescriptions&gt;
+        &lt;arr&gt;
+          &lt;i&gt;126 p&lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/physicalDescriptions&gt;
+      &lt;subjects&gt;
+        &lt;arr&gt;
+          &lt;i&gt;Einstein, Albert--1879-1955--Juvenile literature&lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/subjects&gt;
+      &lt;holdingsRecords&gt;
+        &lt;arr&gt;
+          &lt;i&gt;
+            &lt;formerIds&gt;
+              &lt;arr&gt;
+                &lt;i&gt;2220300860003569&lt;/i&gt;
+              &lt;/arr&gt;
+            &lt;/formerIds&gt;
+            &lt;permanentLocationId&gt;004c14d3-fb87-40fc-b4db-9e91738b4f1b&lt;/permanentLocationId&gt;
+            &lt;callNumber/&gt;
+            &lt;items&gt;
+              &lt;arr&gt;
+                &lt;i&gt;
+                  &lt;itemIdentifier&gt;2320300850003569&lt;/itemIdentifier&gt;
+                  &lt;barcode&gt;33151001864364&lt;/barcode&gt;
+                  &lt;permanentLoanTypeId&gt;2b94c631-fca9-4892-a730-03ee529ffe27&lt;/permanentLoanTypeId&gt;
+                  &lt;materialTypeId&gt;1a54b431-2e4f-452d-9cae-9cee66c9a892&lt;/materialTypeId&gt;
+                  &lt;status&gt;
+                    &lt;name&gt;Available&lt;/name&gt;
+                  &lt;/status&gt;
+                &lt;/i&gt;
+              &lt;/arr&gt;
+            &lt;/items&gt;
+          &lt;/i&gt;
+        &lt;/arr&gt;
+      &lt;/holdingsRecords&gt;
+    &lt;/record&gt;
+  &lt;/collection&gt;
+    </textarea>
+    </div>
+  </body>
+</html>
