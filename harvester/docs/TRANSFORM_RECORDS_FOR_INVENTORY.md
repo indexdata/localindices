@@ -39,7 +39,7 @@ would subsequently be transformed to JSON arrays, like this
 "myelement":  ["value1", "value2"]
 ```
 
-Or for complex elements:
+Or complex array elements:
 ```
   <myelement>
     <arr>
@@ -57,7 +57,7 @@ Or for complex elements:
 
 would end up as this before being pushed to Inventory:
 ```
- "myelement": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]</pre>
+ "myelement": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]
 ```
 
 Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements. The above examples illustrate that too. The convention is:
@@ -75,23 +75,14 @@ Secondly, any holdings records must be embedded as an array of holdings in the i
             </i>
           </arr>
         </items>
-      </i
+      </i>
     </arr>
   </holdingsRecords>
-</record></pre>
+</record>
 ```
 
 Applying these conventions to an actual sample MARC record:
 ```
-<record>
-      <header>
-        <identifier>oai:alma.01SSHELCOMILLRSVL:991256103569</identifier>
-        <datestamp>2019-09-25T00:58:12Z</datestamp>
-        <setSpec>IndexDataHoldItemPhysicalTitles</setSpec>
-        <setSpec>EDS:Set01</setSpec>
-        <setSpec>IndexDataHoldItem</setSpec>
-      </header>
-      <metadata>
         <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
           <leader>00683cam a2200253I  4500</leader>
           <controlfield tag="005">20131024131349.0</controlfield>
@@ -188,11 +179,9 @@ Applying these conventions to an actual sample MARC record:
             <subfield code="i">MILL</subfield>
           </datafield>
         </record>
-      </metadata>
-    </record>
 ```
 
-the style sheets could transform that OAI-PMH record to this, a format the Harvester would know how to produce FOLIO JSON from:
+the style sheets could transform that OAI-PMH record like this, a format the Harvester would know how to produce FOLIO JSON from:
 
 ```
 <?xml version="1.0"?>
