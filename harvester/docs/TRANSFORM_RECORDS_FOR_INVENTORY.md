@@ -20,11 +20,11 @@ The Harvester itself does not have any particular expectations with regards to w
 
 Yet, in the Harvester there _are_ a few conventions, which are necessary to comply with in order to produce valid FOLIO JSON records, say, from incoming MARC XML records.
 
-Firstly, due to the conceptual differences between XML and JSON in how each data framework expresses repeatable elements, the output of the XSLT transformation must specifically encode repeatable elements as arrays, in a way that will be understood be the Harvester in phase 2 (transform the XML to JSON).
+Firstly, due to the conceptual differences between XML and JSON in how each data framework expresses repeatable elements, the output of the XSLT transformation must specifically encode repeatable elements as arrays, in a way that will be understood by the Harvester in phase 2 (transform the XML to JSON).
 
 The convention is to define arrays by the tag `<arr>` and within the array define each element by the tag `<i>`
 
-Repeatable elements structured like that, for example
+Repeatable elements structured like that
 
   ```
    <myelement>
@@ -34,7 +34,7 @@ Repeatable elements structured like that, for example
      </arr>
    <myelement>
  ```
-would subsequently be transformed to JSON arrays, like this
+would subsequently be transformed to JSON arrays like this
 ```
 "myelement":  ["value1", "value2"]
 ```
@@ -60,7 +60,7 @@ would end up as this before being pushed to Inventory:
  "myelement": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]
 ```
 
-Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements. The above examples illustrate that too. The convention is:
+Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements as illustrate in this example:
 ```
 <record>
   [instance properties]
@@ -81,107 +81,107 @@ Secondly, any holdings records must be embedded as an array of holdings in the i
 </record>
 ```
 
-Applying these conventions to an actual sample MARC record:
+If we apply these two conventions -- encode arrays with `<arr>` and `<i>` and embed arrays of holdings and items in the instance -- to an actual sample MARC record:
 ```
-        <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
-          <leader>00683cam a2200253I  4500</leader>
-          <controlfield tag="005">20131024131349.0</controlfield>
-          <controlfield tag="008">750603s1959    nyua   j      000 0beng  </controlfield>
-          <controlfield tag="001">991256103569</controlfield>
-          <datafield tag="010" ind1=" " ind2=" ">
-            <subfield code="a">   59011414 </subfield>
-          </datafield>
-          <datafield tag="035" ind1=" " ind2=" ">
-            <subfield code="9">186613</subfield>
-          </datafield>
-          <datafield tag="035" ind1=" " ind2=" ">
-            <subfield code="a">ocm01369356</subfield>
-          </datafield>
-          <datafield tag="035" ind1=" " ind2=" ">
-            <subfield code="a">125</subfield>
-          </datafield>
-          <datafield tag="035" ind1=" " ind2=" ">
-            <subfield code="a">(PMilS)125-millerdb-Voyager</subfield>
-          </datafield>
-          <datafield tag="040" ind1=" " ind2=" ">
-            <subfield code="a">DLC</subfield>
-            <subfield code="c">ORL</subfield>
-            <subfield code="d">OCL</subfield>
-            <subfield code="d">m.c.</subfield>
-            <subfield code="d">OCL</subfield>
-            <subfield code="d">MVS</subfield>
-          </datafield>
-          <datafield tag="049" ind1=" " ind2=" ">
-            <subfield code="a">MVSC</subfield>
-          </datafield>
-          <datafield tag="050" ind1="0" ind2=" ">
-            <subfield code="a">QC16.E5</subfield>
-            <subfield code="b">B4</subfield>
-          </datafield>
-          <datafield tag="082" ind1=" " ind2=" ">
-            <subfield code="a">925.3</subfield>
-          </datafield>
-          <datafield tag="092" ind1=" " ind2=" ">
-            <subfield code="a">921</subfield>
-            <subfield code="b">E35b</subfield>
-          </datafield>
-          <datafield tag="100" ind1="1" ind2=" ">
-            <subfield code="a">Beckhard, Arthur J.</subfield>
-          </datafield>
-          <datafield tag="245" ind1="1" ind2="0">
-            <subfield code="a">Albert Einstein.</subfield>
-            <subfield code="c">Illustrated by Charles Beck.</subfield>
-          </datafield>
-          <datafield tag="260" ind1=" " ind2=" ">
-            <subfield code="a">New York,</subfield>
-            <subfield code="b">Putnam</subfield>
-            <subfield code="c">[1959]</subfield>
-          </datafield>
-          <datafield tag="300" ind1=" " ind2=" ">
-            <subfield code="a">126 p.</subfield>
-            <subfield code="b">illus.</subfield>
-            <subfield code="c">21 cm.</subfield>
-          </datafield>
-          <datafield tag="490" ind1="1" ind2=" ">
-            <subfield code="a">Lives to remember</subfield>
-          </datafield>
-          <datafield tag="600" ind1="1" ind2="0">
-            <subfield code="a">Einstein, Albert,</subfield>
-            <subfield code="d">1879-1955</subfield>
-            <subfield code="v">Juvenile literature.</subfield>
-          </datafield>
-          <datafield tag="830" ind1=" " ind2="0">
-            <subfield code="a">Lives to remember.</subfield>
-          </datafield>
-          <datafield tag="900" ind1="0" ind2=" ">
-            <subfield code="b">MILL</subfield>
-            <subfield code="d">J</subfield>
-            <subfield code="f">QC16.E5</subfield>
-            <subfield code="f">B4</subfield>
-            <subfield code="8">2220300860003569</subfield>
-          </datafield>
-          <datafield tag="995" ind1=" " ind2=" ">
-            <subfield code="ff">2220300860003569</subfield>
-            <subfield code="u">1</subfield>
-            <subfield code="j">0</subfield>
-            <subfield code="aa">J</subfield>
-            <subfield code="t">BOOK</subfield>
-            <subfield code="s">33151001864364</subfield>
-            <subfield code="z">J</subfield>
-            <subfield code="q">ON_RESERVE: N | RESERVE_CHARGES: 0 | RECALLS_PLACED: 0 | HOLDS_PLACED: 0 | HISTORICAL_BOOKINGS: 0 | SHORT_LOAN_CHARGES: 0 | </subfield>
-            <subfield code="a">2320300850003569</subfield>
-            <subfield code="c">J</subfield>
-            <subfield code="bb">QC16.E5 B4</subfield>
-            <subfield code="v">false</subfield>
-            <subfield code="b">0</subfield>
-            <subfield code="r">Suppressed for Renovation</subfield>
-            <subfield code="h">MILL</subfield>
-            <subfield code="i">MILL</subfield>
-          </datafield>
-        </record>
+    <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
+      <leader>00683cam a2200253I  4500</leader>
+      <controlfield tag="005">20131024131349.0</controlfield>
+      <controlfield tag="008">750603s1959    nyua   j      000 0beng  </controlfield>
+      <controlfield tag="001">991256103569</controlfield>
+      <datafield tag="010" ind1=" " ind2=" ">
+        <subfield code="a">   59011414 </subfield>
+      </datafield>
+      <datafield tag="035" ind1=" " ind2=" ">
+        <subfield code="9">186613</subfield>
+      </datafield>
+      <datafield tag="035" ind1=" " ind2=" ">
+        <subfield code="a">ocm01369356</subfield>
+      </datafield>
+      <datafield tag="035" ind1=" " ind2=" ">
+        <subfield code="a">125</subfield>
+      </datafield>
+      <datafield tag="035" ind1=" " ind2=" ">
+        <subfield code="a">(PMilS)125-millerdb-Voyager</subfield>
+      </datafield>
+      <datafield tag="040" ind1=" " ind2=" ">
+        <subfield code="a">DLC</subfield>
+        <subfield code="c">ORL</subfield>
+        <subfield code="d">OCL</subfield>
+        <subfield code="d">m.c.</subfield>
+        <subfield code="d">OCL</subfield>
+        <subfield code="d">MVS</subfield>
+      </datafield>
+      <datafield tag="049" ind1=" " ind2=" ">
+        <subfield code="a">MVSC</subfield>
+      </datafield>
+      <datafield tag="050" ind1="0" ind2=" ">
+        <subfield code="a">QC16.E5</subfield>
+        <subfield code="b">B4</subfield>
+      </datafield>
+      <datafield tag="082" ind1=" " ind2=" ">
+        <subfield code="a">925.3</subfield>
+      </datafield>
+      <datafield tag="092" ind1=" " ind2=" ">
+        <subfield code="a">921</subfield>
+        <subfield code="b">E35b</subfield>
+      </datafield>
+      <datafield tag="100" ind1="1" ind2=" ">
+        <subfield code="a">Beckhard, Arthur J.</subfield>
+      </datafield>
+      <datafield tag="245" ind1="1" ind2="0">
+        <subfield code="a">Albert Einstein.</subfield>
+        <subfield code="c">Illustrated by Charles Beck.</subfield>
+      </datafield>
+      <datafield tag="260" ind1=" " ind2=" ">
+        <subfield code="a">New York,</subfield>
+        <subfield code="b">Putnam</subfield>
+        <subfield code="c">[1959]</subfield>
+      </datafield>
+      <datafield tag="300" ind1=" " ind2=" ">
+        <subfield code="a">126 p.</subfield>
+        <subfield code="b">illus.</subfield>
+        <subfield code="c">21 cm.</subfield>
+      </datafield>
+      <datafield tag="490" ind1="1" ind2=" ">
+        <subfield code="a">Lives to remember</subfield>
+      </datafield>
+      <datafield tag="600" ind1="1" ind2="0">
+        <subfield code="a">Einstein, Albert,</subfield>
+        <subfield code="d">1879-1955</subfield>
+        <subfield code="v">Juvenile literature.</subfield>
+      </datafield>
+      <datafield tag="830" ind1=" " ind2="0">
+        <subfield code="a">Lives to remember.</subfield>
+      </datafield>
+      <datafield tag="900" ind1="0" ind2=" ">
+        <subfield code="b">MILL</subfield>
+        <subfield code="d">J</subfield>
+        <subfield code="f">QC16.E5</subfield>
+        <subfield code="f">B4</subfield>
+        <subfield code="8">2220300860003569</subfield>
+      </datafield>
+      <datafield tag="995" ind1=" " ind2=" ">
+        <subfield code="ff">2220300860003569</subfield>
+        <subfield code="u">1</subfield>
+        <subfield code="j">0</subfield>
+        <subfield code="aa">J</subfield>
+        <subfield code="t">BOOK</subfield>
+        <subfield code="s">33151001864364</subfield>
+        <subfield code="z">J</subfield>
+        <subfield code="q">ON_RESERVE: N | RESERVE_CHARGES: 0 | RECALLS_PLACED: 0 | HOLDS_PLACED: 0 | HISTORICAL_BOOKINGS: 0 | SHORT_LOAN_CHARGES: 0 | </subfield>
+        <subfield code="a">2320300850003569</subfield>
+        <subfield code="c">J</subfield>
+        <subfield code="bb">QC16.E5 B4</subfield>
+        <subfield code="v">false</subfield>
+        <subfield code="b">0</subfield>
+        <subfield code="r">Suppressed for Renovation</subfield>
+        <subfield code="h">MILL</subfield>
+        <subfield code="i">MILL</subfield>
+      </datafield>
+    </record>
 ```
 
-the style sheets could transform that OAI-PMH record like this, a format the Harvester would know how to produce FOLIO JSON from:
+then the style sheets might transform that OAI-PMH record like this, a format the Harvester would know how to produce FOLIO JSON from:
 
 ```
 <?xml version="1.0"?>
