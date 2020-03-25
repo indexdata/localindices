@@ -60,7 +60,7 @@ would end up as this before being pushed to Inventory:
 "myelements": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]
 ```
 
-Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements as illustrate in this example:
+Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements as illustrated in this example:
 ```
 <record>
   [instance properties]
