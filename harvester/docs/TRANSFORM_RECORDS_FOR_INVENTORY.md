@@ -27,21 +27,21 @@ The convention is to define arrays by the tag `<arr>` and within the array defin
 Repeatable elements structured like that
 
 ```
-<myelement>
+<myelements>
   <arr>
      <i>value 1</i>
      <i>value 2</i>
    </arr>
-<myelement>
+<myelements>
 ```
 would subsequently be transformed to JSON arrays like this
 ```
-"myelement":  ["value1", "value2"]
+"myelements":  ["value1", "value2"]
 ```
 
 Or complex array elements:
 ```
-<myelement>
+<myelements>
   <arr>
      <i>
         <x>a</x>
@@ -52,12 +52,12 @@ Or complex array elements:
         <y>d</y>
       </i>
    </arr>
-</myelement>
+</myelements>
 ```
 
 would end up as this before being pushed to Inventory:
 ```
-"myelement": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]
+"myelements": [{ "x": "a",  "y": "b" }, { "x": "c",  "y": "d" }]
 ```
 
 Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements as illustrate in this example:
