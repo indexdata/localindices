@@ -275,7 +275,7 @@ public class InventoryRecordStorage implements RecordStorage {
           subRecord.setOriginalContent(recordJson.getOriginalContent());
           processAddRecord(subRecord);
         }
-      } else { 
+      } else {
         if (harvestable.isStoreOriginal()) {
           logger.warn("Store original content selected for this job, "
                   + "but storage layer received "
@@ -293,15 +293,34 @@ public class InventoryRecordStorage implements RecordStorage {
 
   private void processAddRecord(Record recordJson) {
     long startStorageEntireRecord = System.currentTimeMillis();
-    JSONObject instanceWithHoldingsAndItems = ((RecordJSON)recordJson).toJson();
-    if (instanceWithHoldingsAndItems.containsKey("title")) {
-      JSONObject instanceResponse = addInstanceHoldingsRecordsAndItems(instanceWithHoldingsAndItems);
-      if (instanceResponse != null && harvestable.isStoreOriginal()) {
-        if (harvestable.isStoreOriginal()) {
-          sourceRecordsProcessed++;
-          JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-          addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+    TransformedRecord transformedRecord = new TransformedRecord(((RecordJSON)recordJson).toJson());
+
+    JSONObject instanceResponse;
+    if (getConfigurationValue(INSTANCE_STORAGE_PATH).contains("match")) {
+      instanceResponse = addInstanceRecord(transformedRecord.getInstance(), transformedRecord.getMatchKey());
+    } else {
+      instanceResponse = addInstanceRecord(transformedRecord.getInstance());
+    }
+
+    if (instanceResponse != null && instanceResponse.get("id") != null) {
+      JSONArray holdingsJson = transformedRecord.getHoldings();
+      if (holdingsJson != null && holdingsJson.size()>0) {
+        String instanceId = instanceResponse.get("id").toString();
+        // delete existing holdings/items from the same institution
+        // before attaching new holdings/items to the instance
+        try {
+          String institutionId = getInstitutionId(holdingsJson);
+          deleteHoldingsAndItemsForInstitution(instanceId, institutionId);
+          addHoldingsRecordsAndItems(holdingsJson, instanceId);
+        } catch (ParseException | ClassCastException | IOException e) {
+          logger.error("Error adding holdings record and/or items: " + e.getLocalizedMessage());
+          holdingsRecordsFailed++;
         }
+      }
+      if (harvestable.isStoreOriginal()) {
+        sourceRecordsProcessed++;
+        JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
+        addMarcRecord(marcJson, (String)instanceResponse.get("id"));
       }
       timingsEntireRecord.time(startStorageEntireRecord);
       if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
@@ -337,45 +356,6 @@ public class InventoryRecordStorage implements RecordStorage {
       }
     }
     return marcJson;
-  }
-
-  private JSONObject addInstanceHoldingsRecordsAndItems (JSONObject instanceHoldingsItems) {
-    JSONObject instanceResponse = null;
-    //JSONObject instanceHoldingsItems = ((RecordJSON)recordJson).toJson();
-    if (instanceHoldingsItems.containsKey("passthrough")) {
-    /* 'passthrough' is a naming convention that the transformation pipeline can
-     use for a container that holds raw elements passed through the pipeline
-     to be handled by subsequent transformation steps.
-     If no transformation step is configured to handle the `passthrough`
-     the element might show up at this point and it should be removed since
-     it's not a valid Instance property */
-      instanceHoldingsItems.remove("passthrough");
-    }
-    if (instanceHoldingsItems.containsKey("holdingsRecords")) {
-      JSONArray holdingsRecords = null;
-      try {
-        holdingsRecords = extractJsonArrayFromObject(instanceHoldingsItems, "holdingsRecords");
-      } catch (ParseException pe) {
-        logger.error("Failed to extract holdings records as JSONArray from the Instance JSON object: " + pe.getLocalizedMessage());
-      }
-      instanceResponse = addInstanceRecord(instanceHoldingsItems);
-      if (instanceResponse != null && instanceResponse.get("id") != null && holdingsRecords != null && holdingsRecords.size()>0) {
-        String instanceId = instanceResponse.get("id").toString();
-        // delete existing holdings/items from the same institution
-        // before attaching new holdings/items to the instance
-        try {
-          String institutionId = getInstitutionId(holdingsRecords);
-          deleteHoldingsAndItemsForInstitution(instanceId, institutionId);
-          addHoldingsRecordsAndItems(holdingsRecords, instanceId);
-        } catch (ParseException | ClassCastException | IOException e) {
-          logger.error("Error adding holdings record and/or items: " + e.getLocalizedMessage());
-          holdingsRecordsFailed++;
-        }
-      }
-    } else {
-      instanceResponse = addInstanceRecord(instanceHoldingsItems);
-    }
-    return instanceResponse;
   }
 
   /**
@@ -792,6 +772,11 @@ public class InventoryRecordStorage implements RecordStorage {
     return marcResponse;
   }
 
+  private JSONObject addInstanceRecord(JSONObject instanceRecord) {
+    JSONObject noMatchKey = new JSONObject();
+    return addInstanceRecord(instanceRecord, noMatchKey);
+  }
+
   /**
    * POST instance to Inventory
    * @param instanceRecord
@@ -800,7 +785,7 @@ public class InventoryRecordStorage implements RecordStorage {
    * @throws IOException
    * @throws ParseException
    */
-  private JSONObject addInstanceRecord(JSONObject instanceRecord) {
+  private JSONObject addInstanceRecord(JSONObject instanceRecord, JSONObject matchKey) {
     JSONObject instanceResponse = null;
     instancesProcessed++;
     try {
@@ -808,11 +793,11 @@ public class InventoryRecordStorage implements RecordStorage {
                    getConfigurationValue(INSTANCE_STORAGE_PATH);
       HttpEntityEnclosingRequestBase httpUpdate;
       if (url.contains("instance-storage-match")) {
+        if (!matchKey.isEmpty()) {
+          instanceRecord.put("matchKey", matchKey);
+        }
         httpUpdate = new HttpPut(url);
       } else {
-        if (instanceRecord.containsKey("matchKey")) {
-          instanceRecord.remove("matchKey");
-        }
         httpUpdate = new HttpPost(url);
       }
       StringEntity entity = new StringEntity(instanceRecord.toJSONString(),"UTF-8");
@@ -1106,5 +1091,116 @@ public class InventoryRecordStorage implements RecordStorage {
       }
     }
   }
+
+  /**
+   * Represents the JSON coming out of the transformation pipeline, containing an instance, <br/>
+   * and possibly holdings and item. <br/>
+   * <br/>
+   * A couple of different structures are supported: <br/>
+   * <br/>
+   * <ol>
+   * <li>the "record" object contains an "instance" object and a "holdingsRecords"  array with embedded "items" arrays</li>
+   * <li>the "record" object contains an "instance" object with an <i>embedded</i> "holdingsRecords" array with embedded "items" arrays</li>
+   * <li>the "record" object _is_ the instance, containing an embedded "holdingsRecords" array with embedded "items" arrays</li>
+   * </ol>
+   * <pre>
+   *  "record" contains
+   *    "instance" object and
+   *    "holdingsRecords" array of holdings records
+   *       with embedded
+   *       "items" arrays
+   *
+   * or
+   *
+   *  "record" contains
+   *     "instance" object
+   *        with embedded
+   *        "holdingsRecords" array of holdings records
+   *             with embedded
+   *             "items" arrays
+   * or
+   *
+   *  "record" contains
+   *      instance properties
+   *      and an embedded
+   *      "holdingsRecords" array of holdings records
+   *          with embedded
+   *          "items" arrays
+   * </pre>
+   *
+   *
+   * In the first two cases, the "record" may contain other elements than "instance" and "holdingsRecords", for example if the
+   * transformation pipeline created additional data for use in the pipeline and did not clean them up again. Such extra elements
+   * will be ignored. In the third case, however, any elements in the "record" that are not valid instance properties would make
+   * ingestion fail -- except for the expected "holdingsRecords" array.
+   *
+   */
+  private class TransformedRecord {
+
+    private JSONObject record;
+    private JSONParser parser = new JSONParser();
+
+    public TransformedRecord(JSONObject recordJson) {
+      this.record=recordJson;
+    }
+
+    public JSONObject getInstance () {
+      JSONObject instance = new JSONObject();
+      try {
+        if (record.containsKey("instance")) {
+          JSONObject instanceFromRecord = (JSONObject) (record.get("instance"));
+          instance = (JSONObject) parser.parse(instanceFromRecord.toJSONString());
+        } else {  // Assume record _is_ the instance
+          instance = (JSONObject) parser.parse(record.toJSONString());
+        }
+        instance.remove("holdingsRecords");
+        instance.remove("matchKey");
+    } catch (ParseException pe) {
+        logger.error("InventoryRecordStorage could not parse transformed record to get Instance: " + pe.getMessage());
+      }
+      return instance;
+    }
+
+    public JSONArray getHoldings () {
+      JSONArray holdings = new JSONArray();
+      try {
+        if (record.containsKey("holdingsRecords")) {
+          JSONArray holdingsRecordsFromRecord = (JSONArray) (record.get("holdingsRecords"));
+          holdings = (JSONArray) parser.parse(holdingsRecordsFromRecord.toJSONString());
+        } else if (record.containsKey("instance")) {
+          JSONObject instance = (JSONObject) record.get("instance");
+          if (instance.containsKey("holdingsRecords")) {
+            JSONArray holdingsRecordsFromInstance = (JSONArray) (instance.get("holdingsRecords"));
+            holdings = (JSONArray) parser.parse(holdingsRecordsFromInstance.toJSONString());
+          } else {
+            logger.warn("InventoryRecordStorage could not find `holdingsRecord` anywhere in transformed record");
+          }
+        }
+      } catch (ParseException pe) {
+        logger.error("InventoryRecordStorage could not parse transformed record to retrieve holdings: " + pe.getMessage());
+      }
+      return holdings;
+    }
+
+    public JSONObject getMatchKey () {
+      JSONObject matchKey = new JSONObject();
+      try {
+        if (record.containsKey("matchKey")) {
+          JSONObject matchKeyFromRecord = (JSONObject) (record.get("matchKey"));
+          matchKey = (JSONObject) parser.parse(matchKeyFromRecord.toJSONString());
+        } else if (record.containsKey("instance")) {
+          JSONObject instance = (JSONObject) record.get("instance");
+          if (instance.containsKey("matchKey")) {
+            JSONObject matchKeyFromInstance = (JSONObject) (instance.get("matchKey"));
+            matchKey = (JSONObject) parser.parse(matchKeyFromInstance.toJSONString());
+          }
+        }
+      } catch (ParseException pe) {
+        logger.error("InventoryRecordStorage could not parse transformed record to retrieve matchKey: " + pe.getMessage());
+      }
+      return matchKey;
+    }
+  }
+
 
 }
