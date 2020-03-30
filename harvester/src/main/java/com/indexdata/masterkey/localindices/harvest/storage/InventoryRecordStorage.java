@@ -5,6 +5,7 @@ import static java.util.Comparator.comparing;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -17,6 +18,7 @@ import java.util.Map.Entry;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -322,7 +324,7 @@ public class InventoryRecordStorage implements RecordStorage {
       if (harvestable.isStoreOriginal()) {
         sourceRecordsProcessed++;
         JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-        addMarcRecord(marcJson, (String)instanceResponse.get("id"), institutionId, localIdentifier);
+        addOrUpdateMarcRecord(marcJson, (String)instanceResponse.get("id"), institutionId, localIdentifier);
       }
       timingsEntireRecord.time(startStorageEntireRecord);
       if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
@@ -729,46 +731,107 @@ public class InventoryRecordStorage implements RecordStorage {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier)  {
+  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier) {
+    JSONObject marcRecords = new JSONObject();
+    try {
+      StringBuilder query = new StringBuilder()
+                      .append("(instanceId==\"").append(instanceId).append("\"")
+                      .append(" and institutionId==\"").append(institutionId).append("\"")
+                      .append(" and localIdentifier==\"").append(localIdentifier).append("\")");
+      StringBuilder url;
+      url = new StringBuilder()
+          .append(folioAddress).append("/marc-records?query=")
+          .append(URLEncoder.encode(query.toString(), "UTF-8"));
+     HttpGet httpGet = new HttpGet(url.toString());
+      httpGet.setHeader("Accept", "application/json");
+      httpGet.setHeader("Content-type", "application/json");
+      httpGet.setHeader("X-Okapi-Token", authToken);
+      httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+      CloseableHttpResponse response = client.execute(httpGet);
+      if (response.getStatusLine().getStatusCode() != 200) {
+        logger.error("Error looking existing MARC record, expected status 200, got "
+                     + response.getStatusLine().getStatusCode() + ": "
+                     + response.getStatusLine().getReasonPhrase());
+      } else {
+        String responseAsString = EntityUtils.toString(response.getEntity());
+        marcRecords = (JSONObject) (new JSONParser().parse(responseAsString));
+      }
+      response.close();
+    } catch (IOException | ParseException e ) {
+      logger.error("Error when checking for previously existing MARC record: " + e.getMessage());
+    }
+    return marcRecords;
+  }
+
+  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier)  {
     JSONObject marcResponse = null;
     if (marcJson != null) {
-      try {
-      String url = folioAddress + "/marc-records"; //TODO: Add configuration value
-      HttpEntityEnclosingRequestBase httpPost;
-      httpPost = new HttpPost(url);
-
       JSONObject marcPostJson = new JSONObject();
       marcPostJson.put("instanceId", instanceId);
       marcPostJson.put("institutionId", institutionId);
       marcPostJson.put("localIdentifier", localIdentifier);
       marcPostJson.put("parsedMarc", marcJson);
       StringEntity entity = new StringEntity(marcPostJson.toJSONString(),"UTF-8");
-      httpPost.setEntity(entity);
-      httpPost.setHeader("Accept", "application/json");
-      httpPost.setHeader("Content-type", "application/json");
-      httpPost.setHeader("X-Okapi-Token", authToken);
-      httpPost.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
-      CloseableHttpResponse response = client.execute(httpPost);
-      JSONParser parser = new JSONParser();
-      String responseAsString = EntityUtils.toString(response.getEntity());
       try {
-        marcResponse= (JSONObject) parser.parse(responseAsString);
-      } catch (ParseException pe) {
-        marcResponse = new JSONObject();
-        marcResponse.put("wrappedErrorMessage", responseAsString);
-      }
-      response.close();
-      if(response.getStatusLine().getStatusCode() != 201) {
-        logger.error(String.format("Got error %s, %s adding record: %s",
-                response.getStatusLine().getStatusCode(),
-                responseAsString,
-                marcPostJson.toJSONString()));
-        sourceRecordsFailed++;
-      } else {
-        logger.debug("Status code: " + response.getStatusLine().getStatusCode()
-            + " for POST of marc json " + marcPostJson.toJSONString());
-        sourceRecordsLoaded++;
-      }
+        HttpEntityEnclosingRequestBase request;
+        JSONObject queryResult = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
+        JSONArray records = (JSONArray) queryResult.get("marcrecords");
+        final int count = Integer.parseInt(queryResult.get("totalRecords").toString());
+        if (count == 0) {
+          String url = folioAddress + "/marc-records"; //TODO: Add configuration value
+          request = new HttpPost(url);
+          request.setEntity(entity);
+          request.setHeader("Accept", "application/json");
+          request.setHeader("Content-type", "application/json");
+          request.setHeader("X-Okapi-Token", authToken);
+          request.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+          CloseableHttpResponse response = client.execute(request);
+          JSONParser parser = new JSONParser();
+          String responseAsString = EntityUtils.toString(response.getEntity());
+          try {
+            marcResponse= (JSONObject) parser.parse(responseAsString);
+          } catch (ParseException pe) {
+            marcResponse = new JSONObject();
+            marcResponse.put("wrappedErrorMessage", responseAsString);
+          }
+          response.close();
+          if(response.getStatusLine().getStatusCode() != 201) {
+            logger.error(String.format("Got error %s, %s " + (count == 0 ? "adding" : "updating")  + " record: %s",
+                    response.getStatusLine().getStatusCode(),
+                    responseAsString,
+                    marcPostJson.toJSONString()));
+            sourceRecordsFailed++;
+          } else {
+            logger.debug("Status code: " + response.getStatusLine().getStatusCode()
+                + " for POST of marc json " + marcPostJson.toJSONString());
+            sourceRecordsLoaded++;
+          }
+        } else if (count == 1)  {
+          String id = ((JSONObject) records.get(0)).get("id").toString();
+          String url = folioAddress + "/marc-records/" + id; //TODO: Add configuration value
+          request = new HttpPut(url);
+          request.setEntity(entity);
+          request.setHeader("Accept", "text/plain");
+          request.setHeader("Content-type", "application/json");
+          request.setHeader("X-Okapi-Token", authToken);
+          request.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+          CloseableHttpResponse response = client.execute(request);
+          response.close();
+          if(response.getStatusLine().getStatusCode() != 204) {
+            logger.error(String.format("Got error %s, %s updating record: %s",
+                    response.getStatusLine().getStatusCode(),
+                    response.getStatusLine().getReasonPhrase(),
+                    marcPostJson.toJSONString()));
+            sourceRecordsFailed++;
+          } else {
+            logger.debug("Status code: " + response.getStatusLine().getStatusCode()
+                + " for PUT of marc json " + marcPostJson.toJSONString());
+            sourceRecordsLoaded++;
+          }
+        } else {
+          logger.error("Unexpected result count, should be a single or no source records found, count was [" + count + "]");
+          sourceRecordsFailed++;
+        }
       } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
         logger.error("Error adding MARC source record: " + e.getLocalizedMessage());
         sourceRecordsFailed++;
