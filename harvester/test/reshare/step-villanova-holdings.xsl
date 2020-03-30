@@ -8,13 +8,22 @@
   <xsl:strip-space elements="*"/>
   <xsl:output indent="yes" method="xml" version="1.0" encoding="UTF-8"/>
 
-  <xsl:template match="@* | node()">
-    <xsl:copy>
-      <xsl:apply-templates select="@* | node()"/>
-    </xsl:copy>
+  <xsl:template match="collection">
+    <collection>
+        <xsl:apply-templates/>
+    </collection>
   </xsl:template>
 
-  <xsl:template match="passthrough">
+  <xsl:template match="record">
+    <record>
+        <xsl:for-each select="@* | node()">
+            <xsl:copy-of select="."/>
+        </xsl:for-each>
+        <xsl:apply-templates/>
+    </record>
+  </xsl:template>
+
+  <xsl:template match="//marc:record">
     <xsl:choose>
       <xsl:when test="marc:datafield[@tag='852']">
         <holdingsRecords>
@@ -46,4 +55,5 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+  <xsl:template match="text()"/>
 </xsl:stylesheet>

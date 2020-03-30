@@ -122,4 +122,8 @@
     </permanentLocationId>
   </xsl:template>
 
+  <!-- Set institutionId for Millersville -->
+  <xsl:template match="//institutionIdHere">
+    <institutionId>b4578dbc-4dd9-4ac1-9c01-8a13f65aa95e</institutionId>> <!-- Millersville -->
+  </xsl:template>
 </xsl:stylesheet>

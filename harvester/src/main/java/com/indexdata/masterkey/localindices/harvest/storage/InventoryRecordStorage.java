@@ -302,6 +302,9 @@ public class InventoryRecordStorage implements RecordStorage {
       instanceResponse = addInstanceRecord(transformedRecord.getInstance());
     }
 
+    String institutionId = transformedRecord.getInstitutionId();
+    String localIdentifier = transformedRecord.getLocalIdentifier();
+
     if (instanceResponse != null && instanceResponse.get("id") != null) {
       JSONArray holdingsJson = transformedRecord.getHoldings();
       if (holdingsJson != null && holdingsJson.size()>0) {
@@ -309,7 +312,6 @@ public class InventoryRecordStorage implements RecordStorage {
         // delete existing holdings/items from the same institution
         // before attaching new holdings/items to the instance
         try {
-          String institutionId = getInstitutionId(holdingsJson);
           deleteHoldingsAndItemsForInstitution(instanceId, institutionId);
           addHoldingsRecordsAndItems(holdingsJson, instanceId);
         } catch (ParseException | ClassCastException | IOException e) {
@@ -320,7 +322,7 @@ public class InventoryRecordStorage implements RecordStorage {
       if (harvestable.isStoreOriginal()) {
         sourceRecordsProcessed++;
         JSONObject marcJson = getMarcJson((RecordJSON)recordJson);
-        addMarcRecord(marcJson, (String)instanceResponse.get("id"));
+        addMarcRecord(marcJson, (String)instanceResponse.get("id"), institutionId, localIdentifier);
       }
       timingsEntireRecord.time(startStorageEntireRecord);
       if (instanceResponse != null && instancesLoaded % (instancesLoaded<1000 ? 100 : 1000) == 0) {
@@ -630,13 +632,13 @@ public class InventoryRecordStorage implements RecordStorage {
     JSONObject deletionJson = ((record instanceof RecordJSONImpl) ? ((RecordJSON) record).toJson() : null);
     logger.info("Content of deletion record: " + (deletionJson != null ? deletionJson.toJSONString() : " [Record not JSON, cannot display content]"));
     if (deletionJson != null) {
-      String oaiId = (String) deletionJson.get("identifier");
+      String oaiId = (String) deletionJson.get("OaiIdentifier");
       String id = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
       String identifierTypeId = (String) deletionJson.get("identifierTypeId");
-      String permanentLocationId = (String) deletionJson.get("permanentLocationId");
-      if (id != null && identifierTypeId != null && permanentLocationId != null) {
+      String institutionId = (String) deletionJson.get("institutionId");
+      if (id != null && identifierTypeId != null && institutionId != null) {
         // This is assumed to be a deletion record targeted for a shared inventory
-        logger.info("Storage class received a deletion record with ID: [" + id +"], identifierTypeId ["+identifierTypeId+"], permanentLocationId ["+permanentLocationId+"]");
+        logger.info("Storage class received a deletion record with ID: [" + id +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
         try {
           JSONObject instance = getInstance(id, identifierTypeId);
           if (instance != null) {
@@ -655,8 +657,9 @@ public class InventoryRecordStorage implements RecordStorage {
             }
             identifiers.remove(identifier);
             logger.info("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
-            deleteHoldingsAndItemsForInstitution(instanceId, locationsToInstitutionsMap.get(permanentLocationId));
+            deleteHoldingsAndItemsForInstitution(instanceId, institutionId);
             updateInstance(instance);
+            // TODO: delete the MARC source record
           } else {
             logger.info("No instance found for local id ["+id+"] and identifierTypeId ["+identifierTypeId+"]. Cannot perform delete.");
           }
@@ -726,7 +729,7 @@ public class InventoryRecordStorage implements RecordStorage {
     throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId)  {
+  private JSONObject addMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier)  {
     JSONObject marcResponse = null;
     if (marcJson != null) {
       try {
@@ -736,6 +739,8 @@ public class InventoryRecordStorage implements RecordStorage {
 
       JSONObject marcPostJson = new JSONObject();
       marcPostJson.put("instanceId", instanceId);
+      marcPostJson.put("institutionId", institutionId);
+      marcPostJson.put("localIdentifier", localIdentifier);
       marcPostJson.put("parsedMarc", marcJson);
       StringEntity entity = new StringEntity(marcPostJson.toJSONString(),"UTF-8");
       httpPost.setEntity(entity);
@@ -982,15 +987,6 @@ public class InventoryRecordStorage implements RecordStorage {
     return response.getFirstHeader("X-Okapi-Token").getValue();
   }
 
-  private String getInstitutionId(JSONArray holdingsRecords) {
-    String locationId = getLocationId(holdingsRecords);
-    if (locationId != null) {
-      return locationsToInstitutionsMap.get(locationId);
-    } else {
-      return null;
-    }
-  }
-
   private String getInstitutionId(JSONObject holdingsRecord) {
     if (holdingsRecord != null) {
       String locationId = getLocationId(holdingsRecord);
@@ -1001,14 +997,6 @@ public class InventoryRecordStorage implements RecordStorage {
     return null;
   }
 
-  private String getLocationId(JSONArray holdingsRecords) {
-    if (holdingsRecords != null && holdingsRecords.get(0) instanceof JSONObject ) {
-      return getLocationId((JSONObject)(holdingsRecords.get(0)));
-    } else {
-      return null;
-    }
-  }
-
   private String getLocationId(JSONObject holdingsRecord) {
     if (holdingsRecord != null) {
       return (String) holdingsRecord.get("permanentLocationId");
@@ -1016,7 +1004,6 @@ public class InventoryRecordStorage implements RecordStorage {
       return null;
     }
   }
-
 
   private class ExecutionTimeStats {
     private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-dd HH");
@@ -1142,6 +1129,35 @@ public class InventoryRecordStorage implements RecordStorage {
 
     public TransformedRecord(JSONObject recordJson) {
       this.record=recordJson;
+    }
+
+    public String getInstitutionId () {
+      if (record.containsKey("institutionId")) {
+        return (String) record.get("institutionId");
+      } else {
+        return getInstitutionId(getHoldings());
+      }
+    }
+
+    public String getLocalIdentifier () {
+      return (String) record.get("localIdentifier");
+    }
+
+    private String getInstitutionId(JSONArray holdingsRecords) {
+      String locationId = getLocationId(holdingsRecords);
+      if (locationId != null) {
+        return locationsToInstitutionsMap.get(locationId);
+      } else {
+        return null;
+      }
+    }
+
+    public String getLocationId(JSONArray holdingsRecords) {
+      if (holdingsRecords != null && !holdingsRecords.isEmpty() && holdingsRecords.get(0) instanceof JSONObject ) {
+        return (String)((JSONObject)(holdingsRecords.get(0))).get("permanentLocationId");
+      } else {
+        return null;
+      }
     }
 
     public JSONObject getInstance () {

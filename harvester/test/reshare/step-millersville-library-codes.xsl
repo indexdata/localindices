@@ -21,4 +21,9 @@
     <permanentLocationId>004c14d3-fb87-40fc-b4db-9e91738b4f1b</permanentLocationId>  <!-- Millersville -->
   </xsl:template>
 
+  <!-- Set institutionId for Millersville -->
+  <xsl:template match="//institutionIdHere">
+    <institutionId>b4578dbc-4dd9-4ac1-9c01-8a13f65aa95e</institutionId>> <!-- Millersville -->
+  </xsl:template>>
+
 </xsl:stylesheet>

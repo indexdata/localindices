@@ -5,6 +5,7 @@ target/
 .project
 .settings/
 .metadata/
+.factorypath
 bin/
 build/
 dist/

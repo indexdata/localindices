@@ -21,4 +21,8 @@
     <permanentLocationId>87038e41-0990-49ea-abd9-1ad00a786e45</permanentLocationId> <!-- Temple -->
   </xsl:template>
 
+  <!-- Set FOLIO Inventory ID for the Temple institution -->
+  <xsl:template match="//institutionIdHere">
+     <institutionId>05770b43-8f13-41e3-9ffd-8c13ae570d18</institutionId>
+  </xsl:template>
 </xsl:stylesheet>
