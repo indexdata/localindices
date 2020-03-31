@@ -801,7 +801,7 @@ public class JobController {
     }
   }
 
-  String[] logLevels = {"DEBUG", "INFO", "WARN", "ERROR"};
+  String[] logLevels = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
   public List<SelectItem> getLogLevelItems()
   {
     List<SelectItem> list = new LinkedList<SelectItem>();
