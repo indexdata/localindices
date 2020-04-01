@@ -14,31 +14,47 @@
         </collection>
     </xsl:template>
 
-    <xsl:template match="//oai20:header[@status='deleted']">
-        <record status="deleted">
-            <status>deleted</status>
-            <oaiIdentifier><xsl:value-of select="oai20:identifier"/></oaiIdentifier>
-            <identifierTypeIdHere/>
-            <institutionIdHere/>
-        </record>
-    </xsl:template>
-
     <xsl:template match="oai20:record">
-        <record>
-            <record xmlns="http://www.openarchives.org/OAI/2.0/"
+      <record>
+        <xsl:choose>
+          <xsl:when test="oai20:header[@status='deleted']">
+             <xsl:apply-templates/>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- Store the original MARC record to be used by subsequent style sheets -->
+            <original>
+              <record xmlns="http://www.openarchives.org/OAI/2.0/"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
                 <xsl:for-each select="@* | node()">
                     <xsl:copy-of select="."/>
                 </xsl:for-each>
-            </record>
+              </record>
+            </original>
             <xsl:apply-templates/>
-        </record>
+          </xsl:otherwise>
+        </xsl:choose>
+      </record>
     </xsl:template>
 
+
+    <!-- If this is an OAI-PMH deletion record -->
+    <xsl:template match="//oai20:header[@status='deleted']">
+        <delete>
+            <oaiIdentifier><xsl:value-of select="oai20:identifier"/></oaiIdentifier>
+            <identifierTypeIdHere/>
+            <institutionIdHere/>
+        </delete>
+    </xsl:template>
+
+    <!-- MARC meta data -->
     <xsl:template match="//marc:record">
+
+        <!-- Information needed for storing source record in union catalog context -->
         <institutionIdHere/>
         <localIdentifier><xsl:value-of select="marc:controlfield[@tag='001']" /></localIdentifier>
+
+        <!-- Bibliographic record for FOLIO inventory -->
         <instance>
             <source>MARC</source>
 
@@ -325,6 +341,8 @@
                 </subjects>
             </xsl:if>
         </instance>
+
+        <!-- Additional info for creating match key in FOLIO Inventory match module -->
         <matchKey>
             <xsl:for-each select="marc:datafield[@tag='245']">
             <title>

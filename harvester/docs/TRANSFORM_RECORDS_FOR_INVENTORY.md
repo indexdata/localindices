@@ -63,7 +63,7 @@ would end up as this before being pushed to Inventory:
 Secondly, any holdings records must be embedded as an array of holdings in the instance XML, and items must be embedded in the holdings elements as illustrated in this example:
 ```
 <record>
-  [instance properties]
+  <instance>
   <holdingsRecords>
     <arr>
       <i>
@@ -187,79 +187,81 @@ then the style sheets might transform that OAI-PMH record like this, a format th
 <?xml version="1.0"?>
 <collection xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:oai20="http://www.openarchives.org/OAI/2.0/">
   <record>
-    <source>MARC</source>
-    <instanceTypeId>6312d172-f0cf-40f6-b27d-9fa8feaf332f</instanceTypeId>
-    <identifiers>
-      <arr>
-        <i>
-          <value>991256103569</value>
-          <identifierTypeId>04d081a1-5c52-4b84-8962-949fc5f6773c</identifierTypeId>
-        </i>
-        <i>
-          <value>   59011414 </value>
-          <identifierTypeId>c858e4f2-2b6b-4385-842b-60732ee14abb</identifierTypeId>
-        </i>
-        <i/>
-        <i>
-          <value>ocm01369356</value>
-          <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
-        </i>
-        <i>
-          <value>125</value>
-          <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
-        </i>
-        <i>
-          <value>(PMilS)125-millerdb-Voyager</value>
-          <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
-        </i>
-      </arr>
-    </identifiers>
-    <classifications>
-      <arr>
-        <i>
-          <classificationNumber>QC16.E5; B4</classificationNumber>
-          <classificationTypeId>ce176ace-a53e-4b4d-aa89-725ed7b2edac</classificationTypeId>
-        </i>
-        <i>
-          <classificationNumber>925.3</classificationNumber>
-          <classificationTypeId>42471af9-7d25-4f3a-bf78-60d29dcf463b</classificationTypeId>
-        </i>
-      </arr>
-    </classifications>
-    <title>Albert Einstein</title>
-    <matchKey>
+    <instance>
+      <source>MARC</source>
+      <instanceTypeId>6312d172-f0cf-40f6-b27d-9fa8feaf332f</instanceTypeId>
+      <identifiers>
+        <arr>
+          <i>
+            <value>991256103569</value>
+            <identifierTypeId>04d081a1-5c52-4b84-8962-949fc5f6773c</identifierTypeId>
+          </i>
+          <i>
+            <value>   59011414 </value>
+            <identifierTypeId>c858e4f2-2b6b-4385-842b-60732ee14abb</identifierTypeId>
+          </i>
+          <i/>
+          <i>
+            <value>ocm01369356</value>
+            <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
+          </i>
+          <i>
+            <value>125</value>
+            <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
+          </i>
+          <i>
+            <value>(PMilS)125-millerdb-Voyager</value>
+            <identifierTypeId>7e591197-f335-4afb-bc6d-a6d76ca3bace</identifierTypeId>
+          </i>
+        </arr>
+      </identifiers>
+      <classifications>
+        <arr>
+          <i>
+            <classificationNumber>QC16.E5; B4</classificationNumber>
+            <classificationTypeId>ce176ace-a53e-4b4d-aa89-725ed7b2edac</classificationTypeId>
+          </i>
+          <i>
+            <classificationNumber>925.3</classificationNumber>
+            <classificationTypeId>42471af9-7d25-4f3a-bf78-60d29dcf463b</classificationTypeId>
+          </i>
+        </arr>
+      </classifications>
       <title>Albert Einstein</title>
-      <remainder-of-title> : </remainder-of-title>
-      <medium/>
-    </matchKey>
-    <contributors>
-      <arr>
-        <i>
-          <name>Beckhard, Arthur J</name>
-          <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId>
-          <primary>true</primary>
-        </i>
-      </arr>
-    </contributors>
-    <publication>
-      <arr>
-        <i>
-          <publisher>Putnam</publisher>
-          <place>New York,</place>
-          <dateOfPublication>[1959]</dateOfPublication>
-        </i>
-      </arr>
-    </publication>
-    <physicalDescriptions>
-      <arr>
-        <i>126 p</i>
-      </arr>
-    </physicalDescriptions>
-    <subjects>
-      <arr>
-        <i>Einstein, Albert--1879-1955--Juvenile literature</i>
-      </arr>
-    </subjects>
+      <matchKey>
+        <title>Albert Einstein</title>
+        <remainder-of-title> : </remainder-of-title>
+        <medium/>
+      </matchKey>
+      <contributors>
+        <arr>
+          <i>
+            <name>Beckhard, Arthur J</name>
+            <contributorNameTypeId>2b94c631-fca9-4892-a730-03ee529ffe2a</contributorNameTypeId>
+            <primary>true</primary>
+          </i>
+        </arr>
+      </contributors>
+      <publication>
+        <arr>
+          <i>
+            <publisher>Putnam</publisher>
+            <place>New York,</place>
+            <dateOfPublication>[1959]</dateOfPublication>
+          </i>
+        </arr>
+      </publication>
+      <physicalDescriptions>
+        <arr>
+          <i>126 p</i>
+        </arr>
+      </physicalDescriptions>
+      <subjects>
+        <arr>
+          <i>Einstein, Albert--1879-1955--Juvenile literature</i>
+        </arr>
+      </subjects>
+    </instance>
     <holdingsRecords>
       <arr>
         <i>
@@ -290,3 +292,4 @@ then the style sheets might transform that OAI-PMH record like this, a format th
 </collection>
 ```
 
+A previous version of this document described a different structure (which is still supported). Before, `instance` properties would appear directly in root of `<record>` where they can now alternatively be contained in `<instance>`. The latter is preferable since it allows for other data to exist side by side with `<instance>`, for example temporary transformation processing data. Before, only elements that the storage class knew about by name beforehand could appear there, like `holdingsRecords` and `passthrough`, so the code could remove those elements before sending off the `instance` to FOLIO. 

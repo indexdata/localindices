@@ -1,14 +1,20 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 
+import org.apache.log4j.Level;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
@@ -21,6 +27,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordText;
+import com.indexdata.utils.XmlUtils;
 import com.indexdata.xml.factory.XmlFactory;
 
 @SuppressWarnings({ "rawtypes" })
@@ -36,8 +43,8 @@ public class XmlTransformerRouter implements MessageRouter {
   RecordHarvestJob job;
   StorageJobLogger logger;
   Thread workerThread = null;
-  XmlTransformationStep step; 
-  
+  XmlTransformationStep step;
+
 
   public XmlTransformerRouter(TransformationStep step, RecordHarvestJob job) {
     this.job = job;
@@ -47,7 +54,7 @@ public class XmlTransformerRouter implements MessageRouter {
     }
     else throw new RuntimeException("Configuration Error: Not a XmlTransformationStep");
   }
-  
+
   @Override
   public void run() {
     if (input == null) {
@@ -73,6 +80,7 @@ public class XmlTransformerRouter implements MessageRouter {
       Record record = (Record) take;
       Source xmlSource;
       xmlSource = extractSource(record);
+      logger.log(Level.TRACE, "Step " + this.step.getName() + " produced: " + sourceAsString(xmlSource));
       DOMResult result = new DOMResult();
       try {
 	transformer.transform(xmlSource, result);
@@ -91,9 +99,9 @@ public class XmlTransformerRouter implements MessageRouter {
   @SuppressWarnings("unchecked")
   private void putError(Source xmlSource, Exception e) {
     try {
-      if (error != null) 
+      if (error != null)
         error.put(new ErrorMessage(xmlSource, e));
-      else {	
+      else {
         logger.debug("No Error Message Router defined. Configure a Null Message Router to avoid this logging");
         logger.error("Error converting XML " + xmlSource, e);
       }
@@ -178,4 +186,14 @@ public class XmlTransformerRouter implements MessageRouter {
     workerThread = thread;
   }
 
+  private String sourceAsString (Source xmlSource) {
+    try {
+      StringWriter writer = new StringWriter();
+      transformer.transform(xmlSource, new StreamResult(writer));
+      return writer.getBuffer().toString();
+    } catch (Exception e) {
+      logger.log(Level.TRACE, e.getMessage());
+      return "[could not write xml source as string]";
+    }
+  }
 }

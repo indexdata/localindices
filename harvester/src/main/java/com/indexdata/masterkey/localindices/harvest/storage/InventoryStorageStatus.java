@@ -64,7 +64,12 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   public synchronized long incrementAdd(long add) {
     adds += add;
-    return add;
+    return adds;
+  }
+
+  public synchronized long incrementDelete(long delete) {
+    deletes += delete;
+    return deletes;
   }
 
 }

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Level;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -45,7 +46,36 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
 
   @Override
   public boolean isDeleted() {
-    return (json != null && json.containsKey("status") && json.get("status").toString().equalsIgnoreCase("deleted"));
+
+    if (json != null) {
+      // try top-level
+      if (json.containsKey("status") && json.get("status").toString().equalsIgnoreCase("deleted")) {
+        return true;
+      }
+      // otherwise look in top-level record object
+      if (json.containsKey("record")) {
+        JSONObject record = ((JSONObject) json.get("record"));
+        if (record.containsKey("status") && record.get("status").toString().equalsIgnoreCase("deleted")) {
+          return true;
+        }
+      } else { // otherwise look in record object under another top-level "root" object
+        JSONObject record = (JSONObject) getNextLevelRoot(json).get("record");
+        if (record.containsKey("status") && record.get("status").toString().equalsIgnoreCase("deleted")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private JSONObject getNextLevelRoot (JSONObject json) {
+    JSONObject obj = new JSONObject();
+    if (json.keySet().size()==1) {
+      if (json.keySet().iterator().next() instanceof JSONObject) {
+        obj = (JSONObject) (json.keySet().iterator().next());
+      }
+    }
+    return obj;
   }
 
   @Override

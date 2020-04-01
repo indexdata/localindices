@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -13,6 +14,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+
+import com.indexdata.utils.XmlUtils;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -34,7 +37,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   @SuppressWarnings("unused")
   private String pzType = pzPrefix + ":" + typeName;
   private Node node = null;
-  private NamespaceContext nsContext = new PzNamespaceContext();
+  private NamespaceContext pzNsContext = new PzNamespaceContext();
+  private NamespaceContext oaiNsContext = new OaiNamespaceContext();
   private String xpathNodes = ".//pz:metadata";
   private String xpathStatus = ".//pz:metadata[@type='status']";
   private String xpathId = ".//pz:metadata[@type='id']";
@@ -72,13 +76,36 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     extractId();
   }
 
+  private String nodeAsString (Node xmlNode) {
+    try {
+      StringWriter writer = new StringWriter();
+      XmlUtils.serialize(xmlNode, writer);
+      return writer.toString();
+    } catch (Exception e) {e.printStackTrace();
+    return "";}
+
+  }
+
   protected void extractDelete() {
-    XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(XPathConstants.STRING, nsContext);
+    XPathHelper<String> xpathHelperDeletePz = new XPathHelper<String>(XPathConstants.STRING, pzNsContext);
+    XPathHelper<String> xpathHelperDeleteOai = new XPathHelper<String>(XPathConstants.STRING, oaiNsContext);
     String delete;
     try {
-      delete = xpathHelperDelete.evaluate(node, xpathStatus);
-      if (delete != null && "deleted".equalsIgnoreCase(delete))
-  	this.isDeleted = true;
+      delete = xpathHelperDeletePz.evaluate(node, xpathStatus);
+      if (delete != null && "deleted".equalsIgnoreCase(delete)) {
+         this.isDeleted = true;
+        } else {
+          delete = new XPathHelper<String>(XPathConstants.STRING).evaluate(node, "//record/status");
+          if (delete != null && "deleted".equalsIgnoreCase(delete)) {
+            this.isDeleted = true;
+          } else {
+            delete = xpathHelperDeleteOai.evaluate(node, "//oai20:header/@status");
+            if (delete != null && "deleted".equalsIgnoreCase(delete)) {
+              this.isDeleted = true;
+            }
+          }
+        }
+
     } catch (XPathExpressionException e) {
       e.printStackTrace();
     }
@@ -86,7 +113,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
 
   protected void extractId()
   {
-    XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, nsContext);
+    XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, pzNsContext);
     try {
       if (id == null) {
 	String newid = xpathHelperDelete.evaluate(node, xpathId);
@@ -143,7 +170,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       return valueMap;
     valueMap.clear();
     try {
-      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, nsContext);
+      XPathHelper<NodeList> xpathHelper = new XPathHelper<NodeList>(XPathConstants.NODESET, pzNsContext);
       NodeList nodeList = xpathHelper.evaluate(node, xpathNodes);
       for (int index = 0; index < nodeList.getLength(); index++) {
         Node md = nodeList.item(index);

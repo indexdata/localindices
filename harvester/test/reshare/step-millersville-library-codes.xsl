@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+  <xsl:output indent="yes" method="xml" version="1.0" encoding="UTF-8"/>
   <xsl:template match="@* | node()">
     <xsl:copy>
       <xsl:apply-templates select="@* | node()"/>
@@ -24,6 +25,6 @@
   <!-- Set institutionId for Millersville -->
   <xsl:template match="//institutionIdHere">
     <institutionId>b4578dbc-4dd9-4ac1-9c01-8a13f65aa95e</institutionId>> <!-- Millersville -->
-  </xsl:template>>
+  </xsl:template>
 
 </xsl:stylesheet>
