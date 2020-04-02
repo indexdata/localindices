@@ -24,7 +24,7 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
 public class EntityQuery {
 
   private String filter = "";
-  private List<String> keywordAllFields = new ArrayList();
+  private List<String> keywordAllFields = new ArrayList<String>();
   private String acl = "";
   private String startsWithField = "";
   private String startsWith = "";
@@ -169,7 +169,7 @@ public class EntityQuery {
   public String asWhereClause (String tableAlias, boolean withWHERE) {
     String whereClause = "";
     if (hasQuery()) {
-      List<String> whereClauses = new ArrayList();
+      List<String> whereClauses = new ArrayList<String>();
       if (hasFilter()) {
         System.out.println("has filter");
         whereClauses.add(getFilteringWhereClause(tableAlias));
@@ -182,7 +182,7 @@ public class EntityQuery {
         System.out.println("has startswith");
         whereClauses.add(getStartsWithWhereClause(tableAlias));
       }
-      Iterator iter = whereClauses.iterator();
+      Iterator<String> iter = whereClauses.iterator();
       while (iter.hasNext()) {
         whereClause += iter.next();
         if (iter.hasNext()) whereClause += " AND ";

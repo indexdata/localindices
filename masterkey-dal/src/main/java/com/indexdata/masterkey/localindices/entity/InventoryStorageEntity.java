@@ -5,7 +5,6 @@
  */
 package com.indexdata.masterkey.localindices.entity;
 
-import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -15,7 +14,9 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @Entity
 @XmlRootElement(name="inventoryStorage")
-public class InventoryStorageEntity extends Storage implements Serializable {
+public class InventoryStorageEntity extends Storage {
+
+  private static final long serialVersionUID = -7498460780910228665L;
 
   @Override
   public String getSearchUrl(Harvestable resource) {
