@@ -171,8 +171,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             }
           }
           orderBy += (asc ? " ASC" : " DESC");
-          String whereClause = query.asWhereClause("o",true);
-          String qs = "select object(o) from Harvestable as o " + whereClause + " order by "
+          String qs = "select object(o) from Harvestable as o " + query.asWhereClause("o") + " order by "
             + orderBy;
           Query q = em.createQuery(qs);
           q.setMaxResults(max);
@@ -204,7 +203,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause("o", true)).getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause("o")).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();

@@ -118,7 +118,6 @@ public class SettingDAOJPA implements SettingDAO {
   }
 
   /**
-   * Terrible misuse of the API -- sortKey is used for filtering.
    * @param start
    * @param max
    * @param sortKey unused
@@ -134,7 +133,7 @@ public class SettingDAOJPA implements SettingDAO {
     try {
       tx.begin();
       Query q;
-      String qry = "select object(o) from Setting as o " + query.asWhereClause("o", true) + " order by o.name ";
+      String qry = "select object(o) from Setting as o " + query.asWhereClause("o") + " order by o.name ";
       q = em.createQuery(qry);
       q.setMaxResults(max);
       q.setFirstResult(start);
@@ -162,7 +161,7 @@ public class SettingDAOJPA implements SettingDAO {
   public int getCount(EntityQuery query) {
     EntityManager em = getEntityManager();
     try {
-      int count = ((Long) em.createQuery("select count(o) from Setting as o" + query.asWhereClause("o", true)).
+      int count = ((Long) em.createQuery("select count(o) from Setting as o" + query.asWhereClause("o")).
         getSingleResult()).intValue();
       return count;
     } finally {

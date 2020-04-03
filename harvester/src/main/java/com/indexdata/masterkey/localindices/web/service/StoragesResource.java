@@ -69,14 +69,15 @@ public class StoragesResource {
 
   @QueryParam("start") @DefaultValue("0") int start,
   @QueryParam("max") @DefaultValue("100") int max,
-  @QueryParam("acl") @DefaultValue("") String acl) {
-    EntityQuery query = new EntityQuery().withAcl(acl);
+  @QueryParam("acl") @DefaultValue("") String acl,
+  @QueryParam("query") @DefaultValue("") String query) {
+    EntityQuery entityQuery = new EntityQuery().withAcl(acl).withQuery(query);
     List<Storage> entities;
     if (max <= 0)
       entities = new ArrayList<Storage>();
     else
-      entities = dao.retrieve(start, max, query);
-    return new StoragesConverter(entities, context.getAbsolutePath(), start, max, dao.getCount(query));
+      entities = dao.retrieve(start, max, entityQuery);
+    return new StoragesConverter(entities, context.getAbsolutePath(), start, max, dao.getCount(entityQuery));
   }
 
   /**

@@ -115,7 +115,7 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
         List<TransformationStep> hables = new LinkedList<TransformationStep>();
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from TransformationStep as o " + query.getAclWhereClause("o", true) + " order by o.name");
+            Query q = em.createQuery("select object(o) from TransformationStep as o " + query.asWhereClause("o") + " order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -151,7 +151,7 @@ public class TransformationStepsDAOJPA implements TransformationStepDAO {
     public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from TransformationStep as o " + query.getAclWhereClause("o", true)).getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from TransformationStep as o " + query.asWhereClause("o")).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();

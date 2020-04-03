@@ -124,7 +124,7 @@ public class StoragesDAOJPA implements StorageDAO {
         List<Storage> hables = null;
         try {
             tx.begin();
-            Query q = em.createQuery("select object(o) from Storage as o " + query.getAclWhereClause("o", true) + " order by o.name");
+            Query q = em.createQuery("select object(o) from Storage as o " + query.asWhereClause("o") + " order by o.name");
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
@@ -164,7 +164,7 @@ public class StoragesDAOJPA implements StorageDAO {
     public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Storage as o " + query.getAclWhereClause("o", true)).getSingleResult()).intValue();
+            int count = ((Long) em.createQuery("select count(o) from Storage as o " + query.asWhereClause("o")).getSingleResult()).intValue();
             return count;
         } finally {
             em.close();

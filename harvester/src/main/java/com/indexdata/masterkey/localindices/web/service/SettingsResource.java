@@ -59,18 +59,20 @@ public class SettingsResource {
   @QueryParam("start") @DefaultValue("0") int start,
   @QueryParam("max") @DefaultValue("100") int max,
   @QueryParam("prefix") String prefix,
-  @QueryParam("acl") String acl) {
-    EntityQuery query = new EntityQuery()
+  @QueryParam("acl") String acl,
+  @QueryParam("query") String query){
+    EntityQuery entityQuery = new EntityQuery()
             .withAcl(acl)
-            .withStartsWith(prefix, "name");
+            .withStartsWith(prefix, "name")
+            .withQuery(query);
 
     List<Setting> entities;
     if (max <= 0) {
       entities = new ArrayList();
     } else {
-      entities = dao.retrieve(start, max, query);
+      entities = dao.retrieve(start, max, entityQuery);
     }
-    int count = dao.getCount(query);
+    int count = dao.getCount(entityQuery);
     return new SettingsConverter(entities, context.getAbsolutePath(), start, max, count);
   }
 

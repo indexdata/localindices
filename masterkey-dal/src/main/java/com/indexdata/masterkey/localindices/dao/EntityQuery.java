@@ -10,6 +10,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -23,12 +25,75 @@ import com.indexdata.masterkey.localindices.entity.OaiPmhResource;
  */
 public class EntityQuery {
 
+  private Query query;
   private String filter = "";
   private List<String> keywordAllFields = new ArrayList<String>();
   private String acl = "";
   private String startsWithField = "";
   private String startsWith = "";
   private static Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester");
+
+
+  private Query getQuery () {
+    return query;
+  }
+
+  public void setQuery(String query) {
+    this.query = new Query(query);
+  }
+
+  private boolean hasQuery () {
+    return query != null && query.hasQuery();
+  }
+
+  private class Query {
+    String query= "";
+    String term = "";
+    String operator = "";
+    String value = "";
+    Pattern qry = Pattern.compile("\\(?(\\w+)[ ]*(=)[ ]*([\\*\\w]+)\\)?");
+    Query (String query) {
+      Matcher matcher = qry.matcher(query);
+      if (matcher.find()) {
+        term = matcher.group(1);
+        operator = matcher.group(2);
+        value = matcher.group(3);
+        this.query = query;
+      }
+    }
+
+    String getTerm() {
+      return term;
+    }
+
+    String getOperator() {
+      return operator;
+    }
+
+    String getValue() {
+      return value;
+    }
+    String toUrlParameters() {
+      return "query="+query;
+    }
+
+    boolean hasQuery () {
+      return query.length()>0;
+    }
+
+    String asWhereClause (String tableAlias) {
+      StringBuilder str = new StringBuilder("");
+      str.append(" (")
+         .append(tableAlias)
+         .append(".")
+         .append(term)
+         .append(value.contains("*") ? " LIKE '" + value.replaceAll("\\*","%") + "'" :  "")
+         .append(!value.contains("*") ? "='" + value +"'" : "")
+         .append(" )");
+      return str.toString();
+    }
+  }
+
   public String getFilter() {
     return filter;
   }
@@ -52,11 +117,11 @@ public class EntityQuery {
     return this;
   }
 
-  public boolean hasFilter() {
+  private boolean hasFilter() {
     return filter.length() > 0;
   }
 
-  public String getAcl() {
+  private String getAcl() {
     return acl;
   }
 
@@ -69,6 +134,11 @@ public class EntityQuery {
     return this;
   }
 
+  public EntityQuery withQuery(String query) {
+    if (isNotEmpty(query)) setQuery(query);
+    return this;
+  }
+
   public void setStartsWith(String startsWith, String field) {
     if (isNotEmpty(startsWith) && isNotEmpty(field)) {
       this.startsWith = startsWith;
@@ -76,7 +146,7 @@ public class EntityQuery {
     }
   }
 
-  public boolean hasStartsWith () {
+  private boolean hasStartsWith () {
     return startsWith != null && startsWith.length()>0
             && startsWithField != null && startsWithField.length()>0;
   }
@@ -90,16 +160,16 @@ public class EntityQuery {
     return this;
   }
 
-  public String getStartsWithWhereClause (String tableAlias) {
+  private String getStartsWithWhereClause (String tableAlias) {
     return tableAlias + "." + startsWithField + " LIKE '" + startsWith +"%'";
   }
 
-  public boolean hasAcl () {
+  private boolean hasAcl () {
     return (acl.length()>0);
   }
 
-  public boolean hasQuery() {
-    return (hasStartsWith() || hasFilter() || hasAcl());
+  private boolean hasSearchCriteria() {
+    return (hasStartsWith() || hasFilter() || hasAcl() || hasQuery());
   }
 
   public String asUrlParameters () {
@@ -107,7 +177,8 @@ public class EntityQuery {
     try {
       return (hasFilter() ? "&filter="+URLEncoder.encode(filter, UTF8) : "") +
              (hasAcl() ? "&acl="+URLEncoder.encode(acl, UTF8) : "") +
-             (hasStartsWith() ? "&prefix="+URLEncoder.encode(startsWith, UTF8) : "");
+             (hasStartsWith() ? "&prefix="+URLEncoder.encode(startsWith, UTF8) : "") +
+             (hasQuery() ? "&query="+URLEncoder.encode(getQuery().toUrlParameters(), UTF8) : "");
     } catch (UnsupportedEncodingException e) {
       LOGGER.error("Error generating URL query parameters: "+e);
       return "";
@@ -122,7 +193,7 @@ public class EntityQuery {
   * @param tableAlias
   * @return " where concat( [alias].[cols-1], '||', [alias].[cols-2], ...) like '%[filter]%' "
   */
-  public String getFilteringWhereClause(String tableAlias, boolean withWHERE) {
+  private String getFilteringWhereClause(String tableAlias, boolean withWHERE) {
     StringBuilder expr = new StringBuilder("");
     if (filter != null && filter.length()>0 && keywordAllFields != null && keywordAllFields.size()>0) {
       int i = 0;
@@ -145,15 +216,15 @@ public class EntityQuery {
     return expr.toString();
   }
 
-  public String getFilteringWhereClause(String tableAlias) {
+  private String getFilteringWhereClause(String tableAlias) {
     return getFilteringWhereClause(tableAlias, false);
   }
 
-  public String getAclWhereClause (String tableAlias) {
+  private String getAclWhereClause (String tableAlias) {
     return getAclWhereClause(tableAlias,false);
   }
 
-  public String getAclWhereClause (String tableAlias, boolean withWHERE ) {
+  private String getAclWhereClause (String tableAlias, boolean withWHERE ) {
     StringBuilder expr = new StringBuilder("");
     if (hasAcl()) {
       expr.append(withWHERE ? " WHERE " : "")
@@ -166,29 +237,27 @@ public class EntityQuery {
     return expr.toString();
   }
 
-  public String asWhereClause (String tableAlias, boolean withWHERE) {
+  public String asWhereClause (String tableAlias) {
     String whereClause = "";
-    if (hasQuery()) {
+    if (hasSearchCriteria()) {
+      whereClause += " WHERE ";
       List<String> whereClauses = new ArrayList<String>();
       if (hasFilter()) {
-        System.out.println("has filter");
         whereClauses.add(getFilteringWhereClause(tableAlias));
       }
       if (hasAcl()) {
-        System.out.println("has acl");
         whereClauses.add(getAclWhereClause(tableAlias));
       }
       if (hasStartsWith()) {
-        System.out.println("has startswith");
         whereClauses.add(getStartsWithWhereClause(tableAlias));
+      }
+      if (hasQuery()) {
+        whereClauses.add(getQuery().asWhereClause(tableAlias));
       }
       Iterator<String> iter = whereClauses.iterator();
       while (iter.hasNext()) {
         whereClause += iter.next();
         if (iter.hasNext()) whereClause += " AND ";
-      }
-      if (withWHERE) {
-        whereClause = " WHERE " + whereClause;
       }
     }
     return whereClause;
@@ -203,11 +272,7 @@ public class EntityQuery {
     String.join(", ", keywordAllFields);
     if (o instanceof EntityQuery) {
       EntityQuery p = (EntityQuery)o;
-      return (p.filter.equals(this.filter)
-              && p.acl.equals(this.acl)
-              && p.startsWith.equals(this.startsWith)
-              && p.startsWithField.equals(this.startsWithField)
-              && String.join(",", p.keywordAllFields).equals(String.join(",", this.keywordAllFields)));
+      return (p.asWhereClause("alias").equals(this.asWhereClause("alias")));
     }
     return false;
   }
@@ -215,11 +280,7 @@ public class EntityQuery {
   @Override
   public int hashCode() {
     int hash = 7;
-    hash = 29 * hash + (this.filter != null ? this.filter.hashCode() : 0);
-    hash = 29 * hash + (this.acl != null ? this.acl.hashCode() : 0);
-    hash = 29 * hash + (this.startsWith != null ? this.startsWith.hashCode() : 0);
-    hash = 29 * hash + (this.startsWithField != null ? this.startsWithField.hashCode() : 0);
-    hash = 29 * hash + (this.keywordAllFields != null ? this.keywordAllFields.hashCode() : 0);
+    hash = 29 * hash + (this.asWhereClause("alias") != null ? this.asWhereClause("alias").hashCode() : 0);
     return hash;
   }
 
@@ -234,7 +295,30 @@ public class EntityQuery {
     query.setAcl("diku");
     query.setStartsWith("cf","name");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o", true));
+    System.out.println(query.asWhereClause("o"));
+
+    query.setQuery("(usedBy=library)");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setFilter("", res);
+    query.setQuery("usedBy=*library");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setQuery("(=library");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setQuery("usedBy=");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setQuery("(usedBy!=library)");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setQuery("(usedBy==library)");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
+    query.setQuery("(usedBy===library)");
+    System.out.println(query.asUrlParameters());
+    System.out.println(query.asWhereClause("o"));
   }
 
 }

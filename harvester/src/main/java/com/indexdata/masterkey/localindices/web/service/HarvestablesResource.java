@@ -71,7 +71,8 @@ public class HarvestablesResource {
   @QueryParam("max") @DefaultValue("100") int max,
   @QueryParam("sort") @DefaultValue("") String sortSpec,
   @QueryParam("filter") @DefaultValue("") String filter,
-  @QueryParam("acl") @DefaultValue("") String acl) {
+  @QueryParam("acl") @DefaultValue("") String acl,
+  @QueryParam("query") @DefaultValue("") String query) {
     String sortKey = null;
     boolean isAsc = true;
     if (!sortSpec.isEmpty()) {
@@ -79,16 +80,18 @@ public class HarvestablesResource {
       sortKey = isAsc ? sortSpec : sortSpec.substring(1);
     }
     List<Harvestable> entities;
-    EntityQuery query = new EntityQuery()
+    EntityQuery entityQuery = new EntityQuery()
             .withFilter(filter, Harvestable.KEYWORD_ALL_FIELDS)
-            .withAcl(acl);
+            .withAcl(acl)
+            .withQuery(query);
+
     if (max <= 0) {
       entities = new ArrayList();
     } else {
-      entities = dao.retrieve(start, max, sortKey, isAsc, query);
+      entities = dao.retrieve(start, max, sortKey, isAsc, entityQuery);
     }
     return new HarvestablesConverter(entities, context.getAbsolutePath(), start, max,
-	dao.getCount(query));
+	dao.getCount(entityQuery));
   }
 
   /**

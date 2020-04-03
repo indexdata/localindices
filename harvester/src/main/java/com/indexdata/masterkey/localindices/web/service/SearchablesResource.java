@@ -59,8 +59,9 @@ public class SearchablesResource {
   @Produces("application/xml")
   public SearchablesConverter get(@QueryParam("start") @DefaultValue("0") int start,
   @QueryParam("max") @DefaultValue("100") int max,
-  @QueryParam("acl") @DefaultValue("") String acl) {
-    return new SearchablesConverter(dao.retrieve(start, max, new EntityQuery().withAcl(acl)), context.getAbsolutePath());
+  @QueryParam("acl") @DefaultValue("") String acl,
+  @QueryParam("query") @DefaultValue("") String query) {
+    return new SearchablesConverter(dao.retrieve(start, max, new EntityQuery().withAcl(acl).withQuery(query)), context.getAbsolutePath());
   }
 
   @Path("{id}/")
