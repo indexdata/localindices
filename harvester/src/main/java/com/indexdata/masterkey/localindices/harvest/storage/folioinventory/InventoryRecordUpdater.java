@@ -37,6 +37,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
+ * Logic for handling the create/update/delete for one FOLIO Inventory record
+ * set -- an Inventory record set being understood as an instance with
+ * holdings/items and possibly a source record, all created from one
+ * incoming bibliographic record.
  *
  * @author ne
  */

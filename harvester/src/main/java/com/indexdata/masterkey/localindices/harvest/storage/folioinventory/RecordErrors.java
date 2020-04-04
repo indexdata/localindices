@@ -11,6 +11,8 @@ import java.util.List;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 
 /**
+ * Holds errors encountered in the processing of one Inventory record set (the
+ * Inventory records derived from one incoming bibliographic record)
  *
  * @author ne
  */

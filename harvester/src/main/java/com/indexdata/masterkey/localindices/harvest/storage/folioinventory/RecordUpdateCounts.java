@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Holds counts of records processed, updated, deleted, failed
  * @author ne
  */
 public class RecordUpdateCounts {
@@ -30,6 +30,4 @@ public class RecordUpdateCounts {
   protected int sourceRecordsLoaded = 0;
   protected int sourceRecordsDeleted = 0;
   protected int sourceRecordsFailed = 0;
-
-
 }

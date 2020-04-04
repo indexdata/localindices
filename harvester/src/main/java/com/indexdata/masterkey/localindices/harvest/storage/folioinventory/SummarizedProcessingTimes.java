@@ -9,16 +9,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Holds record counts and summarized processing times
+ * <ul>
+ * <li>record counts</li>
+ * <li>total execution time for all records processed</li>
+ * <li>the fastest processing of a record</li>
+ * <li>the slowest processing of a record</li>
+ * <li>record counts distributed into 100 ms and 1000 ms intervals of execution time</li>
+ * </ul>
  * @author ne
  */
-public class HourStats {
+public class SummarizedProcessingTimes {
   int execCount = 0;
   long totalExecTime = 0;
   long maxExecTime = 0;
   long minExecTime = Long.MAX_VALUE;
   Map <Long, Integer> execTimeIntervals = new HashMap<>();
-  Map <String, Long> execTimeByOperation = new HashMap<>();
 
   public void log (long start, long end) {
     long execTime = end - start;

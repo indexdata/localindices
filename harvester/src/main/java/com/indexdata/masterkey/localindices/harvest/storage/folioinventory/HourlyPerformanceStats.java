@@ -15,17 +15,19 @@ import java.util.Map;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
- *
+ * Logs execution times for record updates into buckets of one hour, using the
+ * {@link SummarizedProcessingTimes} structure. Writes the stats out
+ * to the job log at each change of the hour.
  * @author ne
  */
-public class ExecutionTimeStats {
+public class HourlyPerformanceStats {
   private final SimpleDateFormat HOUR = new SimpleDateFormat("MM-dd HH");
-  private final Map<String, HourStats> execTimes = new HashMap<>();
+  private final Map<String, SummarizedProcessingTimes> execTimes = new HashMap<>();
 
-  HourStats hourstats = null;
+  SummarizedProcessingTimes hourstats = null;
   StorageJobLogger logger;
 
-  public ExecutionTimeStats(StorageJobLogger logger) {
+  public HourlyPerformanceStats(StorageJobLogger logger) {
     this.logger = logger;
   }
 
@@ -35,18 +37,22 @@ public class ExecutionTimeStats {
     if (execTimes.containsKey(hour)) {
       execTimes.get(hour).log(wasStartedAt, endedAt);
     } else {
-      writeLog(); // at top of the hour, write logs up until previous hour
-      hourstats = new HourStats();
+      writeLog(); // at top of the hour, write out logs up until the previous hour
+      // then create a new bucket for timing stats
+      hourstats = new SummarizedProcessingTimes();
       hourstats.log(wasStartedAt, endedAt);
       execTimes.put(hour,hourstats);
     }
   }
 
+  /**
+   * Prints the performance stats, hour by hour, to the job log.
+   */
   public void writeLog() {
     execTimes.entrySet().stream()
     .sorted(comparing(Map.Entry::getKey))
     .forEach(e -> { // for each hour
-      HourStats hr = e.getValue();
+      SummarizedProcessingTimes hr = e.getValue();
       StringBuilder totals1 = new StringBuilder();
       totals1.append(e.getKey()).append(":00: ")
              .append(hr.execCount).append(" records processed in ").append(hr.totalExecTime/1000).append(" secs.")

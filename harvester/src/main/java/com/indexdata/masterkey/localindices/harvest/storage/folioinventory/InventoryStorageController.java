@@ -37,6 +37,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 /**
+ * The logic for initializing storage, loggers, execution and performance
+ * statistics, retrieving job configurations, and then receiving and iterating
+ * Inventory record sets coming in from the transformation pipeline and
+ * forwarding each record to be created/updated/deleted by {@link InventoryRecordUpdater}
  *
  * @author kurt
  */
@@ -62,7 +66,7 @@ public class InventoryStorageController implements RecordStorage {
   protected final Map<String,String> locationsToInstitutionsMap = new HashMap();
 
   protected RecordUpdateCounts counters;
-  protected ExecutionTimeStats timingsEntireRecord;
+  protected HourlyPerformanceStats timingsEntireRecord;
 
 
   public InventoryStorageController() {
@@ -77,7 +81,7 @@ public class InventoryStorageController implements RecordStorage {
       }
       this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      timingsEntireRecord = new ExecutionTimeStats(logger);
+      timingsEntireRecord = new HourlyPerformanceStats(logger);
       logger.info("Initialized InventoryRecordStorage");
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
