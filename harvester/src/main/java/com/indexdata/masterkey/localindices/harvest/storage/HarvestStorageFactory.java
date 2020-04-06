@@ -5,6 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.storage.folioinventory.InventoryStorageController;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 
@@ -55,7 +56,7 @@ public class HarvestStorageFactory {
       return storage;
     }
     else if (entity instanceof com.indexdata.masterkey.localindices.entity.InventoryStorageEntity) {
-      RecordStorage storage = new InventoryRecordStorage();
+      RecordStorage storage = new InventoryStorageController();
       return storage;
     }
     else {

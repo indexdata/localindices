@@ -51,7 +51,7 @@ public class EntityQuery {
     String term = "";
     String operator = "";
     String value = "";
-    Pattern qry = Pattern.compile("\\(?(\\w+)[ ]*(=)[ ]*([\\*\\w]+)\\)?");
+    Pattern qry = Pattern.compile("\\(?(\\w+)[ ]*(\\!?=)[ ]*([\\*\\w]+)\\)?");
     Query (String query) {
       Matcher matcher = qry.matcher(query);
       if (matcher.find()) {
@@ -87,8 +87,8 @@ public class EntityQuery {
          .append(tableAlias)
          .append(".")
          .append(term)
-         .append(value.contains("*") ? " LIKE '" + value.replaceAll("\\*","%") + "'" :  "")
-         .append(!value.contains("*") ? "='" + value +"'" : "")
+         .append(value.contains("*") ? (operator.equals("!=") ? " NOT " : "") + " LIKE '" + value.replaceAll("\\*","%") + "'" :  "")
+         .append(!value.contains("*") ? operator + "'" + value + "'" : "")
          .append(" )");
       return str.toString();
     }
@@ -295,30 +295,33 @@ public class EntityQuery {
     query.setAcl("diku");
     query.setStartsWith("cf","name");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
-
+    System.out.println(query.asWhereClause("a"));
     query.setQuery("(usedBy=library)");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
-    query.setFilter("", res);
+    System.out.println(query.asWhereClause("x"));
+    
+    query = new EntityQuery();
+    query.setQuery("(usedBy=library)");
+    System.out.println(query.asUrlParameters());    
+    System.out.println(query.asWhereClause("b"));
     query.setQuery("usedBy=*library");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("c"));
     query.setQuery("(=library");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("d"));
     query.setQuery("usedBy=");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("e"));
     query.setQuery("(usedBy!=library)");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("f"));
     query.setQuery("(usedBy==library)");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("g"));
     query.setQuery("(usedBy===library)");
     System.out.println(query.asUrlParameters());
-    System.out.println(query.asWhereClause("o"));
+    System.out.println(query.asWhereClause("h"));
   }
 
 }

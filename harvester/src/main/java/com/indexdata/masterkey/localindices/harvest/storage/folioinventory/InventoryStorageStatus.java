@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.indexdata.masterkey.localindices.harvest.storage;
+package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+
+import com.indexdata.masterkey.localindices.harvest.storage.AbstractStorageStatus;
 
 /**
  *
