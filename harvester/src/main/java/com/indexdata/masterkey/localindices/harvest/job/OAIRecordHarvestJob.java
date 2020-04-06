@@ -359,8 +359,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
             Node node = list.item(index);
             Record record = createRecord(node);
             if (record.isDeleted()) {
+              logger.log(Level.DEBUG, "OAI job found delete record in collection (#" + index + "), sending delete signal");
               getStorage().delete(record);
             } else {
+              logger.log(Level.TRACE, "OAI job iterating collection, record #" + index + " was not a deletion, sending add signal");
               getStorage().add(record);
             }
           }
@@ -448,7 +450,11 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     }
     RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node, original);
     if ("deleted".equalsIgnoreCase(isDeleted)) {
+      logger.log(Level.DEBUG, "OAI delete record found");
       record.setDeleted(true);
+    } else {
+      logger.log(Level.TRACE, "OAI record not a deletion");
+      record.setDeleted(false);
     }
     return record;
   }

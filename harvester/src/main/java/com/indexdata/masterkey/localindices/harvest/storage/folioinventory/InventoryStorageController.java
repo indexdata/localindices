@@ -28,7 +28,6 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.DatabaseContenthandler;
-import com.indexdata.masterkey.localindices.harvest.storage.Pz2SolrRecordContentHandler;
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
@@ -88,36 +87,6 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
-  @Override
-  public void begin() throws IOException {
-    logger.info("Transaction begin request recieved");
-    database = harvestable.getId().toString();
-  }
-
-  @Override
-  public void commit() throws IOException {
-    logger.info("Commit request recieved");
-  }
-
-  @Override
-  public void rollback() throws IOException {
-    logger.info("Rollback request recieved");
-  }
-
-  @Override
-  public void purge(boolean commit) throws IOException {
-    logger.info("Purge request recieved");
-  }
-
-  @Override
-  public void setOverwriteMode(boolean mode) {
-    throw new UnsupportedOperationException("set overwrite mode Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public boolean getOverwriteMode() {
-    throw new UnsupportedOperationException("get overwrite mode Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
@@ -127,7 +96,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
-    logger.info("Database started: " + database + (properties != null ? ", with properties " + properties : " (no properties) "));
+    logger.info("Database started [" + database + "]" + (properties != null ? ", with properties " + properties : " (no properties defined) "));
     this.databaseProperties = properties;
     this.database = database;
     try {
@@ -195,6 +164,68 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
+  @Override
+  public void add(Record recordJson) {
+    if (recordJson.isCollection()) {
+      logger.log(Level.TRACE, "Inventory Storage received add signal with a collection payload.");
+      Collection<Record> subrecords = recordJson.getSubRecords();
+      if (subrecords.size()==1) {
+        for (Record subRecord : subrecords) {
+          logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
+          subRecord.setOriginalContent(recordJson.getOriginalContent());
+          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
+          recordStorageHandler.addInventory((RecordJSON) subRecord);
+        }
+      } else {
+        if (harvestable.isStoreOriginal()) {
+          logger.warn("Store original content selected for this job, "
+                  + "but storage layer received "
+                  + "result with multiple metadata records and original content "
+                  + "cannot be stored in that scenario.");
+        }
+        for (Record subRecord : subrecords) {
+          logger.log(Level.TRACE, "Iterating multiple subrecords of RecordJSON");
+          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
+          recordStorageHandler.addInventory((RecordJSON) subRecord);
+        }
+      }
+    } else {
+      logger.log(Level.TRACE, "Inventory Storage received add signal with a single record payload.");
+      InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
+      recordStorageHandler.addInventory((RecordJSON) recordJson);
+    }
+  }
+
+  @Override
+  public void delete(Record record) {
+    InventoryRecordUpdater updater = new InventoryRecordUpdater(this);
+    updater.delete((RecordJSON) record);
+  }
+
+  @Override
+  public void databaseEnd() {
+    String instancesMessage = "Instances processed/loaded/deletions/failed: " + counters.instancesProcessed + "/" + counters.instancesLoaded + "/" + counters.instanceDeletions + "/" + counters.instancesFailed + ". ";
+    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + counters.holdingsRecordsProcessed + "/" + counters.holdingsRecordsLoaded + "/" + counters.holdingsRecordsDeleted + "/" + counters.holdingsRecordsFailed + ". ";
+    String itemsMessage = "Items processed/loaded/deleted/failed: " + counters.itemsProcessed + "/" + counters.itemsLoaded + "/" + counters.itemsDeleted + "/" + counters.itemsFailed + ".";
+    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + counters.sourceRecordsProcessed + "/" + counters.sourceRecordsLoaded + "/" + counters.sourceRecordsDeleted + "/" + counters.sourceRecordsFailed + ".";
+
+    logger.log((counters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
+    logger.log((counters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
+    logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+    logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+
+    for (String key : counters.instanceExceptionCounts.keySet()) {
+      logger.info(String.format("%d Instance records failed with %s", counters.instanceExceptionCounts.get(key),key));
+    }
+    timingsEntireRecord.writeLog();
+    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+  }
+
+  @Override
+  public StorageStatus getStatus() throws StatusNotImplemented {
+    return this.storageStatus;
+  }
+
   /**
    * Retrieves setting by name from the free-form JSON config column of Harvestable
    * @param key
@@ -229,109 +260,6 @@ public class InventoryStorageController implements RecordStorage {
     return value != null ? value : defaultValue;
   }
 
-  @Override
-  public void databaseEnd() {
-    String instancesMessage = "Instances processed/loaded/deletions/failed: " + counters.instancesProcessed + "/" + counters.instancesLoaded + "/" + counters.instanceDeletions + "/" + counters.instancesFailed + ". ";
-    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + counters.holdingsRecordsProcessed + "/" + counters.holdingsRecordsLoaded + "/" + counters.holdingsRecordsDeleted + "/" + counters.holdingsRecordsFailed + ". ";
-    String itemsMessage = "Items processed/loaded/deleted/failed: " + counters.itemsProcessed + "/" + counters.itemsLoaded + "/" + counters.itemsDeleted + "/" + counters.itemsFailed + ".";
-    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + counters.sourceRecordsProcessed + "/" + counters.sourceRecordsLoaded + "/" + counters.sourceRecordsDeleted + "/" + counters.sourceRecordsFailed + ".";
-
-    logger.log((counters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
-    logger.log((counters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
-    logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-    logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
-
-    for (String key : counters.instanceExceptionCounts.keySet()) {
-      logger.info(String.format("%d Instance records failed with %s", counters.instanceExceptionCounts.get(key),key));
-    }
-    timingsEntireRecord.writeLog();
-    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
-  }
-
-  @Override
-  public void add(Map<String, Collection<Serializable>> keyValues) {
-    throw new UnsupportedOperationException("Adding record by key-values collection not supported.");
-  }
-
-  @Override
-  public void add(Record recordJson) {
-    if (recordJson.isCollection()) {
-      Collection<Record> subrecords = recordJson.getSubRecords();
-      if (subrecords.size()==1) {
-        for (Record subRecord : subrecords) {
-          subRecord.setOriginalContent(recordJson.getOriginalContent());
-          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
-          recordStorageHandler.addInventory((RecordJSON) subRecord);
-        }
-      } else {
-        if (harvestable.isStoreOriginal()) {
-          logger.warn("Store original content selected for this job, "
-                  + "but storage layer received "
-                  + "result with multiple metadata records and original content "
-                  + "cannot be stored in that scenario.");
-        }
-        for (Record subRecord : subrecords) {
-          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
-          recordStorageHandler.addInventory((RecordJSON) subRecord);
-        }
-      }
-    } else {
-      InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
-      recordStorageHandler.addInventory((RecordJSON) recordJson);
-    }
-  }
-
-  @Override
-  public Record get(String id) {
-    throw new UnsupportedOperationException("get by id Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public void delete(String id) {
-    throw new UnsupportedOperationException("delete by id Not supported."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  /**
-   * Deletes a bib record with holdings and items from a shared inventory,
-   * which doesn't mean removing the Instance and all it's holdings entirely,
-   * but rather removing the identifier for the current library from the shared
-   * instance as well as the holdings for the current library, while leaving the
-   * master instance and the holdings of other institutions intact.
-   *
-   * @param id
-   */
-  @Override
-  public void delete(Record record) {
-    InventoryRecordUpdater handler = new InventoryRecordUpdater(this);
-    handler.delete((RecordJSON) record);
-  }
-
-
-  @Override
-  public void setLogger(StorageJobLogger logger) {
-    throw new UnsupportedOperationException("set logger Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public StorageStatus getStatus() throws StatusNotImplemented {
-    return this.storageStatus;
-  }
-
-  @Override
-  public DatabaseContenthandler getContentHandler() {
-    return new Pz2SolrRecordContentHandler(this, database);
-  }
-
-  @Override
-  public void shutdown() throws IOException {
-    throw new UnsupportedOperationException("shutdown Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public void setBatchLimit(int limit) {
-    throw new UnsupportedOperationException("set batch limit Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
 
   private String getAuthtoken(CloseableHttpClient client,
                               String folioAddress,
@@ -358,11 +286,70 @@ public class InventoryStorageController implements RecordStorage {
   }
 
 
+  // Unsupported interface methods
+  @Override
+  public void begin() throws IOException {
+    logger.debug("Transaction begin request recieved (not supported for Inventory updates)");
+  }
 
+  @Override
+  public void commit() throws IOException {
+    logger.debug("Commit request recieved (not supported for Inventory updates)");
+  }
 
+  @Override
+  public void rollback() throws IOException {
+    logger.debug("Rollback request recieved  (not supported for Inventory updates)");
+  }
 
+  @Override
+  public void purge(boolean commit) throws IOException {
+    logger.debug("Purge request recieved  (not supported for Inventory updates)");
+  }
 
+  @Override
+  public void setOverwriteMode(boolean mode) {
+    throw new UnsupportedOperationException("set overwrite mode Not supported.");
+  }
 
+  @Override
+  public boolean getOverwriteMode() {
+    throw new UnsupportedOperationException("get overwrite mode Not supported."); 
+  }
 
+  @Override
+  public void add(Map<String, Collection<Serializable>> keyValues) {
+    throw new UnsupportedOperationException("Adding record by key-values collection not supported.");
+  }
+
+  @Override
+  public Record get(String id) {
+    throw new UnsupportedOperationException("get by id not supported.");
+  }
+
+  @Override
+  public void delete(String id) {
+    throw new UnsupportedOperationException("delete by id not supported."); 
+  }
+
+  @Override
+  public void setLogger(StorageJobLogger logger) {
+    throw new UnsupportedOperationException("set logger not supported.");
+  }
+
+  @Override
+  public DatabaseContenthandler getContentHandler() {
+    throw new UnsupportedOperationException("retrieving content handler not supported.");
+  }
+
+  @Override
+  public void shutdown() throws IOException {
+    throw new UnsupportedOperationException("shutdown not supported."); 
+  }
+
+  @Override
+  public void setBatchLimit(int limit) {
+    throw new UnsupportedOperationException("set batch limit not supported."); 
+  }
 
 }
