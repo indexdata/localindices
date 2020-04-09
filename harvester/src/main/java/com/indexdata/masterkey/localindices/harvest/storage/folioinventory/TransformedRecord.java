@@ -79,7 +79,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
       logger.log(Level.TRACE, "Cached JSON as " + record.toJSONString());
     }
 
-    public String getInstitutionId (Map locationsToInstitutionsMap) {
+    public String getInstitutionId (Map<String,String> locationsToInstitutionsMap) {
       if (record.containsKey("institutionId")) {
         return (String) record.get("institutionId");
       } else {

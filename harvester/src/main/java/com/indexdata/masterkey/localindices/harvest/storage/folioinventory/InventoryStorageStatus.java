@@ -28,7 +28,6 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   @Override
   public Long getTotalRecords() {
-    //TODO: Query inventory instance to see how many records exist
     return 0L;
   }
 
@@ -44,13 +43,11 @@ public class InventoryStorageStatus extends AbstractStorageStatus {
 
   @Override
   public Long getOutstandingAdds() {
-    // TODO: Support pseudo-transactions
     return 0L;
   }
 
   @Override
   public Long getOutstandingDeletes() {
-    // TODO: Support pseudo-transactions
     return 0L;
   }
 

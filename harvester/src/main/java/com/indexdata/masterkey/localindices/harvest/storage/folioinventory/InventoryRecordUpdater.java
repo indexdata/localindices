@@ -44,7 +44,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
  *
  * @author ne
  */
-public class InventoryRecordUpdater {
+ @SuppressWarnings("unchecked")
+ public class InventoryRecordUpdater {
 
   private final InventoryStorageController ctrl;
   private final StorageJobLogger logger;
@@ -59,10 +60,14 @@ public class InventoryRecordUpdater {
     locInstMap = ctrl.locationsToInstitutionsMap;
   }
 
+  /**
+   * Adds or updates a set of Inventory records (an Instance with related holdings and source record)
+   * @param recordJson
+   */
   void addInventory(RecordJSON recordJson) {
+    TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
     this.errors = new RecordErrors(recordJson);
     long startStorageEntireRecord = System.currentTimeMillis();
-    TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
     JSONObject instanceResponse;
     if (ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH).contains("match")) {
       instanceResponse = addInstanceRecord(transformedRecord.getInstance(), transformedRecord.getMatchKey());
@@ -72,21 +77,7 @@ public class InventoryRecordUpdater {
     String institutionId = transformedRecord.getInstitutionId(locInstMap);
     String localIdentifier = transformedRecord.getLocalIdentifier();
     if (instanceResponse != null && instanceResponse.get("id") != null) {
-      JSONArray holdingsJson = transformedRecord.getHoldings();
-      if (holdingsJson != null && holdingsJson.size() > 0) {
-        String instanceId = instanceResponse.get("id").toString();
-        // delete existing holdings/items from the same institution
-        // before attaching new holdings/items to the instance
-        try {
-          deleteHoldingsAndItemsForInstitution(instanceId, institutionId, false);
-          addHoldingsRecordsAndItems(holdingsJson, instanceId);
-        } catch (ParseException | ClassCastException | IOException e) {
-          String msg = "Error adding holdings record and/or items: " + e.getLocalizedMessage();
-          logger.error(msg);
-          errors.addErrorMessage(msg);
-          counts.holdingsRecordsFailed++;
-        }
-      }
+      updateHoldings(transformedRecord, instanceResponse, institutionId);
       if (ctrl.harvestable.isStoreOriginal()) {
         counts.sourceRecordsProcessed++;
         JSONObject marcJson = getMarcJson((RecordJSON) recordJson);
@@ -106,16 +97,48 @@ public class InventoryRecordUpdater {
         logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, [" + ((RecordJSON) recordJson).toJson() + "] cannot create in Inventory, skipping. ");
       }
     }
+    if (errors.hasErrors()) {
+      logger.error("Errors encounter when attempting to persist record set to Inventory: " +errors.errorMessages.toString());
+    }
   }
 
+  /**
+   * Updates holdings/items for given instance - by wiping out existing holdings/items and creating new ones as received
+   * with the harvested bib record.
+   * @param transformedRecord  representation of the harvested, normalized bib record
+   * @param instanceResponse the instance to update holdings/items for
+   * @param institutionId id of the institution who holds the items on the instance to be updated
+   */
+  private void updateHoldings(TransformedRecord transformedRecord, JSONObject instanceResponse, String institutionId) {
+    JSONArray holdingsJson = transformedRecord.getHoldings();
+    if (holdingsJson != null && holdingsJson.size() > 0) {
+      String instanceId = instanceResponse.get("id").toString();
+      // delete existing holdings/items from the same institution
+      // before attaching new holdings/items to the instance
+      try {
+        deleteHoldingsAndItemsForInstitution(instanceId, institutionId, false);
+        addHoldingsRecordsAndItems(holdingsJson, instanceId);
+      } catch (ParseException | ClassCastException | IOException e) {
+        String msg = "Error adding holdings record and/or items: " + e.getLocalizedMessage();
+        logger.error(msg);
+        errors.addErrorMessage(msg);
+        counts.holdingsRecordsFailed++;
+      }
+    }
+  }
 
+  /**
+   * Adds an Instance (without applying matchkey logic)
+   * @param instanceRecord
+   * @return
+   */
   private JSONObject addInstanceRecord(JSONObject instanceRecord) {
     JSONObject noMatchKey = new JSONObject();
     return addInstanceRecord(instanceRecord, noMatchKey);
   }
 
   /**
-   * POST instance to Inventory
+   * POST/PUT an Instance to Inventory
    * @param instanceRecord
    * @return
    * @throws UnsupportedEncodingException
@@ -287,16 +310,6 @@ public class InventoryRecordUpdater {
     return marcRecord;
   }
 
-  private String getInstitutionId(JSONObject holdingsRecord) {
-    if (holdingsRecord != null) {
-      String locationId = getLocationId(holdingsRecord);
-      if (locationId != null) {
-        return locInstMap.get(locationId);
-      }
-    }
-    return null;
-  }
-
   private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier) {
     JSONObject marcResponse = null;
     if (marcJson != null) {
@@ -311,7 +324,7 @@ public class InventoryRecordUpdater {
         JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
         if (marcRecord == null) {
           logger.debug("This MARC record did not exist in storage; creating it.");
-          String url = ctrl.folioAddress + "/marc-records"; //TODO: Add configuration value
+          String url = ctrl.folioAddress + "/marc-records";
           request = new HttpPost(url);
           request.setEntity(entity);
           setHeaders(request,"application/json");
@@ -337,7 +350,7 @@ public class InventoryRecordUpdater {
         } else {
           logger.debug("This MARC record already existed in storage; updating it.");
           String id = (String) marcRecord.get("id");
-          String url = ctrl.folioAddress + "/marc-records/" + id; //TODO: Add configuration value
+          String url = ctrl.folioAddress + "/marc-records/" + id;
           request = new HttpPut(url);
           request.setEntity(entity);
           setHeaders(request,"text/plain");
@@ -504,6 +517,16 @@ public class InventoryRecordUpdater {
     }
   }
 
+  private String getInstitutionId(JSONObject holdingsRecord) {
+    if (holdingsRecord != null) {
+      String locationId = getLocationId(holdingsRecord);
+      if (locationId != null) {
+        return locInstMap.get(locationId);
+      }
+    }
+    return null;
+  }
+
   /**
    * Iterate holdings records and items of the instanceWithHoldingsAndItems object,
    * and POST them to Inventory
@@ -515,7 +538,7 @@ public class InventoryRecordUpdater {
    */
   private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId) throws ParseException, UnsupportedEncodingException, IOException {
     if (holdingsRecords != null) {
-      Iterator holdingsrecords = holdingsRecords.iterator();
+      Iterator<JSONObject> holdingsrecords = holdingsRecords.iterator();
       while (holdingsrecords.hasNext()) {
         JSONObject holdingsRecord;
         Object holdingsObject = holdingsrecords.next();
@@ -526,7 +549,7 @@ public class InventoryRecordUpdater {
             JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
             JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
             if (holdingsRecordResponse != null && holdingsRecordResponse.get("id") != null) {
-              Iterator itemsIterator = items.iterator();
+              Iterator<JSONObject> itemsIterator = items.iterator();
               while (itemsIterator.hasNext()) {
                 JSONObject item = (JSONObject) itemsIterator.next();
                 item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
@@ -547,6 +570,7 @@ public class InventoryRecordUpdater {
     }
   }
 
+  @SuppressWarnings("unused")
   private void deleteInstanceRecord(CloseableHttpClient client, String id, String tenant, String authToken) throws IOException {
     String url = String.format("%s/instances/%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH), id);
     HttpDelete httpDelete = new HttpDelete(url);
@@ -626,7 +650,6 @@ public class InventoryRecordUpdater {
     }
     return marcJson;
   }
-
 
   /**
    * Get items for a holdings record
@@ -710,7 +733,6 @@ public class InventoryRecordUpdater {
   }
 
   public void delete(RecordJSON record) {
-
     TransformedRecord transformedRecord = new TransformedRecord(record.toJson(), logger);
     if (transformedRecord.isDeleted()) {
       logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
@@ -727,29 +749,11 @@ public class InventoryRecordUpdater {
           if (instance != null) {
             String instanceId = (String) instance.get("id");
             logger.debug("Found instance to 'delete' [" + instanceId + "]");
-            JSONArray identifiers = (JSONArray)instance.get("identifiers");
-            JSONObject identifier = null;
-            Iterator iter = identifiers.iterator();
-            while (iter.hasNext()) {
-              JSONObject identifierObject = (JSONObject) iter.next();
-              if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
-                 && localIdentifier.equals(identifierObject.get("value"))) {
-                identifier = identifierObject;
-                break;
-              }
-            }
-            identifiers.remove(identifier);
-            logger.debug("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
+            removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
             deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
             updateInstance(instance);
+            deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
             counts.instanceDeletions++;
-            JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
-            if (marcRecord != null) {
-              String sourceId = (String) marcRecord.get("id");
-              deleteSourceRecord(sourceId);
-            } else {
-              logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
-            }
             ((InventoryStorageStatus) ctrl.storageStatus).incrementDelete(1);
           } else {
             logger.info("No instance found for local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
@@ -773,6 +777,40 @@ public class InventoryRecordUpdater {
     } else {
       logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
     }
+  }
+
+  /**
+   * ReShare logic for removing underlying MARC source record, if any, that was received
+   * from the institution now sending a delete request.
+   */
+  private void deleteMarcSourceRecordForInstitution(String localIdentifier, String institutionId, String instanceId) throws IOException {
+    JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
+    if (marcRecord != null) {
+      String sourceId = (String) marcRecord.get("id");
+      deleteSourceRecord(sourceId);
+    } else {
+      logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
+    }
+  }
+
+  /**
+   * ReShare logic for Instance deletes: Remove a given library's record identifier from the
+   * shared master Instance.
+   */
+  private void removeIdentifierFromInstanceForInstitution(String localIdentifier, String identifierTypeId, JSONObject instance) {
+    JSONArray identifiers = (JSONArray)instance.get("identifiers");
+    JSONObject identifier = null;
+    Iterator<JSONObject> iter = identifiers.iterator();
+    while (iter.hasNext()) {
+      JSONObject identifierObject = (JSONObject) iter.next();
+      if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
+         && localIdentifier.equals(identifierObject.get("value"))) {
+        identifier = identifierObject;
+        break;
+      }
+    }
+    identifiers.remove(identifier);
+    logger.debug("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
   }
 
   /**
