@@ -28,11 +28,12 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Collection<Record> getSubRecords() {
     List<Record> list = new ArrayList<>();
     JSONArray records = (JSONArray)json.get("collection");
     if (records != null) {
-      Iterator collectionIterator = records.iterator();
+      Iterator<Record> collectionIterator = records.iterator();
       while (collectionIterator.hasNext()) {
         RecordJSON record = new RecordJSONImpl();
         JSONObject next = (JSONObject) collectionIterator.next();
@@ -49,16 +50,6 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
   @Override
   public boolean isDeleted() {
     return isDeleted;
-  }
-
-  private JSONObject getNextLevelRoot (JSONObject json) {
-    JSONObject obj = new JSONObject();
-    if (json.keySet().size()==1) {
-      if (json.keySet().iterator().next() instanceof JSONObject) {
-        obj = (JSONObject) (json.keySet().iterator().next());
-      }
-    }
-    return obj;
   }
 
   @Override

@@ -37,11 +37,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
  *  transformed to "publication": [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
  *
  */
-public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter {
+@SuppressWarnings("unchecked")
+public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter<Object> {
 
-  private MessageConsumer input;
-  private MessageProducer output;
-  private MessageProducer error;
+  private MessageConsumer<Object> input;
+  private MessageProducer<Object> output;
+  private MessageProducer<Object> error;
 
   private boolean running = true;
 
@@ -61,28 +62,28 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   }
 
   @Override
-  public void setInput(MessageConsumer input) {
+  public void setInput(MessageConsumer<Object> input) {
     this.input = input;
   }
 
   @Override
-  public void setOutput(MessageProducer output) {
+  public void setOutput(MessageProducer<Object> output) {
     this.output = output;
   }
 
   @Override
-  public void setError(MessageProducer error) {
+  public void setError(MessageProducer<Object> error) {
     this.error = error;
   }
 
   @Override
   public void shutdown() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
   public void setThread(Thread thred) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
@@ -191,9 +192,6 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         instanceJson.put(node.getLocalName(), jsonArray);
       }
     }
-    if (instanceJson.containsKey("record")) {
-      instanceJson = (JSONObject) (instanceJson.get("record"));
-    }
     return instanceJson;
   }
 
@@ -203,7 +201,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    */
   private static void stripWhiteSpaceNodes(Node node) {
     // Clean up whitespace text nodes between elements
-    List<Node> whiteSpaceNodes = new ArrayList();
+    List<Node> whiteSpaceNodes = new ArrayList<Node>();
     findWhiteSpaceNodes(node, whiteSpaceNodes);
     for (Node nodeToDelete : whiteSpaceNodes) {
       nodeToDelete.getParentNode().removeChild(nodeToDelete);

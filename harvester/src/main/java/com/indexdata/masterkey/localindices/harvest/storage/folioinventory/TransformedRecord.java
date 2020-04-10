@@ -76,6 +76,9 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
       } else {
         this.record=recordJson;
       }
+      if (record.containsKey("record")) {
+        record = (JSONObject) record.get("record");
+      }
       logger.log(Level.TRACE, "Cached JSON as " + record.toJSONString());
     }
 

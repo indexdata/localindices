@@ -229,8 +229,8 @@ public class InventoryStorageController implements RecordStorage {
     logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
     logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    for (String key : counters.instanceExceptionCounts.keySet()) {
-      logger.info(String.format("%d Instance records failed with %s", counters.instanceExceptionCounts.get(key),key));
+    for (String key : counters.exceptionCounts.keySet()) {
+      logger.info(String.format("%d Instance records failed with %s", counters.exceptionCounts.get(key),key));
     }
     timingsEntireRecord.writeLog();
     harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
