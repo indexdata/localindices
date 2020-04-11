@@ -36,10 +36,11 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 /**
- * The logic for initializing storage, loggers, execution and performance
- * statistics, retrieving job configurations, and then receiving and iterating
- * Inventory record sets coming in from the transformation pipeline and
- * forwarding each record to be created/updated/deleted by {@link InventoryRecordUpdater}
+ * Contains the logic for initializing storage, loggers, and update statistics.
+ *  
+ * Iterates Inventory record sets (instances, holdings, items, source records) coming
+ * in from the transformation pipeline and forwards each incoming record to 
+ * {@link InventoryRecordUpdater} for creation/update/deletion in FOLIO Inventory.
  *
  * @author kurt
  */
@@ -73,6 +74,9 @@ public class InventoryStorageController implements RecordStorage {
     init();
   }
 
+  /**
+   * Initializes storage job with regards to storage URL, logger, update statistics
+   */
   private void init() {
     try {
       Storage storage = null;
@@ -123,6 +127,19 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
+  /**
+   * Authenticates to FOLIO service
+   * @param client
+   * @param folioAddress
+   * @param folioAuthPath
+   * @param username
+   * @param password
+   * @param tenant
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws StorageException
+   */
   @SuppressWarnings("unchecked")
   private String getAuthtoken(CloseableHttpClient client,
                               String folioAddress,
@@ -149,7 +166,7 @@ public class InventoryStorageController implements RecordStorage {
   }
 
   /**
-   * Retrieve a mapping from locations to institutions from Inventory storage
+   * Retrieve locations to institutions mappings from Inventory storage
    * Used for holdings/items deletion logic.
    * @throws IOException
    * @throws ParseException
@@ -180,6 +197,10 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
+  /**
+   * Invokes {@link InventoryRecordUpdater} to create or add records in Inventory from
+   * an incoming {@link RecordJSON}
+   */
   @Override
   public void add(Record recordJson) {
     if (recordJson.isCollection()) {
@@ -211,12 +232,21 @@ public class InventoryStorageController implements RecordStorage {
       recordStorageHandler.addInventory((RecordJSON) recordJson);
     }
   }
+
+  /** 
+   *  Invokes {@link InventoryRecordUpdater} to delete/modify Inventory records on 
+   *  an incoming delete request
+   * 
+   */
   @Override
   public void delete(Record record) {
     InventoryRecordUpdater updater = new InventoryRecordUpdater(this);
     updater.delete((RecordJSON) record);
   }
 
+  /**
+   * Logs statistics at end of job
+   */
   @Override
   public void databaseEnd() {
     String instancesMessage = "Instances processed/loaded/deletions/failed: " + counters.instancesProcessed + "/" + counters.instancesLoaded + "/" + counters.instanceDeletions + "/" + counters.instancesFailed + ". ";
