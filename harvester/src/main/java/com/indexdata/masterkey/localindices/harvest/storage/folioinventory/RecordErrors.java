@@ -101,19 +101,15 @@ public class RecordErrors {
    */
   void writeErrorsLog(StorageJobLogger logger, RecordUpdateCounts counters) {
     if (hasErrors()) {
-      String headline = "";
-      if (numberOfErrors()==1) {
-        headline = "Record ingestion had errors for " + record.toJson().toJSONString();
-      } else {
-        logger.error("Record ingestion had errors for " + record.toJson().toJSONString());
-      }
+      int i=0;
       for (RecordError error : errors) {
+        i++;
         int occurrences = counters.exceptionCounts.get(error.briefMessage());
         if (occurrences < 10) {
-          logger.error(headline);
-          logger.error(error.toString());
+          if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + record.toJson().toJSONString());
+          logger.error("#" + i + " " + error.toString());
         } else if (occurrences % 100 == 0) {
-          logger.error("A total of " + occurrences + " records have failed with " + error.briefMessage());
+          logger.error(occurrences + " records have failed with " + error.briefMessage());
         }
       }
     }

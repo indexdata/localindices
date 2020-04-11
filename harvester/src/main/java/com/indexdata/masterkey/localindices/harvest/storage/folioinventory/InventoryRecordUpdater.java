@@ -343,15 +343,15 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             marcResponse = new JSONObject();
             marcResponse.put("wrappedErrorMessage", responseAsString);
           }
-          response.close();
           if (response.getStatusLine().getStatusCode() != 201) {
             counts.sourceRecordsFailed++;
-            RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Error adding MARC source record " + marcPostJson.toJSONString(), "MARC source");
+            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, "Error adding MARC source record ", "MARC source");
             errors.reportAndThrowError(error, logger, Level.DEBUG);
           } else {
             logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
             counts.sourceRecordsLoaded++;
           }
+          response.close();
         } else {
           logger.debug("This MARC record already existed in storage; updating it.");
           String id = (String) marcRecord.get("id");
