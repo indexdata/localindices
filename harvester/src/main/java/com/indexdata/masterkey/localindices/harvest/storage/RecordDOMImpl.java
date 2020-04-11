@@ -1,7 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -14,8 +13,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-
-import com.indexdata.utils.XmlUtils;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -74,16 +71,6 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     this.node = node;
     extractDelete();
     extractId();
-  }
-
-  private String nodeAsString (Node xmlNode) {
-    try {
-      StringWriter writer = new StringWriter();
-      XmlUtils.serialize(xmlNode, writer);
-      return writer.toString();
-    } catch (Exception e) {e.printStackTrace();
-    return "";}
-
   }
 
   protected void extractDelete() {

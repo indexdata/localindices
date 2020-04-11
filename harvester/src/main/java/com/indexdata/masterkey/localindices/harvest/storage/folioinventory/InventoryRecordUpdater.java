@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
@@ -34,21 +28,32 @@ import org.xml.sax.SAXException;
 
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
+import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
  * Logic for handling the create/update/delete for one FOLIO Inventory record
- * set -- an Inventory record set being understood as an instance with
+ * set -- an Inventory record set being an instance with
  * holdings/items and possibly a source record, all created from one
  * incoming bibliographic record.
  *
+ * InventoryRecordUpdate gets context from {@link InventoryStorageController},
+ * for example the job logger and record update/failure counters for logging the
+ * process.
+ *
+ *
+ *
  * @author ne
  */
-public class InventoryRecordUpdater {
+ @SuppressWarnings("unchecked")
+ public class InventoryRecordUpdater {
 
+  /** Inventory storage handler on the job level */
   private final InventoryStorageController ctrl;
   private final StorageJobLogger logger;
+  /** Container for errors encountered while updating Inventory from one incoming bib record */
   private RecordErrors errors;
+  /** Overall updates and errors counters */
   private final RecordUpdateCounts counts;
   private final Map<String, String> locInstMap;
 
@@ -59,72 +64,99 @@ public class InventoryRecordUpdater {
     locInstMap = ctrl.locationsToInstitutionsMap;
   }
 
+  /**
+   * Adds or updates a set of Inventory records (an Instance with related holdings and/or a source record)
+   * from the incoming bibliographic record.
+   * @param recordJson
+   */
   void addInventory(RecordJSON recordJson) {
-    this.errors = new RecordErrors(recordJson);
-    long startStorageEntireRecord = System.currentTimeMillis();
-    TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
-    JSONObject instanceResponse;
-    if (ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH).contains("match")) {
-      instanceResponse = addInstanceRecord(transformedRecord.getInstance(), transformedRecord.getMatchKey());
-    } else {
-      instanceResponse = addInstanceRecord(transformedRecord.getInstance());
-    }
-    String institutionId = transformedRecord.getInstitutionId(locInstMap);
-    String localIdentifier = transformedRecord.getLocalIdentifier();
-    if (instanceResponse != null && instanceResponse.get("id") != null) {
-      JSONArray holdingsJson = transformedRecord.getHoldings();
-      if (holdingsJson != null && holdingsJson.size() > 0) {
-        String instanceId = instanceResponse.get("id").toString();
-        // delete existing holdings/items from the same institution
-        // before attaching new holdings/items to the instance
-        try {
-          deleteHoldingsAndItemsForInstitution(instanceId, institutionId, false);
-          addHoldingsRecordsAndItems(holdingsJson, instanceId);
-        } catch (ParseException | ClassCastException | IOException e) {
-          String msg = "Error adding holdings record and/or items: " + e.getLocalizedMessage();
-          logger.error(msg);
-          errors.addErrorMessage(msg);
-          counts.holdingsRecordsFailed++;
-        }
-      }
-      if (ctrl.harvestable.isStoreOriginal()) {
-        counts.sourceRecordsProcessed++;
-        JSONObject marcJson = getMarcJson((RecordJSON) recordJson);
-        addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
-      }
-      ctrl.timingsEntireRecord.time(startStorageEntireRecord);
-      if (counts.instancesLoaded % (counts.instancesLoaded < 1000 ? 100 : 1000) == 0) {
-        logger.info("" + counts.instancesLoaded + " instances, " + counts.holdingsRecordsLoaded + " holdings records, " + counts.itemsLoaded + " items, and " + counts.sourceRecordsLoaded + " source records ingested.");
-        if (counts.instancesFailed + counts.holdingsRecordsFailed + counts.itemsFailed > 0) {
-          logger.info("Failed: " + counts.instancesFailed + " instances, " + counts.holdingsRecordsFailed + " holdings records, " + counts.itemsFailed + " items, and " + counts.sourceRecordsFailed + " source records.");
-        }
-      }
-    } else {
-      if (recordJson.isDeleted()) {
-        logger.info("Record is deleted: [" + recordJson.getId() + "], [" + ((RecordJSON) recordJson).toJson() + "]");
+    try {
+      TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
+      this.errors = new RecordErrors(recordJson, counts.exceptionCounts);
+      long startStorageEntireRecord = System.currentTimeMillis();
+
+      JSONObject instanceResponse;
+      if (ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH).contains("match")) {
+        instanceResponse = addInstanceRecord(transformedRecord.getInstance(), transformedRecord.getMatchKey());
       } else {
-        logger.info("Inventory record storage received instance record that was not a delete but also with no 'title' property, [" + ((RecordJSON) recordJson).toJson() + "] cannot create in Inventory, skipping. ");
+        instanceResponse = addInstanceRecord(transformedRecord.getInstance());
       }
+
+      if (instanceResponse != null && instanceResponse.get("id") != null) {
+        String institutionId = transformedRecord.getInstitutionId(locInstMap);
+        String localIdentifier = transformedRecord.getLocalIdentifier();
+        try {
+          updateHoldings(transformedRecord, instanceResponse, institutionId);
+        } catch (InventoryUpdateException iue) {
+          // there were errors updating holdings/items - but continue with handling source record (if isStoreOriginal)
+        }
+        if (ctrl.harvestable.isStoreOriginal()) {
+          counts.sourceRecordsProcessed++;
+          JSONObject marcJson = getMarcJson((RecordJSON) recordJson);
+          addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
+        }
+        ctrl.timingsEntireRecord.time(startStorageEntireRecord);
+        if (counts.instancesLoaded % (counts.instancesLoaded < 1000 ? 100 : 1000) == 0) {
+          logger.info("" + counts.instancesLoaded + " instances, " + counts.holdingsRecordsLoaded + " holdings records, " + counts.itemsLoaded + " items, and " + counts.sourceRecordsLoaded + " source records ingested.");
+          if (counts.instancesFailed + counts.holdingsRecordsFailed + counts.itemsFailed > 0) {
+            logger.info("Failed: " + counts.instancesFailed + " instances, " + counts.holdingsRecordsFailed + " holdings records, " + counts.itemsFailed + " items, and " + counts.sourceRecordsFailed + " source records.");
+          }
+        }
+      } else {
+        if (recordJson.isDeleted()) {
+          logger.error("Deletion record received on 'add' channels: [" + recordJson.getId() + "], [" + ((RecordJSON) recordJson).toJson() + "]");
+        } else {
+          logger.error("Expected instance response on adding instance but response was null or had no ID property." + instanceResponse);
+        }
+      }
+      if (errors.hasErrors()) {
+        errors.writeErrorsLog(logger, counts);
+      }
+    } catch (InventoryUpdateException iue) {
+      errors.writeErrorsLog(logger, counts);
     }
   }
 
+  /**
+   * Updates holdings/items for given instance - by wiping out existing holdings/items and creating new ones as received
+   * with the harvested bib record.
+   * @param transformedRecord  representation of the harvested, normalized bib record
+   * @param instanceResponse the instance to update holdings/items for
+   * @param institutionId id of the institution who holds the items on the instance to be updated
+   * @throws InventoryUpdateException
+   */
+  private void updateHoldings(TransformedRecord transformedRecord, JSONObject instanceResponse, String institutionId) throws InventoryUpdateException {
+    JSONArray holdingsJson = transformedRecord.getHoldings();
+    if (holdingsJson != null && holdingsJson.size() > 0) {
+      String instanceId = instanceResponse.get("id").toString();
+      // delete existing holdings/items from the same institution
+      // before attaching new holdings/items to the instance
+      deleteHoldingsAndItemsForInstitution(instanceId, institutionId, false);
+      addHoldingsRecordsAndItems(holdingsJson, instanceId);
+    }
+  }
 
-  private JSONObject addInstanceRecord(JSONObject instanceRecord) {
+  /**
+   * Adds an Instance (without applying matchkey logic)
+   * @param instanceRecord
+   * @return Inventory's response to the request
+   * @throws InventoryUpdateException
+   */
+  private JSONObject addInstanceRecord(JSONObject instanceRecord) throws InventoryUpdateException {
     JSONObject noMatchKey = new JSONObject();
     return addInstanceRecord(instanceRecord, noMatchKey);
   }
 
   /**
-   * POST instance to Inventory
+   * POST/PUT an Instance to Inventory
    * @param instanceRecord
    * @return
-   * @throws UnsupportedEncodingException
-   * @throws IOException
-   * @throws ParseException
+   * @throws InventoryUpdateException
    */
-  private JSONObject addInstanceRecord(JSONObject instanceRecord, JSONObject matchKey) {
+  private JSONObject addInstanceRecord(JSONObject instanceRecord, JSONObject matchKey) throws InventoryUpdateException {
     JSONObject instanceResponse = null;
     counts.instancesProcessed++;
+    String method = "";
     try {
       String url = ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH);
       HttpEntityEnclosingRequestBase httpUpdate;
@@ -133,8 +165,10 @@ public class InventoryRecordUpdater {
           instanceRecord.put("matchKey", matchKey);
         }
         httpUpdate = new HttpPut(url);
+        method="PUT";
       } else {
         httpUpdate = new HttpPost(url);
+        method="POST";
       }
       StringEntity entity = new StringEntity(instanceRecord.toJSONString(), "UTF-8");
       httpUpdate.setEntity(entity);
@@ -151,34 +185,17 @@ public class InventoryRecordUpdater {
       response.close();
       if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
         counts.instancesFailed++;
-        String errorMessage = response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase();
-        errors.addErrorMessage(errorMessage);
-        if (counts.instanceExceptionCounts.containsKey(errorMessage)) {
-          counts.instanceExceptionCounts.put(errorMessage, counts.instanceExceptionCounts.get(errorMessage) + 1);
-        } else {
-          counts.instanceExceptionCounts.put(errorMessage, 1);
-        }
-        if (counts.instanceExceptionCounts.get(errorMessage) < 10 || counts.instanceExceptionCounts.get(errorMessage) % 100 == 0) {
-          logger.error(String.format("%d instances failed with %s", counts.instanceExceptionCounts.get(errorMessage), errorMessage));
-        }
+        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase() + ": " + responseAsString, responseAsString,"Error "+method+"ing Instance", "Instance");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
         logger.debug(String.format("Got error %s, %s adding Instance record: %s", response.getStatusLine().getStatusCode(), responseAsString, instanceRecord.toJSONString()));
       } else {
         ((InventoryStorageStatus) ctrl.storageStatus).incrementAdd(1);
         counts.instancesLoaded++;
       }
-    } catch (IOException | org.apache.http.ParseException e) {
+    } catch (IOException  e) {
       counts.instancesFailed++;
-      String errorMessage = String.format("Got error adding Instance record: %s", e.getLocalizedMessage());
-      errors.addErrorMessage(errorMessage);
-      if (counts.instanceExceptionCounts.containsKey(errorMessage)) {
-        counts.instanceExceptionCounts.put(errorMessage, counts.instanceExceptionCounts.get(errorMessage) + 1);
-      } else {
-        counts.instanceExceptionCounts.put(errorMessage, 1);
-      }
-      if (counts.instanceExceptionCounts.get(errorMessage) < 10 || counts.instanceExceptionCounts.get(errorMessage) % 100 == 0) {
-        logger.error(String.format("%d instances failed with %s", counts.instanceExceptionCounts.get(errorMessage), errorMessage));
-      }
-      logger.debug("Error storing Instance record: %s " + e.getLocalizedMessage());
+      RecordError error = new ExceptionRecordError(e, "Error adding Instance record", "Instance");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
     return instanceResponse;
   }
@@ -186,8 +203,9 @@ public class InventoryRecordUpdater {
   /**
    * PUTs the instance object argument to Inventory
    * @param instance
+   * @throws InventoryUpdateException
    */
-  private void updateInstance(JSONObject instance) {
+  private void updateInstance(JSONObject instance) throws InventoryUpdateException {
     logger.debug("Updating Instance with " + instance.toJSONString());
     try {
       String url = ctrl.folioAddress + "instance-storage/instances/" + instance.get("id");
@@ -200,9 +218,8 @@ public class InventoryRecordUpdater {
       response.close();
       logger.debug("Updated instance " + instance.get("id"));
     } catch (IOException ioe) {
-      String err = "IO error updating instance: " + ioe.getMessage();
-      errors.addErrorMessage(err);
-      logger.error(err);
+      RecordError error = new ExceptionRecordError(ioe,"Error updating instance", "instance");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
   }
 
@@ -210,11 +227,9 @@ public class InventoryRecordUpdater {
    * POST holdings record to Inventory
    * @param holdingsRecord
    * @return
-   * @throws UnsupportedEncodingException
-   * @throws IOException
-   * @throws ParseException
+   * @throws InventoryUpdateException
    */
-  private JSONObject addHoldingsRecord(JSONObject holdingsRecord) {
+  private JSONObject addHoldingsRecord(JSONObject holdingsRecord) throws InventoryUpdateException {
     counts.holdingsRecordsProcessed++;
     String url = ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.HOLDINGS_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
@@ -226,32 +241,39 @@ public class InventoryRecordUpdater {
       CloseableHttpResponse response = ctrl.client.execute(httpPost);
       JSONParser parser = new JSONParser();
       String responseAsString = EntityUtils.toString(response.getEntity());
-      try {
-        holdingsRecordResponse = (JSONObject) parser.parse(responseAsString);
-      } catch (ParseException pe) {
-        holdingsRecordResponse = new JSONObject();
-        holdingsRecordResponse.put("wrappedErrorMessage", responseAsString);
-        errors.addErrorMessage(responseAsString);
-      }
-      response.close();
       if (response.getStatusLine().getStatusCode() != 201) {
         counts.holdingsRecordsFailed++;
-        String err = String.format("Got error %s, %s adding holdingsRecord: %s", response.getStatusLine().getStatusCode(), responseAsString, holdingsRecord.toJSONString());
-        logger.error(err);
-        errors.addErrorMessage(err);
+        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, "Error adding a holdingsRecord to Inventory ", "holdings");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       } else {
         counts.holdingsRecordsLoaded++;
+        try {
+          holdingsRecordResponse = (JSONObject) parser.parse(responseAsString);
+        } catch (ParseException pe) {
+          holdingsRecordResponse = new JSONObject();
+          holdingsRecordResponse.put("wrappedErrorMessage", responseAsString);
+          RecordError error = new ExceptionRecordError(pe, "Error parsing holdingsRecords from response " + responseAsString, "holdings");
+          errors.reportAndThrowError(error, logger, Level.DEBUG);
+        }
       }
+      response.close();
     } catch (IOException | org.apache.http.ParseException e) {
       counts.holdingsRecordsFailed++;
-      String err = String.format("Got error adding holdingsRecord: %s", e.getLocalizedMessage());
-      logger.error(err);
-      errors.addErrorMessage(err);
+      RecordError error = new ExceptionRecordError(e, "Exception while adding holdingsRecord","holdings");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
     return holdingsRecordResponse;
   }
 
-  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier) {
+  /**
+   * Looks for existing MARC record in FOLIO by uniquely identifying criteria
+   * @param instanceId
+   * @param institutionId
+   * @param localIdentifier
+   * @return
+   * @throws InventoryUpdateException
+   */
+  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier) throws InventoryUpdateException {
     JSONObject marcRecord = null;
     try {
       StringBuilder query = new StringBuilder().append("(instanceId==\"").append(instanceId).append("\"").append(" and institutionId==\"").append(institutionId).append("\"").append(" and localIdentifier==\"").append(localIdentifier).append("\")");
@@ -261,9 +283,8 @@ public class InventoryRecordUpdater {
       setHeaders(httpGet,"application/json");
       CloseableHttpResponse response = ctrl.client.execute(httpGet);
       if (response.getStatusLine().getStatusCode() != 200) {
-        String err = "Error looking up existing MARC record, expected status 200, got " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase();
-        logger.error(err);
-        errors.addErrorMessage(err);
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Error looking up existing MARC record, expected status 200", "MARC source");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       } else {
         String responseAsString = EntityUtils.toString(response.getEntity());
         JSONObject marcRecords = (JSONObject) (new JSONParser().parse(responseAsString));
@@ -275,29 +296,27 @@ public class InventoryRecordUpdater {
           JSONArray records = (JSONArray) marcRecords.get("marcrecords");
           marcRecord = (JSONObject) records.get(0);
         } else {
-          logger.error("Expected zero or on MARC source records for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "] but count was " + count);
+          logger.error("Expected zero or one MARC source records for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "] but count was " + count);
         }
       }
       response.close();
     } catch (IOException | ParseException e) {
-      String err = "Error when checking for previously existing MARC record: " + e.getMessage();
-      logger.error(err);
-      errors.addErrorMessage(err);
+      RecordError error = new ExceptionRecordError(e, "Error when checking for previously existing MARC record","MARC source");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
     return marcRecord;
   }
 
-  private String getInstitutionId(JSONObject holdingsRecord) {
-    if (holdingsRecord != null) {
-      String locationId = getLocationId(holdingsRecord);
-      if (locationId != null) {
-        return locInstMap.get(locationId);
-      }
-    }
-    return null;
-  }
-
-  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier) {
+  /**
+   *
+   * @param marcJson
+   * @param instanceId
+   * @param institutionId
+   * @param localIdentifier
+   * @return
+   * @throws InventoryUpdateException
+   */
+  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier) throws InventoryUpdateException {
     JSONObject marcResponse = null;
     if (marcJson != null) {
       JSONObject marcPostJson = new JSONObject();
@@ -311,7 +330,7 @@ public class InventoryRecordUpdater {
         JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
         if (marcRecord == null) {
           logger.debug("This MARC record did not exist in storage; creating it.");
-          String url = ctrl.folioAddress + "/marc-records"; //TODO: Add configuration value
+          String url = ctrl.folioAddress + "/marc-records";
           request = new HttpPost(url);
           request.setEntity(entity);
           setHeaders(request,"application/json");
@@ -324,40 +343,37 @@ public class InventoryRecordUpdater {
             marcResponse = new JSONObject();
             marcResponse.put("wrappedErrorMessage", responseAsString);
           }
-          response.close();
           if (response.getStatusLine().getStatusCode() != 201) {
-            String err = String.format("Got error %s, %s adding record: %s", response.getStatusLine().getStatusCode(), responseAsString, marcPostJson.toJSONString());
-            logger.error(err);
-            errors.addErrorMessage(err);
             counts.sourceRecordsFailed++;
+            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, "Error adding MARC source record ", "MARC source");
+            errors.reportAndThrowError(error, logger, Level.DEBUG);
           } else {
             logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
             counts.sourceRecordsLoaded++;
           }
+          response.close();
         } else {
           logger.debug("This MARC record already existed in storage; updating it.");
           String id = (String) marcRecord.get("id");
-          String url = ctrl.folioAddress + "/marc-records/" + id; //TODO: Add configuration value
+          String url = ctrl.folioAddress + "/marc-records/" + id;
           request = new HttpPut(url);
           request.setEntity(entity);
           setHeaders(request,"text/plain");
           CloseableHttpResponse response = ctrl.client.execute(request);
           response.close();
           if (response.getStatusLine().getStatusCode() != 204) {
-            String err = String.format("Got error %s, %s updating record: %s", response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), marcPostJson.toJSONString());
-            logger.error(err);
-            errors.addErrorMessage(err);
             counts.sourceRecordsFailed++;
+            RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Error updating existing MARC record "+marcPostJson.toJSONString(), "MARC source");
+            errors.reportAndThrowError(error, logger, Level.DEBUG);
           } else {
             logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for PUT of marc json " + marcPostJson.toJSONString());
             counts.sourceRecordsLoaded++;
           }
         }
       } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
-        String err = "Error adding MARC source record: " + e.getLocalizedMessage();
-        logger.error(err);
-        errors.addErrorMessage(err);
         counts.sourceRecordsFailed++;
+        RecordError error = new ExceptionRecordError(e, "Error adding MARC source record", "MARC source");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       }
     }
     return marcResponse;
@@ -366,9 +382,9 @@ public class InventoryRecordUpdater {
   /**
    * Delete a source record by ID
    * @param uuid
-   * @throws IOException
+   * @throws InventoryUpdateException
    */
-  private void deleteSourceRecord(String uuid) throws IOException {
+  private void deleteSourceRecord(String uuid) throws InventoryUpdateException {
     logger.debug("Deleting source record with ID: " + uuid);
     String url = String.format("%s/%s", ctrl.folioAddress + "/marc-records/", uuid);
     HttpDelete httpDelete = new HttpDelete(url);
@@ -377,15 +393,22 @@ public class InventoryRecordUpdater {
     try {
       response = ctrl.client.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        String err = String.format("Got error deleting source record with id '%s': %s", uuid, EntityUtils.toString(response.getEntity()));
-        errors.addErrorMessage(err);
-        throw new IOException(err);
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Got error deleting source record with id " + uuid, "MARC source");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       } else {
         counts.sourceRecordsDeleted++;
       }
+    } catch (IOException e) {
+      RecordError error = new ExceptionRecordError(e, "Error DELETEing MARC source record", "MARC source");
+      errors.reportAndThrowError(error, logger, Level.DEBUG, e);
     } finally {
       if (response != null) {
-        response.close();
+        try {
+          response.close();
+        } catch (IOException e) {
+          throw new StorageException("Couldn't close response after DELETE source record request", e);
+        }
+
       }
     }
   }
@@ -394,33 +417,43 @@ public class InventoryRecordUpdater {
    * Get holdings records for an instance
    * @param instanceId
    * @return
-   * @throws IOException
-   * @throws ParseException
+   * @throws InventoryUpdateException
    */
-  private JSONArray getHoldingsRecordsByInstanceId(String instanceId) throws IOException, ParseException {
+  private JSONArray getHoldingsRecordsByInstanceId(String instanceId) throws InventoryUpdateException {
     String url = String.format("%s?limit=1000&query=instanceId%%3D%%3D%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.HOLDINGS_STORAGE_PATH), instanceId);
     HttpGet httpGet = new HttpGet(url);
     setHeaders(httpGet,"application/json");
-    CloseableHttpResponse response = ctrl.client.execute(httpGet);
-    if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-      String err = String.format("Got error retrieving holdings records for instance with id '%s': %s", instanceId, EntityUtils.toString(response.getEntity()));
-      throw new IOException(err);
+    CloseableHttpResponse response;
+    try {
+      response = ctrl.client.execute(httpGet);
+      if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+        String err = String.format("Got error retrieving holdings records for instance with id '%s': %s", instanceId, EntityUtils.toString(response.getEntity()));
+        throw new InventoryUpdateException(err);
+      }
+    } catch (IOException ioe) {
+      throw new InventoryUpdateException("IOException when trying to GET holdings records by instance ID", ioe);
     }
-    JSONObject jsonResponse;
-    JSONParser parser = new JSONParser();
-    String responseString = EntityUtils.toString(response.getEntity());
-    jsonResponse = (JSONObject) parser.parse(responseString);
-    JSONArray holdingsRecordsJson = (JSONArray) (jsonResponse.get("holdingsRecords"));
+    JSONArray holdingsRecordsJson;
+    try {
+      JSONObject jsonResponse;
+      JSONParser parser = new JSONParser();
+      String responseString = EntityUtils.toString(response.getEntity());
+      jsonResponse = (JSONObject) parser.parse(responseString);
+      holdingsRecordsJson = (JSONArray) (jsonResponse.get("holdingsRecords"));
+    } catch (IOException ioe) {
+      throw new InventoryUpdateException("IO exception when trying to read holdings records by instance ID response", ioe);
+    } catch (ParseException pe) {
+      throw new InventoryUpdateException("Could not parse holdings records as JSONArray when trying to get holdings records by Instance ID", pe);
+    }
     return holdingsRecordsJson;
   }
 
   /**
    * Wipes out existing holdings and items belonging to the institution, for the given instance
    * @param instanceId
-   * @throws IOException
-   * @throws ParseException
+   * @throws InventoryUpdateException
    */
-  private void deleteHoldingsAndItemsForInstitution(String instanceId, String institutionId, boolean countDeletions) throws IOException, ParseException {
+  private void deleteHoldingsAndItemsForInstitution(String instanceId, String institutionId, boolean countDeletions) throws InventoryUpdateException {
     logger.debug("Deleting holdings and items for Instance Id " + instanceId + " for institution " + institutionId);
     int itemsToDelete = 0;
     if (institutionId != null) {
@@ -450,16 +483,15 @@ public class InventoryRecordUpdater {
               if (countDeletions) {
                 counts.holdingsRecordsDeleted++;
               }
-            } catch (IOException ioe) {
-              if (ioe.getMessage().contains("still referenced")) {
+            } catch (InventoryUpdateException e) {
+              // catch, add diagnostics to message and rethrow
+              if (e.getCause() != null && e.getCause().getMessage().contains("still referenced")) {
                 String err = "Holdings record for deletion: " + existingHoldingsRecord.toJSONString() + " had " + itemsToDelete + " items.";
-                logger.info(err);
-                errors.addErrorMessage(err);
-                err = "Items referencing the holdings record: " + getItemsByHoldingsRecordId(existingHoldingsRecordId).toJSONString();
-                logger.info(err);
-                errors.addErrorMessage(err);
+                err += "Items referencing the holdings record: " + getItemsByHoldingsRecordId(existingHoldingsRecordId).toJSONString();
+                throw new InventoryUpdateException(e.getMessage() + " " + err, e);
+              } else {
+                throw e;
               }
-              throw ioe;
             }
           } else {
             logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") + "), not deleting it.");
@@ -474,9 +506,9 @@ public class InventoryRecordUpdater {
   /**
    * Delete an item by ID
    * @param uuid
-   * @throws IOException
+   * @throws InventoryUpdateException
    */
-  private void deleteItem(String uuid) throws IOException {
+  private void deleteItem(String uuid) throws InventoryUpdateException {
     logger.debug("Deleting item with ID: " + uuid);
     String url = String.format("%s/%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.ITEM_STORAGE_PATH), uuid);
     HttpDelete httpDelete = new HttpDelete(url);
@@ -485,13 +517,19 @@ public class InventoryRecordUpdater {
     try {
       response = ctrl.client.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        String err = String.format("Got error deleting item with id '%s': %s", uuid, EntityUtils.toString(response.getEntity()));
-        errors.addErrorMessage(err);
-        throw new IOException(String.format("Got error deleting item with id '%s': %s", uuid, EntityUtils.toString(response.getEntity())));
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.toString(), "Got error DELETEing item", "item");
+        errors.reportAndThrowError(error, logger, Level.ERROR);
       }
+    } catch (IOException e) {
+      RecordError error = new ExceptionRecordError(e, "IOException when attempting to DELETE item", "item");
+      errors.reportAndThrowError(error, logger, Level.ERROR, e);
     } finally {
       if (response != null) {
-        response.close();
+        try {
+          response.close();
+        } catch (IOException e) {
+          throw new StorageException("Couldn't close response after DELETE item request", e);
+        }
       }
     }
   }
@@ -504,42 +542,62 @@ public class InventoryRecordUpdater {
     }
   }
 
+  private String getInstitutionId(JSONObject holdingsRecord) {
+    if (holdingsRecord != null) {
+      String locationId = getLocationId(holdingsRecord);
+      if (locationId != null) {
+        return locInstMap.get(locationId);
+      }
+    }
+    return null;
+  }
+
   /**
    * Iterate holdings records and items of the instanceWithHoldingsAndItems object,
    * and POST them to Inventory
    * @param holdingsRecords
    * @param instanceId
-   * @throws ParseException
-   * @throws UnsupportedEncodingException
-   * @throws IOException
+   * @throws InventoryUpdateException
    */
-  private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId) throws ParseException, UnsupportedEncodingException, IOException {
+  private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId) throws InventoryUpdateException {
     if (holdingsRecords != null) {
-      Iterator holdingsrecords = holdingsRecords.iterator();
+      Iterator<JSONObject> holdingsrecords = holdingsRecords.iterator();
       while (holdingsrecords.hasNext()) {
         JSONObject holdingsRecord;
         Object holdingsObject = holdingsrecords.next();
-        if (holdingsObject instanceof JSONObject) {
-          holdingsRecord = (JSONObject) holdingsObject;
-          holdingsRecord.put("instanceId", instanceId);
-          if (holdingsRecord.containsKey("items")) {
-            JSONArray items = extractJsonArrayFromObject(holdingsRecord, "items");
+        holdingsRecord = (JSONObject) holdingsObject;
+        holdingsRecord.put("instanceId", instanceId);
+        if (holdingsRecord.containsKey("items")) {
+          JSONArray items = null;
+          try {
+            items = extractJsonArrayFromObject(holdingsRecord, "items");
+          } catch (ParseException e) {
+            RecordError error = new ExceptionRecordError(e, "Exception when trying to extract item array from holdings record JSON ", "holdings/items");
+            errors.reportAndThrowError(error, logger, Level.ERROR, e);
+          }
+          try {
             JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
             if (holdingsRecordResponse != null && holdingsRecordResponse.get("id") != null) {
-              Iterator itemsIterator = items.iterator();
+              Iterator<JSONObject> itemsIterator = items.iterator();
               while (itemsIterator.hasNext()) {
                 JSONObject item = (JSONObject) itemsIterator.next();
                 item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
-                addItem(item);
+                try {
+                  addItem(item);
+                } catch (InventoryUpdateException iue) {
+                  // item update error was logged, continue with next item if any
+                }
               }
             }
-          } else {
-            addHoldingsRecord(holdingsRecord);
+          } catch (InventoryUpdateException iue) {
+            // holdings update error was logged, continue with next holdings record if any
           }
-        } else if (holdingsObject instanceof String) {
-          String err = "Could not parse holdings record from JSONArray: " + holdingsObject;
-          errors.addErrorMessage(err);
-          throw new IOException(err);
+        } else {
+          try {
+            addHoldingsRecord(holdingsRecord);
+          } catch (InventoryUpdateException iue) {
+            // holdings update error was logged, continue with next holdings record if any
+          }
         }
       }
     } else {
@@ -547,27 +605,30 @@ public class InventoryRecordUpdater {
     }
   }
 
-  private void deleteInstanceRecord(CloseableHttpClient client, String id, String tenant, String authToken) throws IOException {
+  @SuppressWarnings("unused")
+  private void deleteInstanceRecord(CloseableHttpClient client, String id, String tenant, String authToken) throws InventoryUpdateException {
     String url = String.format("%s/instances/%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.INSTANCE_STORAGE_PATH), id);
     HttpDelete httpDelete = new HttpDelete(url);
     setHeaders(httpDelete,"application/json");
-    CloseableHttpResponse response = client.execute(httpDelete);
+    CloseableHttpResponse response;
+    try {
+      response = client.execute(httpDelete);
+    } catch (IOException e) {
+      throw new InventoryUpdateException("IOException when trying to delete Instance record: " + e.getMessage(), e);
+    }
     if (response.getStatusLine().getStatusCode() != 204) {
-      String err = String.format("Got error deleting instance record with id '%s': %s", id, EntityUtils.toString(response.getEntity()));
-      errors.addErrorMessage(err);
-      throw new IOException(err);
+      RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Got error deleting instance record with id " + id, "Instance");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
   }
 
   /**
    * POST item to Inventory
    * @param item
-   * @return
-   * @throws UnsupportedEncodingException
-   * @throws IOException
-   * @throws ParseException
+   * @return Inventory's response to the POST request
+   * @throws InventoryUpdateException
    */
-  private JSONObject addItem(JSONObject item) {
+  private JSONObject addItem(JSONObject item) throws InventoryUpdateException {
     counts.itemsProcessed++;
     String url = ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.ITEM_STORAGE_PATH);
     HttpPost httpPost = new HttpPost(url);
@@ -588,22 +649,26 @@ public class InventoryRecordUpdater {
       response.close();
       if (response.getStatusLine().getStatusCode() != 201) {
         counts.itemsFailed++;
-        String err = String.format("Got error %s, %s adding item record: %s", response.getStatusLine().getStatusCode(), responseAsString, item.toJSONString());
-        errors.addErrorMessage(err);
-        logger.error(err);
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Error adding item record "+item.toJSONString(), "item");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       } else {
         counts.itemsLoaded++;
       }
     } catch (IOException | org.apache.http.ParseException e) {
       counts.itemsFailed++;
-      String err = String.format("Got error adding item record: %s", e.getLocalizedMessage());
-      errors.addErrorMessage(err);
-      logger.error(err);
+      RecordError error = new ExceptionRecordError(e, "Got error adding item record", "item");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
     }
     return itemResponse;
   }
 
-  private JSONObject getMarcJson(RecordJSON record) {
+  /**
+   * Create JSONObject from the XML in the incoming record
+   * @param record
+   * @return
+   * @throws InventoryUpdateException
+   */
+  private JSONObject getMarcJson(RecordJSON record) throws InventoryUpdateException {
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
@@ -611,53 +676,63 @@ public class InventoryRecordUpdater {
         marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
         logger.debug(marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
-        String err = "Error creating MARC JSON for source record: " + e.getLocalizedMessage();
-        logger.error(err);
-        errors.addErrorMessage(err);
         counts.sourceRecordsFailed++;
+        RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       }
     } else {
       if (ctrl.harvestable.isStoreOriginal()) {
-        String err = "Job set to store original source but no original content found.";
-        logger.error(err);
-        errors.addErrorMessage(err);
         counts.sourceRecordsFailed++;
+        RecordError error = new ExceptionRecordError(new InventoryUpdateException("Job set to store original source but no original content found."),
+                                              "Job set to store original source but no original content found.",
+                                              "MARC source");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
       }
     }
     return marcJson;
   }
 
-
   /**
    * Get items for a holdings record
    * @param holdingsRecordId
-   * @return
-   * @throws IOException
-   * @throws ParseException
+   * @return Array of item objects
+   * @throws InventoryUpdateException
    */
-  private JSONArray getItemsByHoldingsRecordId(String holdingsRecordId) throws IOException, ParseException {
+  private JSONArray getItemsByHoldingsRecordId(String holdingsRecordId) throws InventoryUpdateException {
     String url = String.format("%s?limit=1000&query=holdingsRecordId%%3D%%3D%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.ITEM_STORAGE_PATH), holdingsRecordId);
     HttpGet httpGet = new HttpGet(url);
     setHeaders(httpGet,"application/json");
-    CloseableHttpResponse response = ctrl.client.execute(httpGet);
-    if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-      String err = String.format("Got error retrieving items for holdingsRecord with id '%s': %s", holdingsRecordId, EntityUtils.toString(response.getEntity()));
-      errors.addErrorMessage(err);
-      throw new IOException(err);
+    CloseableHttpResponse response = null;
+    try {
+      response = ctrl.client.execute(httpGet);
+      if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(),
+                                          "Got error retrieving items for holdingsRecord with id " + holdingsRecordId, "items");
+        errors.reportAndThrowError(error, logger, Level.DEBUG);
+      }
+    } catch (IOException ioe) {
+      RecordError error = new ExceptionRecordError(ioe, "Exception when GETing items by holdings ID ", "item");
+      errors.reportAndThrowError(error, logger, Level.ERROR, ioe);
     }
-    JSONObject jsonResponse;
-    JSONParser parser = new JSONParser();
-    jsonResponse = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-    JSONArray itemsJson = (JSONArray) (jsonResponse.get("items"));
+    JSONArray itemsJson = null;
+    try {
+      JSONObject jsonResponse;
+      JSONParser parser = new JSONParser();
+      jsonResponse = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
+      itemsJson = (JSONArray) (jsonResponse.get("items"));
+    } catch (ParseException | IOException e) {
+      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET items by holdings ID" + e.getMessage(), "item");
+      errors.reportAndThrowError(error, logger, Level.ERROR, e);
+    }
     return itemsJson;
   }
 
   /**
    * Delete a holdings record by ID
    * @param uuid
-   * @throws IOException
+   * @throws InventoryUpdateException
    */
-  private void deleteHoldingsRecord(String uuid) throws IOException {
+  private void deleteHoldingsRecord(String uuid) throws InventoryUpdateException {
     logger.debug("Deleting holdingsRecord with ID: " + uuid);
     String url = String.format("%s/%s", ctrl.folioAddress + ctrl.getConfigurationValue(InventoryStorageController.HOLDINGS_STORAGE_PATH), uuid);
     HttpDelete httpDelete = new HttpDelete(url);
@@ -666,13 +741,19 @@ public class InventoryRecordUpdater {
     try {
       response = ctrl.client.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        String err = String.format("Got error deleting holdingsRecord with id '%s': %s", uuid, EntityUtils.toString(response.getEntity()));
-        errors.addErrorMessage(err);
-        throw new IOException(err);
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), "Got error deleting holdingsRecord with id " + uuid, "holdingsRecord");
+        errors.reportAndThrowError(error, logger, Level.ERROR);
       }
+    } catch (IOException io) {
+      RecordError error = new ExceptionRecordError(io, "Exception when deleting holdingsRecord with id " + uuid, "holdingsRecord");
+      errors.reportAndThrowError(error, logger, Level.ERROR, io);
     } finally {
       if (response != null) {
-        response.close();
+        try {
+          response.close();
+        } catch (IOException ioe) {
+          throw new StorageException("Could not close response when trying to delete holdings record", ioe);
+        }
       }
     }
   }
@@ -681,25 +762,43 @@ public class InventoryRecordUpdater {
    * Gets an instance from FOLIO Inventory by identifier (type and value)
    * @param localIdentifier  Identifier value
    * @param identifierTypeId  Inventory identifier type ID
-   * @return
-   * @throws IOException
-   * @throws ParseException
+   * @return Instance JSON response from FOLIO Inventory
+   * @throws InventoryUpdateException
    */
-  private JSONObject getInstance(String localIdentifier, String identifierTypeId) throws IOException, ParseException {
+  private JSONObject getInstance(String localIdentifier, String identifierTypeId) throws InventoryUpdateException {
     String url = String.format("%s?query=%%28identifiers%%20%%3D%%2F%%40value%%2F%%40identifierTypeId%%3D%%22%s%%22%%20%%22%s%%22%%29", ctrl.folioAddress + "instance-storage/instances", identifierTypeId, localIdentifier);
     HttpGet httpGet = new HttpGet(url);
     setHeaders(httpGet,"application/json");
-    CloseableHttpResponse response = ctrl.client.execute(httpGet);
-    if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-      String err = String.format("Got error retrieving instance by local identifier %s and identifierTypeId %s: %s", localIdentifier, identifierTypeId, EntityUtils.toString(response.getEntity()));
-      errors.addErrorMessage(err);
-      throw new IOException(err);
+
+    CloseableHttpResponse response;
+    try {
+      response = ctrl.client.execute(httpGet);
+    } catch (IOException ioe) {
+      throw new InventoryUpdateException("IOException when trying to GET Instance by local identifier and identifierTypeId "+ ioe.getMessage(), ioe);
     }
-    JSONObject jsonResponse;
+    if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+      RecordError error = new HttpRecordError(
+        response.getStatusLine(), response.getEntity().toString(),
+        String.format("Got error retrieving instance by local identifier %s and identifierTypeId %s", localIdentifier, identifierTypeId),
+        "instance");
+      errors.reportAndThrowError(error, logger, Level.DEBUG);
+    }
+    JSONObject jsonResponse = null;
     JSONParser parser = new JSONParser();
-    String responseString = EntityUtils.toString(response.getEntity());
+    String responseString = null;
+    try {
+      responseString = EntityUtils.toString(response.getEntity());
+    } catch (IOException e) {
+      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET Instance ", "instance");
+      errors.reportAndThrowError(error, logger, Level.ERROR, e);
+    }
     logger.info("getInstanceId response: " + responseString);
-    jsonResponse = (JSONObject) parser.parse(responseString);
+    try {
+      jsonResponse = (JSONObject) parser.parse(responseString);
+    } catch (ParseException e) {
+      RecordError error = new ExceptionRecordError(e, "Exception when trying to Instance response as JSON ", "instance");
+      errors.reportAndThrowError(error, logger, Level.ERROR, e);
+    }
     Long totalRecords = (Long) jsonResponse.getOrDefault("totalRecords", 0);
     if (totalRecords == 1 && jsonResponse.get("instances") != null) {
       return (JSONObject) ((JSONArray) jsonResponse.get("instances")).get(0);
@@ -709,70 +808,102 @@ public class InventoryRecordUpdater {
     }
   }
 
+  /**
+   * Handles delete signal from the transformation pipeline according to Shared Index (ReShare) requirements
+   * @param record contains deletion information
+   */
   public void delete(RecordJSON record) {
-
-    TransformedRecord transformedRecord = new TransformedRecord(record.toJson(), logger);
-    if (transformedRecord.isDeleted()) {
-      logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
-      JSONObject deletionJson = transformedRecord.getDelete();
-      String oaiId = (String) deletionJson.get("oaiIdentifier");
-      String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
-      String identifierTypeId = (String) deletionJson.get("identifierTypeId");
-      String institutionId = (String) deletionJson.get("institutionId");
-      if (localIdentifier != null && identifierTypeId != null && institutionId != null) {
-        // This is assumed to be a deletion record targeted for a shared inventory
-        logger.debug("Storage class received a deletion record with local identifier: [" + localIdentifier +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
-        try {
-          JSONObject instance = getInstance(localIdentifier, identifierTypeId);
+    try {
+      TransformedRecord transformedRecord = new TransformedRecord(record.toJson(), logger);
+      this.errors = new RecordErrors(record, counts.exceptionCounts);
+      if (transformedRecord.isDeleted()) {
+        logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
+        JSONObject deletionJson = transformedRecord.getDelete();
+        String oaiId = (String) deletionJson.get("oaiIdentifier");
+        String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
+        String identifierTypeId = (String) deletionJson.get("identifierTypeId");
+        String institutionId = (String) deletionJson.get("institutionId");
+        if (localIdentifier != null && identifierTypeId != null && institutionId != null) {
+          // This is assumed to be a deletion record targeted for a shared inventory
+          logger.debug("Storage class received a deletion record with local identifier: [" + localIdentifier +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
+          JSONObject instance;
+          instance = getInstance(localIdentifier, identifierTypeId);
           if (instance != null) {
             String instanceId = (String) instance.get("id");
             logger.debug("Found instance to 'delete' [" + instanceId + "]");
-            JSONArray identifiers = (JSONArray)instance.get("identifiers");
-            JSONObject identifier = null;
-            Iterator iter = identifiers.iterator();
-            while (iter.hasNext()) {
-              JSONObject identifierObject = (JSONObject) iter.next();
-              if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
-                 && localIdentifier.equals(identifierObject.get("value"))) {
-                identifier = identifierObject;
-                break;
-              }
-            }
-            identifiers.remove(identifier);
-            logger.debug("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
+            removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
             deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
             updateInstance(instance);
+            deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
             counts.instanceDeletions++;
-            JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
-            if (marcRecord != null) {
-              String sourceId = (String) marcRecord.get("id");
-              deleteSourceRecord(sourceId);
-            } else {
-              logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
-            }
             ((InventoryStorageStatus) ctrl.storageStatus).incrementDelete(1);
           } else {
             logger.info("No instance found for local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
           }
 
-        } catch (IOException ioe) {
-          String err = ioe.getMessage();
-          errors.addErrorMessage(err);
-          logger.error(err);
-        } catch (ParseException pe) {
-          logger.error(pe.getMessage());
+        } else if (localIdentifier != null) {
+          // This is assumed to be a deletion record targeted for a simple inventory
+          logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");
+        } else if (oaiId != null && localIdentifier == null) {
+          logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
+        } else if (oaiId == null) {
+          logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
         }
-      } else if (localIdentifier != null) {
-        // This is assumed to be a deletion record targeted for a simple inventory
-        logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");
-      } else if (oaiId != null && localIdentifier == null) {
-        logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
-      } else if (oaiId == null) {
-        logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
+      } else {
+        logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
       }
-    } else {
-      logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
+      if (errors.hasErrors()) {
+        errors.writeErrorsLog(logger, counts);
+      }
+    } catch (InventoryUpdateException iue) {
+      errors.writeErrorsLog(logger, counts);
     }
+  }
+
+  /**
+   * Shared Index (ReShare) logic for removing underlying MARC source record, if any, that was received
+   * from the institution now sending a delete request.
+   * @param localIdentifier
+   * @param institutionId
+   * @param instanceId
+   * @throws InventoryUpdateException
+   */
+  private void deleteMarcSourceRecordForInstitution(String localIdentifier, String institutionId, String instanceId) throws InventoryUpdateException {
+    JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
+    if (marcRecord != null) {
+      String sourceId = (String) marcRecord.get("id");
+      deleteSourceRecord(sourceId);
+    } else {
+      logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
+    }
+  }
+
+  /**
+   * ReShare logic for Instance deletes: Remove a given library's record identifier from the
+   * shared master Instance.
+   */
+
+  /**
+   * Shared Index (ReShare) logic for updating the Instance on delete requests: Remove a given library's record identifier from the
+   * shared master Instance. Mutates the `instance` argument
+   * @param localIdentifier
+   * @param identifierTypeId
+   * @param instance
+   */
+  private void removeIdentifierFromInstanceForInstitution(String localIdentifier, String identifierTypeId, JSONObject instance) {
+    JSONArray identifiers = (JSONArray)instance.get("identifiers");
+    JSONObject identifier = null;
+    Iterator<JSONObject> iter = identifiers.iterator();
+    while (iter.hasNext()) {
+      JSONObject identifierObject = (JSONObject) iter.next();
+      if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
+         && localIdentifier.equals(identifierObject.get("value"))) {
+        identifier = identifierObject;
+        break;
+      }
+    }
+    identifiers.remove(identifier);
+    logger.debug("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
   }
 
   /**
@@ -792,6 +923,11 @@ public class InventoryRecordUpdater {
     return array;
   }
 
+  /**
+   * Convenience method with typical Inventory request headers
+   * @param request
+   * @param accept
+   */
   private void setHeaders (HttpRequestBase request, String accept) {
     request.setHeader("Accept", accept);
     request.setHeader("Content-type", "application/json");

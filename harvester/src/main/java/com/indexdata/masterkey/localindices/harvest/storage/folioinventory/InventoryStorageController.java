@@ -1,6 +1,5 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -13,6 +12,7 @@ import java.util.Map;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -49,7 +49,6 @@ public class InventoryStorageController implements RecordStorage {
   protected StorageJobLogger logger;
   protected Harvestable harvestable;
 
-  protected String database;
   protected Map<String, String> databaseProperties;
   protected StorageStatus storageStatus;
   protected String folioAddress;
@@ -62,30 +61,10 @@ public class InventoryStorageController implements RecordStorage {
   protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
   protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
 
-  protected final Map<String,String> locationsToInstitutionsMap = new HashMap();
+  protected final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
 
   protected RecordUpdateCounts counters;
   protected HourlyPerformanceStats timingsEntireRecord;
-
-
-  public InventoryStorageController() {
-    counters = new RecordUpdateCounts();
-  }
-
-  public void init() {
-    try {
-      Storage storage = null;
-      if(harvestable != null) {
-        storage = harvestable.getStorage();
-      }
-      this.folioAddress = storage.getUrl();
-      logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      timingsEntireRecord = new HourlyPerformanceStats(logger);
-      logger.info("Initialized InventoryRecordStorage");
-    } catch(Exception e) {
-      throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
-    }
-  }
 
 
   @Override
@@ -94,11 +73,26 @@ public class InventoryStorageController implements RecordStorage {
     init();
   }
 
+  private void init() {
+    try {
+      Storage storage = null;
+      if(harvestable != null) {
+        storage = harvestable.getStorage();
+      }
+      this.folioAddress = storage.getUrl();
+      logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
+      counters = new RecordUpdateCounts();
+      timingsEntireRecord = new HourlyPerformanceStats(logger);
+      logger.info("Initialized InventoryRecordStorage");
+    } catch(Exception e) {
+      throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
+    }
+  }
+
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     logger.info("Database started [" + database + "]" + (properties != null ? ", with properties " + properties : " (no properties defined) "));
     this.databaseProperties = properties;
-    this.database = database;
     try {
       client = HttpClients.createDefault();
       String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);
@@ -129,6 +123,31 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
+  @SuppressWarnings("unchecked")
+  private String getAuthtoken(CloseableHttpClient client,
+                              String folioAddress,
+                              String folioAuthPath,
+                              String username,
+                              String password,
+                              String tenant)
+      throws UnsupportedEncodingException, IOException, StorageException {
+    HttpPost httpPost = new HttpPost(folioAddress + folioAuthPath);
+    JSONObject loginJson = new JSONObject();
+    loginJson.put("username", username);
+    loginJson.put("password", password);
+    StringEntity entity = new StringEntity(loginJson.toJSONString());
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Accept", "application/json");
+    httpPost.setHeader("Content-type", "application/json");
+    httpPost.setHeader("X-Okapi-Tenant", tenant);
+    CloseableHttpResponse response = client.execute(httpPost);
+    if(response.getStatusLine().getStatusCode() != 201) {
+      throw new StorageException(String.format("Got bad response obtaining authtoken: %s, %s",
+          response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity())));
+    }
+    return response.getFirstHeader("X-Okapi-Token").getValue();
+  }
+
   /**
    * Retrieve a mapping from locations to institutions from Inventory storage
    * Used for holdings/items deletion logic.
@@ -138,10 +157,7 @@ public class InventoryStorageController implements RecordStorage {
   private void cacheLocationsMap() throws IOException, ParseException {
     String url = String.format("%s", folioAddress + "locations?limit=9999");
     HttpGet httpGet = new HttpGet(url);
-    httpGet.setHeader("Accept", "application/json");
-    httpGet.setHeader("Content-type", "application/json");
-    httpGet.setHeader("X-Okapi-Token", authToken);
-    httpGet.setHeader("X-Okapi-Tenant", getConfigurationValue(FOLIO_TENANT));
+    setHeaders(httpGet, "application/json");
     CloseableHttpResponse response = client.execute(httpGet);
     if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
       throw new IOException(String.format("Got error retrieving locations",
@@ -153,9 +169,9 @@ public class InventoryStorageController implements RecordStorage {
     jsonResponse = (JSONObject) parser.parse(responseString);
     JSONArray locationsJson = (JSONArray) (jsonResponse.get("locations"));
     if (locationsJson != null) {
-      Iterator<JSONObject> locationsIterator = locationsJson.iterator();
+      Iterator<?> locationsIterator = locationsJson.iterator();
       while (locationsIterator.hasNext()) {
-        JSONObject location = locationsIterator.next();
+        JSONObject location = (JSONObject) locationsIterator.next();
         locationsToInstitutionsMap.put((String)location.get("id"), (String)location.get("institutionId"));
       }
       logger.info("Initialized a map of " + locationsJson.size() + " FOLIO locations to institutions.");
@@ -195,7 +211,6 @@ public class InventoryStorageController implements RecordStorage {
       recordStorageHandler.addInventory((RecordJSON) recordJson);
     }
   }
-
   @Override
   public void delete(Record record) {
     InventoryRecordUpdater updater = new InventoryRecordUpdater(this);
@@ -214,8 +229,8 @@ public class InventoryStorageController implements RecordStorage {
     logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
     logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    for (String key : counters.instanceExceptionCounts.keySet()) {
-      logger.info(String.format("%d Instance records failed with %s", counters.instanceExceptionCounts.get(key),key));
+    for (String key : counters.exceptionCounts.keySet()) {
+      logger.info(String.format("%d Instance records failed with %s", counters.exceptionCounts.get(key),key));
     }
     timingsEntireRecord.writeLog();
     harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
@@ -260,31 +275,12 @@ public class InventoryStorageController implements RecordStorage {
     return value != null ? value : defaultValue;
   }
 
-
-  private String getAuthtoken(CloseableHttpClient client,
-                              String folioAddress,
-                              String folioAuthPath,
-                              String username,
-                              String password,
-                              String tenant)
-      throws UnsupportedEncodingException, IOException, StorageException {
-    HttpPost httpPost = new HttpPost(folioAddress + folioAuthPath);
-    JSONObject loginJson = new JSONObject();
-    loginJson.put("username", username);
-    loginJson.put("password", password);
-    StringEntity entity = new StringEntity(loginJson.toJSONString());
-    httpPost.setEntity(entity);
-    httpPost.setHeader("Accept", "application/json");
-    httpPost.setHeader("Content-type", "application/json");
-    httpPost.setHeader("X-Okapi-Tenant", tenant);
-    CloseableHttpResponse response = client.execute(httpPost);
-    if(response.getStatusLine().getStatusCode() != 201) {
-      throw new StorageException(String.format("Got bad response obtaining authtoken: %s, %s",
-          response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity())));
-    }
-    return response.getFirstHeader("X-Okapi-Token").getValue();
+  private void setHeaders (HttpRequestBase request, String accept) {
+    request.setHeader("Accept", accept);
+    request.setHeader("Content-type", "application/json");
+    request.setHeader("X-Okapi-Token", this.authToken);
+    request.setHeader("X-Okapi-Tenant", this.getConfigurationValue(InventoryStorageController.FOLIO_TENANT));
   }
-
 
   // Unsupported interface methods
   @Override
@@ -314,7 +310,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public boolean getOverwriteMode() {
-    throw new UnsupportedOperationException("get overwrite mode Not supported."); 
+    throw new UnsupportedOperationException("get overwrite mode Not supported.");
   }
 
   @Override
@@ -329,7 +325,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void delete(String id) {
-    throw new UnsupportedOperationException("delete by id not supported."); 
+    throw new UnsupportedOperationException("delete by id not supported.");
   }
 
   @Override
@@ -344,12 +340,13 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void shutdown() throws IOException {
-    throw new UnsupportedOperationException("shutdown not supported."); 
+    throw new UnsupportedOperationException("shutdown not supported.");
   }
 
   @Override
   public void setBatchLimit(int limit) {
-    throw new UnsupportedOperationException("set batch limit not supported."); 
+    throw new UnsupportedOperationException("set batch limit not supported.");
   }
+
 
 }

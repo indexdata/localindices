@@ -17,7 +17,7 @@ public class RecordUpdateCounts {
   protected int instancesLoaded = 0;
   protected int instanceDeletions = 0;
   protected int instancesFailed = 0;
-  protected final Map<String,Integer> instanceExceptionCounts = new HashMap();
+  protected final Map<String,Integer> exceptionCounts = new HashMap<String,Integer>();
   protected int holdingsRecordsProcessed = 0;
   protected int holdingsRecordsLoaded = 0;
   protected int holdingsRecordsDeleted = 0;
