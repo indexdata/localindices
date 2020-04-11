@@ -12,14 +12,16 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
+import com.indexdata.masterkey.localindices.util.FailedRecords;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.utils.ISOLikeDateParser;
-import com.indexdata.utils.XmlUtils;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -32,20 +34,22 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
  * REST Web service (resource) that maps to a Harvestable entity.
- * 
+ *
  * @author jakub
  * @author Dennis
  */
 public class HarvestableResource {
-  Logger logger = Logger.getLogger(this.getClass());    
+  Logger logger = Logger.getLogger(this.getClass());
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   private Long id;
   private UriInfo context;
+  private static final String LOGDIRECTORY = "/var/log/masterkey/harvester";
 
   /** Creates a new instance of HarvestableResource */
   public HarvestableResource() {
@@ -54,7 +58,7 @@ public class HarvestableResource {
   /**
    * Constructor used for instantiating an instance of the entity referenced by
    * id.
-   * 
+   *
    * @param id
    *          identifier for referenced the entity
    * @param context
@@ -68,7 +72,7 @@ public class HarvestableResource {
   /**
    * Get method for retrieving an instance of referenced Harvestable in XML
    * format.
-   * 
+   *
    * @return an instance of HarvestableConverter
    */
   @GET
@@ -80,7 +84,7 @@ public class HarvestableResource {
   /**
    * Put method for updating an instance of referenced Harvestable, using XML as
    * the input format.
-   * 
+   *
    * @param data
    *          an HarvestableConverter entity that is deserialized from an XML
    *          stream
@@ -101,16 +105,16 @@ public class HarvestableResource {
 	storage.setHarvestable(harvestable);
 	storage.purge(true);
       }
-      else 
+      else
 	logger.warn("No storage client. Unable to purge harvestable: " + id);
     }
-    else 
+    else
       logger.log(Level.WARN, "No storage configured on harvestable " + id);
   }
 
   /**
    * Delete method for deleting an instance of referenced Harvestable.
-   * 
+   *
    */
   @DELETE
   public void delete() {
@@ -119,23 +123,23 @@ public class HarvestableResource {
       try {
         purgeStorage(harvestable);
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e); 
+        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e);
       }
       try {
         dao.delete(harvestable);
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to delete harvest job with ID " 
+        logger.log(Level.ERROR, "Failed to delete harvest job with ID "
             + id, e);
       }
       try {
         DiskCache dc = new DiskCache(id);
         dc.purge();
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID " 
+        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID "
             + id, e);
       }
     }
-    logger.log(Level.ERROR, "No harvestable with id " + id); 
+    logger.log(Level.ERROR, "No harvestable with id " + id);
   }
 
   @Path("reset/")
@@ -144,11 +148,11 @@ public class HarvestableResource {
   public String reset() {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
+      try {
 	purgeStorage(harvestable);
 	harvestable.reset();
 	dao.update(harvestable);
-	return "OK"; 
+	return "OK";
       } catch (Exception e) {
 	String error = "Failed to reset harvestable " + harvestable.getStorage().getId() + ": " + e.getMessage();
 	logger.log(Level.ERROR, error, e);
@@ -164,9 +168,9 @@ public class HarvestableResource {
   public String cmd(@PathParam("cmd") String cmd) {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
+      try {
 	// rc = JobScheduler.doCmd(harvestable, cmd);
-	return "OK " + cmd + " harvestable " + harvestable.getId(); 
+	return "OK " + cmd + " harvestable " + harvestable.getId();
       } catch (Exception e) {
 	String error = "Failed to " + cmd + " harvestable " + harvestable.getId() + ": " + e.getMessage();
 	logger.log(Level.ERROR, error, e);
@@ -184,17 +188,17 @@ public class HarvestableResource {
     if (harvestable == null) {
       throw new WebApplicationException(Response.Status.NOT_FOUND);
     }
-    try { 
+    try {
       DiskCache dc = new DiskCache(id);
       dc.purge();
-      return "OK"; 
+      return "OK";
     } catch (Exception e) {
       String error = "Failed to reset cache for job '"+id+"'";
       logger.error(error, e);
       return error;
     }
   }
-  
+
   @Path("log/")
   @GET
   @Produces("text/plain")
@@ -206,7 +210,7 @@ public class HarvestableResource {
       //TODO read log path from config
       logger.debug("Rquested logs for "+id+" from "+fromParam + ", epoch: "
         + (from != null ? from.getTime() : null));
-      HarvestableLog log = new HarvestableLog("/var/log/masterkey/harvester/", id);
+      HarvestableLog log = new HarvestableLog(LOGDIRECTORY, id);
       String lines = log.readLines(from);
       if (lines == null) {
         //no new data
@@ -219,6 +223,32 @@ public class HarvestableResource {
       throw new WebApplicationException(io);
     } catch (ParseException pe) {
       throw new WebApplicationException(pe);
+    }
+  }
+
+  @Path("failed-records/")
+  @GET
+  @Produces("application/xml")
+  public String getHarvestableFailedRecords() {
+    try {
+      FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY,id);
+      return failedRecords.getListOfFailedRecordsAsXml();
+    } catch (FileNotFoundException fnf) {
+      throw new WebApplicationException(fnf);
+    }
+  }
+
+
+
+  @Path("failed-records/{name}")
+  @GET
+  @Produces("application/xml")
+  public String getHarvestableFailedRecord(@PathParam("name") String nameParam) {
+    try {
+    FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY, id);
+    return failedRecords.getFailedRecordAsString(nameParam);
+    } catch (IOException ioe) {
+      throw new WebApplicationException(ioe);
     }
   }
 }
