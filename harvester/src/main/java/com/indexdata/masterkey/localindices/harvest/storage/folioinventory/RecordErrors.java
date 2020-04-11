@@ -5,8 +5,16 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.log4j.Level;
@@ -25,10 +33,37 @@ public class RecordErrors {
   RecordJSON record;
   List<RecordError> errors = new ArrayList<RecordError>();
   Map<String,Integer> errorCounts;
+  private static final String HARVESTER_LOG_DIR = "/var/log/masterkey/harvester/";
+  private static final String FAILED_RECORDS_DIR = "failed-records/";
+  Long jobId;
+  Path failedRecordsDirectory = null;
+  Path failedRecordFilePath = null;
+  TransformedRecord recordProxy;
+  StorageJobLogger logger;
 
-  RecordErrors(RecordJSON recordJson, Map<String,Integer> errorCounts) {
+
+  RecordErrors(RecordJSON recordJson, Map<String,Integer> errorCounts, Long jobId, StorageJobLogger logger) {
     this.record = recordJson;
     this.errorCounts = errorCounts;
+    this.jobId = jobId;
+    this.logger = logger;
+    this.recordProxy = new TransformedRecord(recordJson.toJson(),logger);
+
+    try {
+      this.failedRecordsDirectory = Paths.get(HARVESTER_LOG_DIR, FAILED_RECORDS_DIR, jobId.toString());
+      Files.createDirectories(failedRecordsDirectory);
+      String fileName = recordProxy.getLocalIdentifier() + "-" + timestamp() + ".xml";
+      this.failedRecordFilePath = Paths.get(HARVESTER_LOG_DIR, FAILED_RECORDS_DIR, jobId.toString(), fileName);
+    } catch (IOException ioe) {
+      logger.error("IOException when attempting to create directory for failed records - will not store failed records: " + ioe.getMessage());
+    }
+
+  }
+
+  private String timestamp () {
+    LocalDateTime now = LocalDateTime.now();
+    String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.getDefault()));
+    return timestamp;
   }
 
   void addResponseError(HttpRecordError error) {
@@ -47,17 +82,17 @@ public class RecordErrors {
     }
   }
 
-  void reportAndThrowError(RecordError error, StorageJobLogger logger, Level level) throws InventoryUpdateException {
-    reportAndThrowError(error, logger, level, null);
+  void reportAndThrowError(RecordError error, Level logLevel) throws InventoryUpdateException {
+    reportAndThrowError(error, logLevel, null);
   }
 
-  void reportAndThrowError(RecordError error, StorageJobLogger logger, Level level, Throwable exception) throws InventoryUpdateException {
+  void reportAndThrowError(RecordError error, Level logLevel, Throwable exception) throws InventoryUpdateException {
     addError(error);
     int count = countError(error);
     if (count <= 10) {
-      logger.log(level, error.toString());
+      logger.log(logLevel, error.toString());
     } else if (count>10 && count < 100) {
-      logger.log(level, error.briefMessage());
+      logger.log(logLevel, error.briefMessage());
     } else if (count % 100 == 0) {
       logger.error(String.format("%d records failed with %s", errorCounts.get(error.briefMessage()), error.briefMessage()));
     }
@@ -123,5 +158,19 @@ public class RecordErrors {
     }
     return errorCounts.get(error.briefMessage());
   }
+
+  public void logFailedRecord () {
+    if (failedRecordFilePath != null) {
+      try {
+        Path failedRecordFile = Files.createFile(failedRecordFilePath);
+        Files.write(failedRecordFile, record.getOriginalContent(), StandardOpenOption.CREATE );
+      } catch (IOException ioe) {
+        logger.error("IOException when attempting to save failed record to failed-records directory: "+ ioe.getMessage());
+      }
+    } else {
+      logger.debug("Attempted to save failed record but directory for failed records not properly created/defined.");
+    }
+  }
+
 
 }
