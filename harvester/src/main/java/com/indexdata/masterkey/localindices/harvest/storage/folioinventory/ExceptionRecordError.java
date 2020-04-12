@@ -32,12 +32,28 @@ public class ExceptionRecordError implements RecordError {
 
     @Override
     public String toString() {
-      return "Description [" + shortDescription + "] Exception ["+exceptionType+"]. Message [" + message + "]. Stacktrace [" + stackTrace + "]. " + (typeOfEntity.isEmpty() ? "" : "For entity type [" + typeOfEntity + "]");
+      return shortDescription + ". Exception ["+exceptionType+"]. " + message + ". Stacktrace [" + stackTrace + "]. " + (typeOfEntity.isEmpty() ? "" : "For entity type [" + typeOfEntity + "]");
     }
 
     @Override
-    public String briefMessage() {
-        return shortDescription + " [" + exceptionType + "]: " + message;
+    public String getMessage() {
+        return shortDescription + "; [" + exceptionType + "]; " + message;
+    }
+
+    public String getLabel() {
+      return shortDescription;
+    }
+
+    public String getType() {
+      return exceptionType;
+    }
+
+    public String getBriefMessage() {
+      return message;
+    }
+
+    public String getStorageEntity() {
+      return typeOfEntity;
     }
 
 }

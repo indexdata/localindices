@@ -114,7 +114,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         errors.logFailedRecord();
       }
     } catch (InventoryUpdateException iue) {
-      logger.error("Exception when updating inventory: "+iue.getMessage());
       errors.writeErrorsLog(logger, counts);
       errors.logFailedRecord();
     }
@@ -188,7 +187,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       response.close();
       if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
         counts.instancesFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase() + ": " + responseAsString, responseAsString,"Error "+method+"ing Instance", "Instance");
+        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString,"Error "+method+"ing Instance", "Instance");
         errors.reportAndThrowError(error, Level.DEBUG);
         logger.debug(String.format("Got error %s, %s adding Instance record: %s", response.getStatusLine().getStatusCode(), responseAsString, instanceRecord.toJSONString()));
       } else {
@@ -246,7 +245,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       String responseAsString = EntityUtils.toString(response.getEntity());
       if (response.getStatusLine().getStatusCode() != 201) {
         counts.holdingsRecordsFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, "Error adding a holdingsRecord to Inventory ", "holdings");
+        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, "Error adding a holdingsRecord to Inventory", "holdings");
         errors.reportAndThrowError(error, Level.DEBUG);
       } else {
         counts.holdingsRecordsLoaded++;
