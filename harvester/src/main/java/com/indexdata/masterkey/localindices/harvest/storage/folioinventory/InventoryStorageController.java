@@ -66,7 +66,7 @@ public class InventoryStorageController implements RecordStorage {
   protected FailedRecordsController failedRecordsController;
   protected RecordUpdateCounters updateCounters;
   protected HourlyPerformanceStats timingsEntireRecord;
-
+  private boolean statusWritten = false;
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
@@ -254,19 +254,22 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void databaseEnd() {
-    String instancesMessage = "Instances processed/loaded/deletions/failed: " + updateCounters.instancesProcessed + "/" + updateCounters.instancesLoaded + "/" + updateCounters.instanceDeletions + "/" + updateCounters.instancesFailed + ". ";
-    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + updateCounters.holdingsRecordsProcessed + "/" + updateCounters.holdingsRecordsLoaded + "/" + updateCounters.holdingsRecordsDeleted + "/" + updateCounters.holdingsRecordsFailed + ". ";
-    String itemsMessage = "Items processed/loaded/deleted/failed: " + updateCounters.itemsProcessed + "/" + updateCounters.itemsLoaded + "/" + updateCounters.itemsDeleted + "/" + updateCounters.itemsFailed + ".";
-    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + updateCounters.sourceRecordsProcessed + "/" + updateCounters.sourceRecordsLoaded + "/" + updateCounters.sourceRecordsDeleted + "/" + updateCounters.sourceRecordsFailed + ".";
+    if (!statusWritten) {
+      String instancesMessage = "Instances processed/loaded/deletions/failed: " + updateCounters.instancesProcessed + "/" + updateCounters.instancesLoaded + "/" + updateCounters.instanceDeletions + "/" + updateCounters.instancesFailed + ". ";
+      String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + updateCounters.holdingsRecordsProcessed + "/" + updateCounters.holdingsRecordsLoaded + "/" + updateCounters.holdingsRecordsDeleted + "/" + updateCounters.holdingsRecordsFailed + ". ";
+      String itemsMessage = "Items processed/loaded/deleted/failed: " + updateCounters.itemsProcessed + "/" + updateCounters.itemsLoaded + "/" + updateCounters.itemsDeleted + "/" + updateCounters.itemsFailed + ".";
+      String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + updateCounters.sourceRecordsProcessed + "/" + updateCounters.sourceRecordsLoaded + "/" + updateCounters.sourceRecordsDeleted + "/" + updateCounters.sourceRecordsFailed + ".";
 
-    logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
-    logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
-    logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-    logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+      logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
+      logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
+      logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+      logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    failedRecordsController.writeLog();
-    timingsEntireRecord.writeLog();
-    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+      failedRecordsController.writeLog();
+      timingsEntireRecord.writeLog();
+      harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+      statusWritten=true;
+    }
   }
 
   @Override
