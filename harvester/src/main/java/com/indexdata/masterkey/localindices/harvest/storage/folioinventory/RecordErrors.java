@@ -17,7 +17,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -49,7 +48,7 @@ public class RecordErrors {
 
   RecordJSON record;
   List<RecordError> errors = new ArrayList<RecordError>();
-  Map<String,Integer> errorCounts;
+  RecordFailureCounters counters;
   private static final String HARVESTER_LOG_DIR = "/var/log/masterkey/harvester/";
   private static final String FAILED_RECORDS_DIR = "failed-records/";
   Long jobId;
@@ -59,9 +58,9 @@ public class RecordErrors {
   StorageJobLogger logger;
 
 
-  RecordErrors(RecordJSON recordJson, Map<String,Integer> errorCounts, Long jobId, StorageJobLogger logger) {
+  RecordErrors(RecordJSON recordJson, RecordFailureCounters recordFailureCounters, Long jobId, StorageJobLogger logger) {
     this.record = recordJson;
-    this.errorCounts = errorCounts;
+    this.counters = recordFailureCounters;
     this.jobId = jobId;
     this.logger = logger;
     this.recordProxy = new TransformedRecord(recordJson.toJson(),logger);
@@ -74,7 +73,6 @@ public class RecordErrors {
     } catch (IOException ioe) {
       logger.error("IOException when attempting to create directory for failed records - will not store failed records: " + ioe.getMessage());
     }
-
   }
 
   @SuppressWarnings("unused")
@@ -107,13 +105,13 @@ public class RecordErrors {
 
   void reportAndThrowError(RecordError error, Level logLevel, Throwable exception) throws InventoryUpdateException {
     addError(error);
-    int count = countError(error);
+    int count = counters.countErrors(error);
     if (count <= 10) {
       logger.log(logLevel, error.getMessage());
     } else if (count>10 && count < 100) {
       logger.log(logLevel, error.getMessage());
     } else if (count % 100 == 0) {
-      logger.error(String.format("%d records failed with %s", errorCounts.get(error.getMessage()), error.getMessage()));
+      logger.error(String.format("%d records failed with %s", counters.errorsByErrorMessage.get(error.getMessage()), error.getMessage()));
     }
     if (exception != null) {
       throw new InventoryUpdateException(error.toString(),exception);
@@ -153,12 +151,12 @@ public class RecordErrors {
    * @param logger
    * @param counters
    */
-  void writeErrorsLog(StorageJobLogger logger, RecordUpdateCounts counters) {
+  void writeErrorsLog(StorageJobLogger logger) {
     if (hasErrors()) {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        int occurrences = counters.exceptionCounts.get(error.getMessage());
+        int occurrences = counters.errorsByErrorMessage.get(error.getMessage());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + record.toJson().toJSONString());
           logger.error("#" + i + " " + error.getMessage());
@@ -170,28 +168,24 @@ public class RecordErrors {
   }
 
   /**
-   * Increment count for this brief error message
-   * @param error the error to count
-   * @return
+   * Writes XML document for failed record with original record and diagnostics to file system
    */
-  private int countError(RecordError error) {
-    if (errorCounts.containsKey(error.getMessage())) {
-      errorCounts.put(error.getMessage(), errorCounts.get(error.getMessage()) + 1);
-    } else {
-      errorCounts.put(error.getMessage(), 1);
-    }
-    return errorCounts.get(error.getMessage());
-  }
-
-  /**
-   * Writes XML document with failed record information to file system
-   */
-  public void logFailedRecord () {
+  public void logFailedRecord (/* boolean overwrite */) {
+    // Is logging on (option 2, 3, 4)
+    // count existing files (compare with max-failed-records accumulated)
     if (failedRecordFilePath != null) {
       String xml = createFailedRecordXml();
       if (xml != null) {
         try {
-          Files.write(failedRecordFilePath, xml.getBytes());
+          if (counters.failedRecordsSaved == counters.maxFailuresSavedThisRun-1) {
+            logger.info("Will stop saving failed records after this. Maximum number of error files reached ("+ counters.maxFailuresSavedThisRun +").");
+          }
+          if (counters.failedRecordsSaved < counters.maxFailuresSavedThisRun) {
+            Files.write(failedRecordFilePath, xml.getBytes());
+            counters.countFailedRecordsSaved(this);
+          } else {
+            logger.debug("Reached max failed records to save, skipping save.");
+          }
         } catch (IOException ioe) {
           logger.error("IOException when attempting to save failed record to failed-records directory: "+ ioe.getMessage() + " " + ioe.getCause().getMessage());
         }
@@ -271,7 +265,6 @@ public class RecordErrors {
         logger.error("Error creating transformed record excluding original record: " + e.getMessage());
       }
     }
-
     transformedElement.setTextContent(Jsoner.prettyPrint(transformedExclOriginal.toJSONString()));
     failedRecord.getDocumentElement().appendChild(transformedElement);
   }

@@ -37,9 +37,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 /**
  * Contains the logic for initializing storage, loggers, and update statistics.
- *  
+ *
  * Iterates Inventory record sets (instances, holdings, items, source records) coming
- * in from the transformation pipeline and forwards each incoming record to 
+ * in from the transformation pipeline and forwards each incoming record to
  * {@link InventoryRecordUpdater} for creation/update/deletion in FOLIO Inventory.
  *
  * @author kurt
@@ -61,10 +61,13 @@ public class InventoryStorageController implements RecordStorage {
   protected static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
   protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
   protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
+  protected int maxFailedRecordsSavedThisRun = 100;
+  protected int maxFailedRecordsSavedTotal = 1000;
 
   protected final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
 
-  protected RecordUpdateCounts counters;
+  protected RecordUpdateCounters counters;
+  protected RecordFailureCounters recordFailureCounters;
   protected HourlyPerformanceStats timingsEntireRecord;
 
 
@@ -85,7 +88,8 @@ public class InventoryStorageController implements RecordStorage {
       }
       this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      counters = new RecordUpdateCounts();
+      counters = new RecordUpdateCounters();
+      recordFailureCounters = new RecordFailureCounters(maxFailedRecordsSavedThisRun, maxFailedRecordsSavedTotal);
       timingsEntireRecord = new HourlyPerformanceStats(logger);
       logger.info("Initialized InventoryRecordStorage");
     } catch(Exception e) {
@@ -233,10 +237,10 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
-  /** 
-   *  Invokes {@link InventoryRecordUpdater} to delete/modify Inventory records on 
+  /**
+   *  Invokes {@link InventoryRecordUpdater} to delete/modify Inventory records on
    *  an incoming delete request
-   * 
+   *
    */
   @Override
   public void delete(Record record) {
@@ -259,8 +263,8 @@ public class InventoryStorageController implements RecordStorage {
     logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
     logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    for (String key : counters.exceptionCounts.keySet()) {
-      logger.info(String.format("%d records failed with %s", counters.exceptionCounts.get(key),key));
+    for (String key : recordFailureCounters.errorsByErrorMessage.keySet()) {
+      logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByErrorMessage.get(key),key));
     }
     timingsEntireRecord.writeLog();
     harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);

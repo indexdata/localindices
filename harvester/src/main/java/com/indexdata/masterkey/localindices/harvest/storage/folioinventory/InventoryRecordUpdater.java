@@ -54,7 +54,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   /** Container for errors encountered while updating Inventory from one incoming bib record */
   private RecordErrors errors;
   /** Overall updates and errors counters */
-  private final RecordUpdateCounts counts;
+  private final RecordUpdateCounters counts;
   private final Map<String, String> locInstMap;
 
   public InventoryRecordUpdater (InventoryStorageController ctrl) {
@@ -72,7 +72,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   void addInventory(RecordJSON recordJson) {
     try {
       TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
-      this.errors = new RecordErrors(recordJson, counts.exceptionCounts, ctrl.harvestable.getId(), logger);
+      this.errors = new RecordErrors(recordJson, ctrl.recordFailureCounters, ctrl.harvestable.getId(), logger);
       long startStorageEntireRecord = System.currentTimeMillis();
 
       JSONObject instanceResponse;
@@ -109,12 +109,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           logger.error("Expected instance response on adding instance but response was null or had no ID property." + instanceResponse);
         }
       }
-      if (errors.hasErrors()) {
-        errors.writeErrorsLog(logger, counts);
+      if (errors.hasErrors())  {
+        errors.writeErrorsLog(logger);
         errors.logFailedRecord();
       }
     } catch (InventoryUpdateException iue) {
-      errors.writeErrorsLog(logger, counts);
+      errors.writeErrorsLog(logger);
       errors.logFailedRecord();
     }
   }
@@ -817,7 +817,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   public void delete(RecordJSON record) {
     try {
       TransformedRecord transformedRecord = new TransformedRecord(record.toJson(), logger);
-      this.errors = new RecordErrors(record, counts.exceptionCounts, ctrl.harvestable.getId(), logger);
+      this.errors = new RecordErrors(record, ctrl.recordFailureCounters, ctrl.harvestable.getId(), logger);
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
@@ -855,10 +855,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
       }
       if (errors.hasErrors()) {
-        errors.writeErrorsLog(logger, counts);
+        errors.writeErrorsLog(logger);
       }
     } catch (InventoryUpdateException iue) {
-      errors.writeErrorsLog(logger, counts);
+      errors.writeErrorsLog(logger);
     }
   }
 
