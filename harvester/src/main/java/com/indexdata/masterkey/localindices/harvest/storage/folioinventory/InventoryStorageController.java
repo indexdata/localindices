@@ -75,7 +75,8 @@ public class InventoryStorageController implements RecordStorage {
   }
 
   /**
-   * Initializes storage job with regards to storage URL, logger, update statistics
+   * Initializes storage job with regards to storage URL, logger,
+   * failed records logging, update statistics
    */
   private void init() {
     try {
@@ -85,10 +86,6 @@ public class InventoryStorageController implements RecordStorage {
       }
       this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      updateCounters = new RecordUpdateCounters();
-      failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
-      timingsEntireRecord = new HourlyPerformanceStats(logger);
-      logger.info("Initialized InventoryRecordStorage");
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -96,8 +93,14 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
-    logger.info("Database started [" + database + "]" + (properties != null ? ", with properties " + properties : " (no properties defined) "));
+    logger.info("Request to start job [" + database + "]"
+    + ", storage URL [" + this.harvestable.getStorage().getUrl() + "]"
+    + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
     this.databaseProperties = properties;
+    updateCounters = new RecordUpdateCounters();
+    failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
+    timingsEntireRecord = new HourlyPerformanceStats(logger);
+    logger.info("Initialized failed-records controller and job statistics");
     try {
       client = HttpClients.createDefault();
       String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);
@@ -106,6 +109,7 @@ public class InventoryStorageController implements RecordStorage {
       String folioTenant   = getConfigurationValue(FOLIO_TENANT, "diku");
       if (folioUsername != null && folioPassword != null && folioTenant != null && folioAuthPath != null) {
         authToken = getAuthtoken(client, folioAddress, folioAuthPath, folioUsername, folioPassword, folioTenant);
+        logger.info("Authenticated to FOLIO Inventory, tenant [" + folioTenant + "]");
       } else {
         logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
                 + "Will attempt to continue without for tenant [" + folioTenant + "]."

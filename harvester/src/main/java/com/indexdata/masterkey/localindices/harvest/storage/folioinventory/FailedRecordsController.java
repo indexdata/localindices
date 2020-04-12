@@ -1,6 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,14 +9,14 @@ import java.nio.file.Paths;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 /**
- * Creates and controls access to directory for storing failed records,
+ * Creates and controls access to the directory for storing failed records,
  * writes files to it, counts files and errors for reporting and
  * restricts the maximum number of files written as configured.
  *
  */
 public class FailedRecordsController {
     protected int maxFailedRecordsSavedThisRun = 100;
-    protected int maxFailedRecordsSavedTotal = 1000;
+    protected int maxFailedRecordsSavedTotal = 450;
     protected RecordFailureCounters recordFailureCounters;
     protected static final String HARVESTER_LOG_DIR = "/var/log/masterkey/harvester/";
     protected static final String FAILED_RECORDS_DIR = "failed-records/";
@@ -23,19 +24,41 @@ public class FailedRecordsController {
     protected StorageJobLogger logger;
     Long jobId;
     protected boolean directoryReady;
+    int initialNumberOfFiles = 0;
+    int calculatedNumberOfFiles = 0;
 
     public FailedRecordsController(StorageJobLogger logger, Long jobId) {
+        logger.debug("Initializes setup for saving failed records to directory");
         this.jobId = jobId;
         this.recordFailureCounters = new RecordFailureCounters();
         this.logger = logger;
         this.failedRecordsDirectory = Paths.get(HARVESTER_LOG_DIR, FAILED_RECORDS_DIR, jobId.toString());
+
         try {
             Files.createDirectories(failedRecordsDirectory);
             directoryReady = true;
+            initialNumberOfFiles = countFiles(failedRecordsDirectory);
+            calculatedNumberOfFiles = initialNumberOfFiles;
+            this.logger.info("There are " + initialNumberOfFiles + " files in the job's failed-records directory at the beginning of this run");
         } catch (IOException e) {
             directoryReady = false;
-            logger.error("Could not initialize directory for storing failed records. Will not save any failed records");
+            this.logger.error("Could not initialize directory for storing failed records. Will not save any failed records");
         }
+    }
+
+    @SuppressWarnings("unused")
+    private int countFiles (Path dir) {
+        int count = 0;
+        try {
+            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir);
+            for (Path path : directoryStream) {
+                count++;
+            }
+        } catch (IOException e) {
+            logger.error("Error counting files in failed records directory. " + e.getMessage());
+        }
+
+        return count;
     }
 
     public String getFailedRecordsDirectory () {
@@ -68,11 +91,15 @@ public class FailedRecordsController {
                     logger.error("Failed record XML for saving was not created for ID " + failedRecord.record.getId()+". Skipping save. ");
                 } else {
                     if (reachingMaxFailedRecordsSavedThisRunNext()) {
-                        logger.info("Will stop saving failed records after this. Maximum number of error files reached ("+ maxFailedRecordsSavedThisRun+").");
+                        logger.info("Will stop saving failed records after this. Maximum number of error files for this run reached ("+ maxFailedRecordsSavedThisRun+").");
                     }
-                    if (! reachedMaxFailedRecordsSavedThisRunYet()) {
+                    if (reachingMaxFailedRecordsSavedTotalNext()) {
+                        logger.info("Will stop saving failed records after this. Maximum total number of error files for this job reached ("+ maxFailedRecordsSavedTotal+").");
+                    }
+                    if (! reachedMaxFailedRecordsSaved()) {
                         Files.write(failedRecord.failedRecordFilePath, xml);
                         recordFailureCounters.countFailedRecordsSaved(failedRecord);
+                        calculatedNumberOfFiles++;
                     } else {
                         logger.debug("Reached max failed records to save, skipping save.");
                     }
@@ -97,12 +124,23 @@ public class FailedRecordsController {
         return recordFailureCounters.incrementErrorCount(error);
     }
 
-
-    public boolean reachingMaxFailedRecordsSavedThisRunNext () {
-        return recordFailureCounters.failedRecordsSaved == maxFailedRecordsSavedThisRun-1;
+    public boolean reachingMaxFailedRecordsSavedTotalNext() {
+        return calculatedNumberOfFiles == maxFailedRecordsSavedTotal - 1;
     }
 
-    public boolean reachedMaxFailedRecordsSavedThisRunYet () {
+    public boolean reachedMaxFailedRecordsSavedTotal () {
+        return calculatedNumberOfFiles >= maxFailedRecordsSavedTotal;
+    }
+
+    public boolean reachingMaxFailedRecordsSavedThisRunNext () {
+        return recordFailureCounters.failedRecordsSaved == maxFailedRecordsSavedThisRun - 1;
+    }
+
+    public boolean reachedMaxFailedRecordsSavedThisRun () {
         return recordFailureCounters.failedRecordsSaved >= maxFailedRecordsSavedThisRun;
+    }
+
+    public boolean reachedMaxFailedRecordsSaved () {
+        return reachedMaxFailedRecordsSavedThisRun() || reachedMaxFailedRecordsSavedTotal();
     }
 }
