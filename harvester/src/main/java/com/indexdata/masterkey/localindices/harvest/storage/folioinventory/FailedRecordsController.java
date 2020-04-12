@@ -60,7 +60,7 @@ public class FailedRecordsController {
         }
     }
 
-    public void saveFailedRecord(RecordErrors failedRecord) {
+    public void saveFailedRecord(RecordWithErrors failedRecord) {
         if (directoryReady) {
             try {
                 byte[] xml = failedRecord.createFailedRecordXml();
@@ -88,6 +88,15 @@ public class FailedRecordsController {
     public  RecordFailureCounters getCounters () {
         return this.recordFailureCounters;
     }
+
+    public int getErrorsByErrorMessage(String message) {
+        return getCounters().errorsByErrorMessage.get(message);
+    }
+
+    public int incrementErrorCount (RecordError error) {
+        return recordFailureCounters.incrementErrorCount(error);
+    }
+
 
     public boolean reachingMaxFailedRecordsSavedThisRunNext () {
         return recordFailureCounters.failedRecordsSaved == maxFailedRecordsSavedThisRun-1;

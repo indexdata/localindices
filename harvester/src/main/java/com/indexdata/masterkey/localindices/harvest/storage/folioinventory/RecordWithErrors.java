@@ -43,7 +43,7 @@ import com.indexdata.utils.XmlUtils;
  *
  * @author ne
  */
-public class RecordErrors {
+public class RecordWithErrors {
 
   RecordJSON record;
   List<RecordError> errors = new ArrayList<RecordError>();
@@ -52,7 +52,7 @@ public class RecordErrors {
   StorageJobLogger logger;
   Path failedRecordFilePath;
 
-  RecordErrors(RecordJSON recordJson, FailedRecordsController controller) {
+  RecordWithErrors(RecordJSON recordJson, FailedRecordsController controller) {
     this.record = recordJson;
     this.failCtrl = controller;
     this.logger = controller.logger;
@@ -92,13 +92,13 @@ public class RecordErrors {
 
   void reportAndThrowError(RecordError error, Level logLevel, Throwable exception) throws InventoryUpdateException {
     addError(error);
-    int count = failCtrl.getCounters().countErrors(error);
+    int count = failCtrl.incrementErrorCount(error);
     if (count <= 10) {
       logger.log(logLevel, error.getMessage());
     } else if (count>10 && count < 100) {
       logger.log(logLevel, error.getMessage());
     } else if (count % 100 == 0) {
-      logger.error(String.format("%d records failed with %s", failCtrl.getCounters().errorsByErrorMessage.get(error.getMessage()), error.getMessage()));
+      logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByErrorMessage(error.getMessage()), error.getMessage()));
     }
     if (exception != null) {
       throw new InventoryUpdateException(error.toString(),exception);
@@ -143,7 +143,7 @@ public class RecordErrors {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        int occurrences = failCtrl.getCounters().errorsByErrorMessage.get(error.getMessage());
+        int occurrences = failCtrl.getErrorsByErrorMessage(error.getMessage());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + record.toJson().toJSONString());
           logger.error("#" + i + " " + error.getMessage());

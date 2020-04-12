@@ -9,7 +9,7 @@ public class RecordFailureCounters {
     protected int failedRecordsSaved = 0;
 
      // TODO: maybe concatenate messages in case of multiple errors
-    public void countFailedRecordsSaved (RecordErrors record) {
+    public void countFailedRecordsSaved (RecordWithErrors record) {
         failedRecordsSaved++;
         String message = record.errors.get(0).getMessage();
         if (failedRecordsSavedByErrorMessage.containsKey(message)) {
@@ -19,7 +19,7 @@ public class RecordFailureCounters {
         }
     }
 
-    public int countErrors(RecordError error) {
+    public int incrementErrorCount(RecordError error) {
         String message = error.getMessage();
         if (errorsByErrorMessage.containsKey(message)) {
             errorsByErrorMessage.put(message,errorsByErrorMessage.get(message)+1);
