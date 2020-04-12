@@ -109,11 +109,11 @@ public class RecordErrors {
     addError(error);
     int count = countError(error);
     if (count <= 10) {
-      logger.log(logLevel, error.toString());
+      logger.log(logLevel, error.getMessage());
     } else if (count>10 && count < 100) {
-      logger.log(logLevel, error.briefMessage());
+      logger.log(logLevel, error.getMessage());
     } else if (count % 100 == 0) {
-      logger.error(String.format("%d records failed with %s", errorCounts.get(error.briefMessage()), error.briefMessage()));
+      logger.error(String.format("%d records failed with %s", errorCounts.get(error.getMessage()), error.getMessage()));
     }
     if (exception != null) {
       throw new InventoryUpdateException(error.toString(),exception);
@@ -158,12 +158,12 @@ public class RecordErrors {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        int occurrences = counters.exceptionCounts.get(error.briefMessage());
+        int occurrences = counters.exceptionCounts.get(error.getMessage());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + record.toJson().toJSONString());
-          logger.error("#" + i + " " + error.toString());
+          logger.error("#" + i + " " + error.getMessage());
         } else if (occurrences % 100 == 0) {
-          logger.error(occurrences + " records have failed with " + error.briefMessage());
+          logger.error(occurrences + " records have failed with " + error.getMessage());
         }
       }
     }
@@ -175,12 +175,12 @@ public class RecordErrors {
    * @return
    */
   private int countError(RecordError error) {
-    if (errorCounts.containsKey(error.briefMessage())) {
-      errorCounts.put(error.briefMessage(), errorCounts.get(error.briefMessage()) + 1);
+    if (errorCounts.containsKey(error.getMessage())) {
+      errorCounts.put(error.getMessage(), errorCounts.get(error.getMessage()) + 1);
     } else {
-      errorCounts.put(error.briefMessage(), 1);
+      errorCounts.put(error.getMessage(), 1);
     }
-    return errorCounts.get(error.briefMessage());
+    return errorCounts.get(error.getMessage());
   }
 
   /**
@@ -302,7 +302,18 @@ public class RecordErrors {
     Element errorsElement = failedRecord.createElement("record-errors");
     for (RecordError error : errors) {
       Element errorElement = failedRecord.createElement("error");
-      errorElement.setTextContent(error.toString());
+      Element labelElement = failedRecord.createElement("label");
+      labelElement.setTextContent(error.getLabel());
+      Element errorTypeElement = failedRecord.createElement("type");
+      errorTypeElement.setTextContent(error.getType());
+      Element messageElement = failedRecord.createElement("message");
+      messageElement.setTextContent(error.getBriefMessage());
+      Element storageEntityElement = failedRecord.createElement("storage-entity");
+      storageEntityElement.setTextContent(error.getStorageEntity());
+      errorElement.appendChild(labelElement);
+      errorElement.appendChild(errorTypeElement);
+      errorElement.appendChild(messageElement);
+      errorElement.appendChild(storageEntityElement);
       errorsElement.appendChild(errorElement);
     }
     failedRecord.getDocumentElement().appendChild(errorsElement);

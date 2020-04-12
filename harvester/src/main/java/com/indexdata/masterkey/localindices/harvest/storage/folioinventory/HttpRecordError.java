@@ -28,11 +28,27 @@ public class HttpRecordError implements RecordError {
 
     @Override
     public String toString() {
-      return "Description [" + shortDescription + "] Status code ["+statusCode+"]. Reason [" + reason + "]. Description [" + response + "]. " + (entity.isEmpty() ? "" : "For entity type [" + entity + "]");
+      return entity + ": " + shortDescription + ". Status code ["+statusCode+"]." + reason + "]." + response;
     }
 
     @Override
-    public String briefMessage() {
-      return shortDescription + " " + reason + " " + response;
+    public String getMessage() {
+      return shortDescription + "; " + reason + "; " + response;
+    }
+
+    public String getLabel() {
+      return shortDescription;
+    }
+
+    public String getType() {
+      return reason;
+    }
+
+    public String getBriefMessage() {
+      return response;
+    }
+
+    public String getStorageEntity() {
+      return entity;
     }
 }

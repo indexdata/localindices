@@ -1,5 +1,9 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
 public interface RecordError {
-    public String briefMessage ();
+    public String getMessage ();
+    public String getLabel();
+    public String getType();
+    public String getBriefMessage();
+    public String getStorageEntity();
 }
