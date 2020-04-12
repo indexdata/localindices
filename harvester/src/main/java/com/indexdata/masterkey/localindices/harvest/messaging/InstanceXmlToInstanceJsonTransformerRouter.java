@@ -1,10 +1,13 @@
 package com.indexdata.masterkey.localindices.harvest.messaging;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import javax.xml.transform.TransformerException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,22 +22,27 @@ import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOM;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSONImpl;
+import com.indexdata.utils.XmlUtils;
 
 /**
  *
- * This class will take a Record with Instance XML (a XML document corresponding to
- * the JSON schema for FOLIO instances) and transform it to a JSON output.
- * <br/>
- * Currently supported is <br/>
- * <br>
- * Simple elements:  &lt;title&gt;My title&lt;/title&gt; <br/>
- *  transformed to "title": "My title"<br/>
- * <br/>
- * Arrays of simple elements: &lt;subjects&gt;&lt;arr&gt;&lt;i&gt;subject 1&lt;/i&gt;&lt;i&gt;subject 2&lt;/i&gt;&lt;/arr&gt;&lt;/subjects&gt;<br/>
- *  transformed to "subjects": ["subject 1", "subject 2"]<br/>
- * <br/>
- * Arrays of objects: &lt;publication&gt;&lt;arr&gt;&lt;i&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/i&gt;&lt;i&gt;...&lt;/i&gt;&lt;/arr&gt;&lt;/publication&gt;<br/>
- *  transformed to "publication": [{ "publisher": "a publisher", "place": "a place"}, {...}]<br/>
+ * This class will take a Record with instance, holdings and items XML (a XML document corresponding to
+ * the JSON schema for FOLIO Inventory) and transform it to a JSON output.
+ * <p>The XML must wrap repeated elements in &lt;arr&gt; and &lt;i&gt; as
+ * shown in the array example below.</p>
+ * <h3>Simple elements</h3>
+ *  &lt;title&gt;My title&lt;/title&gt;<p>is transformed to</p><p>"title": "My title"</p>
+ * <h3>Arrays of simple elements</h3>
+ *  &lt;subjects&gt;&lt;arr&gt;&lt;i&gt;subject 1&lt;/i&gt;&lt;i&gt;subject 2&lt;/i&gt;&lt;/arr&gt;&lt;/subjects&gt;
+ *  <p>is transformed to</p><p>"subjects": ["subject 1", "subject 2"]</p>
+ * <h3>Arrays of objects</h3>
+ *  &lt;publication&gt;&lt;arr&gt;&lt;i&gt;&lt;publisher&gt;a publisher&lt;/publisher&gt;&lt;place&gt;a place&lt;/place&gt;&lt;/i&gt;&lt;i&gt;...&lt;/i&gt;&lt;/arr&gt;&lt;/publication&gt;
+ *  <p>is transformed to</p><p>"publication": [{ "publisher": "a publisher", "place": "a place"}, {...}]</p>
+ *
+ * <h3>The `original` element</h3>
+ * If a child element of the root `record` element is named `original` the entire
+ * structure of that element will be written as a XML string to a JSON property
+ * named `original`.
  *
  */
 @SuppressWarnings("unchecked")
@@ -116,7 +124,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             for (Record rec : subrecords) {
               try {
                 logger.debug(this.getClass().getSimpleName() + ": Sub record " + ++i);
-                JSONObject json = makeInstanceJson(rec);
+                JSONObject json = makeInventoryJson(rec);
                 ((JSONArray)(jsonRecords.get("collection"))).add(json);
               } catch(Exception e) {
                 logger.error("Error adding record: " + e.getLocalizedMessage(), e);
@@ -128,7 +136,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             produce(recordOut);
           }
         } else {
-          JSONObject jsonRecord = makeInstanceJson(recordIn);
+          JSONObject jsonRecord = makeInventoryJson(recordIn);
           recordOut.setJsonObject(jsonRecord);
           recordOut.setOriginalContent(recordIn.getOriginalContent());
           recordOut.setIsDeleted(recordIn.isDeleted());
@@ -167,18 +175,18 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param record
    * @return a JSON representation of the XML record
    */
-  private static JSONObject makeInstanceJson(Record record) {
+  private static JSONObject makeInventoryJson(Record record) {
 
-    JSONObject instanceJson = new JSONObject();
+    JSONObject inventoryJson = new JSONObject();
     Node recordNode = ((RecordDOM) record).toNode();
 
     stripWhiteSpaceNodes(recordNode);
 
     for (Node node : iterable(recordNode)) {
       if (isSimpleElement(node)) {
-        instanceJson.put(node.getLocalName(), node.getTextContent());
+        inventoryJson.put(node.getLocalName(), node.getTextContent());
       } else if (isObject(node)) {
-        instanceJson.put(node.getLocalName(), makeJsonObject(node));
+        inventoryJson.put(node.getLocalName(), makeJsonObject(node));
       } else if (isArray(node)) {
         JSONArray jsonArray = new JSONArray();
         NodeList items = node.getFirstChild().getChildNodes();
@@ -189,10 +197,10 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
             jsonArray.add(makeJsonObject(item));
           }
         }
-        instanceJson.put(node.getLocalName(), jsonArray);
+        inventoryJson.put(node.getLocalName(), jsonArray);
       }
     }
-    return instanceJson;
+    return inventoryJson;
   }
 
   /**
@@ -223,11 +231,23 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     }
   }
 
+  /**
+   * Recursively create JSONObjects and JSONArrays from XML structure that follows
+   * given conventions about repeated elements.
+   *
+   * Special handling is given to the node "original", which is stored as XML string
+   * in JSON property "original"
+   *
+   * @param node
+   * @return
+   */
   private static JSONObject makeJsonObject (Node node) {
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
     for (Node objectProperty : iterable(objectProperties)) {
-      if (isSimpleElement(objectProperty)) {
+      if (node.getLocalName().equals("record") && objectProperty.getLocalName().equals("original")) {
+        saveOriginalXml(jsonObject, objectProperty.getFirstChild());
+      } else if (isSimpleElement(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
       } else if (isObject(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), makeJsonObject(objectProperty));
@@ -245,6 +265,16 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       }
     }
     return jsonObject;
+  }
+
+  private static void saveOriginalXml(JSONObject jsonObject, Node objectProperty) {
+    StringWriter writer = new StringWriter();
+    try {
+      XmlUtils.serialize(objectProperty, writer);
+      jsonObject.put("original", writer.toString());
+    } catch (TransformerException e) {
+      jsonObject.put("original", "Got error trying to write original document to text: " + e.getMessage());
+    }
   }
 
   /**

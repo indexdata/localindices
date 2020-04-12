@@ -94,6 +94,10 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
       return (String) record.get("localIdentifier");
     }
 
+    public String getOriginalXml() {
+      return (String) record.get("original");
+    }
+
     private String getInstitutionId(JSONArray holdingsRecords, Map<String,String> locationsToInstitutionsMap) {
       String locationId = getLocationId(holdingsRecords);
       if (locationId != null) {
