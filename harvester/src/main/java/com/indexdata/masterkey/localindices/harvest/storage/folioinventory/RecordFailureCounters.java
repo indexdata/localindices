@@ -7,15 +7,8 @@ public class RecordFailureCounters {
     protected final Map<String,Integer> errorsByErrorMessage = new HashMap<String,Integer>();
     protected final Map<String,Integer> failedRecordsSavedByErrorMessage = new HashMap<String,Integer>();
     protected int failedRecordsSaved = 0;
-    protected int maxFailuresSavedThisRun;
-    protected int maxFailuresSavedAccumulated;
 
-    public RecordFailureCounters(int maxFailuresSavedThisRun, int maxFailuresSavedTotal) {
-        this.maxFailuresSavedAccumulated = maxFailuresSavedTotal;
-        this.maxFailuresSavedThisRun = maxFailuresSavedThisRun;
-    }
-
-    // TODO: maybe concatenate messages in case of multiple errors
+     // TODO: maybe concatenate messages in case of multiple errors
     public void countFailedRecordsSaved (RecordErrors record) {
         failedRecordsSaved++;
         String message = record.errors.get(0).getMessage();

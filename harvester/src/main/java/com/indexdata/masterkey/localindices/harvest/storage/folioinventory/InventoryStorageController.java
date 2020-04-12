@@ -61,13 +61,10 @@ public class InventoryStorageController implements RecordStorage {
   protected static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
   protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
   protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
-  protected int maxFailedRecordsSavedThisRun = 100;
-  protected int maxFailedRecordsSavedTotal = 1000;
 
   protected final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
-
-  protected RecordUpdateCounters counters;
-  protected RecordFailureCounters recordFailureCounters;
+  protected FailedRecordsController failedRecordsController;
+  protected RecordUpdateCounters updateCounters;
   protected HourlyPerformanceStats timingsEntireRecord;
 
 
@@ -88,8 +85,8 @@ public class InventoryStorageController implements RecordStorage {
       }
       this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      counters = new RecordUpdateCounters();
-      recordFailureCounters = new RecordFailureCounters(maxFailedRecordsSavedThisRun, maxFailedRecordsSavedTotal);
+      updateCounters = new RecordUpdateCounters();
+      failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
       timingsEntireRecord = new HourlyPerformanceStats(logger);
       logger.info("Initialized InventoryRecordStorage");
     } catch(Exception e) {
@@ -253,19 +250,17 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void databaseEnd() {
-    String instancesMessage = "Instances processed/loaded/deletions/failed: " + counters.instancesProcessed + "/" + counters.instancesLoaded + "/" + counters.instanceDeletions + "/" + counters.instancesFailed + ". ";
-    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + counters.holdingsRecordsProcessed + "/" + counters.holdingsRecordsLoaded + "/" + counters.holdingsRecordsDeleted + "/" + counters.holdingsRecordsFailed + ". ";
-    String itemsMessage = "Items processed/loaded/deleted/failed: " + counters.itemsProcessed + "/" + counters.itemsLoaded + "/" + counters.itemsDeleted + "/" + counters.itemsFailed + ".";
-    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + counters.sourceRecordsProcessed + "/" + counters.sourceRecordsLoaded + "/" + counters.sourceRecordsDeleted + "/" + counters.sourceRecordsFailed + ".";
+    String instancesMessage = "Instances processed/loaded/deletions/failed: " + updateCounters.instancesProcessed + "/" + updateCounters.instancesLoaded + "/" + updateCounters.instanceDeletions + "/" + updateCounters.instancesFailed + ". ";
+    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + updateCounters.holdingsRecordsProcessed + "/" + updateCounters.holdingsRecordsLoaded + "/" + updateCounters.holdingsRecordsDeleted + "/" + updateCounters.holdingsRecordsFailed + ". ";
+    String itemsMessage = "Items processed/loaded/deleted/failed: " + updateCounters.itemsProcessed + "/" + updateCounters.itemsLoaded + "/" + updateCounters.itemsDeleted + "/" + updateCounters.itemsFailed + ".";
+    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + updateCounters.sourceRecordsProcessed + "/" + updateCounters.sourceRecordsLoaded + "/" + updateCounters.sourceRecordsDeleted + "/" + updateCounters.sourceRecordsFailed + ".";
 
-    logger.log((counters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
-    logger.log((counters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
-    logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-    logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+    logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
+    logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
+    logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+    logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    for (String key : recordFailureCounters.errorsByErrorMessage.keySet()) {
-      logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByErrorMessage.get(key),key));
-    }
+    failedRecordsController.writeLog();
     timingsEntireRecord.writeLog();
     harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
   }
