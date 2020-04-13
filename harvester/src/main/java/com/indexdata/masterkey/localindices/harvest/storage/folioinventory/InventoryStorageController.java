@@ -98,9 +98,16 @@ public class InventoryStorageController implements RecordStorage {
     + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
     this.databaseProperties = properties;
     updateCounters = new RecordUpdateCounters();
-    failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
+
+    failedRecordsController = new FailedRecordsController(
+                                      logger,
+                                      harvestable.getId(),
+                                      harvestable.getFailedRecordsLogging(),
+                                      harvestable.getMaxSavedFailedRecordsPerRun(),
+                                      harvestable.getMaxSavedFailedRecordsTotal());
+
     timingsEntireRecord = new HourlyPerformanceStats(logger);
-    logger.info("Initialized failed-records controller and job statistics");
+    logger.info("Initialized failed-records controller (mode " + failedRecordsController.getMode() + ") and job statistics");
     try {
       client = HttpClients.createDefault();
       String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);

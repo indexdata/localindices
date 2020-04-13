@@ -33,12 +33,18 @@ public class FailedRecordsController {
     int initialNumberOfFiles = 0;
     int calculatedNumberOfFiles = 0;
 
-    public FailedRecordsController(StorageJobLogger logger, Long jobId) {
+    public FailedRecordsController(StorageJobLogger logger, Long jobId, String mode, Integer maxSavedFailedRecordsPerRun, Integer maxSavedFailedRecordsTotal) {
         this.jobId = jobId;
         this.recordFailureCounters = new RecordFailureCounters();
         this.logger = logger;
-
+        this.mode = mode == null ? StoreMode.CLEAN_DIRECTORY : StoreMode.valueOf(mode);
+        this.maxFailedRecordFilesThisRun = maxSavedFailedRecordsPerRun;
+        this.maxFailedRecordFilesTotal = maxSavedFailedRecordsTotal;
         prepareFailedRecordsDirectory(logger, jobId);
+    }
+
+    public String getMode() {
+        return mode.name();
     }
 
     /**
