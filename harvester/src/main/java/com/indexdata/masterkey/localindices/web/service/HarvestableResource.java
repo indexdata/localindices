@@ -243,10 +243,11 @@ public class HarvestableResource {
   @Path("failed-records/{name}")
   @GET
   @Produces("application/xml")
-  public String getHarvestableFailedRecord(@PathParam("name") String nameParam) {
+  public String getHarvestableFailedRecord(@PathParam("name") String nameParam,
+                                           @QueryParam("element") String elementParam) {
     try {
-    FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY, id);
-    return failedRecords.getFailedRecordAsString(nameParam);
+      FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY, id);
+      return failedRecords.getFailedRecordAsString(nameParam, elementParam);
     } catch (IOException ioe) {
       throw new WebApplicationException(ioe);
     }
