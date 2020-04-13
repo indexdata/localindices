@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -50,16 +48,20 @@ public class RecordWithErrors {
   FailedRecordsController failCtrl;
   TransformedRecord recordProxy;
   StorageJobLogger logger;
-  Path failedRecordFilePath;
 
   RecordWithErrors(RecordJSON recordJson, FailedRecordsController controller) {
     this.record = recordJson;
     this.failCtrl = controller;
     this.logger = controller.logger;
     this.recordProxy = new TransformedRecord(recordJson.toJson(),logger);
+  }
 
-    String fileName = recordProxy.getLocalIdentifier() + /* "-" + timestamp() + */  ".xml";
-    this.failedRecordFilePath = Paths.get(controller.getFailedRecordPath(fileName));
+  String getFileName () {
+    return recordProxy.getLocalIdentifier() + ".xml";
+  }
+
+  String getFileName (int modifier) {
+    return String.format("%s-%d.xml", recordProxy.getLocalIdentifier(), modifier);
   }
 
   @SuppressWarnings("unused")
@@ -157,9 +159,7 @@ public class RecordWithErrors {
   /**
    * Writes XML document for failed record with original record and diagnostics to file system
    */
-  public void logFailedRecord (/* boolean overwrite */) {
-    // Is logging on (option 2, 3, 4)
-    // count existing files (compare with max-failed-records accumulated)
+  public void logFailedRecord () {
      failCtrl.saveFailedRecord(this);
   }
 
