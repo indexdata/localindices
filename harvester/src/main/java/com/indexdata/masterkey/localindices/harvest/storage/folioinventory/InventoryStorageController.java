@@ -214,14 +214,14 @@ public class InventoryStorageController implements RecordStorage {
    * an incoming {@link RecordJSON}
    */
   @Override
-  public void add(Record recordJson) {
-    if (recordJson.isCollection()) {
+  public void add(Record recordJSON) {
+    if (recordJSON.isCollection()) {
       logger.log(Level.TRACE, "Inventory Storage received add signal with a collection payload.");
-      Collection<Record> subrecords = recordJson.getSubRecords();
+      Collection<Record> subrecords = recordJSON.getSubRecords();
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
-          subRecord.setOriginalContent(recordJson.getOriginalContent());
+          subRecord.setOriginalContent(recordJSON.getOriginalContent());
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
           recordStorageHandler.addInventory((RecordJSON) subRecord);
         }
@@ -241,7 +241,7 @@ public class InventoryStorageController implements RecordStorage {
     } else {
       logger.log(Level.TRACE, "Inventory Storage received add signal with a single record payload.");
       InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
-      recordStorageHandler.addInventory((RecordJSON) recordJson);
+      recordStorageHandler.addInventory((RecordJSON) recordJSON);
     }
   }
 

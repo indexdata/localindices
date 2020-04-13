@@ -22,8 +22,6 @@ import javax.xml.transform.OutputKeys;
 
 import org.apache.log4j.Level;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,7 +30,6 @@ import org.xml.sax.SAXException;
 
 import com.github.cliftonlabs.json_simple.Jsoner;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
-import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.utils.XmlUtils;
 
 /**
@@ -43,25 +40,28 @@ import com.indexdata.utils.XmlUtils;
  */
 public class RecordWithErrors {
 
-  RecordJSON record;
   List<RecordError> errors = new ArrayList<RecordError>();
   FailedRecordsController failCtrl;
-  TransformedRecord recordProxy;
+  TransformedRecord transformedRecord;
   StorageJobLogger logger;
 
-  RecordWithErrors(RecordJSON recordJson, FailedRecordsController controller) {
-    this.record = recordJson;
+  RecordWithErrors(TransformedRecord transformedRecord, FailedRecordsController controller) {
     this.failCtrl = controller;
     this.logger = controller.logger;
-    this.recordProxy = new TransformedRecord(recordJson.toJson(),logger);
+    this.transformedRecord = transformedRecord;
   }
 
   String getFileName () {
-    return recordProxy.getLocalIdentifier() + ".xml";
+    String filename = ((String) transformedRecord.getLocalIdentifier()) + ".xml";
+    return filename;
+  }
+
+  String getRecordIdentifier () {
+    return ((String) transformedRecord.getLocalIdentifier());
   }
 
   String getFileName (int modifier) {
-    return String.format("%s-%d.xml", recordProxy.getLocalIdentifier(), modifier);
+    return String.format("%s-%d.xml", transformedRecord.getLocalIdentifier(), modifier);
   }
 
   @SuppressWarnings("unused")
@@ -147,7 +147,7 @@ public class RecordWithErrors {
         i++;
         int occurrences = failCtrl.getErrorsByErrorMessage(error.getMessage());
         if (occurrences < 10) {
-          if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + record.toJson().toJSONString());
+          if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + transformedRecord.getJson());
           logger.error("#" + i + " " + error.getMessage());
         } else if (occurrences % 100 == 0) {
           logger.error(occurrences + " records have failed with " + error.getMessage());
@@ -168,11 +168,11 @@ public class RecordWithErrors {
    * @return byte array of the original record XML
    */
   private byte[] getOriginalRecord () {
-    if (recordProxy.getOriginalXml() != null) {
-      return recordProxy.getOriginalXml().getBytes();
+    if (transformedRecord.getOriginalXml() != null) {
+      return transformedRecord.getOriginalXml().getBytes();
     } else {
-      if (record.getOriginalContent() != null) {
-        return record.getOriginalContent();
+      if (transformedRecord.getOriginalContent() != null) {
+        return transformedRecord.getOriginalContent();
       } else {
         logger.warn("No original record found, neither stored in Record with 'store original', nor passed through as element 'original' in transformed record XML/JSON");
         return null;
@@ -217,21 +217,9 @@ public class RecordWithErrors {
    * @param failedRecord
    */
   private void addTransformedExcludingOriginal(Document failedRecord) {
-
     Element transformedElement = failedRecord.createElement("transformed-record");
-    JSONObject transformedExclOriginal = new JSONObject();
-
-    JSONObject transformedJson = (JSONObject) record.toJson().get("record");
-    if (transformedJson != null) {
-      try {
-        JSONParser parser = new JSONParser();
-        transformedExclOriginal = (JSONObject) parser.parse(transformedJson.toJSONString());
-        transformedExclOriginal.remove("original");
-      } catch (ParseException e) {
-        logger.error("Error creating transformed record excluding original record: " + e.getMessage());
-      }
-    }
-    transformedElement.setTextContent(Jsoner.prettyPrint(transformedExclOriginal.toJSONString()));
+    JSONObject transformedRecordExclussiveOriginal = transformedRecord.getTransformedRecordExclussiveOriginal();
+    transformedElement.setTextContent(Jsoner.prettyPrint(transformedRecordExclussiveOriginal.toJSONString()));
     failedRecord.getDocumentElement().appendChild(transformedElement);
   }
 
@@ -242,41 +230,50 @@ public class RecordWithErrors {
    * @throws SAXException
    * @throws IOException
    */
-  private void addOriginal(DocumentBuilder builder, Document failedRecord) throws SAXException, IOException {
-    if (getOriginalRecord() != null) {
-      String originalXml = new String(getOriginalRecord());
-      Document originalRecord = builder.parse(new InputSource(new StringReader(originalXml)));
-      Node originalRecordNode = failedRecord.importNode(originalRecord.getDocumentElement(),true);
-      Element originalElement = failedRecord.createElement("original");
-      originalElement.appendChild(originalRecordNode);
-      failedRecord.getDocumentElement().appendChild(originalElement);
+  private void addOriginal(DocumentBuilder builder, Document failedRecord) {
+    try {
+      if (getOriginalRecord() != null) {
+        String originalXml = new String(getOriginalRecord());
+        Document originalRecord = builder.parse(new InputSource(new StringReader(originalXml)));
+        Node originalRecordNode = failedRecord.importNode(originalRecord.getDocumentElement(),true);
+        Element originalElement = failedRecord.createElement("original");
+        originalElement.appendChild(originalRecordNode);
+        failedRecord.getDocumentElement().appendChild(originalElement);
+      }
+    } catch (SAXException | IOException e) {
+      logger.error("Error when attempting to get original record as byte array and add it to the failed record XML;" + e.getMessage());
+    } catch (ClassCastException cce) {
+      logger.error("ClassCastException when attempting get and add original record til failed record XML; " + cce.getMessage());
     }
   }
+
   /**
    * Adds error log statements as XML elements to failed record XML
    *
    * @param failedRecord
    */
   private void addErrors(Document failedRecord) {
-    Element errorsElement = failedRecord.createElement("record-errors");
-    for (RecordError error : errors) {
-      Element errorElement = failedRecord.createElement("error");
-      Element labelElement = failedRecord.createElement("label");
-      labelElement.setTextContent(error.getLabel());
-      Element errorTypeElement = failedRecord.createElement("type");
-      errorTypeElement.setTextContent(error.getType());
-      Element messageElement = failedRecord.createElement("message");
-      messageElement.setTextContent(error.getBriefMessage());
-      Element storageEntityElement = failedRecord.createElement("storage-entity");
-      storageEntityElement.setTextContent(error.getStorageEntity());
-      errorElement.appendChild(labelElement);
-      errorElement.appendChild(errorTypeElement);
-      errorElement.appendChild(messageElement);
-      errorElement.appendChild(storageEntityElement);
-      errorsElement.appendChild(errorElement);
+    try {
+      Element errorsElement = failedRecord.createElement("record-errors");
+      for (RecordError error : errors) {
+        Element errorElement = failedRecord.createElement("error");
+        Element labelElement = failedRecord.createElement("label");
+        labelElement.setTextContent(error.getLabel());
+        Element errorTypeElement = failedRecord.createElement("type");
+        errorTypeElement.setTextContent(error.getType());
+        Element messageElement = failedRecord.createElement("message");
+        messageElement.setTextContent(error.getBriefMessage());
+        Element storageEntityElement = failedRecord.createElement("storage-entity");
+        storageEntityElement.setTextContent(error.getStorageEntity());
+        errorElement.appendChild(labelElement);
+        errorElement.appendChild(errorTypeElement);
+        errorElement.appendChild(messageElement);
+        errorElement.appendChild(storageEntityElement);
+        errorsElement.appendChild(errorElement);
+      }
+      failedRecord.getDocumentElement().appendChild(errorsElement);
+    } catch (ClassCastException cce) {
+      logger.error("ClassCastException when attempting to add error messages to failed record XML; " + cce.getMessage());
     }
-    failedRecord.getDocumentElement().appendChild(errorsElement);
   }
-
-
 }

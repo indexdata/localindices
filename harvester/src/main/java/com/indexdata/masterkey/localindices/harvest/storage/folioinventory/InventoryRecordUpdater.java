@@ -69,12 +69,17 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   /**
    * Adds or updates a set of Inventory records (an Instance with related holdings and/or a source record)
    * from the incoming bibliographic record.
-   * @param recordJson
+   * @param recordJSON
    */
-  void addInventory(RecordJSON recordJson) {
+  void addInventory(RecordJSON recordJSON) {
     try {
-      TransformedRecord transformedRecord = new TransformedRecord(recordJson.toJson(), logger);
-      this.recordWithErrors = new RecordWithErrors(recordJson, failedRecordsController);
+      /**
+       * The record facade provides an API into RecordJSON and allows for (slight)
+       * variations in the structure of the transformed record while shielding the user from
+       * those potential differences in structure. Thus safer to use than RecordJSON.
+       */
+      TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
+      this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
       long startStorageEntireRecord = System.currentTimeMillis();
 
       JSONObject instanceResponse;
@@ -94,7 +99,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         }
         if (ctrl.harvestable.isStoreOriginal()) {
           updateCounters.sourceRecordsProcessed++;
-          JSONObject marcJson = getMarcJson((RecordJSON) recordJson);
+          JSONObject marcJson = getMarcJson(transformedRecord);
           addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
         }
         ctrl.timingsEntireRecord.time(startStorageEntireRecord);
@@ -105,8 +110,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           }
         }
       } else {
-        if (recordJson.isDeleted()) {
-          logger.error("Deletion record received on 'add' channels: [" + recordJson.getId() + "], [" + ((RecordJSON) recordJson).toJson() + "]");
+        if (transformedRecord.isDeleted()) {
+          logger.error("Deletion record received on 'add' channels: [" + transformedRecord.getLocalIdentifier() + "], [" + transformedRecord.getJson() + "]");
         } else {
           logger.error("Expected instance response on adding instance but response was null or had no ID property." + instanceResponse);
         }
@@ -672,11 +677,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @return
    * @throws InventoryUpdateException
    */
-  private JSONObject getMarcJson(RecordJSON record) throws InventoryUpdateException {
+  private JSONObject getMarcJson(TransformedRecord record) throws InventoryUpdateException {
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
-        logger.debug(ctrl.getClass().getSimpleName() + " originalContent to store for Record with a collection of " + record.getSubRecords().size() + " record(s):" + new String(record.getOriginalContent(), "UTF-8"));
         marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
         logger.debug(marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
@@ -814,12 +818,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   /**
    * Handles delete signal from the transformation pipeline according to Shared Index (ReShare) requirements
-   * @param record contains deletion information
+   * @param recordJSON contains deletion information
    */
-  public void delete(RecordJSON record) {
+  public void delete(RecordJSON recordJSON) {
     try {
-      TransformedRecord transformedRecord = new TransformedRecord(record.toJson(), logger);
-      this.recordWithErrors = new RecordWithErrors(record, failedRecordsController);
+      TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
+      this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
@@ -883,11 +887,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   /**
-   * ReShare logic for Instance deletes: Remove a given library's record identifier from the
-   * shared master Instance.
-   */
-
-  /**
    * Shared Index (ReShare) logic for updating the Instance on delete requests: Remove a given library's record identifier from the
    * shared master Instance. Mutates the `instance` argument
    * @param localIdentifier
@@ -928,7 +927,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   /**
-   * Convenience method with typical Inventory request headers
+   * Convenience method with the most common Inventory request headers
    * @param request
    * @param accept
    */

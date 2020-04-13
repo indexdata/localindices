@@ -136,7 +136,7 @@ public class FailedRecordsController {
                     logger.debug("Reached max failed records to save, skipping save.");
                 }
             } else {
-                logger.error("Skipped saving failed record with ID [" + failedRecord.record.getId() + "] (directory not ready)");
+                logger.error("Skipped saving failed record with ID [" + failedRecord.getRecordIdentifier() + "] (directory not ready)");
             }
         }
     }
@@ -151,9 +151,15 @@ public class FailedRecordsController {
         try {
             byte[] xml = failedRecord.createFailedRecordXml();
             Path filePath = calculateFilePath(failedRecord);
-            Files.write(filePath, xml);
-            recordFailureCounters.countFailedRecordsSaved(failedRecord);
-            calculatedNumberOfFiles++;
+            if (xml != null && filePath != null) {
+                Files.write(filePath, xml);
+                recordFailureCounters.countFailedRecordsSaved(failedRecord);
+                calculatedNumberOfFiles++;
+            } else if (xml==null) {
+                logger.error("Failed-record XML was not successfully created - cannot save it");
+            } else if (filePath == null) {
+                logger.error("Failed-record file path was not successfully calculated - cannot save failed record");
+            }
         } catch (IOException ioe) {
             logger.error("IOException when attempting to save failed record to failed-records directory: "+ ioe.getMessage() + " " + ioe.getCause().getMessage());
         }

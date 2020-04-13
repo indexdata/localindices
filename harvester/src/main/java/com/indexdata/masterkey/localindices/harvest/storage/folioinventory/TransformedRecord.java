@@ -1,29 +1,36 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Level;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 
 /**
  *
  * @author ne
  */
 /**
-   * Represents the JSON coming out of the transformation pipeline, containing an instance, <br/>
-   * and possibly holdings and item. <br/>
+   * Represents the JSON coming out of the transformation pipeline, containing one or more Inventory
+   * entities like Instance, holdings records, items, the original record, and other data needed for
+   * Inventory the ingestion logic. <br/>
    * <br/>
-   * A couple of different structures are supported: <br/>
+   * Some slight variations in the structure are allowed but this facade is meant to shield the user of
+   * class from that.
+   * <br/>
+   * A couple of different structures for the Inventory records are supported: <br/>
    * <br/>
    * <ol>
    * <li>the "record" object contains an "instance" object and a "holdingsRecords"  array with embedded "items" arrays</li>
@@ -64,38 +71,90 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
    */
   public class TransformedRecord {
 
-    private JSONObject record;
+    private RecordJSON recordJSON;
+    private JSONObject transformed;
     private JSONParser parser = new JSONParser();
     private StorageJobLogger logger;
 
-    public TransformedRecord(JSONObject recordJson, StorageJobLogger logger) {
+    public TransformedRecord(RecordJSON recordJSON, StorageJobLogger logger) {
+      this.recordJSON = recordJSON;
       this.logger = logger;
-      logger.log(Level.TRACE, "Got transformed record for storage/deletion: " + recordJson.toJSONString());
-      if (isCollectionOfOne(recordJson)) {
-        this.record = getOnlyCollectionItem(recordJson);
-      } else {
-        this.record=recordJson;
-      }
-      if (record.containsKey("record")) {
-        record = (JSONObject) record.get("record");
-      }
-      logger.log(Level.TRACE, "Cached JSON as " + record.toJSONString());
+      logger.log(Level.TRACE, "Got transformed record for storage/deletion: " + recordJSON.toJson().toJSONString());
+      normalizeTransformedRecord();
+      logger.log(Level.TRACE, "Cached JSON as " + transformed.toJSONString());
     }
 
+    /**
+     * Pulls record out of 'collection' and/or 'record' container(s)
+     */
+    private void normalizeTransformedRecord() {
+      if (isCollectionOfOne(recordJSON.toJson())) {
+        this.transformed = getOnlyCollectionItem(recordJSON.toJson());
+      } else {
+        this.transformed=recordJSON.toJson();
+      }
+      if (transformed.containsKey("record")) {
+        transformed = (JSONObject) transformed.get("record");
+      }
+    }
+
+    /**
+     * Retrieves institution ID from element created during transformation if present
+     * otherwise attempts to defer it from locations on holdings records.
+     *
+     * @param locationsToInstitutionsMap
+     * @return Inventory institution UUID
+     */
     public String getInstitutionId (Map<String,String> locationsToInstitutionsMap) {
-      if (record.containsKey("institutionId")) {
-        return (String) record.get("institutionId");
+      if (transformed.containsKey("institutionId")) {
+        return (String) transformed.get("institutionId");
       } else {
         return getInstitutionId(getHoldings(), locationsToInstitutionsMap);
       }
     }
 
     public String getLocalIdentifier () {
-      return (String) record.get("localIdentifier");
+      return (String) transformed.get("localIdentifier");
     }
 
     public String getOriginalXml() {
-      return (String) record.get("original");
+      String original = null;
+      if (transformed.get("original") == null) {
+        logger.debug("Did not find property 'original' with transformed record");
+      } else if (transformed.get("original") instanceof String
+                 && isValidXml((String) transformed.get("original"))) {
+        original = (String) transformed.get("original");
+      } else if (transformed.get("original") instanceof JSONObject) {
+        logger.warn("Found property named 'original' but it was a JSONObject (not a string of XML");
+      }
+      return original;
+    }
+
+    private boolean isValidXml (String maybeXml)  {
+      try {
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(maybeXml)));
+        return true;
+      } catch (IOException | ParserConfigurationException | SAXException e) {
+        return false;
+      }
+    }
+
+    public JSONObject getTransformedRecordExclussiveOriginal () {
+      JSONObject transformedExclussiveOriginal = null;
+      if (transformed != null) {
+        try {
+          JSONParser parser = new JSONParser();
+          transformedExclussiveOriginal = (JSONObject) parser.parse(transformed.toJSONString());
+          transformedExclussiveOriginal.remove("original");
+        } catch (ParseException e) {
+          logger.error("Error creating transformed record excluding original record: " + e.getMessage());
+        }
+      }
+      return transformedExclussiveOriginal;
+    }
+
+    public byte[] getOriginalContent () {
+      return this.recordJSON.getOriginalContent();
     }
 
     private String getInstitutionId(JSONArray holdingsRecords, Map<String,String> locationsToInstitutionsMap) {
@@ -116,14 +175,14 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
     }
 
     public JSONObject getInstance () {
-      logger.log(Level.TRACE, "Looking for instance in root of " + record.toJSONString());
+      logger.log(Level.TRACE, "Looking for instance in root of " + transformed.toJSONString());
       JSONObject instance = new JSONObject();
       try {
-        if (record.containsKey("instance")) {
-          JSONObject instanceFromRecord = (JSONObject) (record.get("instance"));
+        if (transformed.containsKey("instance")) {
+          JSONObject instanceFromRecord = (JSONObject) (transformed.get("instance"));
           instance = (JSONObject) parser.parse(instanceFromRecord.toJSONString());
         } else {  // Assume record _is_ the instance
-          instance = (JSONObject) parser.parse(record.toJSONString());
+          instance = (JSONObject) parser.parse(transformed.toJSONString());
         }
         instance.remove("holdingsRecords");
         instance.remove("matchKey");
@@ -136,11 +195,11 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
     public JSONArray getHoldings () {
       JSONArray holdings = new JSONArray();
       try {
-        if (record.containsKey("holdingsRecords")) {
-          JSONArray holdingsRecordsFromRecord = (JSONArray) (record.get("holdingsRecords"));
+        if (transformed.containsKey("holdingsRecords")) {
+          JSONArray holdingsRecordsFromRecord = (JSONArray) (transformed.get("holdingsRecords"));
           holdings = (JSONArray) parser.parse(holdingsRecordsFromRecord.toJSONString());
-        } else if (record.containsKey("instance")) {
-          JSONObject instance = (JSONObject) record.get("instance");
+        } else if (transformed.containsKey("instance")) {
+          JSONObject instance = (JSONObject) transformed.get("instance");
           if (instance.containsKey("holdingsRecords")) {
             JSONArray holdingsRecordsFromInstance = (JSONArray) (instance.get("holdingsRecords"));
             holdings = (JSONArray) parser.parse(holdingsRecordsFromInstance.toJSONString());
@@ -157,11 +216,11 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
     public JSONObject getMatchKey () {
       JSONObject matchKey = new JSONObject();
       try {
-        if (record.containsKey("matchKey")) {
-          JSONObject matchKeyFromRecord = (JSONObject) (record.get("matchKey"));
+        if (transformed.containsKey("matchKey")) {
+          JSONObject matchKeyFromRecord = (JSONObject) (transformed.get("matchKey"));
           matchKey = (JSONObject) parser.parse(matchKeyFromRecord.toJSONString());
-        } else if (record.containsKey("instance")) {
-          JSONObject instance = (JSONObject) record.get("instance");
+        } else if (transformed.containsKey("instance")) {
+          JSONObject instance = (JSONObject) transformed.get("instance");
           if (instance.containsKey("matchKey")) {
             JSONObject matchKeyFromInstance = (JSONObject) (instance.get("matchKey"));
             matchKey = (JSONObject) parser.parse(matchKeyFromInstance.toJSONString());
@@ -174,15 +233,19 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
     }
 
     public boolean isDeleted () {
-      return record.containsKey("delete");
+      return transformed.containsKey("delete");
     }
 
     public JSONObject getDelete () {
       if (isDeleted()) {
-        return (JSONObject)(record.get("delete"));
+        return (JSONObject)(transformed.get("delete"));
       } else {
         return null;
       }
+    }
+
+    public JSONObject getJson () {
+      return transformed;
     }
 
     private boolean isCollectionOfOne (JSONObject json) {
@@ -197,6 +260,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
     @Override
     public String toString() {
-      return record != null ? record.toJSONString() : "no record";
+      return transformed != null ? transformed.toJSONString() : "no record";
     }
   }

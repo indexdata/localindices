@@ -175,15 +175,15 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * @param record
    * @return a JSON representation of the XML record
    */
-  private static JSONObject makeInventoryJson(Record record) {
+  private  JSONObject makeInventoryJson(Record record) {
 
     JSONObject inventoryJson = new JSONObject();
     Node recordNode = ((RecordDOM) record).toNode();
-
     stripWhiteSpaceNodes(recordNode);
-
     for (Node node : iterable(recordNode)) {
-      if (isSimpleElement(node)) {
+      if (isOriginalRecordElement(node)) {
+        saveOriginalXml(inventoryJson, node.getFirstChild());
+      } else if (isSimpleElement(node)) {
         inventoryJson.put(node.getLocalName(), node.getTextContent());
       } else if (isObject(node)) {
         inventoryJson.put(node.getLocalName(), makeJsonObject(node));
@@ -235,8 +235,8 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
    * Recursively create JSONObjects and JSONArrays from XML structure that follows
    * given conventions about repeated elements.
    *
-   * Special handling is given to the node "original", which is stored as XML string
-   * in JSON property "original"
+   * Special handling is given to the node "original", which is assumed stored as
+   * XML string in JSON property "original"
    *
    * @param node
    * @return
@@ -245,7 +245,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
     JSONObject jsonObject = new JSONObject();
     NodeList objectProperties = node.getChildNodes();
     for (Node objectProperty : iterable(objectProperties)) {
-      if (node.getLocalName().equals("record") && objectProperty.getLocalName().equals("original")) {
+      if (isOriginalRecordElement(objectProperty)) {
         saveOriginalXml(jsonObject, objectProperty.getFirstChild());
       } else if (isSimpleElement(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
@@ -265,6 +265,14 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       }
     }
     return jsonObject;
+  }
+
+  private static boolean isOriginalRecordElement (Node node) {
+    return (node.getLocalName() != null
+            && node.getLocalName().equals("original")
+            && node.getFirstChild() != null
+            && node.getFirstChild().getLocalName() != null
+            && node.getFirstChild().getLocalName().equals("record"));
   }
 
   private static void saveOriginalXml(JSONObject jsonObject, Node objectProperty) {

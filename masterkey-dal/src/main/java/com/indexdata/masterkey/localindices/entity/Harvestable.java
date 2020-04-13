@@ -102,6 +102,9 @@ public abstract class Harvestable implements Serializable, Cloneable, Filterable
 
 
   private String logLevel  = "INFO";
+  private String failedRecordsLogging = "CLEAN_DIRECTORY";
+  private Integer maxSavedFailedRecordsPerRun = 100;
+  private Integer maxSavedFailedRecordsTotal = 1000;
   private String mailLevel = "WARN";
   private String mailAddress = null;
   private boolean diskRun = false;
@@ -423,6 +426,30 @@ public abstract class Harvestable implements Serializable, Cloneable, Filterable
     this.logLevel = logLevel;
   }
 
+  public String getFailedRecordsLogging() {
+    return failedRecordsLogging;
+  }
+
+  public void setFailedRecordsLogging(String failedRecordsLogging) {
+    this.failedRecordsLogging = failedRecordsLogging;
+  }
+
+  public Integer getMaxSavedFailedRecordsPerRun() {
+    return maxSavedFailedRecordsPerRun;
+  }
+
+  public void setMaxSavedFailedRecordsPerRun(Integer maxSavedFailedRecordsPerRun) {
+    this.maxSavedFailedRecordsPerRun = maxSavedFailedRecordsPerRun;
+  }
+
+  public Integer getMaxSavedFailedRecordsTotal() {
+    return maxSavedFailedRecordsTotal;
+  }
+
+  public void setMaxSavedFailedRecordsTotal(Integer maxSavedFailedRecordsTotal) {
+    this.maxSavedFailedRecordsTotal = maxSavedFailedRecordsTotal;
+  }
+
   public String getMailLevel() {
     return mailLevel;
   }
@@ -547,4 +574,5 @@ public abstract class Harvestable implements Serializable, Cloneable, Filterable
   public List<String> getKeywordAllFields () {
     return KEYWORD_ALL_FIELDS;
   }
+
 }
