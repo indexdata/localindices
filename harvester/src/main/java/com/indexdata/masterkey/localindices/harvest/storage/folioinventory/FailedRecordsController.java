@@ -21,7 +21,7 @@ public class FailedRecordsController {
     protected int maxFailedRecordFilesThisRun = 100;
     protected int maxFailedRecordFilesTotal = 450;
     protected enum StoreMode {NO_STORE, CLEAN_DIRECTORY, CREATE_OVERWRITE, ADD_ALL};
-    protected StoreMode mode = StoreMode.NO_STORE;
+    protected StoreMode mode = StoreMode.CLEAN_DIRECTORY;
     protected static final String HARVESTER_LOG_DIR = "/var/log/masterkey/harvester/";
     protected static final String FAILED_RECORDS_DIR = "failed-records/";
     // End of configuration
