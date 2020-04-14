@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 import org.apache.commons.io.FileUtils;
@@ -33,13 +34,15 @@ public class FailedRecordsController {
     int initialNumberOfFiles = 0;
     int calculatedNumberOfFiles = 0;
 
-    public FailedRecordsController(StorageJobLogger logger, Long jobId, String mode, Integer maxSavedFailedRecordsPerRun, Integer maxSavedFailedRecordsTotal) {
-        this.jobId = jobId;
+    public FailedRecordsController(StorageJobLogger logger, Harvestable config) {
+        this.jobId = config.getId();
         this.recordFailureCounters = new RecordFailureCounters();
         this.logger = logger;
-        this.mode = mode == null ? StoreMode.CLEAN_DIRECTORY : StoreMode.valueOf(mode);
-        this.maxFailedRecordFilesThisRun = maxSavedFailedRecordsPerRun;
-        this.maxFailedRecordFilesTotal = maxSavedFailedRecordsTotal;
+        String retention = config.getFailedRecordsLogging();
+        this.mode = (retention == null ? StoreMode.CLEAN_DIRECTORY : StoreMode.valueOf(retention));
+        this.maxFailedRecordFilesThisRun = config.getMaxSavedFailedRecordsPerRun();
+        this.maxFailedRecordFilesTotal = config.getMaxSavedFailedRecordsTotal();
+
         prepareFailedRecordsDirectory(logger, jobId);
     }
 
@@ -71,7 +74,7 @@ public class FailedRecordsController {
             }
             initialNumberOfFiles = countFiles(failedRecordsDirectory);
             calculatedNumberOfFiles = initialNumberOfFiles;
-            this.logger.info("There are " + initialNumberOfFiles + " file(s) in the job's failed-records directory at the beginning of this run");
+            logger.info("Initialized failed-records controller (mode " + getMode() + "). There are " + initialNumberOfFiles + " saved file(s) in the failed-records directory.");
         } catch (IOException e) {
             directoryReady = false;
             this.logger.error("Could not initialize directory for storing failed records. Will not save any failed records");
@@ -185,12 +188,12 @@ public class FailedRecordsController {
         return filePath;
     }
 
-    String getFileName (RecordWithErrors failedRecord) {
+    private String getFileName (RecordWithErrors failedRecord) {
         String filename = ((String) failedRecord.getRecordIdentifier()) + ".xml";
         return filename;
     }
 
-    String getFileName (RecordWithErrors failedRecord, int version) {
+    private String getFileName (RecordWithErrors failedRecord, int version) {
         return String.format("%s-%d.xml", failedRecord.getRecordIdentifier(), version);
     }
 
