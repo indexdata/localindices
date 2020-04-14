@@ -458,10 +458,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
     ByteArrayOutputStream baos = null;
     MarcStreamWriter iso2709writer = null;
-    if (resource.isStoreOriginal()) {
-      baos = new ByteArrayOutputStream(20000);
-      iso2709writer = new MarcStreamWriter(baos);
-    }
+    baos = new ByteArrayOutputStream(20000);
+    iso2709writer = new MarcStreamWriter(baos);
     while (reader.hasNext()) {
       try {
         org.marc4j.marc.Record record = reader.next();

@@ -159,6 +159,8 @@ public class RecordWithErrors {
    * @return byte array of the original record XML
    */
   private byte[] getOriginalRecord () {
+    return transformedRecord.getOriginalContent();
+    /*
     if (transformedRecord.getOriginalXml() != null) {
       return transformedRecord.getOriginalXml().getBytes();
     } else {
@@ -169,6 +171,7 @@ public class RecordWithErrors {
         return null;
       }
     }
+    */
   }
 
   /**

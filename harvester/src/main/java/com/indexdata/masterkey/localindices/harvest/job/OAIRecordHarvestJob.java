@@ -117,9 +117,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     setStatus(HarvestStatus.valueOf(resource.getCurrentStatus()));
     if (getStatus().equals(HarvestStatus.NEW) || getStatus().equals(HarvestStatus.ERROR))
       this.initialRun = true;
-    if (resource.isStoreOriginal()) {
-      originalBuff = new ByteArrayOutputStream(ORIGINAL_BUFF_SIZE);
-    }
+    originalBuff = new ByteArrayOutputStream(ORIGINAL_BUFF_SIZE);
     // this.resource.setMessage(null);
   }
 
@@ -442,12 +440,10 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
     String isDeleted = HarvesterVerb.getSingleString(node, "./oai20:header/@status");
     byte[] original = null;
-    if (resource.isStoreOriginal()) {
-      originalBuff.reset();
-      //TODO find oai subrecord
-      XmlUtils.serialize(node, originalBuff);
-      original = originalBuff.toByteArray();
-    }
+    originalBuff.reset();
+    //TODO find oai subrecord
+    XmlUtils.serialize(node, originalBuff);
+    original = originalBuff.toByteArray();
     RecordDOMImpl record = new RecordDOMImpl(id, resource.getId().toString(), node, original);
     if ("deleted".equalsIgnoreCase(isDeleted)) {
       logger.log(Level.DEBUG, "OAI delete record found");
