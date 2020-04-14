@@ -142,7 +142,7 @@ public class FailedRecordsController {
     }
 
     /**
-     * 
+     *
      * @param failedRecord
      * @param xml
      * @throws IOException
@@ -173,16 +173,25 @@ public class FailedRecordsController {
      * @return
      */
     private Path calculateFilePath(RecordWithErrors failedRecord) {
-        Path filePath = Paths.get(getFailedRecordPath(failedRecord.getFileName()));
+        Path filePath = Paths.get(getFailedRecordPath(getFileName(failedRecord)));
         if (mode == StoreMode.ADD_ALL) {
             int i = 1;
             while (Files.exists(filePath)) {
-                filePath = Paths.get(getFailedRecordPath(failedRecord.getFileName(i)));
+                filePath = Paths.get(getFailedRecordPath(getFileName(failedRecord,i)));
                 i++;
                 if (i>9) break;
             }
         }
         return filePath;
+    }
+
+    String getFileName (RecordWithErrors failedRecord) {
+        String filename = ((String) failedRecord.getRecordIdentifier()) + ".xml";
+        return filename;
+    }
+
+    String getFileName (RecordWithErrors failedRecord, int version) {
+        return String.format("%s-%d.xml", failedRecord.getRecordIdentifier(), version);
     }
 
     public  RecordFailureCounters getCounters () {

@@ -51,17 +51,8 @@ public class RecordWithErrors {
     this.transformedRecord = transformedRecord;
   }
 
-  String getFileName () {
-    String filename = ((String) transformedRecord.getLocalIdentifier()) + ".xml";
-    return filename;
-  }
-
   String getRecordIdentifier () {
     return ((String) transformedRecord.getLocalIdentifier());
-  }
-
-  String getFileName (int modifier) {
-    return String.format("%s-%d.xml", transformedRecord.getLocalIdentifier(), modifier);
   }
 
   @SuppressWarnings("unused")
