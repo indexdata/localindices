@@ -5,6 +5,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
@@ -189,8 +192,20 @@ public class FailedRecordsController {
     }
 
     private String getFileName (RecordWithErrors failedRecord) {
-        String filename = ((String) failedRecord.getRecordIdentifier()) + ".xml";
+        String filename;
+        String recid = failedRecord.getRecordIdentifier();
+        if (recid==null) {
+           filename = "timestamp-" + timestamp() + ".xml";
+        } else {
+           filename = recid + ".xml";
+        }
         return filename;
+    }
+
+    private String timestamp () {
+        LocalDateTime now = LocalDateTime.now();
+        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS", Locale.getDefault()));
+        return timestamp;
     }
 
     private String getFileName (RecordWithErrors failedRecord, int version) {
