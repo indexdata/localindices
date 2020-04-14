@@ -830,9 +830,9 @@ public class JobController {
   Map<String,String> modesMap = new HashMap<String,String>();
   public List<SelectItem> getFailedRecordsLoggingItems() {
     modesMap.put("NO_STORE", "Don't save failed records");
-    modesMap.put("CLEAN_DIRECTORY", "Save, clean up directory first");
-    modesMap.put("CREATE_OVERWRITE", "Save, overwrite already existing files");
-    modesMap.put("ADD_ALL", "Save, add numbered versions for already existing files");
+    modesMap.put("CLEAN_DIRECTORY", "Do save. Clean up directory first.");
+    modesMap.put("CREATE_OVERWRITE", "Do save. Overwrite existing files.");
+    modesMap.put("ADD_ALL", "Do save. Add numbered versions for existing files.");
 
     List<SelectItem> list = new LinkedList<SelectItem>();
     for (String mode : Arrays.asList("NO_STORE","CLEAN_DIRECTORY", "CREATE_OVERWRITE", "ADD_ALL")) {
