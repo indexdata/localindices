@@ -9,11 +9,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -53,14 +50,6 @@ public class RecordWithErrors {
 
   String getRecordIdentifier () {
     return ((String) transformedRecord.getLocalIdentifier());
-  }
-
-  @SuppressWarnings("unused")
-  // implement to not overwrite potentially existing failed record for same local identifier
-  private String timestamp () {
-    LocalDateTime now = LocalDateTime.now();
-    String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.getDefault()));
-    return timestamp;
   }
 
   void addResponseError(HttpRecordError error) {

@@ -181,24 +181,6 @@
           </h:selectOneMenu>
           <id:helplink field="[Harvest Jobs][General information][Log level]"/>
         </h:panelGroup>
-        <h:outputText value="Saving failed records:" />
-        <h:panelGroup>
-          <h:selectOneMenu value="#{resourceController.resource.failedRecordsLogging}">
-            <f:selectItems
-              value="#{resourceController.failedRecordsLoggingItems}" />
-          </h:selectOneMenu>
-          <id:helplink field="[Harvest Jobs][General information][Saving failed records]"/>
-        </h:panelGroup>
-        <h:outputText value="Maximum number of failed records saved next run:" />
-        <h:panelGroup>
-          <h:inputText value="#{resourceController.resource.maxSavedFailedRecordsPerRun}" size="20" />
-          <id:helplink area="Harvest Jobs" section="General information" label="Maximum number of failed records saved next run"/>
-        </h:panelGroup>
-        <h:outputText value="Maximum number of failed records saved total:" />
-        <h:panelGroup>
-          <h:inputText value="#{resourceController.resource.maxSavedFailedRecordsTotal}" size="20" />
-          <id:helplink area="Harvest Jobs" section="General information" label="Maximum number of failed records saved total"/>
-        </h:panelGroup>
         <h:outputText value="Notification e-mail address(es) (separate with comma): " />
         <h:panelGroup>
           <h:inputText value="#{resourceController.resource.mailAddress}" size="80" />

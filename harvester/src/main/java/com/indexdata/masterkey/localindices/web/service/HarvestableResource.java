@@ -12,16 +12,14 @@ import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.cache.DiskCache;
 import com.indexdata.masterkey.localindices.harvest.storage.HarvestStorageFactory;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.util.FailedRecords;
 import com.indexdata.masterkey.localindices.util.HarvestableLog;
 import com.indexdata.masterkey.localindices.web.service.converter.HarvestableConverter;
 import com.indexdata.utils.ISOLikeDateParser;
-
+import com.indexdata.utils.XmlUtils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,7 +32,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -49,7 +46,6 @@ public class HarvestableResource {
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   private Long id;
   private UriInfo context;
-  private static final String LOGDIRECTORY = "/var/log/masterkey/harvester";
 
   /** Creates a new instance of HarvestableResource */
   public HarvestableResource() {
@@ -210,7 +206,7 @@ public class HarvestableResource {
       //TODO read log path from config
       logger.debug("Rquested logs for "+id+" from "+fromParam + ", epoch: "
         + (from != null ? from.getTime() : null));
-      HarvestableLog log = new HarvestableLog(LOGDIRECTORY, id);
+      HarvestableLog log = new HarvestableLog("/var/log/masterkey/harvester/", id);
       String lines = log.readLines(from);
       if (lines == null) {
         //no new data
@@ -223,33 +219,6 @@ public class HarvestableResource {
       throw new WebApplicationException(io);
     } catch (ParseException pe) {
       throw new WebApplicationException(pe);
-    }
-  }
-
-  @Path("failed-records/")
-  @GET
-  @Produces("application/xml")
-  public String getHarvestableFailedRecords() {
-    try {
-      FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY,id);
-      return failedRecords.getListOfFailedRecordsAsXml();
-    } catch (FileNotFoundException fnf) {
-      throw new WebApplicationException(fnf);
-    }
-  }
-
-
-
-  @Path("failed-records/{name}")
-  @GET
-  @Produces("application/xml")
-  public String getHarvestableFailedRecord(@PathParam("name") String nameParam,
-                                           @QueryParam("element") String elementParam) {
-    try {
-      FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY, id);
-      return failedRecords.getFailedRecordAsString(nameParam, elementParam);
-    } catch (IOException ioe) {
-      throw new WebApplicationException(ioe);
     }
   }
 }

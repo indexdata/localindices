@@ -118,11 +118,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
       if (recordWithErrors.hasErrors())  {
         recordWithErrors.writeErrorsLog(logger);
-        recordWithErrors.logFailedRecord();
       }
     } catch (InventoryUpdateException iue) {
       recordWithErrors.writeErrorsLog(logger);
-      recordWithErrors.logFailedRecord();
     }
   }
 
