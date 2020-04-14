@@ -5,29 +5,30 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Holds counts of records processed, updated, deleted, failed
  * @author ne
  */
-public class RecordUpdateCounts {
+public class RecordUpdateCounters {
+
   protected int instancesProcessed = 0;
   protected int instancesLoaded = 0;
   protected int instanceDeletions = 0;
   protected int instancesFailed = 0;
-  protected final Map<String,Integer> exceptionCounts = new HashMap<String,Integer>();
+
   protected int holdingsRecordsProcessed = 0;
   protected int holdingsRecordsLoaded = 0;
   protected int holdingsRecordsDeleted = 0;
   protected int holdingsRecordsFailed = 0;
+
   protected int itemsProcessed = 0;
   protected int itemsLoaded = 0;
   protected int itemsDeleted = 0;
   protected int itemsFailed = 0;
+
   protected int sourceRecordsProcessed = 0;
   protected int sourceRecordsLoaded = 0;
   protected int sourceRecordsDeleted = 0;
   protected int sourceRecordsFailed = 0;
+
 }

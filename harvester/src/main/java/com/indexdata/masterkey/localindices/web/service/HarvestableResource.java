@@ -37,12 +37,12 @@ import org.apache.log4j.Logger;
 
 /**
  * REST Web service (resource) that maps to a Harvestable entity.
- * 
+ *
  * @author jakub
  * @author Dennis
  */
 public class HarvestableResource {
-  Logger logger = Logger.getLogger(this.getClass());    
+  Logger logger = Logger.getLogger(this.getClass());
   private HarvestableDAO dao = new HarvestablesDAOJPA();
   private Long id;
   private UriInfo context;
@@ -54,7 +54,7 @@ public class HarvestableResource {
   /**
    * Constructor used for instantiating an instance of the entity referenced by
    * id.
-   * 
+   *
    * @param id
    *          identifier for referenced the entity
    * @param context
@@ -68,7 +68,7 @@ public class HarvestableResource {
   /**
    * Get method for retrieving an instance of referenced Harvestable in XML
    * format.
-   * 
+   *
    * @return an instance of HarvestableConverter
    */
   @GET
@@ -80,7 +80,7 @@ public class HarvestableResource {
   /**
    * Put method for updating an instance of referenced Harvestable, using XML as
    * the input format.
-   * 
+   *
    * @param data
    *          an HarvestableConverter entity that is deserialized from an XML
    *          stream
@@ -101,16 +101,16 @@ public class HarvestableResource {
 	storage.setHarvestable(harvestable);
 	storage.purge(true);
       }
-      else 
+      else
 	logger.warn("No storage client. Unable to purge harvestable: " + id);
     }
-    else 
+    else
       logger.log(Level.WARN, "No storage configured on harvestable " + id);
   }
 
   /**
    * Delete method for deleting an instance of referenced Harvestable.
-   * 
+   *
    */
   @DELETE
   public void delete() {
@@ -119,23 +119,23 @@ public class HarvestableResource {
       try {
         purgeStorage(harvestable);
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e); 
+        logger.log(Level.ERROR, "Failed to delete records in storage for job with ID " + id, e);
       }
       try {
         dao.delete(harvestable);
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to delete harvest job with ID " 
+        logger.log(Level.ERROR, "Failed to delete harvest job with ID "
             + id, e);
       }
       try {
         DiskCache dc = new DiskCache(id);
         dc.purge();
       } catch (Exception e) {
-        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID " 
+        logger.log(Level.ERROR, "Failed to purge disk cache for harvest job with ID "
             + id, e);
       }
     }
-    logger.log(Level.ERROR, "No harvestable with id " + id); 
+    logger.log(Level.ERROR, "No harvestable with id " + id);
   }
 
   @Path("reset/")
@@ -144,11 +144,11 @@ public class HarvestableResource {
   public String reset() {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
+      try {
 	purgeStorage(harvestable);
 	harvestable.reset();
 	dao.update(harvestable);
-	return "OK"; 
+	return "OK";
       } catch (Exception e) {
 	String error = "Failed to reset harvestable " + harvestable.getStorage().getId() + ": " + e.getMessage();
 	logger.log(Level.ERROR, error, e);
@@ -164,9 +164,9 @@ public class HarvestableResource {
   public String cmd(@PathParam("cmd") String cmd) {
     Harvestable harvestable = dao.retrieveById(id);
     if (harvestable != null) {
-      try { 
+      try {
 	// rc = JobScheduler.doCmd(harvestable, cmd);
-	return "OK " + cmd + " harvestable " + harvestable.getId(); 
+	return "OK " + cmd + " harvestable " + harvestable.getId();
       } catch (Exception e) {
 	String error = "Failed to " + cmd + " harvestable " + harvestable.getId() + ": " + e.getMessage();
 	logger.log(Level.ERROR, error, e);
@@ -184,17 +184,17 @@ public class HarvestableResource {
     if (harvestable == null) {
       throw new WebApplicationException(Response.Status.NOT_FOUND);
     }
-    try { 
+    try {
       DiskCache dc = new DiskCache(id);
       dc.purge();
-      return "OK"; 
+      return "OK";
     } catch (Exception e) {
       String error = "Failed to reset cache for job '"+id+"'";
       logger.error(error, e);
       return error;
     }
   }
-  
+
   @Path("log/")
   @GET
   @Produces("text/plain")

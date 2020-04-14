@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -30,20 +30,20 @@
         </h:panelGroup>
         <h:outputText value="Service Provider:" />
         <h:panelGroup>
-          <h:inputText id="serviceProvider" 
+          <h:inputText id="serviceProvider"
                      value="#{resourceController.resource.serviceProvider}"
                      size="30" />
           <id:helplink field="[Harvest Jobs][General information][Service Provider]"/>
         </h:panelGroup>
         <h:outputText value="Used by:" />
         <h:panelGroup>
-          <h:inputText id="usedBy" 
+          <h:inputText id="usedBy"
                      value="#{resourceController.resource.usedBy}" size="80" />
           <id:helplink field="[Harvest Jobs][General information][Used by]"/>
         </h:panelGroup>
         <h:outputText value="Managed by:" />
         <h:panelGroup>
-        <h:inputText id="managedBy" 
+        <h:inputText id="managedBy"
                      value="#{resourceController.resource.managedBy}" size="80" />
           <id:helplink field="[Harvest Jobs][General information][Managed by]"/>
         </h:panelGroup>
@@ -189,7 +189,7 @@
         <h:outputText value="Send notification if severity at least: " />
         <h:panelGroup>
           <h:selectOneMenu value="#{resourceController.resource.mailLevel}">
-            <f:selectItems 
+            <f:selectItems
               value="#{resourceController.jobLevelItems}" />
           </h:selectOneMenu>
           <id:helplink field="[Harvest Jobs][General information][Send notification if severity at least]"/>
@@ -202,7 +202,7 @@
         </h:panelGroup>
         <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
         <h:panelGroup>
-          <h:inputTextarea cols="60" rows="5" styleClass="optionalInput"
+          <h:inputTextarea cols="80" rows="10" styleClass="optionalInput"
                          value="#{resourceController.resource.json}" />
           <id:helplink field="[Harvest Jobs][General information][Extra configuration (JSON)]"/>
         </h:panelGroup>

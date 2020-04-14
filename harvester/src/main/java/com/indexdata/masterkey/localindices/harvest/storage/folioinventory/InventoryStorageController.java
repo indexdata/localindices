@@ -37,9 +37,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 /**
  * Contains the logic for initializing storage, loggers, and update statistics.
- *  
+ *
  * Iterates Inventory record sets (instances, holdings, items, source records) coming
- * in from the transformation pipeline and forwards each incoming record to 
+ * in from the transformation pipeline and forwards each incoming record to
  * {@link InventoryRecordUpdater} for creation/update/deletion in FOLIO Inventory.
  *
  * @author kurt
@@ -63,10 +63,10 @@ public class InventoryStorageController implements RecordStorage {
   protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
 
   protected final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
-
-  protected RecordUpdateCounts counters;
+  protected FailedRecordsController failedRecordsController;
+  protected RecordUpdateCounters updateCounters;
   protected HourlyPerformanceStats timingsEntireRecord;
-
+  private boolean statusWritten = false;
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
@@ -75,7 +75,8 @@ public class InventoryStorageController implements RecordStorage {
   }
 
   /**
-   * Initializes storage job with regards to storage URL, logger, update statistics
+   * Initializes storage job with regards to storage URL, logger,
+   * failed records logging, update statistics
    */
   private void init() {
     try {
@@ -85,9 +86,6 @@ public class InventoryStorageController implements RecordStorage {
       }
       this.folioAddress = storage.getUrl();
       logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
-      counters = new RecordUpdateCounts();
-      timingsEntireRecord = new HourlyPerformanceStats(logger);
-      logger.info("Initialized InventoryRecordStorage");
     } catch(Exception e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -95,8 +93,13 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
-    logger.info("Database started [" + database + "]" + (properties != null ? ", with properties " + properties : " (no properties defined) "));
+    logger.info("Request to start job [" + database + "]"
+    + ", storage URL [" + this.harvestable.getStorage().getUrl() + "]"
+    + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
     this.databaseProperties = properties;
+    updateCounters = new RecordUpdateCounters();
+    timingsEntireRecord = new HourlyPerformanceStats(logger);
+    failedRecordsController = new FailedRecordsController(logger, harvestable);
     try {
       client = HttpClients.createDefault();
       String folioAuthPath = getConfigurationValue(FOLIO_AUTH_PATH);
@@ -105,6 +108,7 @@ public class InventoryStorageController implements RecordStorage {
       String folioTenant   = getConfigurationValue(FOLIO_TENANT, "diku");
       if (folioUsername != null && folioPassword != null && folioTenant != null && folioAuthPath != null) {
         authToken = getAuthtoken(client, folioAddress, folioAuthPath, folioUsername, folioPassword, folioTenant);
+        logger.info("Authenticated to FOLIO Inventory, tenant [" + folioTenant + "]");
       } else {
         logger.warn("Init Inventory storage: Missing one or more pieces of FOLIO authentication information. "
                 + "Will attempt to continue without for tenant [" + folioTenant + "]."
@@ -202,14 +206,14 @@ public class InventoryStorageController implements RecordStorage {
    * an incoming {@link RecordJSON}
    */
   @Override
-  public void add(Record recordJson) {
-    if (recordJson.isCollection()) {
+  public void add(Record recordJSON) {
+    if (recordJSON.isCollection()) {
       logger.log(Level.TRACE, "Inventory Storage received add signal with a collection payload.");
-      Collection<Record> subrecords = recordJson.getSubRecords();
+      Collection<Record> subrecords = recordJSON.getSubRecords();
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
-          subRecord.setOriginalContent(recordJson.getOriginalContent());
+          subRecord.setOriginalContent(recordJSON.getOriginalContent());
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
           recordStorageHandler.addInventory((RecordJSON) subRecord);
         }
@@ -229,14 +233,14 @@ public class InventoryStorageController implements RecordStorage {
     } else {
       logger.log(Level.TRACE, "Inventory Storage received add signal with a single record payload.");
       InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
-      recordStorageHandler.addInventory((RecordJSON) recordJson);
+      recordStorageHandler.addInventory((RecordJSON) recordJSON);
     }
   }
 
-  /** 
-   *  Invokes {@link InventoryRecordUpdater} to delete/modify Inventory records on 
+  /**
+   *  Invokes {@link InventoryRecordUpdater} to delete/modify Inventory records on
    *  an incoming delete request
-   * 
+   *
    */
   @Override
   public void delete(Record record) {
@@ -249,21 +253,22 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void databaseEnd() {
-    String instancesMessage = "Instances processed/loaded/deletions/failed: " + counters.instancesProcessed + "/" + counters.instancesLoaded + "/" + counters.instanceDeletions + "/" + counters.instancesFailed + ". ";
-    String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + counters.holdingsRecordsProcessed + "/" + counters.holdingsRecordsLoaded + "/" + counters.holdingsRecordsDeleted + "/" + counters.holdingsRecordsFailed + ". ";
-    String itemsMessage = "Items processed/loaded/deleted/failed: " + counters.itemsProcessed + "/" + counters.itemsLoaded + "/" + counters.itemsDeleted + "/" + counters.itemsFailed + ".";
-    String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + counters.sourceRecordsProcessed + "/" + counters.sourceRecordsLoaded + "/" + counters.sourceRecordsDeleted + "/" + counters.sourceRecordsFailed + ".";
+    if (!statusWritten) {
+      String instancesMessage = "Instances processed/loaded/deletions/failed: " + updateCounters.instancesProcessed + "/" + updateCounters.instancesLoaded + "/" + updateCounters.instanceDeletions + "/" + updateCounters.instancesFailed + ". ";
+      String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + updateCounters.holdingsRecordsProcessed + "/" + updateCounters.holdingsRecordsLoaded + "/" + updateCounters.holdingsRecordsDeleted + "/" + updateCounters.holdingsRecordsFailed + ". ";
+      String itemsMessage = "Items processed/loaded/deleted/failed: " + updateCounters.itemsProcessed + "/" + updateCounters.itemsLoaded + "/" + updateCounters.itemsDeleted + "/" + updateCounters.itemsFailed + ".";
+      String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + updateCounters.sourceRecordsProcessed + "/" + updateCounters.sourceRecordsLoaded + "/" + updateCounters.sourceRecordsDeleted + "/" + updateCounters.sourceRecordsFailed + ".";
 
-    logger.log((counters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
-    logger.log((counters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
-    logger.log((counters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-    logger.log((counters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+      logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
+      logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
+      logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+      logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
-    for (String key : counters.exceptionCounts.keySet()) {
-      logger.info(String.format("%d records failed with %s", counters.exceptionCounts.get(key),key));
+      failedRecordsController.writeLog();
+      timingsEntireRecord.writeLog();
+      harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+      statusWritten=true;
     }
-    timingsEntireRecord.writeLog();
-    harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
   }
 
   @Override
