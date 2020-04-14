@@ -1,5 +1,7 @@
 package com.indexdata.masterkey.localindices.web.admin.help;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.StringTokenizer;
 
 import javax.faces.bean.ManagedBean;
@@ -80,4 +82,11 @@ public class ContextHelp {
     return this.labelText;
   }
   
+  public String urlEncode (String parameter) {
+    try {
+      return URLEncoder.encode(parameter, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      return parameter;
+    }
+  }
 }
