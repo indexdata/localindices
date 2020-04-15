@@ -94,7 +94,7 @@ public class InventoryStorageController implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) {
     logger.info("Request to start job [" + database + "]"
-    + ", storage URL [" + this.harvestable.getStorage().getUrl() + "]"
+    + ", storage URL [" + this.folioAddress + "]"
     + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
     this.databaseProperties = properties;
     updateCounters = new RecordUpdateCounters();
@@ -284,7 +284,8 @@ public class InventoryStorageController implements RecordStorage {
   protected String getConfigurationValue(String key) {
     String value = null;
     if (harvestable != null) {
-      String configurationsJsonString = harvestable.getJson();
+      Storage storage = harvestable.getStorage();
+      String configurationsJsonString = storage.getJson();
       if (configurationsJsonString != null && configurationsJsonString.length()>0) {
       try {
         JSONParser parser = new JSONParser();
