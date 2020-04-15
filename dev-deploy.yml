@@ -167,9 +167,9 @@
       mysql_db: name=localindices state=import target=/vagrant/sql/v2.12/2020-04-01.sql
       notify: Restart Tomcat
 
-    - name: Load 2.13 table alteration
+    - name: Load 2.14 table alteration
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.13/2020-04-14.sql
+      mysql_db: name=localindices state=import target=/vagrant/sql/v2.14/2020-04-14.sql
       notify: Restart Tomcat
 
     - name: Load gbv table data
@@ -179,7 +179,7 @@
 
     - name: Load reshare table data
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/load-reshare-data-to-v2.13.sql
+      mysql_db: name=localindices state=import target=/vagrant/sql/load-reshare-data-to-v2.14.sql
       notify: Restart Tomcat
 
     - name: Build Harvester and Harvester Admin web apps
