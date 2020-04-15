@@ -52,6 +52,8 @@ public abstract class Storage implements Serializable, Cloneable {
   private Integer retryWait;
   protected Integer bulkSize; 
   private String acl = null;
+  @Column(nullable=true)
+  private String json = null;
 
   /*
    * @OneToMany(mappedBy="storage") // try @XmlTransient private
@@ -233,4 +235,13 @@ public abstract class Storage implements Serializable, Cloneable {
   public void setRetryWait(Integer retryWait) {
     this.retryWait = retryWait;
   }
+
+  public String getJson() {
+    return json;
+  }
+
+  public void setJson(String json) {
+    this.json = json;
+  }
+
 }

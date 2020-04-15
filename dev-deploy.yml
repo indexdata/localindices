@@ -136,7 +136,7 @@
     #   mysql_db: name=localindices state=import target=/vagrant/sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
     # Which didn't work, either.
 
-    # Loading new schema 2.8-2.12
+    # Loading new schema 2.8-2.13
     - name: Initialize the database
       become: yes
       mysql_db: name=localindices state=import target=/vagrant/sql/schema.v2.8-with-sample-data.sql
@@ -167,14 +167,19 @@
       mysql_db: name=localindices state=import target=/vagrant/sql/v2.12/2020-04-01.sql
       notify: Restart Tomcat
 
+    - name: Load 2.13 table alteration
+      become: yes
+      mysql_db: name=localindices state=import target=/vagrant/sql/v2.13/2020-04-15.sql
+      notify: Restart Tomcat
+
     - name: Load gbv table data
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/load-gbv-data-to-v2.12.sql
+      mysql_db: name=localindices state=import target=/vagrant/sql/load-gbv-data-to-v2.13.sql
       notify: Restart Tomcat
 
     - name: Load reshare table data
       become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/load-reshare-data-to-v2.12.sql
+      mysql_db: name=localindices state=import target=/vagrant/sql/load-reshare-data-to-v2.13.sql
       notify: Restart Tomcat
 
     - name: Build Harvester and Harvester Admin web apps
