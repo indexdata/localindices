@@ -29,6 +29,13 @@
           <h:selectBooleanCheckbox value="#{storageController.storage.enabled}"/>
           <id:helplink field="[Storage Engines][General information][Enabled]"/>
         </h:panelGroup>
+        <h:outputText value="Extra configuration: (JSON)" styleClass="optionalInput" />
+        <h:panelGroup>
+          <h:inputTextarea cols="80" rows="10" styleClass="optionalInput"
+                         value="#{storageController.storage.json}" />
+          <id:helplink field="[Storage Engines][General information][Extra configuration (JSON)]"/>
+        </h:panelGroup>
+
         <!-- List box of Transformations pipeline-->
         <h:outputText value="Custom Storage Class (optional):" styleClass="optionalInput" style="display: none;" />
         <h:panelGroup style="display: none;">
