@@ -11,20 +11,20 @@
       <h:panelGrid columns="2">
         <h:outputText value="Server URL:"/>
         <h:panelGroup>
-          <h:inputText id="inventoryUrl" value="#{storageController.storage.url}" size="100"
+          <h:inputText id="inventoryUrl" value="#{storageController.storage.url}" size="80"
              required="true" requiredMessage="Please provide FOLIO Inventory URL!"/>
-          <id:helplink field="[Storage Engines][General information][Server URL]"/>
+          <id:helplink field="[Storage Engines][FOLIO Inventory specific information][Server URL]"/>
           <h:message for="inventoryUrl" style="color: red;"/>
         </h:panelGroup>
-        <!--
-                <h:inputText value="#{storageController.storage.transformation}"/>
-        -->
-        <h:outputText style="Display: None;" styleClass="optionalInput" value="Bulk size" />
-        <h:panelGroup style="Display: None;">
-          <h:inputText id="bulkSize" styleClass="optionalInput" value="#{storageController.storage.bulkSize}" size="20"/>
-          <id:helplink field="[Storage Engines][General information][Bulk size]"/>
-          <h:message for="bulkSize" style="color: red;"/>
+        <h:outputText value="Storage configuration (JSON)" />
+        <h:panelGroup>
+          <h:inputTextarea id="inventoryConfiguration" cols="80" rows="10"
+            value="#{storageController.storage.json}"
+            required="true" requiredMessage="Please provide JSON configuration for FOLIO Inventory storage. Click help icon for configuration templates."/>
+          <id:helplink field="[Storage Engines][FOLIO Inventory specific information][Storage configuration (JSON)]"/>
+          <br><h:message for="inventoryConfiguration" style="color: red;"/></br>
         </h:panelGroup>
+
       </h:panelGrid>
     </ui:composition>
   </body>
