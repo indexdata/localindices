@@ -229,10 +229,11 @@ public class HarvestableResource {
   @Path("failed-records/")
   @GET
   @Produces("application/xml")
-  public String getHarvestableFailedRecords() {
+  public String getHarvestableFailedRecords(@QueryParam("originalAt") String originalRecordPath) {
     try {
+      logger.info(context.getBaseUri());
       FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY,id);
-      return failedRecords.getListOfFailedRecordsAsXml();
+      return failedRecords.getListOfFailedRecordsAsXml(context.getBaseUri(), originalRecordPath);
     } catch (FileNotFoundException fnf) {
       throw new WebApplicationException(fnf);
     }

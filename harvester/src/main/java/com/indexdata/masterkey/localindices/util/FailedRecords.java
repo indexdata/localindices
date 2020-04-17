@@ -5,10 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
@@ -57,16 +61,36 @@ public class FailedRecords {
         return file;
     }
 
-    public String getListOfFailedRecordsAsXml() throws FileNotFoundException {
+    public String getListOfFailedRecordsAsXml(URI baseUri, String originalRecordPath) throws FileNotFoundException {
       Iterator<File> files = getFilesIterator();
       StringBuilder response = new StringBuilder();
       response.append("<failed-records>");
       while (files.hasNext()) {
-        File next = files.next();
-        response.append("<record>")
-        .append(next.getName())
-        .append("</record>");
-      }
+        File file = files.next();
+        String url = baseUri.toString() + "harvestables/" + jobId + "/failed-records/" + file.getName();
+        response
+        .append("<record>")
+         .append("<file>")
+          .append("<name>")
+           .append(file.getName())
+          .append("</name>")
+          .append("<date>")
+           .append(new Date(file.lastModified()))
+          .append("</date>")
+         .append("</file>")
+         .append("<url>")
+           .append(url)
+         .append("</url>");
+          try {
+            if (originalRecordPath != null && originalRecordPath.length()>0) {
+              response
+              .append("<original-record-url>")
+                .append(url).append("?element="+URLEncoder.encode(originalRecordPath,"UTF-8"))
+              .append("</original-record-url>");
+            }
+          } catch (UnsupportedEncodingException uee) {}
+          response.append("</record>");
+        }
       response.append("</failed-records>");
       return response.toString();
     }
