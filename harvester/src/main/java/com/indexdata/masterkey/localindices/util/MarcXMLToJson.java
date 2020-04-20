@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.indexdata.masterkey.localindices.util;
 
 import java.io.IOException;
@@ -21,10 +16,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-/**
- *
- * @author kurt
- */
 public class MarcXMLToJson {
 
   public static JSONObject convertMarcXMLToJson(String marcXML)
@@ -32,23 +23,28 @@ public class MarcXMLToJson {
     JSONObject marcJson = new JSONObject();
     JSONArray fields = new JSONArray();
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+    documentBuilderFactory.setNamespaceAware(true);
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
     Document document = documentBuilder.parse(new InputSource(new StringReader(marcXML)));
     Element root = document.getDocumentElement();
+    String namespace = "http://www.loc.gov/MARC21/slim";
     Element record = null;
-    if(root.getTagName().equals("OAI-PMH")) { // probably a static OAI-PMH file
-      Element listRecords = (Element)root.getElementsByTagName("ListRecords").item(0);
-      Element topRecord = (Element)listRecords.getElementsByTagName("record").item(0);
-      Element metadata = (Element)topRecord.getElementsByTagName("metadata").item(0);
-      record = (Element) metadata.getElementsByTagName("record").item(0);
-    } else if (root.getTagName().equals("record")) {
-      record = (Element) root.getElementsByTagName("record").item(0);
+    if(root.getTagName().endsWith("OAI-PMH")) { // probably a static OAI-PMH file
+      Element listRecords = (Element)root.getElementsByTagNameNS(namespace, "ListRecords").item(0);
+      Element topRecord = (Element)listRecords.getElementsByTagNameNS(namespace, "record").item(0);
+      Element metadata = (Element)topRecord.getElementsByTagNameNS(namespace, "metadata").item(0);
+      record = (Element) metadata.getElementsByTagNameNS(namespace, "record").item(0);
+    } else if (root.getTagName().endsWith("record")) {
+      //record = (Element) root.getElementsByTagName("record").item(0);
+      record = root;
+    } else if (root.getTagName().endsWith("collection")) {
+      record = (Element) root.getElementsByTagNameNS(namespace, "record").item(0);
     }
     if(record == null) {
-      throw new IOException("No record element found");
+      throw new IOException("No record element found for root element " + root.getTagName());
     }
     Node childNode = record.getFirstChild();
-    Element childElement;
+   Element childElement;
     while(childNode != null) {
       if(childNode.getNodeType() != record.getNodeType())
       {
@@ -57,14 +53,14 @@ public class MarcXMLToJson {
       }
       childElement = (Element)childNode;
       String textContent = childElement.getTextContent();
-      if(childElement.getTagName().equals("leader")) {
+      if(childElement.getTagName().endsWith("leader")) {
         marcJson.put("leader", textContent);
-      } else if(childElement.getTagName().equals("controlfield")) {
+      } else if(childElement.getTagName().endsWith("controlfield")) {
         JSONObject field = new JSONObject();
         String marcTag = childElement.getAttribute("tag");
         field.put(marcTag, textContent);
         fields.add(field);
-      } else if(childElement.getTagName().equals("datafield")) {
+      } else if(childElement.getTagName().endsWith("datafield")) {
         JSONObject field = new JSONObject();
         JSONObject fieldContent = new JSONObject();
         String marcTag = childElement.getAttribute("tag");
@@ -76,7 +72,7 @@ public class MarcXMLToJson {
         }
         JSONArray subfields = new JSONArray();
         fieldContent.put("subfields", subfields);
-        NodeList nodeList = childElement.getElementsByTagName("subfield");
+        NodeList nodeList = childElement.getElementsByTagNameNS(namespace, "subfield");
         for(int i = 0; i < nodeList.getLength(); i++) {
           Element subField = (Element) nodeList.item(i);
           String code = subField.getAttribute("code");
