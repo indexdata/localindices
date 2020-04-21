@@ -24,7 +24,7 @@ public class InventoryUpdateContext {
     protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
     protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
 
-    public final String folioAddress;
+    public String folioAddress;
     private JSONObject storageConfig;
     public String folioAuthPath;
     public String folioTenant;
@@ -62,12 +62,11 @@ public class InventoryUpdateContext {
         this.logger = logger;
         this.harvestable = harvestable;
         Storage storage = harvestable.getStorage();
-        folioAddress = storage.getUrl();
         setStorageConfig(storage);
         storageStatus = new InventoryStorageStatus();
         updateCounters = new RecordUpdateCounters();
         timingsEntireRecord = new HourlyPerformanceStats(logger);
-        failedRecordsController = new FailedRecordsController(logger, harvestable);
+        failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
     }
 
     public void setClient (CloseableHttpClient inventoryClient) {
@@ -87,6 +86,7 @@ public class InventoryUpdateContext {
     }
 
     private void setStorageConfig(Storage storage) {
+        folioAddress = storage.getUrl();
         String configurationsJsonString = storage.getJson();
         if (configurationsJsonString != null && configurationsJsonString.length()>0) {
             try {
