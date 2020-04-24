@@ -72,6 +72,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    */
   void addInventory(RecordJSON recordJSON) {
     try {
+      long startStorageEntireRecord = System.currentTimeMillis();
       /**
        * TransformedRecord is a 'facade' that provides an API into RecordJSON and allows for (slight)
        * variations in the structure of the transformed record while shielding the user from
@@ -79,7 +80,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
        */
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
-      long startStorageEntireRecord = System.currentTimeMillis();
 
       JSONObject instanceResponse;
       if (ctxt.instanceStoragePath.contains("match")) {
@@ -101,7 +101,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           JSONObject marcJson = getMarcJson(transformedRecord);
           addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
         }
-        ctxt.timingsEntireRecord.time(startStorageEntireRecord);
+        ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
+        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTime());
+        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTime());
         if (updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
           logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested.");
           if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {

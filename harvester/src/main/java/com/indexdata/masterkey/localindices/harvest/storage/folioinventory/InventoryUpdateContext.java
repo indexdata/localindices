@@ -44,7 +44,9 @@ public class InventoryUpdateContext {
     public final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
     public FailedRecordsController failedRecordsController;
     public RecordUpdateCounters updateCounters;
-    public HourlyPerformanceStats timingsEntireRecord;
+    public HourlyPerformanceStats timingsStoringInventoryRecordSet;
+    public HourlyPerformanceStats timingsCreatingRecord;
+    public HourlyPerformanceStats timingsTransformingRecord;
     public InventoryStorageStatus storageStatus;
 
     public CloseableHttpClient inventoryClient = null;
@@ -65,7 +67,9 @@ public class InventoryUpdateContext {
         setStorageConfig(storage);
         storageStatus = new InventoryStorageStatus();
         updateCounters = new RecordUpdateCounters();
-        timingsEntireRecord = new HourlyPerformanceStats(logger);
+        timingsStoringInventoryRecordSet = new HourlyPerformanceStats("Storing Inventory records", logger);
+        timingsCreatingRecord = new HourlyPerformanceStats("Creating DOM for incoming record", logger);
+        timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
         failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
     }
 

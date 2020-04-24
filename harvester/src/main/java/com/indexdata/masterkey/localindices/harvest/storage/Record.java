@@ -26,4 +26,11 @@ public interface Record {
 
   Collection<Record> getSubRecords();
 
+  void setCreationTime(long timing);
+  long getCreationTime();
+  void setTransformationTime(long timing);
+  long getTransformationTime();
+  void setStorageTime(long timing);
+  long getStorageTime();
+
 }

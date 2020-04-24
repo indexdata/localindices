@@ -49,7 +49,6 @@ public class InventoryStorageController implements RecordStorage {
   protected Harvestable harvestable;
 
   protected Map<String, String> databaseProperties;
-
   private boolean statusWritten = false;
   private InventoryUpdateContext ctxt;
 
@@ -199,6 +198,8 @@ public class InventoryStorageController implements RecordStorage {
       Collection<Record> subrecords = recordJSON.getSubRecords();
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
+          subRecord.setCreationTime(recordJSON.getCreationTime());
+          subRecord.setTransformationTime(recordJSON.getTransformationTime());
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
           subRecord.setOriginalContent(recordJSON.getOriginalContent());
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
@@ -252,7 +253,9 @@ public class InventoryStorageController implements RecordStorage {
       logger.log((ctxt.updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
       ctxt.failedRecordsController.writeLog();
-      ctxt.timingsEntireRecord.writeLog();
+      ctxt.timingsCreatingRecord.writeLog();
+      ctxt.timingsTransformingRecord.writeLog();
+      ctxt.timingsStoringInventoryRecordSet.writeLog();
       harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
       statusWritten=true;
     }
