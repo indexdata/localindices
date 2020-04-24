@@ -439,6 +439,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   protected RecordDOMImpl createRecord(Node node) throws TransformerException {
+    long creationStart = System.currentTimeMillis();
     String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
     String isDeleted = HarvesterVerb.getSingleString(node, "./oai20:header/@status");
     byte[] original = null;
@@ -456,6 +457,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.TRACE, "OAI record not a deletion");
       record.setDeleted(false);
     }
+    record.setCreationTime(System.currentTimeMillis()-creationStart);
     return record;
   }
 

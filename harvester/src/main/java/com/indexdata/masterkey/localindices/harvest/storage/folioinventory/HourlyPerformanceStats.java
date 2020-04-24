@@ -26,21 +26,26 @@ public class HourlyPerformanceStats {
 
   SummarizedProcessingTimes hourstats = null;
   StorageJobLogger logger;
+  String label;
 
-  public HourlyPerformanceStats(StorageJobLogger logger) {
+  public HourlyPerformanceStats(String label, StorageJobLogger logger) {
     this.logger = logger;
+    this.label = label;
   }
 
   public void time(long wasStartedAt) {
-    long endedAt = System.currentTimeMillis();
+    setTiming(System.currentTimeMillis()-wasStartedAt);
+  }
+
+  public void setTiming(long timing) {
     String hour = HOUR.format(new Date());
     if (execTimes.containsKey(hour)) {
-      execTimes.get(hour).log(wasStartedAt, endedAt);
+      execTimes.get(hour).log(timing);
     } else {
       writeLog(); // at top of the hour, write out logs up until the previous hour
       // then create a new bucket for timing stats
       hourstats = new SummarizedProcessingTimes();
-      hourstats.log(wasStartedAt, endedAt);
+      hourstats.log(timing);
       execTimes.put(hour,hourstats);
     }
   }
@@ -49,6 +54,7 @@ public class HourlyPerformanceStats {
    * Prints the performance stats, hour by hour, to the job log.
    */
   public void writeLog() {
+    logger.info(label);
     execTimes.entrySet().stream()
     .sorted(comparing(Map.Entry::getKey))
     .forEach(e -> { // for each hour

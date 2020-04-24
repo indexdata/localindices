@@ -12,6 +12,9 @@ public class RecordImpl implements Record {
   String database;
   byte[] content;
   boolean isDeleted;
+  long creationTime;
+  long transformationTime;
+  long storageTime;
 
   public RecordImpl() {
     valueMap = new HashMap<String, Collection<Serializable>>();
@@ -87,5 +90,37 @@ public class RecordImpl implements Record {
   @Override
   public Collection<Record> getSubRecords() {
     return null;
+  }
+
+  @Override
+  public long getCreationTime() {
+    return creationTime;
+  }
+
+  @Override
+  public void setCreationTime(long timing) {
+    this.creationTime = timing;
+
+  }
+
+  @Override
+  public long getTransformationTime() {
+    return transformationTime;
+  }
+
+  @Override
+  public void setTransformationTime(long timing) {
+    this.transformationTime = timing;
+  }
+
+  @Override
+  public void setStorageTime(long timing) {
+    this.storageTime = timing;
+
+  }
+
+  @Override
+  public long getStorageTime() {
+    return storageTime;
   }
 }

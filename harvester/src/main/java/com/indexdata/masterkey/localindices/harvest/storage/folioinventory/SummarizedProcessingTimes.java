@@ -27,7 +27,10 @@ public class SummarizedProcessingTimes {
   Map <Long, Integer> execTimeIntervals = new HashMap<>();
 
   public void log (long start, long end) {
-    long execTime = end - start;
+    log ( end - start);
+  }
+
+  public void log (long execTime) {
     execCount++;
     totalExecTime += execTime;
     maxExecTime = Math.max(maxExecTime, execTime);

@@ -43,10 +43,12 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   Logger logger = Logger.getLogger("com.indexdata.masterkey.localindices");
 
   public RecordDOMImpl(Record record) {
-    if (record instanceof RecordDOM)
+    if (record instanceof RecordDOM) {
       setNode(((RecordDOMImpl) record).toNode());
-    else
+      setCreationTime(record.getCreationTime());
+    } else {
       valueMap = record.getValues();
+    }
     setId(record.getId());
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
@@ -59,6 +61,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
     setOriginalContent(record.getOriginalContent());
+    setCreationTime(record.getCreationTime());
   }
 
   public RecordDOMImpl(String id, String database, Node node, byte[] originalContent) {

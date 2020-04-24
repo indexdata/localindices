@@ -65,7 +65,9 @@ public class InventoryStorageController implements RecordStorage {
   protected final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
   protected FailedRecordsController failedRecordsController;
   protected RecordUpdateCounters updateCounters;
-  protected HourlyPerformanceStats timingsEntireRecord;
+  protected HourlyPerformanceStats timingsStoringInventoryRecordSet;
+  protected HourlyPerformanceStats timingsCreatingRecord;
+  protected HourlyPerformanceStats timingsTransformingRecord;
   private boolean statusWritten = false;
 
   @Override
@@ -98,7 +100,9 @@ public class InventoryStorageController implements RecordStorage {
     + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
     this.databaseProperties = properties;
     updateCounters = new RecordUpdateCounters();
-    timingsEntireRecord = new HourlyPerformanceStats(logger);
+    timingsCreatingRecord = new HourlyPerformanceStats("Creating DOM for incoming record", logger);
+    timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
+    timingsStoringInventoryRecordSet = new HourlyPerformanceStats("Storing Inventory records", logger);
     failedRecordsController = new FailedRecordsController(logger, harvestable);
     try {
       client = HttpClients.createDefault();
@@ -212,6 +216,8 @@ public class InventoryStorageController implements RecordStorage {
       Collection<Record> subrecords = recordJSON.getSubRecords();
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
+          subRecord.setCreationTime(recordJSON.getCreationTime());
+          subRecord.setTransformationTime(recordJSON.getTransformationTime());
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
           subRecord.setOriginalContent(recordJSON.getOriginalContent());
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(this);
@@ -265,7 +271,9 @@ public class InventoryStorageController implements RecordStorage {
       logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
       failedRecordsController.writeLog();
-      timingsEntireRecord.writeLog();
+      timingsCreatingRecord.writeLog();
+      timingsTransformingRecord.writeLog();
+      timingsStoringInventoryRecordSet.writeLog();
       harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
       statusWritten=true;
     }

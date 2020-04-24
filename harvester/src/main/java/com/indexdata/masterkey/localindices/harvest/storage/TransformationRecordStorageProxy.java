@@ -68,25 +68,28 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
     if (job.isKillSent())
       throw new RuntimeException("Job killed");
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
-    while (true)
+    while (true) {
       try {
-	Record transformed = transformNode(recordDOM);
-	if (transformed != null)
-	  getTarget().add(transformed);
-	else {
-	  logger.warn("Record filtered out" + record);
-	}
-	testLimit();
-	break;
+        long transformationStarted = System.currentTimeMillis();
+        Record transformed = transformNode(recordDOM);
+        if (transformed != null) {
+          transformed.setTransformationTime(System.currentTimeMillis()-transformationStarted);
+          getTarget().add(transformed);
+        } else {
+          logger.warn("Record filtered out" + record);
+        }
+        testLimit();
+        break;
       } catch (InterruptedException e) {
-	e.printStackTrace();
-	try {
-	  errors.put(e);
-	} catch (InterruptedException e1) {
-	  logger.error("Record not added to error" + record);
-	  e1.printStackTrace();
-	}
+        e.printStackTrace();
+        try {
+          errors.put(e);
+        } catch (InterruptedException e1) {
+          logger.error("Record not added to error" + record);
+          e1.printStackTrace();
+        }
       }
+    }
   }
 
   @Override
