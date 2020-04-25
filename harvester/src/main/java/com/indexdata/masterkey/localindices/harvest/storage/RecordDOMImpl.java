@@ -45,7 +45,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   public RecordDOMImpl(Record record) {
     if (record instanceof RecordDOM) {
       setNode(((RecordDOMImpl) record).toNode());
-      setCreationTime(record.getCreationTime());
+      setCreationTiming(record.getCreationTiming());
     } else {
       valueMap = record.getValues();
     }
@@ -61,7 +61,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     setDatabase(record.getDatabase());
     setDeleted(record.isDeleted());
     setOriginalContent(record.getOriginalContent());
-    setCreationTime(record.getCreationTime());
+    setCreationTiming(record.getCreationTiming());
   }
 
   public RecordDOMImpl(String id, String database, Node node, byte[] originalContent) {
@@ -73,7 +73,9 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
 
   public void setNode(Node node) {
     this.node = node;
-    extractDelete();
+    if (!this.isDeleted) {
+      extractDelete();
+    }
     extractId();
   }
 
@@ -82,9 +84,10 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     XPathHelper<String> xpathHelperDeleteOai = new XPathHelper<String>(XPathConstants.STRING, oaiNsContext);
     String delete;
     try {
-      delete = xpathHelperDeletePz.evaluate(node, xpathStatusPz);
-      if (delete != null && "deleted".equalsIgnoreCase(delete)) {
-         this.isDeleted = true;
+      if (node.getNodeType() == Node.DOCUMENT_NODE) {
+        delete = xpathHelperDeletePz.evaluate(node, xpathStatusPz);
+        if (delete != null && "deleted".equalsIgnoreCase(delete)) {
+          this.isDeleted = true;
         } else {
           delete = new XPathHelper<String>(XPathConstants.STRING).evaluate(node, ".//record/status");
           if (delete != null && "deleted".equalsIgnoreCase(delete)) {
@@ -96,7 +99,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
             }
           }
         }
-
+      }
     } catch (XPathExpressionException e) {
       e.printStackTrace();
     }
@@ -107,9 +110,9 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
     XPathHelper<String> xpathHelperDelete = new XPathHelper<String>(String.class, pzNsContext);
     try {
       if (id == null) {
-	String newid = xpathHelperDelete.evaluate(node, xpathId);
-	if (!"".equals(newid))
-	  this.id = newid;
+        String newid = xpathHelperDelete.evaluate(node, xpathId);
+        if (!"".equals(newid))
+          this.id = newid;
       }
     } catch (XPathExpressionException e) {
       e.printStackTrace();

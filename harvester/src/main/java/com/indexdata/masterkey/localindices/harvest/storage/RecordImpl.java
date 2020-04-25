@@ -93,34 +93,24 @@ public class RecordImpl implements Record {
   }
 
   @Override
-  public long getCreationTime() {
+  public long getCreationTiming() {
     return creationTime;
   }
 
   @Override
-  public void setCreationTime(long timing) {
+  public void setCreationTiming(long timing) {
     this.creationTime = timing;
 
   }
 
   @Override
-  public long getTransformationTime() {
+  public long getTransformationTiming() {
     return transformationTime;
   }
 
   @Override
-  public void setTransformationTime(long timing) {
+  public void setTransformationTiming(long timing) {
     this.transformationTime = timing;
   }
 
-  @Override
-  public void setStorageTime(long timing) {
-    this.storageTime = timing;
-
-  }
-
-  @Override
-  public long getStorageTime() {
-    return storageTime;
-  }
 }

@@ -48,7 +48,7 @@ public class RecordStorageConsumer implements MessageConsumer {
       original = originalBuff.toByteArray();
     }
     Record record = new RecordDOMImpl(null, null, xmlNode, original);
-    record.setCreationTime(System.currentTimeMillis()-creationStart);
+    record.setCreationTiming(System.currentTimeMillis()-creationStart);
     try {
       if (record.isDeleted()) {
         recordStorage.delete(record);

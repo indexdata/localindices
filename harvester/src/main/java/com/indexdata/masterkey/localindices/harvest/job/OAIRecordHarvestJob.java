@@ -281,6 +281,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (Exception e) {
       logger.error("Unhandled Exception: " + e.getMessage());
     } finally {
+      logger.info("In finally block with subject " + subject + ", message " + msg);
       mailMessage(subject, msg);
       shutdown();
     }
@@ -457,7 +458,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.TRACE, "OAI record not a deletion");
       record.setDeleted(false);
     }
-    record.setCreationTime(System.currentTimeMillis()-creationStart);
+    record.setCreationTiming(System.currentTimeMillis()-creationStart);
     return record;
   }
 

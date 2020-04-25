@@ -9,6 +9,7 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.Level;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -69,7 +70,9 @@ public class InventoryUpdateContext {
         updateCounters = new RecordUpdateCounters();
         timingsStoringInventoryRecordSet = new HourlyPerformanceStats("Storing Inventory records", logger);
         timingsCreatingRecord = new HourlyPerformanceStats("Creating DOM for incoming record", logger);
+        timingsCreatingRecord.setLogLevelForIntervals(Level.DEBUG);
         timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
+        timingsTransformingRecord.setLogLevelForIntervals(Level.DEBUG);
         failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
     }
 

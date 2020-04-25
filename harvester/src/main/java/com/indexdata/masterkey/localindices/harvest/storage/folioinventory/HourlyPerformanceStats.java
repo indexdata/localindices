@@ -14,6 +14,8 @@ import java.util.Map;
 
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
+import org.apache.log4j.Level;
+
 /**
  * Logs execution times for record updates into buckets of one hour, using the
  * {@link SummarizedProcessingTimes} structure. Writes the stats out
@@ -27,6 +29,8 @@ public class HourlyPerformanceStats {
   SummarizedProcessingTimes hourstats = null;
   StorageJobLogger logger;
   String label;
+  Level logLevelSummaries = Level.INFO;
+  Level logLevelIntervals = Level.INFO;
 
   public HourlyPerformanceStats(String label, StorageJobLogger logger) {
     this.logger = logger;
@@ -35,6 +39,14 @@ public class HourlyPerformanceStats {
 
   public void time(long wasStartedAt) {
     setTiming(System.currentTimeMillis()-wasStartedAt);
+  }
+
+  public void setLogLevelForSummaries(Level level) {
+    logLevelSummaries = level;
+  }
+
+  public void setLogLevelForIntervals(Level level) {
+    logLevelIntervals = level;
   }
 
   public void setTiming(long timing) {
@@ -54,31 +66,31 @@ public class HourlyPerformanceStats {
    * Prints the performance stats, hour by hour, to the job log.
    */
   public void writeLog() {
-    logger.info(label);
+    if (execTimes.entrySet().size()>0) {
+      logger.log(logLevelSummaries,"Metrics: " + label);
+    }
     execTimes.entrySet().stream()
     .sorted(comparing(Map.Entry::getKey))
     .forEach(e -> { // for each hour
       SummarizedProcessingTimes hr = e.getValue();
-      StringBuilder totals1 = new StringBuilder();
-      totals1.append(e.getKey()).append(":00: ")
+      StringBuilder summary = new StringBuilder();
+      summary.append("- ").append(e.getKey()).append(":00: ")
              .append(hr.execCount).append(" records processed in ").append(hr.totalExecTime/1000).append(" secs.")
-             .append("~").append(hr.totalExecTime/60000).append(" mins. of execution time");
-      logger.info(totals1.toString());
+             .append("~").append(hr.totalExecTime/60000).append(" mins. ");
 
-      StringBuilder totals2 = new StringBuilder();
-      totals2.append("Average: ").append(hr.totalExecTime/hr.execCount).append(" ms. ")
-             .append("Fastest: ").append(hr.minExecTime).append(" ms. ")
-             .append("Slowest: ").append(hr.maxExecTime).append(" ms. ");
-      logger.info(totals2.toString());
+      summary.append("Avg: ").append(hr.totalExecTime/hr.execCount).append(" ms. ")
+             .append("Min: ").append(hr.minExecTime).append(" ms. ")
+             .append("Max: ").append(hr.maxExecTime).append(" ms. ");
+      logger.log(logLevelSummaries, summary.toString());
 
       e.getValue().execTimeIntervals.entrySet().stream()
               .sorted(comparing(Map.Entry::getKey))
               .forEach(f -> { // for each response time interval
                 StringBuilder intv = new StringBuilder();
-                intv.append("Up to ").append(f.getKey()).append(" ms for ").append(f.getValue()).append(" records. ");
+                intv.append("-- Up to ").append(f.getKey()).append(" ms for ").append(f.getValue()).append(" records. ");
                 if (f.getValue()*100/hr.execCount>0)
                   intv.append("(").append(f.getValue()*100/hr.execCount).append("%)");
-                logger.info(intv.toString());
+                logger.log(logLevelIntervals, intv.toString());
               });}
     );
   }

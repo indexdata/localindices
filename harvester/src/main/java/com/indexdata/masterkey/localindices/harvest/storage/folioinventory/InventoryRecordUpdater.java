@@ -102,10 +102,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
         }
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
-        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTime());
-        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTime());
+        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
+        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
         if (updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
-          logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested.");
+          logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested. " + updateCounters.instanceDeleteSignals + " delete signal(s), " + updateCounters.instanceDeletions + " delete(s)");
           if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
             logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
           }
@@ -314,7 +314,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @throws InventoryUpdateException
    */
   private void deleteHoldingsAndItemsForInstitution(String instanceId, String institutionId, boolean countDeletions) throws InventoryUpdateException {
-    logger.debug("Deleting holdings and items for Instance Id " + instanceId + " for institution " + institutionId);
+    logger.log(Level.TRACE,"Deleting holdings and items for Instance Id " + instanceId + " for institution " + institutionId);
     int itemsToDelete = 0;
     if (institutionId != null) {
       JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
@@ -369,7 +369,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @throws InventoryUpdateException
    */
   private void deleteItem(String uuid) throws InventoryUpdateException {
-    logger.debug("Deleting item with ID: " + uuid);
+    logger.log(Level.TRACE, "Deleting item with ID: " + uuid);
     String url = String.format("%s/%s", ctxt.folioAddress + ctxt.itemStoragePath, uuid);
     HttpDelete httpDelete = new HttpDelete(url);
     setHeaders(httpDelete,"text/plain");
@@ -545,7 +545,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @throws InventoryUpdateException
    */
   private void deleteHoldingsRecord(String uuid) throws InventoryUpdateException {
-    logger.debug("Deleting holdingsRecord with ID: " + uuid);
+    logger.log(Level.TRACE,"Deleting holdingsRecord with ID: " + uuid);
     String url = String.format("%s/%s", ctxt.holdingsStorageUrl, uuid);
     HttpDelete httpDelete = new HttpDelete(url);
     setHeaders(httpDelete,"text/plain");
@@ -635,7 +635,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET Instance ", "instance");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
     }
-    logger.info("getInstanceId response: " + responseString);
+    logger.debug("getInstanceId response: " + responseString);
     try {
       jsonResponse = (JSONObject) parser.parse(responseString);
     } catch (ParseException e) {
@@ -646,7 +646,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     if (totalRecords == 1 && jsonResponse.get("instances") != null) {
       return (JSONObject) ((JSONArray) jsonResponse.get("instances")).get(0);
     } else {
-      logger.info("totalRecords for instance query by identifier was " + totalRecords);
+      logger.debug("totalRecords for instance query by identifier was " + totalRecords);
       return null;
     }
   }
@@ -771,7 +771,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @throws InventoryUpdateException
    */
   private void deleteSourceRecord(String uuid) throws InventoryUpdateException {
-    logger.debug("Deleting source record with ID: " + uuid);
+    logger.log(Level.TRACE,"Deleting source record with ID: " + uuid);
     String url = String.format("%s/%s", ctxt.folioAddress + "/marc-records/", uuid);
     HttpDelete httpDelete = new HttpDelete(url);
     setHeaders(httpDelete,"text/plain");
@@ -805,6 +805,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    */
   public void delete(RecordJSON recordJSON) {
     try {
+      updateCounters.instanceDeleteSignals++;
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
       if (transformedRecord.isDeleted()) {
@@ -829,9 +830,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             updateCounters.instanceDeletions++;
             ((InventoryStorageStatus) ctxt.storageStatus).incrementDelete(1);
           } else {
-            logger.info("No instance found for local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
+            logger.info("Received delete signal but no existing instance found with local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
           }
-
         } else if (localIdentifier != null) {
           // This is assumed to be a deletion record targeted for a simple inventory
           logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");

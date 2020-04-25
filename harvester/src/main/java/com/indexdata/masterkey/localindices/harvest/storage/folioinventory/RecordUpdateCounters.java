@@ -13,6 +13,7 @@ public class RecordUpdateCounters {
 
   protected int instancesProcessed = 0;
   protected int instancesLoaded = 0;
+  protected int instanceDeleteSignals = 0;
   protected int instanceDeletions = 0;
   protected int instancesFailed = 0;
 

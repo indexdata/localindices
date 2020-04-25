@@ -198,10 +198,7 @@ public class InventoryStorageController implements RecordStorage {
       Collection<Record> subrecords = recordJSON.getSubRecords();
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
-          subRecord.setCreationTime(recordJSON.getCreationTime());
-          subRecord.setTransformationTime(recordJSON.getTransformationTime());
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
-          subRecord.setOriginalContent(recordJSON.getOriginalContent());
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
           recordStorageHandler.addInventory((RecordJSON) subRecord);
         }
@@ -212,8 +209,8 @@ public class InventoryStorageController implements RecordStorage {
                   + "result with multiple metadata records and original content "
                   + "cannot be stored in that scenario.");
         }
+        logger.log(Level.DEBUG, "Iterating multiple subrecords of RecordJSON");
         for (Record subRecord : subrecords) {
-          logger.log(Level.TRACE, "Iterating multiple subrecords of RecordJSON");
           InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
           recordStorageHandler.addInventory((RecordJSON) subRecord);
         }
@@ -242,10 +239,10 @@ public class InventoryStorageController implements RecordStorage {
   @Override
   public void databaseEnd() {
     if (!statusWritten) {
-      String instancesMessage = "Instances processed/loaded/deletions/failed: " + ctxt.updateCounters.instancesProcessed + "/" + ctxt.updateCounters.instancesLoaded + "/" + ctxt.updateCounters.instanceDeletions + "/" + ctxt.updateCounters.instancesFailed + ". ";
-      String holdingsRecordsMessage = "Holdings records processed/loaded/deleted/failed: " + ctxt.updateCounters.holdingsRecordsProcessed + "/" + ctxt.updateCounters.holdingsRecordsLoaded + "/" + ctxt.updateCounters.holdingsRecordsDeleted + "/" + ctxt.updateCounters.holdingsRecordsFailed + ". ";
-      String itemsMessage = "Items processed/loaded/deleted/failed: " + ctxt.updateCounters.itemsProcessed + "/" + ctxt.updateCounters.itemsLoaded + "/" + ctxt.updateCounters.itemsDeleted + "/" + ctxt.updateCounters.itemsFailed + ".";
-      String sourceRecordsMessage = "Source records processed/loaded/deleted/failed: " + ctxt.updateCounters.sourceRecordsProcessed + "/" + ctxt.updateCounters.sourceRecordsLoaded + "/" + ctxt.updateCounters.sourceRecordsDeleted + "/" + ctxt.updateCounters.sourceRecordsFailed + ".";
+      String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + ctxt.updateCounters.instancesProcessed + "___" + ctxt.updateCounters.instancesLoaded + "___" + ctxt.updateCounters.instanceDeletions + "(" + ctxt.updateCounters.instanceDeleteSignals + ")___" + ctxt.updateCounters.instancesFailed + "_";
+      String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
+      String itemsMessage = "Items_processed/loaded/deleted/failed:__" + ctxt.updateCounters.itemsProcessed + "___" + ctxt.updateCounters.itemsLoaded + "___" + ctxt.updateCounters.itemsDeleted + "___" + ctxt.updateCounters.itemsFailed + "_";
+      String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.sourceRecordsProcessed + "___" + ctxt.updateCounters.sourceRecordsLoaded + "___" + ctxt.updateCounters.sourceRecordsDeleted + "___" + ctxt.updateCounters.sourceRecordsFailed + "_";
 
       logger.log((ctxt.updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
       logger.log((ctxt.updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
@@ -331,7 +328,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void shutdown() throws IOException {
-    throw new UnsupportedOperationException("shutdown not supported.");
+    logger.info("Inventory storage controller received shutdown request (not supported)");
   }
 
   @Override
