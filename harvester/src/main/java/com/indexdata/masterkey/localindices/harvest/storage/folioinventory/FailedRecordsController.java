@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 import org.apache.commons.io.FileUtils;
@@ -36,8 +37,8 @@ public class FailedRecordsController {
     int initialNumberOfFiles = 0;
     int calculatedNumberOfFiles = 0;
 
-    public FailedRecordsController(StorageJobLogger logger, Long jobId) {
-        this.jobId = jobId;
+    public FailedRecordsController(StorageJobLogger logger, Harvestable config) {
+        this.jobId = config.getId();
         this.recordFailureCounters = new RecordFailureCounters();
         this.logger = logger;
         String retention = config.getFailedRecordsLogging();
