@@ -38,6 +38,13 @@ public class RecordJSONImpl extends RecordImpl implements RecordJSON {
         RecordJSON record = new RecordJSONImpl();
         JSONObject next = (JSONObject) collectionIterator.next();
         record.setJsonObject(next);
+        if (records.size()==1) {
+          // For a collection of one, original content and timings
+          // apply to the sub-record
+          record.setCreationTiming(this.getCreationTiming());
+          record.setTransformationTiming(this.getTransformationTiming());
+          record.setOriginalContent(this.getOriginalContent());
+        }
         list.add(record);
       }
     }

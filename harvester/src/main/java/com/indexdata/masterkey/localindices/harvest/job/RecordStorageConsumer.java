@@ -35,6 +35,7 @@ public class RecordStorageConsumer implements MessageConsumer {
   
   @Override
   public void accept(Node xmlNode) {
+    long creationStart = System.currentTimeMillis();
     logger.log(Level.TRACE, "Document in pipeline for storage: " + nodeAsString(xmlNode));
     byte[] original = null;
     if (this.storeOriginal) {
@@ -47,6 +48,7 @@ public class RecordStorageConsumer implements MessageConsumer {
       original = originalBuff.toByteArray();
     }
     Record record = new RecordDOMImpl(null, null, xmlNode, original);
+    record.setCreationTiming(System.currentTimeMillis()-creationStart);
     try {
       if (record.isDeleted()) {
         recordStorage.delete(record);

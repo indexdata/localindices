@@ -156,38 +156,38 @@
                         <items>
                         <arr>
                             <xsl:for-each select="../marc:datafield[@tag='995']">
-                                <xsl:if test="marc:subfield[@code='ff']=$holdingsId">
-                                    <i>
-                                    <itemIdentifier>
-                                        <xsl:value-of select="marc:subfield[@code='a']"/>
-                                    </itemIdentifier>
-                                    <barcode>
-                                        <xsl:value-of select="marc:subfield[@code='s']"/>
-                                    </barcode>
-                                    <permanentLoanTypeId>2b94c631-fca9-4892-a730-03ee529ffe27</permanentLoanTypeId>                    <!-- Can circulate -->
-                                    <materialTypeId>
-                                        <xsl:choose>
-                                        <xsl:when test="marc:subfield[@code='t']='BOOK'"      >1a54b431-2e4f-452d-9cae-9cee66c9a892</xsl:when> <!-- book -->
-                                        <xsl:when test="marc:subfield[@code='t']='ELEC'"      >615b8413-82d5-4203-aa6e-e37984cb5ac3</xsl:when> <!-- electronic resourse -->
-                                        <xsl:when test="marc:subfield[@code='t']='ISSUE'"     >d9acad2f-2aac-4b48-9097-e6ab85906b25</xsl:when> <!-- text -->
-                                        <xsl:when test="marc:subfield[@code='t']='MANUSCRIPT'">d9acad2f-2aac-4b48-9097-e6ab85906b25</xsl:when> <!-- text -->
-                                        <xsl:when test="marc:subfield[@code='t']='MAP'"       >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
-                                        <xsl:when test="marc:subfield[@code='t']='OTHER'"     >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
-                                        <xsl:when test="marc:subfield[@code='t']='SCORE'"     >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
-                                        <xsl:when test="marc:subfield[@code='t']='RECORD'"    >dd0bf600-dbd9-44ab-9ff2-e2a61a6539f1</xsl:when> <!-- sound recording -->
-                                        <xsl:otherwise>71fbd940-1027-40a6-8a48-49b44d795e46</xsl:otherwise>                                    <!-- unspecified -->
-                                        </xsl:choose>
-                                    </materialTypeId>
-                                    <xsl:if test="marc:subfield[@code='g']">
-                                        <volume>
-                                        <xsl:value-of select="marc:subfield[@code='g']"/>
-                                        </volume>
-                                    </xsl:if>
-                                    <status>
-                                    <name>Unknown</name>
-                                    </status>
-                                    </i>
+                            <xsl:if test="marc:subfield[@code='ff']=$holdingsId">
+                                <i>
+                                <itemIdentifier>
+                                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                                </itemIdentifier>
+                                <barcode>
+                                    <xsl:value-of select="marc:subfield[@code='s']"/>
+                                </barcode>
+                                <permanentLoanTypeId>2b94c631-fca9-4892-a730-03ee529ffe27</permanentLoanTypeId>                    <!-- Can circulate -->
+                                <materialTypeId>
+                                    <xsl:choose>
+                                    <xsl:when test="marc:subfield[@code='t']='BOOK'"      >1a54b431-2e4f-452d-9cae-9cee66c9a892</xsl:when> <!-- book -->
+                                    <xsl:when test="marc:subfield[@code='t']='ELEC'"      >615b8413-82d5-4203-aa6e-e37984cb5ac3</xsl:when> <!-- electronic resourse -->
+                                    <xsl:when test="marc:subfield[@code='t']='ISSUE'"     >d9acad2f-2aac-4b48-9097-e6ab85906b25</xsl:when> <!-- text -->
+                                    <xsl:when test="marc:subfield[@code='t']='MANUSCRIPT'">d9acad2f-2aac-4b48-9097-e6ab85906b25</xsl:when> <!-- text -->
+                                    <xsl:when test="marc:subfield[@code='t']='MAP'"       >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
+                                    <xsl:when test="marc:subfield[@code='t']='OTHER'"     >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
+                                    <xsl:when test="marc:subfield[@code='t']='SCORE'"     >71fbd940-1027-40a6-8a48-49b44d795e46</xsl:when> <!-- unspecified -->
+                                    <xsl:when test="marc:subfield[@code='t']='RECORD'"    >dd0bf600-dbd9-44ab-9ff2-e2a61a6539f1</xsl:when> <!-- sound recording -->
+                                    <xsl:otherwise>71fbd940-1027-40a6-8a48-49b44d795e46</xsl:otherwise>                                    <!-- unspecified -->
+                                    </xsl:choose>
+                                </materialTypeId>
+                                <xsl:if test="marc:subfield[@code='g']">
+                                    <volume>
+                                    <xsl:value-of select="marc:subfield[@code='g']"/>
+                                    </volume>
                                 </xsl:if>
+                                <status>
+                                <name>Unknown</name>
+                                </status>
+                                </i>
+                            </xsl:if>
                             </xsl:for-each>
                         </arr>
                         </items>
