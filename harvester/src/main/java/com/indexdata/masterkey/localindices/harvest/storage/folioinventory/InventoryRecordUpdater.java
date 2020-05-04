@@ -168,15 +168,15 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       String url = ctxt.folioAddress + ctxt.instanceStoragePath;
       HttpEntityEnclosingRequestBase httpUpdate;
-      if (url.contains("instance-storage-match")) {
-        if (!matchKey.isEmpty()) {
+      if (url.contains("instance-storage/instances")) { // Vanilla instance storage, assume POST
+        httpUpdate = new HttpPost(url);
+        method="POST";
+      } else { // Otherwise assume FOLIO PUT API that knows whether to PUT or POST to instance storage
+        if (url.contains("matchkey") && !matchKey.isEmpty()) {
           instanceRecord.put("matchKey", matchKey);
         }
         httpUpdate = new HttpPut(url);
         method="PUT";
-      } else {
-        httpUpdate = new HttpPost(url);
-        method="POST";
       }
       StringEntity entity = new StringEntity(instanceRecord.toJSONString(), "UTF-8");
       httpUpdate.setEntity(entity);
@@ -608,7 +608,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @throws InventoryUpdateException
    */
   private JSONObject getInstance(String localIdentifier, String identifierTypeId) throws InventoryUpdateException {
-    String url = String.format("%s?query=%%28identifiers%%20%%3D%%2F%%40value%%2F%%40identifierTypeId%%3D%%22%s%%22%%20%%22%s%%22%%29", 
+    String url = String.format("%s?query=%%28identifiers%%20%%3D%%2F%%40value%%2F%%40identifierTypeId%%3D%%22%s%%22%%20%%22%s%%22%%29",
                                 ctxt.folioAddress + "instance-storage/instances", identifierTypeId, localIdentifier);
     HttpGet httpGet = new HttpGet(url);
     setHeaders(httpGet,"application/json");
