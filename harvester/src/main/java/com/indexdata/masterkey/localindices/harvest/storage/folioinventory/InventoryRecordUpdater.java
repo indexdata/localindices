@@ -75,7 +75,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       long startStorageEntireRecord = System.currentTimeMillis();
       /**
        * TransformedRecord is a 'facade' that provides an API into RecordJSON and allows for (slight)
-       * variations in the structure of the transformed record while shielding the user from
+       * variations in the structure of the transformed record while shielding the client code from
        * those potential differences in structure. Thus safer to use than RecordJSON.
        */
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
