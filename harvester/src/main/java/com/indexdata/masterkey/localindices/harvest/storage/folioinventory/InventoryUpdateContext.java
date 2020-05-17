@@ -24,6 +24,7 @@ public class InventoryUpdateContext {
     protected static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
     protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
     protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
+    protected static final String MARC_STORAGE_PATH = "marcStoragePath";
 
     public String folioAddress;
     private JSONObject storageConfig;
@@ -34,10 +35,13 @@ public class InventoryUpdateContext {
     public String instanceStoragePath;
     public String holdingsStoragePath;
     public String itemStoragePath;
+    public String marcStoragePath;
 
     public String instanceStorageUrl;
     public String holdingsStorageUrl;
     public String itemStorageUrl;
+    public String marcStorageUrl;
+    public boolean marcStorageUrlIsDefined;
 
     public String authToken;
 
@@ -51,6 +55,11 @@ public class InventoryUpdateContext {
     public InventoryStorageStatus storageStatus;
 
     public CloseableHttpClient inventoryClient = null;
+
+    public static final String FAILURE_ENTITY_TYPE_INSTANCE = "instance";
+    public static final String FAILURE_ENTITY_TYPE_HOLDINGS_RECORD = "holdings";
+    public static final String FAILURE_ENTITY_TYPE_ITEM = "items";
+    public static final String FAILURE_ENTITY_TYPE_SOURCE_RECORD = "source record";
 
     /**
      * Holds job-wide configurations, settings, and objects - for example a shared Inventory HTTP client,
@@ -127,6 +136,10 @@ public class InventoryUpdateContext {
 
         itemStoragePath = getRequiredConfig(ITEM_STORAGE_PATH);
         itemStorageUrl = folioAddress + itemStoragePath;
+
+        marcStoragePath = getConfig(MARC_STORAGE_PATH);
+        marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
+        marcStorageUrlIsDefined = marcStorageUrl != null;
     }
 
     private String getRequiredConfig(String key) throws StorageException {

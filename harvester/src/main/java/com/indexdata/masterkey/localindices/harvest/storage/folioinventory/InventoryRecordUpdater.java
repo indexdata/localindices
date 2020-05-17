@@ -98,8 +98,16 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         }
         if (ctxt.harvestable.isStoreOriginal()) {
           updateCounters.sourceRecordsProcessed++;
-          JSONObject marcJson = getMarcJson(transformedRecord);
-          addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
+          if (ctxt.marcStorageUrlIsDefined) {
+            JSONObject marcJson = getMarcJson(transformedRecord);
+            addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
+          } else {
+            updateCounters.sourceRecordsFailed++;
+            RecordError error = new ExceptionRecordError(
+              new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
+              "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+            recordWithErrors.reportAndThrowError(error, Level.DEBUG);
+          }
         }
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
         ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
@@ -664,7 +672,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       StringBuilder query = new StringBuilder().append("(instanceId==\"").append(instanceId).append("\"").append(" and institutionId==\"").append(institutionId).append("\"").append(" and localIdentifier==\"").append(localIdentifier).append("\")");
       StringBuilder url;
-      url = new StringBuilder().append(ctxt.folioAddress).append("/marc-records?query=").append(URLEncoder.encode(query.toString(), "UTF-8"));
+      url = new StringBuilder().append(ctxt.marcStorageUrl).append("?query=").append(URLEncoder.encode(query.toString(), "UTF-8"));
       HttpGet httpGet = new HttpGet(url.toString());
       setHeaders(httpGet,"application/json");
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpGet);
@@ -716,8 +724,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
         if (marcRecord == null) {
           logger.debug("This MARC record did not exist in storage; creating it.");
-          String url = ctxt.folioAddress + "/marc-records";
-          request = new HttpPost(url);
+          request = new HttpPost(ctxt.marcStorageUrl);
           request.setEntity(entity);
           setHeaders(request,"application/json");
           CloseableHttpResponse response = ctxt.inventoryClient.execute(request);
@@ -741,7 +748,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         } else {
           logger.debug("This MARC record already existed in storage; updating it.");
           String id = (String) marcRecord.get("id");
-          String url = ctxt.folioAddress + "/marc-records/" + id;
+          String url = ctxt.marcStorageUrl + "/" + id;
           request = new HttpPut(url);
           request.setEntity(entity);
           setHeaders(request,"text/plain");
@@ -772,7 +779,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    */
   private void deleteSourceRecord(String uuid) throws InventoryUpdateException {
     logger.log(Level.TRACE,"Deleting source record with ID: " + uuid);
-    String url = String.format("%s/%s", ctxt.folioAddress + "/marc-records/", uuid);
+    String url = String.format("%s/%s", ctxt.marcStorageUrl, uuid);
     HttpDelete httpDelete = new HttpDelete(url);
     setHeaders(httpDelete,"text/plain");
     CloseableHttpResponse response = null;
@@ -826,7 +833,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
             deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
             updateInstance(instance);
-            deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
+            if (ctxt.marcStorageUrlIsDefined) {
+              deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
+            }
             updateCounters.instanceDeletions++;
             ((InventoryStorageStatus) ctxt.storageStatus).incrementDelete(1);
           } else {
