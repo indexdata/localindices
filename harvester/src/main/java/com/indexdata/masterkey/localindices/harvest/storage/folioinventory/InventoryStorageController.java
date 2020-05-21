@@ -376,7 +376,8 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void shutdown() throws IOException {
-    throw new UnsupportedOperationException("shutdown not supported.");
+    //throw new UnsupportedOperationException("shutdown not supported.");
+    logger.warn("Received shutdown request. Currently unimplemented.");
   }
 
   @Override

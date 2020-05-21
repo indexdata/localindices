@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
+import com.indexdata.masterkey.localindices.util.MarcToJson;
 import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
@@ -679,8 +680,15 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
-        marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
-        logger.debug(marcJson.toJSONString());
+        String marcSourceString = new String(record.getOriginalContent(), "UTF-8");
+        logger.log(Level.TRACE, marcSourceString);
+        if(marcSourceString.startsWith("<xml")) {
+          marcJson = MarcXMLToJson.convertMarcXMLToJson(marcSourceString);
+        } else {
+          //assume that it's raw MARC instead
+          marcJson = MarcToJson.convertMarcRecordsToJson(marcSourceString).get(0);
+        }
+        logger.log(Level.TRACE, marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
         updateCounters.sourceRecordsFailed++;
         RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source");

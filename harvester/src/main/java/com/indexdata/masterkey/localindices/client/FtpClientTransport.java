@@ -138,6 +138,7 @@ public class FtpClientTransport implements ClientTransport {
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
+    logger.debug("Creating new FTPRemoteFileIterator with url " + url.toString());
     return new FtpRemoteFileIterator(this, url, files, fileFilter, logger);
   }
 

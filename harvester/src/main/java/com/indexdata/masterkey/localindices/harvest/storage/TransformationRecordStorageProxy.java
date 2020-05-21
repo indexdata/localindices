@@ -42,15 +42,16 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   }
 
   protected Record transformNode(Record record) throws InterruptedException {
+    logger.debug("source is of type " + source.getClass().getName());
     source.put(record);
     if (!result.isEmpty()) {
-	Object obj = result.take();
-	count++;
-	if (obj instanceof Record)
-	  return (Record) obj;
-	else {
-	  logger.error("Unknown type to add: " + obj.getClass() + " " + obj.toString());
-	}
+      Object obj = result.take();
+      count++;
+      if (obj instanceof Record) {
+        return (Record) obj;
+      } else {
+        logger.error("Unknown type to add: " + obj.getClass() + " " + obj.toString());
+      }
     }
     return null;
   }
@@ -60,33 +61,39 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
       String msg = "Stop requested after " + limit + " records";
       logger.info(msg);
       throw new StopException(msg);
+    } else {
+      logger.debug("limit is " + limit + " and count is " + count);
     }
   }
 
   @Override
   public void add(Record record) {
-    if (job.isKillSent())
+    if (job.isKillSent()) {
       throw new RuntimeException("Job killed");
+    }
+    logger.debug("TransformationRecordStorageProxy adding record of class "
+        + record.getClass().getName() + ", target is of class " + getTarget().getClass().getName());
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
-    while (true)
+    while (true) {
       try {
-	Record transformed = transformNode(recordDOM);
-	if (transformed != null)
-	  getTarget().add(transformed);
-	else {
-	  logger.warn("Record filtered out" + record);
-	}
-	testLimit();
-	break;
+        Record transformed = transformNode(recordDOM);
+        if (transformed != null) {
+          getTarget().add(transformed);
+        } else {
+          logger.warn("Record filtered out" + record);
+        }
+        testLimit();
+        break;
       } catch (InterruptedException e) {
-	e.printStackTrace();
-	try {
-	  errors.put(e);
-	} catch (InterruptedException e1) {
-	  logger.error("Record not added to error" + record);
-	  e1.printStackTrace();
-	}
+        e.printStackTrace();
+        try {
+          errors.put(e);
+        } catch (InterruptedException e1) {
+          logger.error("Record not added to error" + record);
+          e1.printStackTrace();
+        }
       }
+    }
   }
 
   @Override
@@ -164,8 +171,10 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
       for (TransformationStep step : steps) {
 	MessageRouter<Object> router = factory.create(step);
 	router.setError(errors);
-	if (source == null)
+	if (source == null) {
+    logger.debug("Initializing source as ConsumerProxy<Object> of type " + router.getClass().getName());
 	  source = new ConsumerProxy<Object>(router);
+  }
 	if (previous != null)
 	  previous.setOutput(new ConsumerProxy<Object>(router));
 	messageRouters[index++] = router;

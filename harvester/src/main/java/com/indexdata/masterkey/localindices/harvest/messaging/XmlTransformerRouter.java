@@ -83,15 +83,17 @@ public class XmlTransformerRouter implements MessageRouter {
       logger.log(Level.TRACE, "Step " + this.step.getName() + " produced: " + sourceAsString(xmlSource));
       DOMResult result = new DOMResult();
       try {
-	transformer.transform(xmlSource, result);
+        logger.log(Level.TRACE, "Calling transformer of type " + transformer.getClass().getName());
+        transformer.transform(xmlSource, result);
       } catch (Exception e) {
-	putError(xmlSource, e);
-	return;
+        putError(xmlSource, e);
+        return;
       }
       if (record instanceof RecordDOM) {
-	((RecordDOM) record).setNode(result.getNode());
-      } else
-	record = new RecordDOMImpl(record.getId(), record.getDatabase(), result.getNode(), record.getOriginalContent());
+        ((RecordDOM) record).setNode(result.getNode());
+      } else {
+        record = new RecordDOMImpl(record.getId(), record.getDatabase(), result.getNode(), record.getOriginalContent());
+      }
       produce(record);
     }
   }
