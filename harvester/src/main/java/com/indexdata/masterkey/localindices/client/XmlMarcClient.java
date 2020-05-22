@@ -490,8 +490,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         } else {
           logger.debug("Adding new Record to storage");
           logger.debug("XML value of Record is " + TextUtils.nodeToXMLString(result.getNode()));
-          Node node = result.getNode();
-          logger.debug("Node has namespace of '"+ node.getNamespaceURI() + "' and prefix '" + node.getPrefix() + "'");
+          Node node = result.getNode();       
           RecordDOMImpl rdi = new RecordDOMImpl(record.getControlNumber(), null,
               node, baos != null ? baos.toByteArray() : null);
           //logger.debug("Value of isCollection is " + rdi.isCollection());

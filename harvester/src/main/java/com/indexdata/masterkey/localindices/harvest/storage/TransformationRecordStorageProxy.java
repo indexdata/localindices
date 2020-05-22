@@ -16,6 +16,7 @@ import com.indexdata.masterkey.localindices.harvest.messaging.MessageProducer;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
+import org.apache.log4j.Level;
 
 public class TransformationRecordStorageProxy extends AbstractTransformationRecordStorageProxy  {
   private StorageJobLogger logger;
@@ -42,7 +43,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   }
 
   protected Record transformNode(Record record) throws InterruptedException {
-    logger.debug("source is of type " + source.getClass().getName());
+    logger.log(Level.TRACE, "source is of type " + source.getClass().getName());
     source.put(record);
     if (!result.isEmpty()) {
       Object obj = result.take();
@@ -62,7 +63,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
       logger.info(msg);
       throw new StopException(msg);
     } else {
-      logger.debug("limit is " + limit + " and count is " + count);
+      logger.log(Level.TRACE, "limit is " + limit + " and count is " + count);
     }
   }
 
