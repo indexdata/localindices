@@ -77,8 +77,10 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
     while (true) {
       try {
+        long transformationStarted = System.currentTimeMillis();
         Record transformed = transformNode(recordDOM);
         if (transformed != null) {
+          transformed.setTransformationTiming(System.currentTimeMillis()-transformationStarted);
           getTarget().add(transformed);
         } else {
           logger.warn("Record filtered out" + record);

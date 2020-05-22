@@ -6,6 +6,8 @@ target/
 .settings/
 .metadata/
 .factorypath
+harvester/src/main/java/tmp/
+harvester/test/tmp
 bin/
 build/
 dist/

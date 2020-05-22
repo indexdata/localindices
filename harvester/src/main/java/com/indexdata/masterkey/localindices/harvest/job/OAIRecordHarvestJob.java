@@ -281,6 +281,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } catch (Exception e) {
       logger.error("Unhandled Exception: " + e.getMessage());
     } finally {
+      logger.info("In finally block with subject " + subject + ", message " + msg);
       mailMessage(subject, msg);
       shutdown();
     }
@@ -439,6 +440,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   protected RecordDOMImpl createRecord(Node node) throws TransformerException {
+    long creationStart = System.currentTimeMillis();
     String id = HarvesterVerb.getSingleString(node, "./oai20:header/oai20:identifier/text()");
     String isDeleted = HarvesterVerb.getSingleString(node, "./oai20:header/@status");
     byte[] original = null;
@@ -456,6 +458,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
       logger.log(Level.TRACE, "OAI record not a deletion");
       record.setDeleted(false);
     }
+    record.setCreationTiming(System.currentTimeMillis()-creationStart);
     return record;
   }
 

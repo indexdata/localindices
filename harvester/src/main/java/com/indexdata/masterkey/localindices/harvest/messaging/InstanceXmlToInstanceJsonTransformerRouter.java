@@ -132,12 +132,14 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
               }
             }
             recordOut.setJsonObject(jsonRecords);
+            recordOut.setCreationTiming(recordIn.getCreationTiming());
             recordOut.setOriginalContent(recordIn.getOriginalContent());
             recordOut.setIsDeleted(recordIn.isDeleted());
             produce(recordOut);
           }
         } else {
           JSONObject jsonRecord = makeInventoryJson(recordIn);
+          recordOut.setCreationTiming(recordIn.getCreationTiming());
           recordOut.setJsonObject(jsonRecord);
           recordOut.setOriginalContent(recordIn.getOriginalContent());
           recordOut.setIsDeleted(recordIn.isDeleted());

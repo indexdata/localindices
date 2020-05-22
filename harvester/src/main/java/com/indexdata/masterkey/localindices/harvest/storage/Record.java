@@ -26,4 +26,9 @@ public interface Record {
 
   Collection<Record> getSubRecords();
 
+  void setCreationTiming(long timing);
+  long getCreationTiming();
+  void setTransformationTiming(long timing);
+  long getTransformationTiming();
+
 }
