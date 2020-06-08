@@ -590,9 +590,17 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
-        marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
+        String originalContentString = new String(record.getOriginalContent(), "UTF-8");
+        if(originalContentString.startsWith("<") ) {
+          logger.log(Level.TRACE,"Treating source record as XML");
+          marcJson = MarcXMLToJson.convertMarcXMLToJson(originalContentString);
+        } else {
+          logger.log(Level.TRACE,"Treating source record as ISO2079");
+          marcJson = MarcToJson.convertMarcRecordsToJson(originalContentString).get(0);
+        }
         logger.debug(marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
+
         updateCounters.sourceRecordsFailed++;
         RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
