@@ -25,6 +25,7 @@ public class InventoryUpdateContext {
     protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
     protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
     protected static final String MARC_STORAGE_PATH = "marcStoragePath";
+    protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
 
     public String folioAddress;
     private JSONObject storageConfig;
@@ -36,11 +37,13 @@ public class InventoryUpdateContext {
     public String holdingsStoragePath;
     public String itemStoragePath;
     public String marcStoragePath;
+    public String inventoryUpsertPath;
 
     public String instanceStorageUrl;
     public String holdingsStorageUrl;
     public String itemStorageUrl;
     public String marcStorageUrl;
+    public String inventoryUpsertUrl;
     public boolean marcStorageUrlIsDefined;
 
     public String authToken;
@@ -128,15 +131,18 @@ public class InventoryUpdateContext {
         folioUsername = getRequiredConfig(FOLIO_USERNAME);
         folioPassword = getRequiredConfig(FOLIO_PASSWORD);
 
-        instanceStoragePath = getRequiredConfig(INSTANCE_STORAGE_PATH);
-        instanceStorageUrl = folioAddress + instanceStoragePath;
+        if (getConfig(INVENTORY_UPSERT_PATH) != null) {
+            inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
+        } else {
+            instanceStoragePath = getRequiredConfig(INSTANCE_STORAGE_PATH);
+            instanceStorageUrl = folioAddress + instanceStoragePath;
 
-        holdingsStoragePath = getRequiredConfig(HOLDINGS_STORAGE_PATH);
-        holdingsStorageUrl = folioAddress + holdingsStoragePath;
+            holdingsStoragePath = getRequiredConfig(HOLDINGS_STORAGE_PATH);
+            holdingsStorageUrl = folioAddress + holdingsStoragePath;
 
-        itemStoragePath = getRequiredConfig(ITEM_STORAGE_PATH);
-        itemStorageUrl = folioAddress + itemStoragePath;
-
+            itemStoragePath = getRequiredConfig(ITEM_STORAGE_PATH);
+            itemStorageUrl = folioAddress + itemStoragePath;
+        }
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;

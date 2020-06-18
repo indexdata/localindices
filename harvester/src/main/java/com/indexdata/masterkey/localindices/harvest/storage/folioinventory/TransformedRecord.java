@@ -174,6 +174,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       }
     }
 
+    /**
+     *
+     * @return a detached copy (not a reference) of the Instance JSON object in Record.
+     */
     public JSONObject getInstance () {
       logger.log(Level.TRACE, "Looking for instance in root of " + transformed.toJSONString());
       JSONObject instance = new JSONObject();
@@ -192,6 +196,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return instance;
     }
 
+    /**
+     *
+     * @return a detached object (not a reference) of the JSON Array of holdings records from the Record.
+     */
     public JSONArray getHoldings () {
       JSONArray holdings = new JSONArray();
       try {
@@ -211,6 +219,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
         logger.error("InventoryRecordStorage could not parse transformed record to retrieve holdings: " + pe.getMessage());
       }
       return holdings;
+    }
+
+    public boolean hasMatchKey () {
+      return !(getMatchKey().isEmpty());
     }
 
     public JSONObject getMatchKey () {
