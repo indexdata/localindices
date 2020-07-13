@@ -89,10 +89,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         }
         inventoryRecordSet.put("instance", transformedRecord.getInstance());
         inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
-        upsertInventoryRecordSet(inventoryRecordSet);
+        JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
         ctxt.storageStatus.incrementAdd(1);
-        updateCounters.instancesLoaded++;
+        setCounters(responseJson);
+
         // TODO: get the instance ID from the response to create MARC record if isStoreOriginal
         // TODO: capture update counts, errors - once mod-inventory-match makes them available
       } else {
@@ -147,6 +148,78 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
     } catch (InventoryUpdateException iue) {
       recordWithErrors.writeErrorsLog(logger);
+    }
+  }
+
+  public void setCounters(JSONObject upsertResponse) {
+    UpsertMetrics metrics = new UpsertMetrics((JSONObject)upsertResponse.get("metrics"));
+    updateCounters.holdingsRecordsDeleted += metrics.holdingsRecord.delete.completed;
+    updateCounters.holdingsRecordsFailed += metrics.holdingsRecord.failed;
+    updateCounters.holdingsRecordsLoaded += metrics.holdingsRecord.create.completed + metrics.holdingsRecord.update.completed;
+    updateCounters.holdingsRecordsProcessed += metrics.holdingsRecord.processed;
+    updateCounters.instanceDeleteSignals += metrics.instance.delete.processed;
+    updateCounters.instanceDeletions += metrics.instance.delete.completed;
+    updateCounters.instancesFailed += metrics.instance.failed;
+    updateCounters.instancesLoaded += metrics.instance.create.completed + metrics.instance.update.completed;
+    updateCounters.instancesProcessed += metrics.instance.processed;
+    updateCounters.itemsDeleted += metrics.item.delete.completed;
+    updateCounters.itemsFailed += metrics.item.failed;
+    updateCounters.itemsLoaded += metrics.item.create.completed + metrics.item.update.completed;
+    updateCounters.itemsProcessed += metrics.item.processed;
+  }
+
+  public class UpsertMetrics {
+    EntityMetrics instance;
+    EntityMetrics holdingsRecord;
+    EntityMetrics item;
+
+    public UpsertMetrics(JSONObject upsertMetricsJson) {
+      JSONObject json = new JSONObject();
+      if (upsertMetricsJson != null) {
+        json = upsertMetricsJson;
+      }
+      instance = new EntityMetrics((JSONObject) json.get("INSTANCE"));
+      holdingsRecord = new EntityMetrics((JSONObject) json.get("HOLDINGSRECORD"));
+      item = new EntityMetrics((JSONObject) json.get("ITEM"));
+    }
+  }
+
+
+  public class EntityMetrics {
+    TransactionMetrics create;
+    TransactionMetrics update;
+    TransactionMetrics delete;
+    long processed = 0;
+    long failed = 0;
+    public EntityMetrics (JSONObject entityMetricsJson) {
+      JSONObject json = new JSONObject();
+      if (entityMetricsJson != null) {
+        json = entityMetricsJson;
+      }
+      create = new TransactionMetrics((JSONObject) json.get("CREATE"));
+      update = new TransactionMetrics((JSONObject) json.get("UPDATE"));
+      delete = new TransactionMetrics((JSONObject) json.get("DELETE"));
+      processed = create.processed + update.processed + delete.processed;
+      failed = create.failed + update.failed + delete.failed;
+    }
+
+  }
+
+  public class TransactionMetrics {
+
+    Long completed = new Long(0);
+    Long failed = new Long(0);
+    Long skipped = new Long(0);
+    Long processed = new Long(0);
+
+    public TransactionMetrics (JSONObject transactionMetricsJson) {
+
+      if (transactionMetricsJson != null) {
+        completed =  (Long) transactionMetricsJson.get("COMPLETED");
+        failed = (Long) transactionMetricsJson.get("FAILED");
+        skipped = (Long) transactionMetricsJson.get("SKIPPED");
+        processed = completed+failed+skipped;
+      }
     }
   }
 
