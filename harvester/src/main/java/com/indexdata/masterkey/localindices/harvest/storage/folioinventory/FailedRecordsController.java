@@ -216,8 +216,8 @@ public class FailedRecordsController {
         return this.recordFailureCounters;
     }
 
-    public int getErrorsByErrorMessage(String message) {
-        return getCounters().errorsByErrorMessage.get(message);
+    public int getErrorsByErrorKey(String errorKey) {
+        return getCounters().errorsByErrorMessage.get(errorKey);
     }
 
     public int incrementErrorCount (RecordError error) {

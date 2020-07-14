@@ -8,19 +8,19 @@ public class ExceptionRecordError implements RecordError {
     public String exceptionType;
     public String message;
     public String stackTrace;
-    public String shortDescription;
+    public String context;
     public String typeOfEntity;
 
-    public ExceptionRecordError(Exception e, String shortDescription, String typeOfEntity) {
+    public ExceptionRecordError(Exception e, String context, String typeOfEntity) {
       this.exceptionType = e.getClass().getSimpleName();
       this.message = e.getLocalizedMessage();
       this.stackTrace = stackTraceAsString(e);
-      this.shortDescription = shortDescription==null ? "" : shortDescription;
+      this.context = context==null ? "" : context;
       this.typeOfEntity = typeOfEntity;
     }
 
-    public ExceptionRecordError(Exception e, String shortDescription) {
-        this(e, shortDescription, "unspecified");
+    public ExceptionRecordError(Exception e, String context) {
+        this(e, context, "unspecified");
     }
 
     private String stackTraceAsString (Exception e) {
@@ -32,16 +32,16 @@ public class ExceptionRecordError implements RecordError {
 
     @Override
     public String toString() {
-      return shortDescription + ". Exception ["+exceptionType+"]. " + message + ". Stacktrace [" + stackTrace + "]. " + (typeOfEntity.isEmpty() ? "" : "For entity type [" + typeOfEntity + "]");
+      return context + ". Exception ["+exceptionType+"]. " + message + ". Stacktrace [" + stackTrace + "]. " + (typeOfEntity.isEmpty() ? "" : "For entity type [" + typeOfEntity + "]");
     }
 
     @Override
     public String getMessage() {
-        return shortDescription + "; [" + exceptionType + "]; " + message;
+        return context + "; [" + exceptionType + "]; " + message;
     }
 
-    public String getLabel() {
-      return shortDescription;
+    public String getErrorContext() {
+      return context;
     }
 
     public String getType() {
@@ -49,6 +49,10 @@ public class ExceptionRecordError implements RecordError {
     }
 
     public String getBriefMessage() {
+      return message;
+    }
+
+    public String getCountingKey () {
       return message;
     }
 

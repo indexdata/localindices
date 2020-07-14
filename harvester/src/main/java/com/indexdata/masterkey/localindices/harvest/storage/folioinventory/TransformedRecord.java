@@ -25,17 +25,17 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 /**
    * Represents the JSON coming out of the transformation pipeline, containing one or more Inventory
    * entities like Instance, holdings records, items, the original record, and other data needed for
-   * Inventory the ingestion logic. <br/>
+   * the Inventory ingestion logic. <br/>
    * <br/>
-   * Some slight variations in the structure are allowed but this facade is meant to shield the user of
+   * Some slight variations in the structure are allowed so this facade is meant to shield the user of
    * class from that.
    * <br/>
-   * A couple of different structures for the Inventory records are supported: <br/>
+   * The different structures supported: <br/>
    * <br/>
    * <ol>
-   * <li>the "record" object contains an "instance" object and a "holdingsRecords"  array with embedded "items" arrays</li>
-   * <li>the "record" object contains an "instance" object with an <i>embedded</i> "holdingsRecords" array with embedded "items" arrays</li>
-   * <li>the "record" object _is_ the instance, containing an embedded "holdingsRecords" array with embedded "items" arrays</li>
+   * <li>the "record" object contains an "instance" object and a separate "holdingsRecords"  array with embedded "items" arrays</li>
+   * <li>the "record" object contains an "instance" object with an <i>embedded</i>  "holdingsRecords" array with embedded "items" arrays</li>
+   * <li>the "record" object <i>is</i> the instance, containing an embedded "holdingsRecords" array with embedded "items" arrays</li>
    * </ol>
    * <pre>
    *  "record" contains
@@ -176,6 +176,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       }
     }
 
+    /**
+     *
+     * @return a detached copy (not a reference) of the Instance JSON object in Record.
+     */
     public JSONObject getInstance () {
       logger.log(Level.TRACE, "Looking for instance in root of " + transformed.toJSONString());
       JSONObject instance = new JSONObject();
@@ -194,6 +198,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return instance;
     }
 
+    /**
+     *
+     * @return a detached object (not a reference) of the JSON Array of holdings records from the Record.
+     */
     public JSONArray getHoldings () {
       JSONArray holdings = new JSONArray();
       try {
@@ -213,6 +221,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
         logger.error("InventoryRecordStorage could not parse transformed record to retrieve holdings: " + pe.getMessage());
       }
       return holdings;
+    }
+
+    public boolean hasMatchKey () {
+      return !(getMatchKey().isEmpty());
     }
 
     public JSONObject getMatchKey () {
