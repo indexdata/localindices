@@ -80,29 +80,13 @@ public class RecordWithErrors {
     } else if (count>10 && count < 100) {
       logger.log(logLevel, error.getMessage());
     } else if (count % 100 == 0) {
-      logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByErrorMessage(error.getMessage()), error.getMessage()));
+      logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByErrorKey(error.getCountingKey()), error.getCountingKey()));
     }
     if (exception != null) {
       throw new InventoryUpdateException(error.toString(),exception);
     } else {
       throw new InventoryUpdateException(error.toString());
     }
-  }
-
-  void addResponseError(int status, String reason, String response, String message, String entity) {
-    errors.add(new HttpRecordError(status, reason, response, message, entity));
-  }
-
-  void addResponseError(int status, String reason, String response, String message) {
-    errors.add(new HttpRecordError(status, reason, response, message));
-  }
-
-  void addExceptionError(Exception e, String message, String entity) {
-    errors.add(new ExceptionRecordError(e, message, entity));
-  }
-
-  void addExceptionError(Exception e, String message) {
-    errors.add(new ExceptionRecordError(e, message, ""));
   }
 
   boolean hasErrors () {
@@ -125,12 +109,13 @@ public class RecordWithErrors {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        int occurrences = failCtrl.getErrorsByErrorMessage(error.getMessage());
+        System.out.println("Looking for errors by count key [" + error.getCountingKey() +"]" );
+        int occurrences = failCtrl.getErrorsByErrorKey(error.getCountingKey());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + transformedRecord.getJson());
           logger.error("#" + i + " " + error.getMessage());
         } else if (occurrences % 100 == 0) {
-          logger.error(occurrences + " records have failed with " + error.getMessage());
+          logger.error(occurrences + " records have failed with " + error.getCountingKey());
         }
       }
     }
@@ -238,7 +223,7 @@ public class RecordWithErrors {
       for (RecordError error : errors) {
         Element errorElement = failedRecord.createElement("error");
         Element labelElement = failedRecord.createElement("label");
-        labelElement.setTextContent(error.getLabel());
+        labelElement.setTextContent(error.getErrorContext());
         Element errorTypeElement = failedRecord.createElement("type");
         errorTypeElement.setTextContent(error.getType());
         Element messageElement = failedRecord.createElement("message");
