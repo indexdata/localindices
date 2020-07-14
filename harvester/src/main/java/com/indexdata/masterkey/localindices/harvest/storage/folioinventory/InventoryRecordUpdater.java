@@ -91,11 +91,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
+        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
+        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
         ctxt.storageStatus.incrementAdd(1);
         setCounters(responseJson);
-
+        logRecordCounts();
         // TODO: get the instance ID from the response to create MARC record if isStoreOriginal
-        // TODO: capture update counts, errors - once mod-inventory-match makes them available
       } else {
         // TODO: eventually deprecate this section and supporting methods
         JSONObject instanceResponse;
@@ -129,12 +130,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
           ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
           ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
-          if (updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
-            logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested. " + updateCounters.instanceDeleteSignals + " delete signal(s), " + updateCounters.instanceDeletions + " delete(s)");
-            if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
-              logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
-            }
-          }
+          logRecordCounts();
         } else {
           if (transformedRecord.isDeleted()) {
             logger.error("Deletion record received on 'add' channels: [" + transformedRecord.getLocalIdentifier() + "], [" + transformedRecord.getJson() + "]");
@@ -148,6 +144,15 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
     } catch (InventoryUpdateException iue) {
         recordWithErrors.writeErrorsLog(logger);
+    }
+  }
+
+  private void logRecordCounts() {
+    if (updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
+      logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested. " + updateCounters.instanceDeleteSignals + " delete signal(s), " + updateCounters.instanceDeletions + " delete(s)");
+      if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
+        logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
+      }
     }
   }
 
@@ -271,9 +276,18 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         upsertResponse.put("wrappedErrorMessage", responseAsString);
       }
       response.close();
-      //logger.info("Inventory Match said: " + responseAsString);
+      if (upsertResponse.containsKey("errors")) {
+        JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
+        JSONObject firstError = (JSONObject) errorsArray.get(0);
+        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
+                                                response.getStatusLine().getReasonPhrase(),
+                                                firstError.get("shortMessage").toString() + ": " + firstError.get("entity").toString(),
+                                                firstError.get("shortMessage").toString(),
+                                                "Error upserting Inventory record set",
+                                                firstError.get("entityType").toString());
+        recordWithErrors.reportError(error, Level.DEBUG);
+      }
     } catch (Exception e) {
-      logger.error("Inventory Upsert encountered an exception: " + e.getMessage());
       throw new InventoryUpdateException("Inventory Upsert encountered an exception", e);
     }
     return upsertResponse;

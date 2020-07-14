@@ -73,19 +73,23 @@ public class RecordWithErrors {
   }
 
   void reportAndThrowError(RecordError error, Level logLevel, Throwable exception) throws InventoryUpdateException {
+    reportError(error, logLevel);
+    if (exception != null) {
+      throw new InventoryUpdateException(error.toString(),exception);
+    } else {
+      throw new InventoryUpdateException(error.toString());
+    }
+  }
+
+  void reportError (RecordError error, Level logLevel) {
     addError(error);
     int count = failCtrl.incrementErrorCount(error);
     if (count <= 10) {
       logger.log(logLevel, error.getMessage());
     } else if (count>10 && count < 100) {
-      logger.log(logLevel, error.getMessage());
+      logger.log(logLevel, error.getBriefMessage());
     } else if (count % 100 == 0) {
       logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByErrorKey(error.getCountingKey()), error.getCountingKey()));
-    }
-    if (exception != null) {
-      throw new InventoryUpdateException(error.toString(),exception);
-    } else {
-      throw new InventoryUpdateException(error.toString());
     }
   }
 
