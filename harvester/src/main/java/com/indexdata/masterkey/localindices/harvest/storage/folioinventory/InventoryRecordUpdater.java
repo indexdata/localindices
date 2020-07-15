@@ -148,7 +148,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   private void logRecordCounts() {
-    if (updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
+    if (updateCounters.instancesLoaded>0 && updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
       logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested. " + updateCounters.instanceDeleteSignals + " delete signal(s), " + updateCounters.instanceDeletions + " delete(s)");
       if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
         logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
@@ -267,30 +267,56 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       httpUpdate.setEntity(entity);
       setHeaders(httpUpdate,"application/json");
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
-      JSONParser parser = new JSONParser();
+
       String responseAsString = EntityUtils.toString(response.getEntity());
-      try {
-        upsertResponse = (JSONObject) parser.parse(responseAsString);
-      } catch (ParseException pe) {
-        upsertResponse = new JSONObject();
-        upsertResponse.put("wrappedErrorMessage", responseAsString);
-      }
       response.close();
-      if (upsertResponse.containsKey("errors")) {
-        JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
-        JSONObject firstError = (JSONObject) errorsArray.get(0);
-        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
-                                                response.getStatusLine().getReasonPhrase(),
-                                                firstError.get("shortMessage").toString() + ": " + firstError.get("entity").toString(),
-                                                firstError.get("shortMessage").toString(),
-                                                "Error upserting Inventory record set",
-                                                firstError.get("entityType").toString());
-        recordWithErrors.reportError(error, Level.DEBUG);
-      }
+      upsertResponse = getResponseAsJson(responseAsString);
+      checkForNoSuitableModulePath(response, responseAsString);
+      checkForRecordErrors(response, upsertResponse);
+    } catch (StorageException se) {
+      throw se;
     } catch (Exception e) {
       throw new InventoryUpdateException("Inventory Upsert encountered an exception", e);
     }
     return upsertResponse;
+  }
+
+  private JSONObject getResponseAsJson(String responseAsString) {
+    JSONObject upsertResponse;
+    JSONParser parser = new JSONParser();
+    try {
+      upsertResponse = (JSONObject) parser.parse(responseAsString);
+    } catch (ParseException pe) {
+      upsertResponse = new JSONObject();
+      upsertResponse.put("wrappedErrorMessage", responseAsString);
+    }
+    return upsertResponse;
+  }
+
+  private void checkForRecordErrors(CloseableHttpResponse response, JSONObject upsertResponse) {
+    if (upsertResponse.containsKey("errors")) {
+      JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
+      JSONObject firstError = (JSONObject) errorsArray.get(0);
+      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
+                                              response.getStatusLine().getReasonPhrase(),
+                                              firstError.get("shortMessage").toString() + ": " + firstError.get("entity").toString(),
+                                              firstError.get("shortMessage").toString(),
+                                              "Error upserting Inventory record set",
+                                              firstError.get("entityType").toString());
+      recordWithErrors.reportError(error, Level.DEBUG);
+    }
+  }
+
+  private void checkForNoSuitableModulePath(CloseableHttpResponse response, String responseAsString) {
+    if (response.getStatusLine().getStatusCode() == 404) {
+      updateCounters.instancesFailed++;
+      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet");
+      recordWithErrors.reportError(error, Level.DEBUG);
+      logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
+      if (responseAsString.contains("No suitable module found for path")) {
+        throw new StorageException(error.getMessage());
+      }
+    }
   }
 
   /**
@@ -320,14 +346,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       httpUpdate.setEntity(entity);
       setHeaders(httpUpdate,"application/json");
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
-      JSONParser parser = new JSONParser();
       String responseAsString = EntityUtils.toString(response.getEntity());
-      try {
-        instanceResponse = (JSONObject) parser.parse(responseAsString);
-      } catch (ParseException pe) {
-        instanceResponse = new JSONObject();
-        instanceResponse.put("wrappedErrorMessage", responseAsString);
-      }
+      instanceResponse = getResponseAsJson(responseAsString);
       response.close();
       if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
         updateCounters.instancesFailed++;
@@ -618,14 +638,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     JSONObject itemResponse = null;
     try {
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpPost);
-      JSONParser parser = new JSONParser();
       String responseAsString = EntityUtils.toString(response.getEntity());
-      try {
-        itemResponse = (JSONObject) parser.parse(responseAsString);
-      } catch (ParseException pe) {
-        itemResponse = new JSONObject();
-        itemResponse.put("wrappedErrorMessage", responseAsString);
-      }
+      itemResponse = getResponseAsJson(responseAsString);
       response.close();
       if (response.getStatusLine().getStatusCode() != 201) {
         updateCounters.itemsFailed++;
@@ -864,14 +878,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           request.setEntity(entity);
           setHeaders(request,"application/json");
           CloseableHttpResponse response = ctxt.inventoryClient.execute(request);
-          JSONParser parser = new JSONParser();
           String responseAsString = EntityUtils.toString(response.getEntity());
-          try {
-            marcResponse = (JSONObject) parser.parse(responseAsString);
-          } catch (ParseException pe) {
-            marcResponse = new JSONObject();
-            marcResponse.put("wrappedErrorMessage", responseAsString);
-          }
+          marcResponse = getResponseAsJson(responseAsString);
           if (response.getStatusLine().getStatusCode() != 201) {
             updateCounters.sourceRecordsFailed++;
             RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding MARC source record ", "MARC source");
