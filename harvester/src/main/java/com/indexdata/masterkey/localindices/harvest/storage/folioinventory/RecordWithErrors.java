@@ -85,7 +85,7 @@ public class RecordWithErrors {
     addError(error);
     int count = failCtrl.incrementErrorCount(error);
     if (count <= 10) {
-      logger.log(logLevel, error.getMessage());
+      logger.error(error.getMessage());
     } else if (count>10 && count < 100) {
       logger.log(logLevel, error.getBriefMessage());
     } else if (count % 100 == 0) {
