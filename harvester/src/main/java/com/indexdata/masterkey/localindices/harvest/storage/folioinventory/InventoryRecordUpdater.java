@@ -174,6 +174,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   public class UpsertMetrics {
+
     EntityMetrics instance;
     EntityMetrics holdingsRecord;
     EntityMetrics item;
@@ -187,10 +188,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       holdingsRecord = new EntityMetrics((JSONObject) json.get("HOLDINGSRECORD"));
       item = new EntityMetrics((JSONObject) json.get("ITEM"));
     }
+
   }
 
-
   public class EntityMetrics {
+
     TransactionMetrics create;
     TransactionMetrics update;
     TransactionMetrics delete;
@@ -204,7 +206,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       create = new TransactionMetrics((JSONObject) json.get("CREATE"));
       update = new TransactionMetrics((JSONObject) json.get("UPDATE"));
       delete = new TransactionMetrics((JSONObject) json.get("DELETE"));
-      processed = create.processed + update.processed + delete.processed;
+      processed = create.processed + update.processed;
       failed = create.failed + update.failed + delete.failed;
     }
 
@@ -226,6 +228,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         processed = completed+failed+skipped;
       }
     }
+
   }
 
   /**
