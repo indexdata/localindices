@@ -113,7 +113,6 @@ public class RecordWithErrors {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        System.out.println("Looking for errors by count key [" + error.getCountingKey() +"]" );
         int occurrences = failCtrl.getErrorsByErrorKey(error.getCountingKey());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + transformedRecord.getJson());
