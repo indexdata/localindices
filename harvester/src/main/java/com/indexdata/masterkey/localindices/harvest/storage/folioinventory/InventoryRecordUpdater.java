@@ -90,11 +90,31 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         inventoryRecordSet.put("instance", transformedRecord.getInstance());
         inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
+        UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
+
+        if (metrics.instance.create.failed==0 && ctxt.harvestable.isStoreOriginal()) {
+          String institutionId = transformedRecord.getInstitutionId(locInstMap);
+          String localIdentifier = transformedRecord.getLocalIdentifier();
+
+          updateCounters.sourceRecordsProcessed++;
+          if (ctxt.marcStorageUrlIsDefined) {
+            JSONObject marcJson = getMarcJson(transformedRecord);
+            JSONObject instanceJson = (JSONObject) responseJson.get("instance");
+            String instanceId = instanceJson.get("id").toString();
+            addOrUpdateMarcRecord(marcJson, instanceId, institutionId, localIdentifier);
+          } else {
+            updateCounters.sourceRecordsFailed++;
+            RecordError error = new ExceptionRecordError(
+              new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
+              "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+            recordWithErrors.reportError(error, Level.DEBUG);
+          }
+        }
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
         ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
         ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
         ctxt.storageStatus.incrementAdd(1);
-        setCounters(responseJson);
+        setCounters(metrics);
         logRecordCounts();
         // TODO: get the instance ID from the response to create MARC record if isStoreOriginal
       } else {
@@ -156,8 +176,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     }
   }
 
-  public void setCounters(JSONObject upsertResponse) {
-    UpsertMetrics metrics = new UpsertMetrics((JSONObject)upsertResponse.get("metrics"));
+  private void setCounters (UpsertMetrics metrics) {
     updateCounters.holdingsRecordsDeleted += metrics.holdingsRecord.delete.completed;
     updateCounters.holdingsRecordsFailed += metrics.holdingsRecord.failed;
     updateCounters.holdingsRecordsLoaded += metrics.holdingsRecord.create.completed + metrics.holdingsRecord.update.completed;
@@ -171,6 +190,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     updateCounters.itemsFailed += metrics.item.failed;
     updateCounters.itemsLoaded += metrics.item.create.completed + metrics.item.update.completed;
     updateCounters.itemsProcessed += metrics.item.processed;
+  }
+
+  private void setCounters(JSONObject upsertResponse) {
+    UpsertMetrics metrics = new UpsertMetrics((JSONObject)upsertResponse.get("metrics"));
+    setCounters(metrics);
   }
 
   public class UpsertMetrics {
