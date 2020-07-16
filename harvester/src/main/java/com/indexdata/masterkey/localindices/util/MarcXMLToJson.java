@@ -43,6 +43,14 @@ public class MarcXMLToJson {
       record = (Element) metadata.getElementsByTagName("record").item(0);
     } else if (root.getTagName().equals("record")) {
       record = (Element) root.getElementsByTagName("record").item(0);
+    } else if (root.getTagName().equals("collection")) {
+      NodeList records = root.getElementsByTagName("record");
+      if (records != null && records.getLength()==1) {
+        record = (Element) records.item(0);
+      }
+      if (records != null && records.getLength()>1) {
+        throw new IOException("MARC to XML converter received collection with multiple records. Cannot process multiple.");  
+      }
     }
     if(record == null) {
       throw new IOException("No record element found");
