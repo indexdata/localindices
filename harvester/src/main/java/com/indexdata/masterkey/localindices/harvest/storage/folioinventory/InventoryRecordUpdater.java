@@ -92,22 +92,30 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
         UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
 
-        if (metrics.instance.create.failed==0 && ctxt.harvestable.isStoreOriginal()) {
-          String institutionId = transformedRecord.getInstitutionId(locInstMap);
-          String localIdentifier = transformedRecord.getLocalIdentifier();
+        if (ctxt.harvestable.isStoreOriginal()) {
+          if (metrics.instance.create.failed==0) {
+            String institutionId = transformedRecord.getInstitutionId(locInstMap);
+            String localIdentifier = transformedRecord.getLocalIdentifier();
 
-          updateCounters.sourceRecordsProcessed++;
-          if (ctxt.marcStorageUrlIsDefined) {
-            JSONObject marcJson = getMarcJson(transformedRecord);
-            JSONObject instanceJson = (JSONObject) responseJson.get("instance");
-            String instanceId = instanceJson.get("id").toString();
-            addOrUpdateMarcRecord(marcJson, instanceId, institutionId, localIdentifier);
+            updateCounters.sourceRecordsProcessed++;
+            if (ctxt.marcStorageUrlIsDefined) {
+              JSONObject marcJson = getMarcJson(transformedRecord);
+              JSONObject instanceJson = (JSONObject) responseJson.get("instance");
+              String instanceId = instanceJson.get("id").toString();
+              addOrUpdateMarcRecord(marcJson, instanceId, institutionId, localIdentifier);
+            } else {
+              updateCounters.sourceRecordsFailed++;
+              RecordError error = new ExceptionRecordError(
+                new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
+                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+              recordWithErrors.reportError(error, Level.DEBUG);
+            }
           } else {
-            updateCounters.sourceRecordsFailed++;
             RecordError error = new ExceptionRecordError(
-              new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
-              "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+              new InventoryUpdateException("Instance error: Cannot store original content as requested since Instance creation failed"),
+              "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
             recordWithErrors.reportError(error, Level.DEBUG);
+
           }
         }
         ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
@@ -116,7 +124,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         ctxt.storageStatus.incrementAdd(1);
         setCounters(metrics);
         logRecordCounts();
-        // TODO: get the instance ID from the response to create MARC record if isStoreOriginal
       } else {
         // TODO: eventually deprecate this section and supporting methods
         JSONObject instanceResponse;
@@ -190,11 +197,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     updateCounters.itemsFailed += metrics.item.failed;
     updateCounters.itemsLoaded += metrics.item.create.completed + metrics.item.update.completed;
     updateCounters.itemsProcessed += metrics.item.processed;
-  }
-
-  private void setCounters(JSONObject upsertResponse) {
-    UpsertMetrics metrics = new UpsertMetrics((JSONObject)upsertResponse.get("metrics"));
-    setCounters(metrics);
   }
 
   public class UpsertMetrics {
