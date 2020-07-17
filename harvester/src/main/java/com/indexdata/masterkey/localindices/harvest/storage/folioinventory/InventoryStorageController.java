@@ -80,31 +80,28 @@ public class InventoryStorageController implements RecordStorage {
     this.databaseProperties = properties;
     ctxt = new InventoryUpdateContext(harvestable, logger);
 
-    logger.info("Request to start job [" + database + "]"
-    + ", storage URL [" + ctxt.folioAddress + "]"
-    + (properties != null ? ", with db properties " + properties : " (no db  properties defined) "));
+    logger.info("Starting job [" + database + "]");
+    logger.info("Storage URL [" + ctxt.folioAddress + (ctxt.useInventoryUpsert ? ctxt.inventoryUpsertPath : ctxt.instanceStoragePath));
+    if (ctxt.folioAuthSkip) logger.info("Storage configured to skip FOLIO authentication!");
 
     client = HttpClients.createDefault();
     ctxt.setClient(client);
-
-    authenticateToInventory();
+    if (!ctxt.folioAuthSkip) {
+      authenticateToInventory();
+    }
 
     ctxt.setLocationsToInstitutionsMap(getLocationsMap());
   }
 
   private void authenticateToInventory() throws StorageException {
-    if (ctxt.folioUsername != null && ctxt.folioPassword != null && ctxt.folioTenant != null && ctxt.folioAuthPath != null) {
-      String authToken = getAuthtoken(client,
-                                      ctxt.folioAddress,
-                                      ctxt.folioAuthPath,
-                                      ctxt.folioUsername,
-                                      ctxt.folioPassword,
-                                      ctxt.folioTenant);
-      ctxt.setAuthToken(authToken);
-      logger.info("Authenticated to FOLIO Inventory, tenant [" + ctxt.folioTenant + "]");
-    } else {
-      logger.warn("Did not authenticate to FOLIO Inventory for lack of one or more configuration parameters. This will only work for FOLIO install with no authentication required.");
-    }
+    String authToken = getAuthtoken(client,
+                                    ctxt.folioAddress,
+                                    ctxt.folioAuthPath,
+                                    ctxt.folioUsername,
+                                    ctxt.folioPassword,
+                                    ctxt.folioTenant);
+    ctxt.setAuthToken(authToken);
+    logger.info("Authenticated to FOLIO Inventory, tenant [" + ctxt.folioTenant + "]");
   }
 
   /**

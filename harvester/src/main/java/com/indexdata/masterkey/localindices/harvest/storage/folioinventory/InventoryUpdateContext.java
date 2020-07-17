@@ -17,10 +17,11 @@ import org.json.simple.parser.ParseException;
 public class InventoryUpdateContext {
 
     public Harvestable harvestable;
-    protected static final String FOLIO_AUTH_PATH = "folioAuthPath";
     protected static final String FOLIO_TENANT = "folioTenant";
+    protected static final String FOLIO_AUTH_PATH = "folioAuthPath";
     protected static final String FOLIO_USERNAME = "folioUsername";
     protected static final String FOLIO_PASSWORD = "folioPassword";
+    protected static final String FOLIO_AUTH_SKIP = "folioAuthSkip";
     protected static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
     protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
     protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
@@ -29,15 +30,17 @@ public class InventoryUpdateContext {
 
     public String folioAddress;
     private JSONObject storageConfig;
-    public String folioAuthPath;
     public String folioTenant;
+    public String folioAuthPath;
     public String folioUsername;
     public String folioPassword;
+    public boolean folioAuthSkip = false;
     public String instanceStoragePath;
     public String holdingsStoragePath;
     public String itemStoragePath;
     public String marcStoragePath;
     public String inventoryUpsertPath;
+    public boolean useInventoryUpsert = false;
 
     public String instanceStorageUrl;
     public String holdingsStorageUrl;
@@ -126,12 +129,15 @@ public class InventoryUpdateContext {
     }
 
     private void setStorageConfigs() {
-        folioAuthPath = getRequiredConfig(FOLIO_AUTH_PATH);
         folioTenant = getRequiredConfig(FOLIO_TENANT);
-        folioUsername = getRequiredConfig(FOLIO_USERNAME);
-        folioPassword = getRequiredConfig(FOLIO_PASSWORD);
-
+        folioAuthSkip = getConfig(FOLIO_AUTH_SKIP, "false").equalsIgnoreCase("true");
+        if (!folioAuthSkip) {
+            folioAuthPath = getRequiredConfig(FOLIO_AUTH_PATH);
+            folioUsername = getRequiredConfig(FOLIO_USERNAME);
+            folioPassword = getRequiredConfig(FOLIO_PASSWORD);
+        }
         if (getConfig(INVENTORY_UPSERT_PATH) != null) {
+            useInventoryUpsert = true;
             inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
         } else {
             instanceStoragePath = getRequiredConfig(INSTANCE_STORAGE_PATH);
@@ -160,6 +166,10 @@ public class InventoryUpdateContext {
 
     public String getConfig(String key) {
         return (String) storageConfig.get(key);
+    }
+
+    public String getConfig(String key, String defaultValue) {
+        return (storageConfig.get(key) != null ? (String) storageConfig.get(key) : "false" );
     }
 
 }

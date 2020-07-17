@@ -81,7 +81,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
 
-      if (ctxt.inventoryUpsertPath != null) {
+      if (ctxt.useInventoryUpsert) {
         JSONObject inventoryRecordSet = new JSONObject();
         JSONObject instance = transformedRecord.getInstance();
         if (transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains("matchkey")) {
