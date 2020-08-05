@@ -160,7 +160,8 @@ public class InventoryStorageController implements RecordStorage {
       setHeaders(httpGet, "application/json");
       CloseableHttpResponse response = client.execute(httpGet);
       if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-        throw new IOException(String.format("Got error retrieving locations",
+        throw new IOException(String.format("Got error '" +
+                    response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() + "' when retrieving locations",
             EntityUtils.toString(response.getEntity())));
       }
       JSONObject jsonResponse;
