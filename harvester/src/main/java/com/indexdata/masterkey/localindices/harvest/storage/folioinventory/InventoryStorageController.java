@@ -181,7 +181,7 @@ public class InventoryStorageController implements RecordStorage {
         throw new StorageException("Failed to retrieve any locations from Inventory, found no 'locations' in response");
       }
     } catch (IOException | ParseException e) {
-      throw new StorageException ("Error occurred trying to build map of location to institutions from FOLIO Inventory: " + e.getMessage());
+      throw new StorageException ("Error occurred trying to build map of locations to institutions from FOLIO Inventory: " + e.getMessage());
     }
   }
 
