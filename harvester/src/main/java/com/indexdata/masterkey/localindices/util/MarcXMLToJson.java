@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+
 /**
  *
  * @author kurt
@@ -42,7 +43,7 @@ public class MarcXMLToJson {
       Element metadata = (Element)topRecord.getElementsByTagName("metadata").item(0);
       record = (Element) metadata.getElementsByTagName("record").item(0);
     } else if (root.getTagName().equals("record")) {
-      record = (Element) root.getElementsByTagName("record").item(0);
+      record = root;
     } else if (root.getTagName().equals("collection")) {
       NodeList records = root.getElementsByTagName("record");
       if (records != null && records.getLength()==1) {
