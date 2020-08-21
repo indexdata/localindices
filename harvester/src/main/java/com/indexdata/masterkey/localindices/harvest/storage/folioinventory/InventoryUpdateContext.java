@@ -139,6 +139,7 @@ public class InventoryUpdateContext {
         if (getConfig(INVENTORY_UPSERT_PATH) != null) {
             useInventoryUpsert = true;
             inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
+            inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
         } else {
             instanceStoragePath = getRequiredConfig(INSTANCE_STORAGE_PATH);
             instanceStorageUrl = folioAddress + instanceStoragePath;
