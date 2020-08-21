@@ -1006,11 +1006,17 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               CloseableHttpResponse response = null;
               try {
                 response = ctxt.inventoryClient.execute(httpDelete);
-                if (response.getStatusLine().getStatusCode() != 204) {
+                String responseAsString = EntityUtils.toString(response.getEntity());
+                JSONObject responseAsJson = getResponseAsJson(responseAsString);
+                if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
                   logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-                  RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting source record", "MARC source");
+                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source");
                   recordWithErrors.reportAndThrowError(error, Level.DEBUG);
                 }
+                UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
+                logger.debug("metrics: " + responseAsJson.toJSONString());
+                setCounters(metrics);
+                logRecordCounts();
               } catch (IOException e) {
                 RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet");
                 recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
