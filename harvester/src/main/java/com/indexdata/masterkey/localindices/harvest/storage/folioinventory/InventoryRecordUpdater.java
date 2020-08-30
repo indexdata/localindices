@@ -672,8 +672,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       response.close();
       if (response.getStatusLine().getStatusCode() != 201) {
         updateCounters.itemsFailed++;
-        String responseStr = response.getEntity().toString();
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseStr, responseStr, "Error adding item record ", "item");
+        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding item record ", "item");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       } else {
         updateCounters.itemsLoaded++;
