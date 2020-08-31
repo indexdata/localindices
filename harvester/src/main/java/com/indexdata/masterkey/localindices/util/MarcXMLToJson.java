@@ -43,7 +43,13 @@ public class MarcXMLToJson {
       Element metadata = (Element)topRecord.getElementsByTagName("metadata").item(0);
       record = (Element) metadata.getElementsByTagName("record").item(0);
     } else if (root.getTagName().equals("record")) {
-      record = root;
+      NodeList recordsEmbeddedInRecord = root.getElementsByTagName("record");
+      if (recordsEmbeddedInRecord != null && recordsEmbeddedInRecord.getLength()==1) {
+        // e.g. a MARC record embeddded in OAI-PMH record
+        record = (Element) recordsEmbeddedInRecord.item(0);
+      } else {
+        record = root;
+      }
     } else if (root.getTagName().equals("collection")) {
       NodeList records = root.getElementsByTagName("record");
       if (records != null && records.getLength()==1) {
