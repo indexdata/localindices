@@ -994,36 +994,75 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
-        String oaiId = (String) deletionJson.get("oaiIdentifier");
-        String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
-        String identifierTypeId = (String) deletionJson.get("identifierTypeId");
-        String institutionId = (String) deletionJson.get("institutionId");
-        if (localIdentifier != null && identifierTypeId != null && institutionId != null) {
-          // This is assumed to be a deletion record targeted for a shared inventory
-          logger.debug("Storage class received a deletion record with local identifier: [" + localIdentifier +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
-          JSONObject instance;
-          instance = getInstance(localIdentifier, identifierTypeId);
-          if (instance != null) {
-            String instanceId = (String) instance.get("id");
-            logger.debug("Found instance to 'delete' [" + instanceId + "]");
-            removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
-            deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
-            updateInstance(instance);
-            if (ctxt.marcStorageUrlIsDefined) {
-              deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
+        if (ctxt.useInventoryUpsert) {
+          logger.info("TODO: Implement delete signal to Inventory upsert: " + deletionJson.toJSONString());
+          logger.info("Sending delete request to " + ctxt.inventoryUpsertUrl);
+              //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
+              HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
+              setHeaders(httpDelete,"application/json");
+              StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
+              httpDelete.setEntity(entity);
+              CloseableHttpResponse response = null;
+              try {
+                response = ctxt.inventoryClient.execute(httpDelete);
+                String responseAsString = EntityUtils.toString(response.getEntity());
+                JSONObject responseAsJson = getResponseAsJson(responseAsString);
+                if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
+                  logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
+                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source");
+                  recordWithErrors.reportAndThrowError(error, Level.DEBUG);
+                }
+                UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
+                logger.debug("metrics: " + responseAsJson.toJSONString());
+                setCounters(metrics);
+                logRecordCounts();
+              } catch (IOException e) {
+                RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet");
+                recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
+              } finally {
+                if (response != null) {
+                  try {
+                    response.close();
+                  } catch (IOException e) {
+                    throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
+                  }
+
+                }
+              }
+
+        } else {
+          String oaiId = (String) deletionJson.get("oaiIdentifier");
+          String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
+          String identifierTypeId = (String) deletionJson.get("identifierTypeId");
+          String institutionId = (String) deletionJson.get("institutionId");
+          if (localIdentifier != null && identifierTypeId != null && institutionId != null) {
+            // This is assumed to be a deletion record targeted for a shared inventory
+            logger.debug("Storage class received a deletion record with local identifier: [" + localIdentifier +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
+            JSONObject instance;
+            instance = getInstance(localIdentifier, identifierTypeId);
+            if (instance != null) {
+              String instanceId = (String) instance.get("id");
+              logger.debug("Found instance to 'delete' [" + instanceId + "]");
+              removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
+              deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
+              logger.debug("Gonna update with instance modified for local identifier");
+              updateInstance(instance);
+              if (ctxt.marcStorageUrlIsDefined) {
+                deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
+              }
+              updateCounters.instanceDeletions++;
+              ((InventoryStorageStatus) ctxt.storageStatus).incrementDelete(1);
+            } else {
+              logger.info("Received delete signal but no existing instance found with local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
             }
-            updateCounters.instanceDeletions++;
-            ((InventoryStorageStatus) ctxt.storageStatus).incrementDelete(1);
-          } else {
-            logger.info("Received delete signal but no existing instance found with local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
+          } else if (localIdentifier != null) {
+            // This is assumed to be a deletion record targeted for a simple inventory
+            logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");
+          } else if (oaiId != null && localIdentifier == null) {
+            logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
+          } else if (oaiId == null) {
+            logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
           }
-        } else if (localIdentifier != null) {
-          // This is assumed to be a deletion record targeted for a simple inventory
-          logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");
-        } else if (oaiId != null && localIdentifier == null) {
-          logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
-        } else if (oaiId == null) {
-          logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
         }
       } else {
         logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
@@ -1032,6 +1071,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         recordWithErrors.writeErrorsLog(logger);
       }
     } catch (InventoryUpdateException iue) {
+      logger.error(iue.getMessage());
       recordWithErrors.writeErrorsLog(logger);
     }
   }
