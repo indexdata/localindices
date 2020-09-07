@@ -995,7 +995,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
         if (ctxt.useInventoryUpsert) {
-          logger.info("TODO: Implement delete signal to Inventory upsert: " + deletionJson.toJSONString());
           logger.info("Sending delete request to " + ctxt.inventoryUpsertUrl);
               //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
               HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
