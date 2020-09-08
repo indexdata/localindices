@@ -20,12 +20,12 @@ public class RecordFailureCounters {
     }
 
     public int incrementErrorCount(RecordError error) {
-        String message = error.getMessage();
-        if (errorsByErrorMessage.containsKey(message)) {
-            errorsByErrorMessage.put(message,errorsByErrorMessage.get(message)+1);
+        String errorKey = error.getCountingKey();
+        if (errorsByErrorMessage.containsKey(errorKey)) {
+            errorsByErrorMessage.put(errorKey,errorsByErrorMessage.get(errorKey)+1);
         } else {
-            errorsByErrorMessage.put(message, 1);
+            errorsByErrorMessage.put(errorKey, 1);
         }
-        return errorsByErrorMessage.get(message);
+        return errorsByErrorMessage.get(errorKey);
     }
 }
