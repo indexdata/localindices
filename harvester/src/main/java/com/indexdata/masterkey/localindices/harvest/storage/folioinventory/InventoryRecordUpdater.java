@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
+import com.indexdata.masterkey.localindices.util.MarcToJson;
 import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 /**
@@ -685,6 +686,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     return itemResponse;
   }
 
+
   /**
    * Get items for a holdings record
    * @param holdingsRecordId
@@ -762,10 +764,17 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
-        logger.log(Level.TRACE,"Incoming original content: " + new String(record.getOriginalContent(), "UTF-8"));
-        marcJson = MarcXMLToJson.convertMarcXMLToJson(new String(record.getOriginalContent(), "UTF-8"));
-        logger.log(Level.TRACE, "Original content converted to JSON: " + marcJson.toJSONString());
+        String originalContentString = new String(record.getOriginalContent(), "UTF-8");
+        if(originalContentString.startsWith("<") ) {
+          logger.log(Level.TRACE,"Treating source record as XML");
+          marcJson = MarcXMLToJson.convertMarcXMLToJson(originalContentString);
+        } else {
+          logger.log(Level.TRACE,"Treating source record as ISO2079");
+          marcJson = MarcToJson.convertMarcRecordsToJson(originalContentString).get(0);
+        }
+        logger.debug(marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
+
         updateCounters.sourceRecordsFailed++;
         RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
@@ -995,7 +1004,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
         if (ctxt.useInventoryUpsert) {
-          logger.info("TODO: Implement delete signal to Inventory upsert: " + deletionJson.toJSONString());
           logger.info("Sending delete request to " + ctxt.inventoryUpsertUrl);
               //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
               HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);

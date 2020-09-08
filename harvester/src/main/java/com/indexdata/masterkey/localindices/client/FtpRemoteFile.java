@@ -24,11 +24,24 @@ public class FtpRemoteFile extends RemoteFile {
     this.logger = logger;
     this.transport = transport;
     //FTP needs root relative paths!
-    if (getAbsoluteName().startsWith("/")) {
-      rootRelPath = getAbsoluteName().substring(1);
-    } else {
-      rootRelPath = getAbsoluteName();
+    logger.debug("getAbsoluteName() returns " + getAbsoluteName() );
+    String parentPath = parent.getPath();
+    //if (getAbsoluteName().startsWith("/")) {
+    String pathCandidate = pathJoin(parentPath, basename(file.getName()));
+    if(pathCandidate.startsWith("/")) {
+      pathCandidate = pathCandidate.substring(1);
     }
+    rootRelPath = pathCandidate;
+  }
+
+  private String pathJoin(String parent, String child) {
+    if(parent.endsWith("/")) {
+      parent = parent.substring(0, parent.length() - 1);
+    }
+    if(child.startsWith("/")) {
+      child = child.substring(1);
+    }
+    return parent + "/" + child;
   }
 
   @Override
@@ -40,6 +53,7 @@ public class FtpRemoteFile extends RemoteFile {
   public synchronized InputStream getInputStream() throws FTPConnectionClosedException, IOException {
     FTPClient client = ((FtpClientTransport)transport).getClient();
     client.setFileType(FTP.BINARY_FILE_TYPE);
+    logger.debug("Getting input stream for rootRelPath " + rootRelPath);
     InputStream data = client.retrieveFileStream(rootRelPath);
     if (data == null) {
       String reply = client.getReplyString();

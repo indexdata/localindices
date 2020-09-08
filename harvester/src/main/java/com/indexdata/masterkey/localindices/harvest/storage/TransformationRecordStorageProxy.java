@@ -16,6 +16,7 @@ import com.indexdata.masterkey.localindices.harvest.messaging.MessageProducer;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageQueue;
 import com.indexdata.masterkey.localindices.harvest.messaging.MessageRouter;
 import com.indexdata.masterkey.localindices.harvest.messaging.RouterFactory;
+import org.apache.log4j.Level;
 
 public class TransformationRecordStorageProxy extends AbstractTransformationRecordStorageProxy  {
   private StorageJobLogger logger;
@@ -42,15 +43,16 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
   }
 
   protected Record transformNode(Record record) throws InterruptedException {
+    logger.log(Level.TRACE, "source is of type " + source.getClass().getName());
     source.put(record);
     if (!result.isEmpty()) {
-	Object obj = result.take();
-	count++;
-	if (obj instanceof Record)
-	  return (Record) obj;
-	else {
-	  logger.error("Unknown type to add: " + obj.getClass() + " " + obj.toString());
-	}
+      Object obj = result.take();
+      count++;
+      if (obj instanceof Record) {
+        return (Record) obj;
+      } else {
+        logger.error("Unknown type to add: " + obj.getClass() + " " + obj.toString());
+      }
     }
     return null;
   }
@@ -60,13 +62,18 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
       String msg = "Stop requested after " + limit + " records";
       logger.info(msg);
       throw new StopException(msg);
+    } else {
+      logger.log(Level.TRACE, "limit is " + limit + " and count is " + count);
     }
   }
 
   @Override
   public void add(Record record) {
-    if (job.isKillSent())
+    if (job.isKillSent()) {
       throw new RuntimeException("Job killed");
+    }
+    logger.debug("TransformationRecordStorageProxy adding record of class "
+        + record.getClass().getName() + ", target is of class " + getTarget().getClass().getName());
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
     while (true) {
       try {
@@ -167,8 +174,10 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
       for (TransformationStep step : steps) {
 	MessageRouter<Object> router = factory.create(step);
 	router.setError(errors);
-	if (source == null)
+	if (source == null) {
+    logger.debug("Initializing source as ConsumerProxy<Object> of type " + router.getClass().getName());
 	  source = new ConsumerProxy<Object>(router);
+  }
 	if (previous != null)
 	  previous.setOutput(new ConsumerProxy<Object>(router));
 	messageRouters[index++] = router;

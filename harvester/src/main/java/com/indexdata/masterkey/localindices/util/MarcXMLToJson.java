@@ -21,11 +21,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-
-/**
- *
- * @author kurt
- */
 public class MarcXMLToJson {
 
   public static JSONObject convertMarcXMLToJson(String marcXML)
