@@ -125,6 +125,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         ctxt.storageStatus.incrementAdd(1);
         setCounters(metrics);
         logRecordCounts();
+        if (recordWithErrors.hasErrors()) {
+          recordWithErrors.logFailedRecord();
+        }
       } else {
         // TODO: eventually deprecate this section and supporting methods
         JSONObject instanceResponse;
@@ -327,14 +330,20 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   private void checkForRecordErrors(CloseableHttpResponse response, JSONObject upsertResponse) {
     if (upsertResponse.containsKey("errors")) {
       JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
-      JSONObject firstError = (JSONObject) errorsArray.get(0);
-      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
-                                              response.getStatusLine().getReasonPhrase(),
-                                              firstError.get("shortMessage").toString() + ": " + firstError.get("entity").toString(),
-                                              firstError.get("shortMessage").toString(),
-                                              "Error upserting Inventory record set",
-                                              firstError.get("entityType").toString());
-      recordWithErrors.reportError(error, Level.DEBUG);
+      for (int i=0; i< errorsArray.size(); i++)  {
+        JSONObject errorJson = (JSONObject) errorsArray.get(i);
+        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
+                response.getStatusLine().getReasonPhrase(),
+                errorJson.get("message").toString(),
+                errorJson.get("shortMessage").toString(),
+                "Error encountered during upsert of Inventory record set",
+                errorJson.get("entityType").toString());
+        if (i==0) {
+          recordWithErrors.reportError(error, Level.DEBUG);
+        } else {
+          recordWithErrors.addError(error);
+        }
+      }
     }
   }
 
