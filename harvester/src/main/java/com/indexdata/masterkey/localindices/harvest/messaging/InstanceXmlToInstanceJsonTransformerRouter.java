@@ -109,6 +109,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
   private void consume(Object documentIn) {
     if (documentIn instanceof Record) {
+      logger.debug("documentIn is of class " + documentIn.getClass().getName());
       Record recordIn = (Record) documentIn;
       RecordJSON recordOut = new RecordJSONImpl();
       try {

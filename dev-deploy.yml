@@ -182,11 +182,6 @@
       mysql_db: name=localindices state=import target=/vagrant/sql/load-gbv-data-to-v2.13.sql
       notify: Restart Tomcat
 
-    - name: Load reshare table data
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/load-reshare-data-to-v2.14.sql
-      notify: Restart Tomcat
-
     - name: Build Harvester and Harvester Admin web apps
       shell: mvn install > mvn-install.log creates=/vagrant/mvn-install.log chdir=/vagrant/
       notify: Restart Tomcat

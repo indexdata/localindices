@@ -10,6 +10,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Node;
 
 /**
  * 
@@ -62,6 +69,22 @@ public class TextUtils {
     }
     int idx = path.lastIndexOf('/');
     return idx == -1 ? path : path.substring(idx+1);
+  }
+
+  public static String nodeToXMLString(Node node) {
+    try {
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+      Transformer transformer = transformerFactory.newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      StringWriter stringWriter = new StringWriter();
+      StreamResult result = new StreamResult(stringWriter);
+      DOMSource domSource = new DOMSource(node);
+      transformer.transform(domSource, result);
+      return stringWriter.toString();
+    } catch(Exception e) {
+      return "Failed to transform node: " + e.getLocalizedMessage();
+    }
   }
   
   

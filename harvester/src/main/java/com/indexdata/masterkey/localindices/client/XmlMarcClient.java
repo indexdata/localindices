@@ -45,8 +45,10 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordDOMImpl;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.XmlSplitter;
+import com.indexdata.masterkey.localindices.util.TextUtils;
 import com.indexdata.xml.filter.MessageConsumer;
 import com.indexdata.xml.filter.SplitContentHandler;
+import org.w3c.dom.Node;
 
 public class XmlMarcClient extends AbstractHarvestClient {
   private String errorText = "Failed to download/parse/store : ";
@@ -116,7 +118,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
                   logger.info("Found subfolder '"+rf.getName()+"' but recursion is off, ignoring.");
                 }
               } else {
-                  download(rf);
+                logger.debug("Downloading " + rf.getAbsoluteName());
+                download(rf);
               }
             } catch (FTPConnectionClosedException fcce) {
               if (getResource().getAllowErrors() && !job.isKillSent()) {
@@ -203,6 +206,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
     //TODO RemoteFile abstraction is not good enough to make this clean
     //some transports may deal with compressed files (e.g http) others may not
     //if we end up with a compressed mimetype we need to decompress
+    logger.debug("mimeType is " + mimeType.getMimeType());
     if (mimeType.isZip()) {
       logger.debug("Transport returned ZIP compressed file, expanding..");
       ZipInputStream zis = new ZipInputStream(input);
@@ -455,13 +459,18 @@ public class XmlMarcClient extends AbstractHarvestClient {
     long index = 0;
     MarcWriter writer;
     RecordStorage storage = job.getStorage();
+    logger.debug("Storage is " + storage.getClass().getName());
 
     ByteArrayOutputStream baos = null;
     MarcStreamWriter iso2709writer = null;
-    baos = new ByteArrayOutputStream(20000);
-    iso2709writer = new MarcStreamWriter(baos);
+    if (resource.isStoreOriginal()) {
+      logger.debug("Initializing writer for original iso2709 marc file");
+      baos = new ByteArrayOutputStream(20000);
+      iso2709writer = new MarcStreamWriter(baos);
+    }
     while (reader.hasNext()) {
       try {
+        logger.debug("Reading next marc record in file");
         org.marc4j.marc.Record record = reader.next();
         DOMResult result = new DOMResult();
         if (isTurboMarc) {
@@ -473,13 +482,20 @@ public class XmlMarcClient extends AbstractHarvestClient {
         if (baos != null && iso2709writer != null) {
           baos.reset();
           iso2709writer.write(record);
+          logger.debug("Wrote MARC record to buffer: " + record.toString());
         }
         writer.close();
         if (record.getLeader().getTypeOfRecord() == 'd') {
           storage.delete(record.getControlNumber());
         } else {
-          storage.add(new RecordDOMImpl(record.getControlNumber(), null, result.
-            getNode(), baos != null ? baos.toByteArray() : null));
+          logger.debug("Adding new Record to storage");
+          logger.debug("XML value of Record is " + TextUtils.nodeToXMLString(result.getNode()));
+          Node node = result.getNode();       
+          RecordDOMImpl rdi = new RecordDOMImpl(record.getControlNumber(), null,
+              node, baos != null ? baos.toByteArray() : null);
+          //logger.debug("Value of isCollection is " + rdi.isCollection());
+          //logger.debug("Value of subRecords is " + rdi.getSubRecords());
+          storage.add(rdi);
         }
         if (job.isKillSent()) {
           // Close to end the pipe

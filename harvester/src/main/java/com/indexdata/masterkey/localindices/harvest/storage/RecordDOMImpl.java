@@ -22,6 +22,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import ORG.oclc.oai.harvester2.verb.XPathHelper;
+import com.indexdata.masterkey.localindices.util.TextUtils;
 
 public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   private String pz2Namespace = "http://www.indexdata.com/pazpar2/1.0";
@@ -122,6 +123,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   @Override
   public boolean isCollection() {
     if (node != null) {
+      logger.debug("Checking for collection with node structure " + TextUtils.nodeToXMLString(node));
       Element root;
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         root = (Element) node;
@@ -130,6 +132,11 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       } else {
         root = node.getOwnerDocument().getDocumentElement();
       }
+      if(root == null) {
+        return false;
+      }
+      logger.debug("root tag name is " + root.getTagName());
+      logger.debug("root local name is " + root.getLocalName());
       boolean isCollection = (
               root != null
               && (root.getTagName().equals("collection") ||
@@ -137,19 +144,36 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
               );
       return isCollection;
     } else {
+      logger.debug("Attempted to check isCollection but node is null");
       return false;
     }
   }
 
   public Collection<Record> getSubRecords() {
-    if (!isCollection()) return null;
+    if (!isCollection()) {
+      logger.debug("Not collection, returning null");
+      return null;
+    }
+    logger.debug("Checking for sub records with node structure " + TextUtils.nodeToXMLString(node));
+    NodeList children = null;
+    if(node.getNodeType() == Node.DOCUMENT_NODE) {
+      logger.debug("Node is a document node");
+      children = ((Document) node).getDocumentElement().getChildNodes();
+    } else {
+      children = node.getChildNodes();
+    }
+    logger.debug(children.getLength() + " child nodes found");
+    /*
     NodeList children = node.getNodeType() == Node.DOCUMENT_NODE
-      ? ((Document) node).getDocumentElement().getChildNodes()
-      : node.getChildNodes();
+        ? ((Document) node).getDocumentElement().getChildNodes()
+        : node.getChildNodes();
+    */
     List<Record> list = new ArrayList<Record>(children.getLength());
-    for (int i=0; i<children.getLength(); i++) {
+    for (int i = 0; i < children.getLength(); i++) {
       Node child = children.item(i);
-      if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+      if (child.getNodeType() != Node.ELEMENT_NODE) {
+        continue;
+      }
       Element childElem = (Element) child;
       //original record is set to null since at this point the collection
       //is most likely transformed and we can't "extract' matching original rec

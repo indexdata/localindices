@@ -1,4 +1,4 @@
-FROM jetty
+FROM jetty:9.3-jre8
 
 USER root
 RUN mkdir -p /etc/masterkey/harvester
