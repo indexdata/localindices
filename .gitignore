@@ -29,3 +29,5 @@ masterkey-dal/generated-sources/
 lui-solr/
 /mvn-install.log
 *.retry
+.idea/
+*.iml
