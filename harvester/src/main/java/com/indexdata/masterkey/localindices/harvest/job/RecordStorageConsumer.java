@@ -28,9 +28,7 @@ public class RecordStorageConsumer implements MessageConsumer {
     recordStorage = storage;
     this.logger = logger;
     this.storeOriginal = storeOriginal;
-    if (storeOriginal) {
-      originalBuff = new ByteArrayOutputStream(ORIGINAL_BUFF_SIZE);
-    }
+    originalBuff = new ByteArrayOutputStream(ORIGINAL_BUFF_SIZE);
   }
   
   @Override
@@ -38,15 +36,13 @@ public class RecordStorageConsumer implements MessageConsumer {
     long creationStart = System.currentTimeMillis();
     logger.log(Level.TRACE, "Document in pipeline for storage: " + nodeAsString(xmlNode));
     byte[] original = null;
-    if (this.storeOriginal) {
-      originalBuff.reset();
-      try {
-        XmlUtils.serialize(xmlNode, originalBuff);
-      } catch (TransformerException ex) {
-        logger.error("Failed to serialize original contents for storage, record num "+added);
-      }
-      original = originalBuff.toByteArray();
+    originalBuff.reset();
+    try {
+      XmlUtils.serialize(xmlNode, originalBuff);
+    } catch (TransformerException ex) {
+      logger.error("Failed to serialize original contents for storage, record num "+added);
     }
+    original = originalBuff.toByteArray();
     Record record = new RecordDOMImpl(null, null, xmlNode, original);
     record.setCreationTiming(System.currentTimeMillis()-creationStart);
     try {

@@ -114,7 +114,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
     }
 
     public String getLocalIdentifier () {
-      return (String) transformed.get("localIdentifier");
+      String id = (String) transformed.get("localIdentifier");
+      if (id == null) id = (String) getInstance().get("hrid");
+      return id;
     }
 
     public String getOriginalXml() {
@@ -139,7 +141,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       }
     }
 
-    public JSONObject getTransformedRecordExclussiveOriginal () {
+    public JSONObject getTransformedRecordExclusiveOriginal() {
       JSONObject transformedExclussiveOriginal = null;
       if (transformed != null) {
         try {

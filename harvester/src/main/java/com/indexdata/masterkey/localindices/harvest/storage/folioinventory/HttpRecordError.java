@@ -5,56 +5,71 @@ import org.apache.http.StatusLine;
 public class HttpRecordError implements RecordError {
 
     public int statusCode;
-    public String reason;
-    public String response;
-    public String context;
+    public String reasonPhrase;
+    public String serverMessage;
+    public String additionalContext;
+    public String recordType;
+    public String countingMessage;
+    public String transaction;
     public String entity;
-    public String countingKey;
 
-    public HttpRecordError(int status, String reason, String response, String countingKey, String context, String entity) {
-      this.statusCode = status;
-      this.reason = reason;
-      this.response = response;
-      this.context = context;
+    public HttpRecordError(int statusCode, String reasonPhrase, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity) {
+      this.statusCode = statusCode;
+      this.reasonPhrase = reasonPhrase;
+      this.serverMessage = serverMessage;
+      this.additionalContext = additionalContext;
+      this.recordType = recordType;
+      this.countingMessage = countingMessage;
+      this.transaction = transaction;
       this.entity = entity;
-      this.countingKey = countingKey;
     }
 
-    public HttpRecordError(int status, String reason, String response, String countingKey, String context) {
-      this(status, reason, response, context, countingKey, "unspecified");
-    }
-
-    public HttpRecordError(StatusLine httpStatus, String response, String countingKey, String context, String entity) {
-      this(httpStatus.getStatusCode(), httpStatus.getReasonPhrase(), response, countingKey, context, entity);
+    public HttpRecordError(StatusLine httpStatus, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity) {
+      this(httpStatus.getStatusCode(), httpStatus.getReasonPhrase(), serverMessage, countingMessage, additionalContext, recordType, transaction, entity);
     }
 
     @Override
     public String toString() {
-      return entity + ": " + context + ". Status code ["+statusCode+"]." + reason + "]." + response;
+      return recordType + ": " + additionalContext + ". Status code ["+statusCode+"]." + reasonPhrase + "]." + serverMessage;
     }
 
     @Override
-    public String getMessage() {
-      return context + "; " + reason + "; " + response;
+    public String getMessageWithContext() {
+      return additionalContext + "; " + reasonPhrase + "; " + serverMessage;
     }
 
-    public String getErrorContext() {
-      return context;
+    @Override
+    public String getAdditionalContext() {
+      return additionalContext;
     }
 
-    public String getType() {
-      return reason;
+    @Override
+    public String getErrorType() {
+      return reasonPhrase;
     }
 
-    public String getBriefMessage() {
-      return response;
+    @Override
+    public String getServerMessage() {
+      return serverMessage;
     }
 
-    public String getCountingKey() {
-      return countingKey;
+    @Override
+    public String getShortMessageForCounting() {
+      return countingMessage;
     }
 
-    public String getStorageEntity() {
-      return entity;
+    @Override
+    public String getTransaction() {
+        return transaction;
+    }
+
+    @Override
+    public String getEntity() {
+        return entity;
+    }
+
+    @Override
+    public String getRecordType() {
+      return recordType;
     }
 }
