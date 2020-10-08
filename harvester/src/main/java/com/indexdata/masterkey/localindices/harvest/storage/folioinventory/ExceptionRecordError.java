@@ -19,10 +19,6 @@ public class ExceptionRecordError implements RecordError {
       this.typeOfEntity = typeOfEntity;
     }
 
-    public ExceptionRecordError(Exception e, String context) {
-        this(e, context, "unspecified");
-    }
-
     private String stackTraceAsString (Exception e) {
         StringWriter strWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(strWriter);
@@ -40,22 +36,27 @@ public class ExceptionRecordError implements RecordError {
         return context + "; [" + exceptionType + "]; " + message;
     }
 
+    @Override
     public String getErrorContext() {
       return context;
     }
 
+    @Override
     public String getType() {
       return exceptionType;
     }
 
+    @Override
     public String getBriefMessage() {
       return message;
     }
 
+    @Override
     public String getCountingKey () {
       return message;
     }
 
+    @Override
     public String getStorageEntity() {
       return typeOfEntity;
     }

@@ -141,7 +141,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       }
     }
 
-    public JSONObject getTransformedRecordExclussiveOriginal () {
+    public JSONObject getTransformedRecordExclusiveOriginal() {
       JSONObject transformedExclussiveOriginal = null;
       if (transformed != null) {
         try {

@@ -189,8 +189,8 @@ public class RecordWithErrors {
    */
   private void addTransformedExcludingOriginal(Document failedRecord) {
     Element transformedElement = failedRecord.createElement("transformed-record");
-    JSONObject transformedRecordExclussiveOriginal = transformedRecord.getTransformedRecordExclussiveOriginal();
-    transformedElement.setTextContent(Jsoner.prettyPrint(transformedRecordExclussiveOriginal.toJSONString()));
+    JSONObject transformedRecordExclusiveOriginal = transformedRecord.getTransformedRecordExclusiveOriginal();
+    transformedElement.setTextContent(Jsoner.prettyPrint(transformedRecordExclusiveOriginal.toJSONString()));
     failedRecord.getDocumentElement().appendChild(transformedElement);
   }
 
