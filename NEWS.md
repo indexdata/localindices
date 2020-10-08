@@ -1,3 +1,11 @@
+## 2.14.0
+
+ * Adds simple webservice serving up failed records and error information from file system
+ * Stores failed records in logging directories, according to choices made in job configuration
+ * Reinstates option to ingest without FOLIO auth enabled
+ * Adds support for new Inventory storage API: upsert APIs served by mod-inventory-update
+ * Adds conditional conversion of JSON for iso2079 vs XML
+
 ## 2.13.0
 
  * Introduces text column `JSON` on STORAGE for free form STORAGE configuration (GBV-56)
