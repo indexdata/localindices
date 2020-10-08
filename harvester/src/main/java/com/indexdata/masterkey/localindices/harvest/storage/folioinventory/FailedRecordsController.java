@@ -5,7 +5,11 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
+import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 
 import org.apache.commons.io.FileUtils;
@@ -17,7 +21,7 @@ import org.apache.commons.io.FileUtils;
  *
  */
 public class FailedRecordsController {
-    // Configuration - requires implementation in Harvestable config
+    // Configuration
     protected int maxFailedRecordFilesThisRun = 100;
     protected int maxFailedRecordFilesTotal = 450;
     protected enum StoreMode {NO_STORE, CLEAN_DIRECTORY, CREATE_OVERWRITE, ADD_ALL};
@@ -33,10 +37,16 @@ public class FailedRecordsController {
     int initialNumberOfFiles = 0;
     int calculatedNumberOfFiles = 0;
 
-    public FailedRecordsController(StorageJobLogger logger, Long jobId) {
-        this.jobId = jobId;
+    public FailedRecordsController(StorageJobLogger logger, Harvestable config) {
+        this.jobId = config.getId();
         this.recordFailureCounters = new RecordFailureCounters();
         this.logger = logger;
+        String retention = config.getFailedRecordsLogging();
+        this.mode = (retention == null ? StoreMode.CLEAN_DIRECTORY : StoreMode.valueOf(retention));
+        this.maxFailedRecordFilesThisRun = config.getMaxSavedFailedRecordsPerRun();
+        this.maxFailedRecordFilesTotal = config.getMaxSavedFailedRecordsTotal();
+
+        prepareFailedRecordsDirectory(logger, jobId);
     }
 
     public String getMode() {
@@ -51,7 +61,6 @@ public class FailedRecordsController {
      * @param logger
      * @param jobId
      */
-    @SuppressWarnings("unused")  // Requires implementation in Harvestable config
     private void prepareFailedRecordsDirectory(StorageJobLogger logger, Long jobId) {
         Path failedRecordsDirectory = Paths.get(HARVESTER_LOG_DIR, FAILED_RECORDS_DIR, jobId.toString());
         try {
@@ -68,8 +77,7 @@ public class FailedRecordsController {
             }
             initialNumberOfFiles = countFiles(failedRecordsDirectory);
             calculatedNumberOfFiles = initialNumberOfFiles;
-            logger.info("Initialized failed-records controller (mode " + getMode() + ")");
-            logger.info("There are " + initialNumberOfFiles + " file(s) in the job's failed-records directory at the beginning of this run");
+            logger.info("Initialized failed-records controller (mode " + getMode() + "). There are " + initialNumberOfFiles + " saved file(s) in the failed-records directory.");
         } catch (IOException e) {
             directoryReady = false;
             this.logger.error("Could not initialize directory for storing failed records. Will not save any failed records");
@@ -108,8 +116,8 @@ public class FailedRecordsController {
      * Writes statistics to job log, counting errors by type
      */
     public void writeLog() {
-        for (String key : recordFailureCounters.errorsByErrorMessage.keySet()) {
-            logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByErrorMessage.get(key),key));
+        for (String key : recordFailureCounters.errorsByShortErrorMessage.keySet()) {
+            logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByShortErrorMessage.get(key),key));
         }
     }
 
@@ -184,8 +192,20 @@ public class FailedRecordsController {
     }
 
     private String getFileName (RecordWithErrors failedRecord) {
-        String filename = ((String) failedRecord.getRecordIdentifier()) + ".xml";
+        String filename;
+        String recid = failedRecord.getRecordIdentifier();
+        if (recid==null) {
+           filename = "timestamp-" + timestamp() + ".xml";
+        } else {
+           filename = recid + ".xml";
+        }
         return filename;
+    }
+
+    private String timestamp () {
+        LocalDateTime now = LocalDateTime.now();
+        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS", Locale.getDefault()));
+        return timestamp;
     }
 
     private String getFileName (RecordWithErrors failedRecord, int version) {
@@ -196,8 +216,8 @@ public class FailedRecordsController {
         return this.recordFailureCounters;
     }
 
-    public int getErrorsByErrorKey(String errorKey) {
-        return getCounters().errorsByErrorMessage.get(errorKey);
+    public int getErrorsByShortErrorMessage(String errorKey) {
+        return getCounters().errorsByShortErrorMessage.get(errorKey);
     }
 
     public int incrementErrorCount (RecordError error) {

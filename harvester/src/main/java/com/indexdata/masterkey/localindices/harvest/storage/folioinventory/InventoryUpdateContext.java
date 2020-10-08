@@ -88,7 +88,7 @@ public class InventoryUpdateContext {
         timingsCreatingRecord.setLogLevelForIntervals(Level.DEBUG);
         timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
         timingsTransformingRecord.setLogLevelForIntervals(Level.DEBUG);
-        failedRecordsController = new FailedRecordsController(logger, harvestable.getId());
+        failedRecordsController = new FailedRecordsController(logger, harvestable);
     }
 
     public void setClient (CloseableHttpClient inventoryClient) {
