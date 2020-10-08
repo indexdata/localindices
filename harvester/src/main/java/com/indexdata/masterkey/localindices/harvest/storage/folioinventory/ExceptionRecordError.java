@@ -10,13 +10,17 @@ public class ExceptionRecordError implements RecordError {
     public String stackTrace;
     public String context;
     public String typeOfEntity;
+    public String transaction;
+    public String entity;
 
-    public ExceptionRecordError(Exception e, String context, String typeOfEntity) {
+    public ExceptionRecordError(Exception e, String context, String typeOfEntity, String transaction, String entity) {
       this.exceptionType = e.getClass().getSimpleName();
       this.message = e.getLocalizedMessage();
       this.stackTrace = stackTraceAsString(e);
       this.context = context==null ? "" : context;
       this.typeOfEntity = typeOfEntity;
+      this.transaction = transaction;
+      this.entity = entity;
     }
 
     private String stackTraceAsString (Exception e) {
@@ -32,33 +36,43 @@ public class ExceptionRecordError implements RecordError {
     }
 
     @Override
-    public String getMessage() {
+    public String getMessageWithContext() {
         return context + "; [" + exceptionType + "]; " + message;
     }
 
     @Override
-    public String getErrorContext() {
+    public String getAdditionalContext() {
       return context;
     }
 
     @Override
-    public String getType() {
+    public String getErrorType() {
       return exceptionType;
     }
 
     @Override
-    public String getBriefMessage() {
+    public String getServerMessage() {
       return message;
     }
 
     @Override
-    public String getCountingKey () {
+    public String getShortMessageForCounting() {
       return message;
     }
 
     @Override
-    public String getStorageEntity() {
+    public String getRecordType() {
       return typeOfEntity;
+    }
+
+    @Override
+    public String getTransaction() {
+        return transaction;
+    }
+
+    @Override
+    public String getEntity() {
+        return entity;
     }
 
 }

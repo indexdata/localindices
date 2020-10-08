@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.github.cliftonlabs.json_simple.Jsoner;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -108,13 +109,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               updateCounters.sourceRecordsFailed++;
               RecordError error = new ExceptionRecordError(
                 new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
-                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
               recordWithErrors.reportError(error, Level.DEBUG);
             }
           } else {
             RecordError error = new ExceptionRecordError(
               new InventoryUpdateException("Instance error: Cannot store original content as requested since Instance creation failed"),
-              "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+              "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "");
             recordWithErrors.reportError(error, Level.DEBUG);
 
           }
@@ -154,7 +155,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               updateCounters.sourceRecordsFailed++;
               RecordError error = new ExceptionRecordError(
                 new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
-                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD);
+                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "");
               recordWithErrors.reportAndThrowError(error, Level.DEBUG);
             }
           }
@@ -332,12 +333,21 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
       for (int i=0; i< errorsArray.size(); i++)  {
         JSONObject errorJson = (JSONObject) errorsArray.get(i);
-        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(),
+        String messageString = "";
+        if (errorJson.get("message") instanceof JSONObject) {
+          messageString = Jsoner.prettyPrint(((JSONObject) errorJson.get("message")).toJSONString());
+        } else {
+          messageString = errorJson.get("message").toString();
+        }
+        RecordError error = new HttpRecordError(
+                response.getStatusLine().getStatusCode(),
                 response.getStatusLine().getReasonPhrase(),
                 errorJson.get("message").toString(),
-                errorJson.get("shortMessage").toString(),
+                messageString,
                 "Error encountered during upsert of Inventory record set",
-                errorJson.get("entityType").toString());
+                errorJson.get("entityType").toString(),
+                errorJson.get("transaction").toString(),
+                errorJson.get("entity").toString());
         if (i==0) {
           recordWithErrors.reportError(error, Level.DEBUG);
         } else {
@@ -350,11 +360,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   private void checkForNoSuitableModulePath(CloseableHttpResponse response, String responseAsString) {
     if (response.getStatusLine().getStatusCode() == 404) {
       updateCounters.instancesFailed++;
-      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet");
+      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}" );
       recordWithErrors.reportError(error, Level.DEBUG);
       logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
       if (responseAsString.contains("No suitable module found for path")) {
-        throw new StorageException(error.getMessage());
+        throw new StorageException(error.getMessageWithContext());
       }
     }
   }
@@ -391,7 +401,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       response.close();
       if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
         updateCounters.instancesFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error "+method+"ing Instance", "Instance");
+        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error "+method+"ing Instance", "Instance", method, "");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
         logger.debug(String.format("Got error %s, %s adding Instance record: %s", response.getStatusLine().getStatusCode(), responseAsString, instanceRecord.toJSONString()));
       } else {
@@ -400,7 +410,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
     } catch (IOException  e) {
       updateCounters.instancesFailed++;
-      RecordError error = new ExceptionRecordError(e, "Error adding Instance record", "Instance");
+      RecordError error = new ExceptionRecordError(e, "Error adding Instance record", "Instance", "POST", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
     return instanceResponse;
@@ -424,7 +434,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       response.close();
       logger.debug("Updated instance " + instance.get("id"));
     } catch (IOException ioe) {
-      RecordError error = new ExceptionRecordError(ioe,"Error updating instance", "instance");
+      RecordError error = new ExceptionRecordError(ioe,"Error updating instance", "instance", "PUT", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
   }
@@ -449,7 +459,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       String responseAsString = EntityUtils.toString(response.getEntity());
       if (response.getStatusLine().getStatusCode() != 201) {
         updateCounters.holdingsRecordsFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding a holdingsRecord to Inventory", "holdings");
+        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding a holdingsRecord to Inventory", "holdings", "POST", "");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       } else {
         updateCounters.holdingsRecordsLoaded++;
@@ -458,14 +468,14 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         } catch (ParseException pe) {
           holdingsRecordResponse = new JSONObject();
           holdingsRecordResponse.put("wrappedErrorMessage", responseAsString);
-          RecordError error = new ExceptionRecordError(pe, "Error parsing holdingsRecords from response ", "holdings");
+          RecordError error = new ExceptionRecordError(pe, "Error parsing holdingsRecords from response ", "holdings", "POST", "");
           recordWithErrors.reportAndThrowError(error, Level.DEBUG);
         }
       }
       response.close();
     } catch (IOException | org.apache.http.ParseException e) {
       updateCounters.holdingsRecordsFailed++;
-      RecordError error = new ExceptionRecordError(e, "Exception while adding holdingsRecord","holdings");
+      RecordError error = new ExceptionRecordError(e, "Exception while adding holdingsRecord","holdings","POST", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
     return holdingsRecordResponse;
@@ -575,11 +585,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       response = ctxt.inventoryClient.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.toString(), response.toString(), "Error DELETEing item", "item");
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.toString(), response.toString(), "Error DELETEing item", "item", "DELETE", "{}");
         recordWithErrors.reportAndThrowError(error, Level.ERROR);
       }
     } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "IOException when attempting to DELETE item", "item");
+      RecordError error = new ExceptionRecordError(e, "IOException when attempting to DELETE item", "item", "DELETE", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
     } finally {
       if (response != null) {
@@ -630,7 +640,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           try {
             items = extractJsonArrayFromObject(holdingsRecord, "items");
           } catch (ParseException e) {
-            RecordError error = new ExceptionRecordError(e, "Exception when trying to extract item array from holdings record JSON ", "holdings/items");
+            RecordError error = new ExceptionRecordError(e, "Exception when trying to extract item array from holdings record JSON ", "holdings/items", "preparation", "");
             recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
           }
           try {
@@ -683,14 +693,14 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       response.close();
       if (response.getStatusLine().getStatusCode() != 201) {
         updateCounters.itemsFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding item record ", "item");
+        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding item record ", "item", "POST", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       } else {
         updateCounters.itemsLoaded++;
       }
     } catch (IOException | org.apache.http.ParseException e ) {
       updateCounters.itemsFailed++;
-      RecordError error = new ExceptionRecordError(e, "Error adding item record", "item");
+      RecordError error = new ExceptionRecordError(e, "Error adding item record", "item","POST", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
     return itemResponse;
@@ -713,11 +723,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
         RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(),
                                           response.getEntity().toString(),
-                                          "Error retrieving items for holdingsRecord ", "items");
+                                          "Error retrieving items for holdingsRecord ", "items", "GET", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       }
     } catch (IOException ioe) {
-      RecordError error = new ExceptionRecordError(ioe, "Exception when GETing items by holdings ID ", "item");
+      RecordError error = new ExceptionRecordError(ioe, "Exception when GETing items by holdings ID ", "item", "GET", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, ioe);
     }
     JSONArray itemsJson = null;
@@ -727,7 +737,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       jsonResponse = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
       itemsJson = (JSONArray) (jsonResponse.get("items"));
     } catch (ParseException | IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET items by holdings ID", "item");
+      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET items by holdings ID", "item", "GET", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
     }
     return itemsJson;
@@ -747,11 +757,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       response = ctxt.inventoryClient.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting holdingsRecord ", "holdingsRecord");
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting holdingsRecord ", "holdingsRecord",  "DELETE", "{}");
         recordWithErrors.reportAndThrowError(error, Level.ERROR);
       }
     } catch (IOException io) {
-      RecordError error = new ExceptionRecordError(io, "Exception when deleting holdingsRecord", "holdingsRecord");
+      RecordError error = new ExceptionRecordError(io, "Exception when deleting holdingsRecord", "holdingsRecord", "DELETE", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, io);
     } finally {
       if (response != null) {
@@ -786,7 +796,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       } catch (IOException | ParserConfigurationException | SAXException e) {
 
         updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source");
+        RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source", "GET", "");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       }
     } else {
@@ -794,7 +804,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         updateCounters.sourceRecordsFailed++;
         RecordError error = new ExceptionRecordError(new InventoryUpdateException("Job set to store original source but no original content found."),
                                               "Job set to store original source but no original content found.",
-                                              "MARC source");
+                                              "MARC source", "preparation", "");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       }
     }
@@ -826,7 +836,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         response.getStatusLine(), response.getEntity().toString(),
         response.getEntity().toString(),
         String.format("Error retrieving instance by local identifier %s and identifierTypeId %s", localIdentifier, identifierTypeId),
-        "instance");
+        "instance", "GET", "{}");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
     JSONObject jsonResponse = null;
@@ -835,14 +845,14 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       responseString = EntityUtils.toString(response.getEntity());
     } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET Instance ", "instance");
+      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET Instance ", "instance", "GET", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
     }
     logger.debug("getInstanceId response: " + responseString);
     try {
       jsonResponse = (JSONObject) parser.parse(responseString);
     } catch (ParseException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when trying to Instance response as JSON ", "instance");
+      RecordError error = new ExceptionRecordError(e, "Exception when trying to Instance response as JSON ", "instance", "process result", "");
       recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
     }
     Long totalRecords = (Long) jsonResponse.getOrDefault("totalRecords", 0);
@@ -873,7 +883,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       setHeaders(httpGet,"application/json");
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpGet);
       if (response.getStatusLine().getStatusCode() != 200) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error looking up existing MARC record, expected status 200", "MARC source");
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error looking up existing MARC record, expected status 200", "MARC source", "GET", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       } else {
         String responseAsString = EntityUtils.toString(response.getEntity());
@@ -891,7 +901,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
       response.close();
     } catch (IOException | ParseException e) {
-      RecordError error = new ExceptionRecordError(e, "Error when checking for previously existing MARC record","MARC source");
+      RecordError error = new ExceptionRecordError(e, "Error when checking for previously existing MARC record","MARC source","GET", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
     logger.debug("Got existing MARC in: " + (System.currentTimeMillis()-startGetExistingMarc));
@@ -930,7 +940,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           marcResponse = getResponseAsJson(responseAsString);
           if (response.getStatusLine().getStatusCode() != 201) {
             updateCounters.sourceRecordsFailed++;
-            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding MARC source record ", "MARC source");
+            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding MARC source record ", "MARC source", "POST", "{}");
             recordWithErrors.reportAndThrowError(error, Level.DEBUG);
           } else {
             logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
@@ -950,7 +960,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           response.close();
           if (response.getStatusLine().getStatusCode() != 204) {
             updateCounters.sourceRecordsFailed++;
-            RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error updating existing MARC record", "MARC source");
+            RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error updating existing MARC record", "MARC source", "PUT", "{}");
             recordWithErrors.reportAndThrowError(error, Level.DEBUG);
           } else {
             logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for PUT of marc json " + marcPostJson.toJSONString());
@@ -960,7 +970,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         }
       } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
         updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError(e, "Error adding MARC source record", "MARC source");
+        RecordError error = new ExceptionRecordError(e, "Error adding MARC source record", "MARC source", "POST", "");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       }
     }
@@ -981,13 +991,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     try {
       response = ctxt.inventoryClient.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting source record", "MARC source");
+        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting source record", "MARC source", "DELETE", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
       } else {
         updateCounters.sourceRecordsDeleted++;
       }
     } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Error DELETEing MARC source record", "MARC source");
+      RecordError error = new ExceptionRecordError(e, "Error DELETEing MARC source record", "MARC source", "DELETE", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
     } finally {
       if (response != null) {
@@ -1027,7 +1037,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
                 JSONObject responseAsJson = getResponseAsJson(responseAsString);
                 if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
                   logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source");
+                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source", "DELETE", "{}");
                   recordWithErrors.reportAndThrowError(error, Level.DEBUG);
                 }
                 UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
@@ -1035,7 +1045,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
                 setCounters(metrics);
                 logRecordCounts();
               } catch (IOException e) {
-                RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet");
+                RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet", "DELETE", "{}");
                 recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
               } finally {
                 if (response != null) {
@@ -1176,7 +1186,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       throw new InventoryUpdateException("IOException when trying to delete Instance record: " + e.getMessage(), e);
     }
     if (response.getStatusLine().getStatusCode() != 204) {
-      RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting instance record", "Instance");
+      RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting instance record", "Instance", "DELETE", "{}");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
   }

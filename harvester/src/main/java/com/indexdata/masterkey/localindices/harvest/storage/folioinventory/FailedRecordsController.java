@@ -116,8 +116,8 @@ public class FailedRecordsController {
      * Writes statistics to job log, counting errors by type
      */
     public void writeLog() {
-        for (String key : recordFailureCounters.errorsByErrorMessage.keySet()) {
-            logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByErrorMessage.get(key),key));
+        for (String key : recordFailureCounters.errorsByShortErrorMessage.keySet()) {
+            logger.info(String.format("%d records failed with %s", recordFailureCounters.errorsByShortErrorMessage.get(key),key));
         }
     }
 
@@ -216,8 +216,8 @@ public class FailedRecordsController {
         return this.recordFailureCounters;
     }
 
-    public int getErrorsByErrorKey(String errorKey) {
-        return getCounters().errorsByErrorMessage.get(errorKey);
+    public int getErrorsByShortErrorMessage(String errorKey) {
+        return getCounters().errorsByShortErrorMessage.get(errorKey);
     }
 
     public int incrementErrorCount (RecordError error) {

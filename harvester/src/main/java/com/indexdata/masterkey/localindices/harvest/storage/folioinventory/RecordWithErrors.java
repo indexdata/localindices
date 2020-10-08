@@ -85,11 +85,11 @@ public class RecordWithErrors {
     addError(error);
     int count = failCtrl.incrementErrorCount(error);
     if (count <= 10) {
-      logger.error(error.getMessage());
+      logger.error(error.getMessageWithContext());
     } else if (count>10 && count < 100) {
-      logger.log(logLevel, error.getBriefMessage());
+      logger.log(logLevel, error.getServerMessage());
     } else if (count % 100 == 0) {
-      logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByErrorKey(error.getCountingKey()), error.getCountingKey()));
+      logger.error(String.format("%d records failed with %s", failCtrl.getErrorsByShortErrorMessage(error.getShortMessageForCounting()), error.getShortMessageForCounting()));
     }
   }
 
@@ -106,19 +106,18 @@ public class RecordWithErrors {
    * and a brief error message with a total count for every 100 records with only that error thereafter.
    *
    * @param logger
-   * @param counters
    */
   void writeErrorsLog(StorageJobLogger logger) {
     if (hasErrors()) {
       int i=0;
       for (RecordError error : errors) {
         i++;
-        int occurrences = failCtrl.getErrorsByErrorKey(error.getCountingKey());
+        int occurrences = failCtrl.getErrorsByShortErrorMessage(error.getShortMessageForCounting());
         if (occurrences < 10) {
           if (i==1) logger.error("Error" + (numberOfErrors() > 1 ? "s" : "") + " updating Inventory with  " + transformedRecord.getJson());
-          logger.error("#" + i + " " + error.getMessage());
+          logger.error("#" + i + " " + error.getMessageWithContext());
         } else if (occurrences % 100 == 0) {
-          logger.error(occurrences + " records have failed with " + error.getCountingKey());
+          logger.error(occurrences + " records have failed with " + error.getShortMessageForCounting());
         }
       }
     }
@@ -229,17 +228,23 @@ public class RecordWithErrors {
       for (RecordError error : errors) {
         Element errorElement = failedRecord.createElement("error");
         Element labelElement = failedRecord.createElement("label");
-        labelElement.setTextContent(error.getErrorContext());
-        Element errorTypeElement = failedRecord.createElement("type");
-        errorTypeElement.setTextContent(error.getType());
+        labelElement.setTextContent(error.getAdditionalContext());
+        Element typeOfErrorElement = failedRecord.createElement("type-of-error");
+        typeOfErrorElement.setTextContent(error.getErrorType());
         Element messageElement = failedRecord.createElement("message");
-        messageElement.setTextContent(error.getBriefMessage());
-        Element storageEntityElement = failedRecord.createElement("storage-entity");
-        storageEntityElement.setTextContent(error.getStorageEntity());
+        messageElement.setTextContent(error.getServerMessage());
+        Element typeOfRecordElement = failedRecord.createElement("type-of-record");
+        typeOfRecordElement.setTextContent(error.getRecordType());
+        Element transactionElement = failedRecord.createElement("transaction");
+        transactionElement.setTextContent(error.getTransaction());
+        Element entityElement = failedRecord.createElement("entity");
+        entityElement.setTextContent(error.getEntity());
         errorElement.appendChild(labelElement);
-        errorElement.appendChild(errorTypeElement);
+        errorElement.appendChild(typeOfErrorElement);
+        errorElement.appendChild(typeOfRecordElement);
+        errorElement.appendChild(transactionElement);
         errorElement.appendChild(messageElement);
-        errorElement.appendChild(storageEntityElement);
+        errorElement.appendChild(entityElement);
         errorsElement.appendChild(errorElement);
       }
       failedRecord.getDocumentElement().appendChild(errorsElement);
