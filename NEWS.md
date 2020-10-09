@@ -1,5 +1,6 @@
 ## 2.14.0
 
+ * Adds support for raw MARC file import to FOLIO Inventory
  * Adds simple webservice serving up failed records and error information from file system
  * Stores failed records in logging directories, according to choices made in job configuration
  * Reinstates option to ingest without FOLIO auth enabled
