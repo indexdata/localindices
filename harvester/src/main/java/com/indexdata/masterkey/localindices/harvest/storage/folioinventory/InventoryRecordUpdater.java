@@ -302,11 +302,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       httpUpdate.setEntity(entity);
       setHeaders(httpUpdate,"application/json");
       CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
-
       String responseAsString = EntityUtils.toString(response.getEntity());
       response.close();
       upsertResponse = getResponseAsJson(responseAsString);
       checkForNoSuitableModulePath(response, responseAsString);
+      checkForInternalServerError(response, responseAsString);
       checkForRecordErrors(response, upsertResponse);
     } catch (StorageException se) {
       throw se;
@@ -366,6 +366,16 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       if (responseAsString.contains("No suitable module found for path")) {
         throw new StorageException(error.getMessageWithContext());
       }
+    }
+  }
+
+  private void checkForInternalServerError(CloseableHttpResponse response, String responseAsString) throws InventoryUpdateException {
+    if (response.getStatusLine().getStatusCode() == 500) {
+      updateCounters.instancesFailed++;
+      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}" );
+      recordWithErrors.reportError(error, Level.DEBUG);
+      logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
+      throw new StorageException(error.getMessageWithContext());
     }
   }
 
