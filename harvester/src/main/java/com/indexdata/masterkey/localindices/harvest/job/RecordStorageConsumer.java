@@ -49,9 +49,13 @@ public class RecordStorageConsumer implements MessageConsumer {
       if (record.isDeleted()) {
         recordStorage.delete(record);
       } else {
+        if (added>=7000)
+          logger.debug("Adding " + (added+1));
         recordStorage.add(record);
         if (++added % 1000 == 0)
           logger.info("Fetched " + added + " records.");
+        if (added>7000)
+          logger.debug("Record# " + added);
       }
     } catch (RuntimeException ioe) {
       	String msg = "Failed to add record." + record;
