@@ -9,6 +9,7 @@ import java.io.File;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -149,6 +150,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
+    logger.debug("Downloading list: " + Arrays.asList(list).toString());
     Date lastDate = null;
     if (resource.getAllowCondReq()) {
       // conditonal request are enabled, manual override takes precedence and
@@ -164,10 +166,12 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     for (String item : list) {
       try {
         int noErrors = 0;
-        if (!diskRun)
+        if (!diskRun) {
+          logger.debug("Downloading URL: " + item);
           noErrors = client.download(new URL(item));
-        else
+        } else {
           noErrors = client.download(new File(item));
+        }
         if (noErrors > 0) {
           setStatus(HarvestStatus.WARN, client.getErrors());
         }

@@ -802,7 +802,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           logger.log(Level.TRACE,"Treating source record as ISO2079");
           marcJson = MarcToJson.convertMarcRecordsToJson(originalContentString).get(0);
         }
-        logger.debug(marcJson.toJSONString());
+        logger.log(Level.TRACE,marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
 
         updateCounters.sourceRecordsFailed++;
@@ -900,9 +900,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         JSONObject marcRecords = (JSONObject) (new JSONParser().parse(responseAsString));
         final Long count = (Long) (marcRecords.getOrDefault("totalRecords", 0));
         if (count == 0) {
-          logger.debug("No MARC source record found for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
+          logger.log(Level.TRACE,"No MARC source record found for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
         } else if (count == 1) {
-          logger.debug("Found existing MARC source record for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
+          logger.log(Level.TRACE, "Found existing MARC source record for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
           JSONArray records = (JSONArray) marcRecords.get("marcrecords");
           marcRecord = (JSONObject) records.get(0);
         } else {
@@ -914,7 +914,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       RecordError error = new ExceptionRecordError(e, "Error when checking for previously existing MARC record","MARC source","GET", "");
       recordWithErrors.reportAndThrowError(error, Level.DEBUG);
     }
-    logger.debug("Got existing MARC in: " + (System.currentTimeMillis()-startGetExistingMarc));
+    logger.log(Level.TRACE,"Got existing MARC in: " + (System.currentTimeMillis()-startGetExistingMarc));
     return marcRecord;
   }
 
@@ -940,7 +940,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         HttpEntityEnclosingRequestBase request;
         JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
         if (marcRecord == null) {
-          logger.debug("This MARC record did not exist in storage; creating it.");
+          logger.log(Level.TRACE,"This MARC record did not exist in storage; creating it.");
           long startAddingMarc = System.currentTimeMillis();
           request = new HttpPost(ctxt.marcStorageUrl);
           request.setEntity(entity);
@@ -953,13 +953,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding MARC source record ", "MARC source", "POST", "{}");
             recordWithErrors.reportAndThrowError(error, Level.DEBUG);
           } else {
-            logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
+            logger.log(Level.TRACE, "Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
             updateCounters.sourceRecordsLoaded++;
           }
           response.close();
-          logger.debug("Added MARC in " + (System.currentTimeMillis()-startAddingMarc));
+          logger.log(Level.TRACE, "Added MARC in " + (System.currentTimeMillis()-startAddingMarc));
         } else {
-          logger.debug("This MARC record already existed in storage; updating it.");
+          logger.log(Level.TRACE, "This MARC record already existed in storage; updating it.");
           long startUpdatingMarc = System.currentTimeMillis();
           String id = (String) marcRecord.get("id");
           String url = ctxt.marcStorageUrl + "/" + id;
@@ -973,10 +973,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error updating existing MARC record", "MARC source", "PUT", "{}");
             recordWithErrors.reportAndThrowError(error, Level.DEBUG);
           } else {
-            logger.debug("Status code: " + response.getStatusLine().getStatusCode() + " for PUT of marc json " + marcPostJson.toJSONString());
+            logger.log(Level.TRACE,"Status code: " + response.getStatusLine().getStatusCode() + " for PUT of marc json " + marcPostJson.toJSONString());
             updateCounters.sourceRecordsLoaded++;
           }
-          logger.debug("Updated MARC in " + (System.currentTimeMillis()-startUpdatingMarc));
+          logger.log(Level.TRACE, "Updated MARC in " + (System.currentTimeMillis()-startUpdatingMarc));
         }
       } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
         updateCounters.sourceRecordsFailed++;

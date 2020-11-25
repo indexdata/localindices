@@ -292,8 +292,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //       FTPConnectionClosedException will be thrown here.
         //       This exception is used when deciding whether to attempt a reconnect.
         //       See download(URL url)
-        input.close();
-        logger.debug("StoreAny: Input stream closed.");
+        logger.debug("In storeAny - finally block. Attempting to close input");
+        try {
+          if (input != null) input.close();
+          logger.debug("StoreAny: Input stream closed.");
+        } catch (IOException ioe) {
+          logger.debug("IO exception when attempting to close input: " + ioe.getMessage());
+        }
     }
   }
 

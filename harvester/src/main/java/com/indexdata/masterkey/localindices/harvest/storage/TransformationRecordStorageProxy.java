@@ -72,7 +72,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
     if (job.isKillSent()) {
       throw new RuntimeException("Job killed");
     }
-    logger.debug("TransformationRecordStorageProxy adding record of class "
+    logger.log(Level.TRACE, "TransformationRecordStorageProxy adding record of class "
         + record.getClass().getName() + ", target is of class " + getTarget().getClass().getName());
     RecordDOMImpl recordDOM = new RecordDOMImpl(record);
     while (true) {

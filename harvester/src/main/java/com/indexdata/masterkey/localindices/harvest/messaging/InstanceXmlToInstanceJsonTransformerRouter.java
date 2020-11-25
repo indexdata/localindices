@@ -9,6 +9,7 @@ import java.util.NoSuchElementException;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.log4j.Level;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Node;
@@ -109,7 +110,7 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
 
   private void consume(Object documentIn) {
     if (documentIn instanceof Record) {
-      logger.debug("documentIn is of class " + documentIn.getClass().getName());
+      logger.log(Level.TRACE, "documentIn is of class " + documentIn.getClass().getName());
       Record recordIn = (Record) documentIn;
       RecordJSON recordOut = new RecordJSONImpl();
       try {
@@ -117,14 +118,14 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
           if (recordIn.getSubRecords().isEmpty()) {
             logger.debug(this.getClass().getSimpleName() + ": Empty collection came in from queue, skipping further processing of this document (split level could be set too high)");
           } else {
-            logger.debug(this.getClass().getSimpleName() + " has Record with " + recordIn.getSubRecords().size() + " sub record(s). Iterating:");
+            logger.log(Level.TRACE, this.getClass().getSimpleName() + " has Record with " + recordIn.getSubRecords().size() + " sub record(s). Iterating:");
             JSONObject jsonRecords = new JSONObject();
             Collection<Record> subrecords = recordIn.getSubRecords();
             jsonRecords.put("collection", new JSONArray());
             int i=0;
             for (Record rec : subrecords) {
               try {
-                logger.debug(this.getClass().getSimpleName() + ": Sub record " + ++i);
+                logger.log(Level.TRACE, this.getClass().getSimpleName() + ": Sub record " + ++i);
                 JSONObject json = makeInventoryJson(rec);
                 ((JSONArray)(jsonRecords.get("collection"))).add(json);
               } catch(Exception e) {
