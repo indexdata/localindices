@@ -536,7 +536,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
     XmlSplitter xmlSplitter = new XmlSplitter(logger,
       handler, resource.isLaxParsing());
     try {
+      logger.debug("XML splitter begins processing data from input stream");
       xmlSplitter.processDataFromInputStream(is);
+      logger.debug("XML splitter done processing data from input stream");
     } catch (SAXException se) {
       throw new IOException(se);
     }

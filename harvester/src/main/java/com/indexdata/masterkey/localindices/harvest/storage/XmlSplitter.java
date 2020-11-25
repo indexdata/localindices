@@ -27,9 +27,10 @@ public class XmlSplitter  {
   public void processDataFromInputStream(InputStream input) throws SAXException, IOException
   {
     try {
-      logger.debug("Use lax parsing mode: "+useLaxParsing);
+      logger.debug("XmlSplitter: Use lax parsing mode: "+useLaxParsing);
       InputSource source = new InputSource(input);
       XmlUtils.read(source, handler, useLaxParsing);
+      logger.debug("XmlSplitter.processDataFromInputStream() done");
     } catch (IOException ioe) {
       if (logger != null)
 	logger.error("IOException in XML split", ioe);

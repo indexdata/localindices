@@ -572,7 +572,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               }
             }
           } else {
-            logger.debug("holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") + "), not deleting it.");
+            logger.log(Level.TRACE, "holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") + "), not deleting it.");
           }
         }
       } else {
