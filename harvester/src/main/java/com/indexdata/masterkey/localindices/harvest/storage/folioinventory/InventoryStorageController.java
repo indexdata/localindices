@@ -221,9 +221,6 @@ public class InventoryStorageController implements RecordStorage {
       InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
       recordStorageHandler.addInventory((RecordJSON) recordJSON);
     }
-    if (ctxt.updateCounters.instancesProcessed>9300) {
-      logger.debug("InventoryStorageController finished adding # " + ctxt.updateCounters.instancesProcessed);
-    }
   }
 
   /**
