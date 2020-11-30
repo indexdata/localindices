@@ -8,6 +8,8 @@ target/
 .factorypath
 harvester/src/main/java/tmp/
 harvester/test/tmp
+harvester/test/reshare
+harvester/test/gbv
 bin/
 build/
 dist/

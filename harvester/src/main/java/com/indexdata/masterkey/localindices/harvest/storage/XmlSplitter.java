@@ -29,6 +29,7 @@ public class XmlSplitter  {
     try {
       logger.debug("XmlSplitter: Use lax parsing mode: "+useLaxParsing);
       InputSource source = new InputSource(input);
+      logger.debug("XmlSplitter.processDataFromInputStream: read start");
       XmlUtils.read(source, handler, useLaxParsing);
       logger.debug("XmlSplitter.processDataFromInputStream() done");
     } catch (IOException ioe) {

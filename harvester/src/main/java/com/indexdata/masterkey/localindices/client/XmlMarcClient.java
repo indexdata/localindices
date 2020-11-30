@@ -81,7 +81,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
       }
     } else {
       logger.info("Found harvestable file: "+file.getName());
+      logger.debug("Invoking storeAny");
       storeAny(file, proposeCachePath());
+      logger.debug("storeAny finished");
       count++;
     }
     return count;
@@ -118,24 +120,28 @@ public class XmlMarcClient extends AbstractHarvestClient {
                   logger.info("Found subfolder '"+rf.getName()+"' but recursion is off, ignoring.");
                 }
               } else {
-                logger.debug("Downloading " + rf.getAbsoluteName());
+                logger.debug("XmlMarcClient downloading " + rf.getAbsoluteName());
                 download(rf);
+                logger.debug("XmlMarcClient done downloading");
               }
             } catch (FTPConnectionClosedException fcce) {
+              logger.debug("XmlMarcClient caught FTPConnectionClosedException");
               if (getResource().getAllowErrors() && !job.isKillSent()) {
                 retryFtpDownload(clientTransport, rf, fcce);
               } else {
                 throw fcce;
               }
             } catch (SocketException se) {
+              logger.debug("XmlMarcClient caught SocketException");
               if (getResource().getAllowErrors() && !job.isKillSent() && clientTransport instanceof FtpClientTransport) {
                 retryFtpDownload(clientTransport, rf, se);
               } else {
                 throw se;
               }
             } catch (Exception e) {
+              logger.debug("XmlMarcClient caught Exception");
               if (job.isKillSent()) throw e;
-              logger.info("Problem occured during download/store: " + e.getMessage());
+              logger.info("Problem occurred during download/store: " + e.getMessage());
               logger.info("Cause: " + e.getCause());
               if (getResource().getAllowErrors()) {
                 logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + e.getMessage());
@@ -145,12 +151,13 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 throw e;
               }
             }
-
+            logger.debug("XmlMarcClient done iterating file list");
           }
         } else {
           getJob().setStatus(HarvestStatus.OK, "Found no files at "+url+ (getResource().getAllowCondReq() ? ", possibly due to filtering. " : ""));
         }
       } catch (ClientTransportError cte) {
+        logger.debug("XmlMarcClient caught ClientTransportError");
         if (getResource().getAllowErrors()) {
           setErrors("ClientTransportError, " + getErrors() + (url.toString() + " "));
           return 1;
@@ -158,13 +165,15 @@ public class XmlMarcClient extends AbstractHarvestClient {
           throw cte;
         }
       }
+      logger.debug("XmlMarcClient sleeping for 2 seconds");
       // TODO HACK HACK HACK
       Thread.sleep(2000);
-      logger.info("Finished - " + url.toString());
+      logger.info("Finished retrieval of " + url.toString());
     } catch (StopException ex) {
       logger.info("Stop requested. Reason: " + ex.getMessage());
       return 0;
     } catch (Exception ex) {
+      logger.debug("XmlMarcClient caught exception");
       if (job.isKillSent()) {
         throw ex;
       }
@@ -276,25 +285,30 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     try {
       if (mimeType.isMimeType("application/marc")) {
-        logger.debug("Setting up Binary MARC reader ("+mimeType+")");
+        logger.debug("Setting up Binary MARC reader (" + mimeType + ")");
         storeMarc(input, mimeType.getCharset());
       } else if (mimeType.isXML()) {
-        logger.debug("Setting up XML reader ("+mimeType+")");
+        logger.debug("XmlMarcClient setting up XML reader (" + mimeType + ")");
         storeXml(input);
+        logger.debug("XmlMarcClient finished storeXml");
       } else if (mimeType.isCSV() || mimeType.isTSV()) {
         logger.debug("Setting up CSV-to-XML converter");
         storeCSV(input, mimeType);
       } else {
-        logger.info("Ignoring file '"+file.getName()+"' because of unsupported content-type '"+mimeType+"'");
+        logger.info("Ignoring file '" + file.getName() + "' because of unsupported content-type '" + mimeType + "'");
       }
+    } catch (IOException ioe) {
+      logger.error("IO exception occurred when running store function: " + ioe.getMessage());
+      throw ioe;
     } finally {
         // NOTE: If this was a FTP download and the FTP connection was lost, a
         //       FTPConnectionClosedException will be thrown here.
         //       This exception is used when deciding whether to attempt a reconnect.
         //       See download(URL url)
-        logger.debug("In storeAny - finally block. Attempting to close input");
+        logger.debug("In XmlMarcClient, storeAny, finally block. Attempting to close input");
         try {
           if (input != null) input.close();
+          //  logger.debug("StoreAny: Skipped closing input stream.");
           logger.debug("StoreAny: Input stream closed.");
         } catch (IOException ioe) {
           logger.debug("IO exception when attempting to close input: " + ioe.getMessage());
@@ -536,9 +550,9 @@ public class XmlMarcClient extends AbstractHarvestClient {
     XmlSplitter xmlSplitter = new XmlSplitter(logger,
       handler, resource.isLaxParsing());
     try {
-      logger.debug("XML splitter begins processing data from input stream");
+      logger.debug("XmlMarcClient: XML splitter begins processing data from input stream");
       xmlSplitter.processDataFromInputStream(is);
-      logger.debug("XML splitter done processing data from input stream");
+      logger.debug("XmlMarcClient: XML splitter done processing data from input stream");
     } catch (SAXException se) {
       throw new IOException(se);
     }

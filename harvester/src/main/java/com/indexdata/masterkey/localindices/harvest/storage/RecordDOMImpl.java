@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -123,7 +124,7 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
   @Override
   public boolean isCollection() {
     if (node != null) {
-      logger.debug("Checking for collection with node structure " + TextUtils.nodeToXMLString(node));
+      logger.log(Level.TRACE, "Checking for collection with node structure " + TextUtils.nodeToXMLString(node));
       Element root;
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         root = (Element) node;
@@ -135,8 +136,8 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       if(root == null) {
         return false;
       }
-      logger.debug("root tag name is " + root.getTagName());
-      logger.debug("root local name is " + root.getLocalName());
+      logger.log(Level.TRACE, "root tag name is " + root.getTagName());
+      logger.log(Level.TRACE, "root local name is " + root.getLocalName());
       boolean isCollection = (
               root != null
               && (root.getTagName().equals("collection") ||
@@ -154,15 +155,15 @@ public class RecordDOMImpl extends RecordImpl implements RecordDOM {
       logger.debug("Not collection, returning null");
       return null;
     }
-    logger.debug("Checking for sub records with node structure " + TextUtils.nodeToXMLString(node));
+    logger.log(Level.TRACE, "Checking for sub records with node structure " + TextUtils.nodeToXMLString(node));
     NodeList children = null;
     if(node.getNodeType() == Node.DOCUMENT_NODE) {
-      logger.debug("Node is a document node");
+      logger.log(Level.TRACE,"Node is a document node");
       children = ((Document) node).getDocumentElement().getChildNodes();
     } else {
       children = node.getChildNodes();
     }
-    logger.debug(children.getLength() + " child nodes found");
+    logger.log(Level.TRACE,children.getLength() + " child nodes found");
     /*
     NodeList children = node.getNodeType() == Node.DOCUMENT_NODE
         ? ((Document) node).getDocumentElement().getChildNodes()

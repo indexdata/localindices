@@ -41,7 +41,6 @@ public class HarvestableLog {
       StringBuilder sb = new StringBuilder();
       for (File candidate : candidates) {
         if (candidate.exists() && candidate.isFile()) {
-          logger.debug("Parsing logfile: "+candidate.getName());
           BufferedReader r = new BufferedReader(new FileReader(candidate));
           String line;
           boolean passthrough = from == null;

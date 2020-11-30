@@ -208,7 +208,7 @@ public class HarvestableResource {
         ? null
         : ISOLikeDateParser.parse(fromParam);
       //TODO read log path from config
-      logger.debug("Rquested logs for "+id+" from "+fromParam + ", epoch: "
+      logger.log(Level.TRACE,"Requested logs for "+id+" from "+fromParam + ", epoch: "
         + (from != null ? from.getTime() : null));
       HarvestableLog log = new HarvestableLog(LOGDIRECTORY, id);
       String lines = log.readLines(from);

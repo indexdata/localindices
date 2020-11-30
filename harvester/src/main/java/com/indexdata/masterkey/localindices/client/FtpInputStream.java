@@ -26,6 +26,7 @@ public class FtpInputStream extends InputStream {
       length--;
       return input.read();
     } catch (IOException ioe) {
+      logger.debug("FtpInputStream.read() encountered IO exception");
       // TODO map to EOF
       if (length <= 0)
         throw new EOFException("All bytes read");
@@ -35,8 +36,19 @@ public class FtpInputStream extends InputStream {
 
   @Override
   public void close() throws IOException {
+    logger.debug("FtpInputStream closing FTP input stream");
     input.close();
-    if (!client.completePendingCommand())
-      throw new IOException("Failed to complete FTP InputStream close()");
+    logger.debug("Closed FTP input stream");
+    /*
+    if (!client.completePendingCommand()) {
+      logger.error("FTP didn't close properly it seems. Logging out and disconnecting");
+      client.logout();
+      client.disconnect();
+      logger.debug("Logged out and disconnected");
+      // throw new IOException("Failed to complete FTP InputStream close()");
+    } else {
+      logger.debug("FtpInputStream confirmed FTP stream closed");
+    }
+    */
   }
 }

@@ -35,9 +35,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 
 /**
+ * Implements RecordStorage in order to receive add-record-messages from the transformation
+ * process.
+ *
  * Contains the logic for initializing storage, loggers, and update statistics.
  *
- * Iterates Inventory record sets (instances, holdings, items, source records) coming
+ * Accepts Inventory record sets (instances, holdings, items, source records) coming
  * in from the transformation pipeline and forwards each incoming record to
  * {@link InventoryRecordUpdater} for creation/update/deletion in FOLIO Inventory.
  *
@@ -218,6 +221,9 @@ public class InventoryStorageController implements RecordStorage {
       InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
       recordStorageHandler.addInventory((RecordJSON) recordJSON);
     }
+    if (ctxt.updateCounters.instancesProcessed>9300) {
+      logger.debug("InventoryStorageController finished adding # " + ctxt.updateCounters.instancesProcessed);
+    }
   }
 
   /**
@@ -236,6 +242,7 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void databaseEnd() {
+    logger.debug("Inventory RecordStorage: databaseEnd() invoked.");
     if (!statusWritten) {
       String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + ctxt.updateCounters.instancesProcessed + "___" + ctxt.updateCounters.instancesLoaded + "___" + ctxt.updateCounters.instanceDeletions + "(" + ctxt.updateCounters.instanceDeleteSignals + ")___" + ctxt.updateCounters.instancesFailed + "_";
       String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
@@ -271,22 +278,27 @@ public class InventoryStorageController implements RecordStorage {
   // Unsupported interface methods
   @Override
   public void begin() throws IOException {
-    logger.debug("Transaction begin request recieved (not supported for Inventory updates)");
+    logger.debug("Transaction begin request received by Inventory RecordStorage (noop)");
   }
 
   @Override
   public void commit() throws IOException {
-    logger.debug("Commit request recieved (not supported for Inventory updates)");
+    logger.debug("Commit request received by Inventory RecordStorage (noop)");
   }
 
   @Override
   public void rollback() throws IOException {
-    logger.debug("Rollback request recieved  (not supported for Inventory updates)");
+    logger.debug("Rollback request received by Inventory RecordStorage (noop)");
+  }
+
+  @Override
+  public void shutdown() throws IOException {
+    logger.info("Shutdown request received by Inventory RecordStorage (noop)");
   }
 
   @Override
   public void purge(boolean commit) throws IOException {
-    logger.debug("Purge request recieved  (not supported for Inventory updates)");
+    logger.debug("Purge request received by Inventory RecordStorage (noop)");
   }
 
   @Override
@@ -322,11 +334,6 @@ public class InventoryStorageController implements RecordStorage {
   @Override
   public DatabaseContenthandler getContentHandler() {
     throw new UnsupportedOperationException("retrieving content handler not supported.");
-  }
-
-  @Override
-  public void shutdown() throws IOException {
-    logger.info("Inventory storage controller received shutdown request (not supported)");
   }
 
   @Override

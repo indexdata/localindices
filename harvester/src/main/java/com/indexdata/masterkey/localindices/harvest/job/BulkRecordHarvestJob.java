@@ -96,6 +96,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       else {
         downloadList(dc.list(), true, dc);
       }
+      logger.debug("BulkRecordHarvestJob done. Status is " + getStatus() + " Setting new status.");
       subject = "Completed: ";
       msg = "OK";
       if (getStatus() == HarvestStatus.RUNNING)
@@ -105,6 +106,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
         msg = getHarvestable().getMessage();
         logError(subject, msg);
       }
+      logger.debug("BulkRecordHarvestJob set harvest status to " + getStatus());
 
       if (getStatus() == HarvestStatus.OK || getStatus() == HarvestStatus.WARN
           || ((getStatus() == HarvestStatus.ERROR || getStatus() == HarvestStatus.KILLED) && getHarvestable().getAllowErrors())) {
@@ -150,7 +152,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
-    logger.debug("Downloading list: " + Arrays.asList(list).toString());
+    logger.debug("BulkRecordHarvestJob downloading list: " + Arrays.asList(list).toString());
     Date lastDate = null;
     if (resource.getAllowCondReq()) {
       // conditonal request are enabled, manual override takes precedence and
@@ -167,7 +169,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       try {
         int noErrors = 0;
         if (!diskRun) {
-          logger.debug("Downloading URL: " + item);
+          logger.debug("BulkRecordHarvestJob downloading URL: " + item);
           noErrors = client.download(new URL(item));
         } else {
           noErrors = client.download(new File(item));

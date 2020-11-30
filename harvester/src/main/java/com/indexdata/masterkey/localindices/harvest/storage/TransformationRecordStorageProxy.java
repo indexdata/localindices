@@ -137,6 +137,7 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
 
   @Override
   public void commit() throws IOException {
+    logger.debug("Transformation record storage proxy: Commit received");
     if (count == 0) {
       //if the job was apparently succesfull, change the status
       if (job.getStatus().equals(HarvestStatus.OK)) {
