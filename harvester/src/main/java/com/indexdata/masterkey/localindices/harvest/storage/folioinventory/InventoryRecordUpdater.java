@@ -305,8 +305,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       String responseAsString = EntityUtils.toString(response.getEntity());
       response.close();
       upsertResponse = getResponseAsJson(responseAsString);
-      checkForNoSuitableModulePath(response, responseAsString);
-      checkForInternalServerError(response, responseAsString);
+      checkForInventoryServiceErrors(response, responseAsString);
       checkForRecordErrors(response, upsertResponse);
     } catch (StorageException se) {
       throw se;
@@ -357,26 +356,19 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     }
   }
 
-  private void checkForNoSuitableModulePath(CloseableHttpResponse response, String responseAsString) {
-    if (response.getStatusLine().getStatusCode() == 404) {
-      updateCounters.instancesFailed++;
-      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}" );
-      recordWithErrors.reportError(error, Level.DEBUG);
-      logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
-      if (responseAsString.contains("No suitable module found for path")) {
-        throw new StorageException(error.getMessageWithContext());
+  private void checkForInventoryServiceErrors(CloseableHttpResponse response, String responseAsString) {
+      final int statusCode = response.getStatusLine().getStatusCode();
+      if (!Arrays.asList(200,201,422).contains(statusCode)) {
+        updateCounters.instancesFailed++;
+        final RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString, "Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}");
+        recordWithErrors.reportError(error, Level.DEBUG);
+        logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
+        if (Arrays.asList(403,500).contains(statusCode)) {
+          throw new StorageException(error.getMessageWithContext());
+        } else if (statusCode == 404 && responseAsString.contains("No suitable module found for path")) {
+          throw new StorageException(error.getMessageWithContext());
+        }
       }
-    }
-  }
-
-  private void checkForInternalServerError(CloseableHttpResponse response, String responseAsString) throws InventoryUpdateException {
-    if (response.getStatusLine().getStatusCode() == 500) {
-      updateCounters.instancesFailed++;
-      RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}" );
-      recordWithErrors.reportError(error, Level.DEBUG);
-      logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
-      throw new StorageException(error.getMessageWithContext());
-    }
   }
 
   /**
