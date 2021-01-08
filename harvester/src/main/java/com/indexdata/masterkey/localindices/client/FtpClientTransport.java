@@ -54,8 +54,8 @@ public class FtpClientTransport implements ClientTransport {
     int port = (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort());
     try {
       client.connect(host,port);
-      String serverReply = (client.getReplyString() == null 
-        ? "" 
+      String serverReply = (client.getReplyString() == null
+        ? " Server replied: nothing"
         : " Server replied: " + client.getReplyString().split("\n")[0] + ")");
       if (client.isConnected()) {
         logger.debug("Client is connected to " + host + serverReply);

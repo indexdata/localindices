@@ -4,6 +4,8 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.*;
+
 import org.apache.commons.net.ftp.FTPClient;
 
 public class FtpInputStream extends InputStream {
@@ -12,12 +14,24 @@ public class FtpInputStream extends InputStream {
   FTPClient client;
   InputStream input;
   long length;
+  // For logging long running FTP operations as timeouts can cause issues to debug
+  long startTime;
+  private static long ASSUMED_IDLING_TIMEOUT_MS = 900*1000;
+  // With long running FTP file reads, the server can time out in certain ways that
+  // makes the completePendingCommand hang seemingly indefinitely. The typical server
+  // time out seems to be 900 seconds (15 minutes). As no other way has been identified
+  // to safely diagnose this condition, the completePendingCommand has been wrapped in
+  // a future that will be timed out eventually. Timing it out to soon seems to
+  // potentially lead to premature end of file for the current stream. The timeout is
+  // set to 1 minute.
+  private final long COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES = 1;
 
   public FtpInputStream(InputStream data, long length, FTPClient client, StorageJobLogger logger) {
     input = data;
     this.client = client;
     this.length = length;
     this.logger = logger;
+    this.startTime = System.currentTimeMillis();
   }
 
   @Override
@@ -36,19 +50,51 @@ public class FtpInputStream extends InputStream {
 
   @Override
   public void close() throws IOException {
-    logger.debug("FtpInputStream closing FTP input stream");
-    input.close();
-    logger.debug("Closed FTP input stream");
-    /*
-    if (!client.completePendingCommand()) {
-      logger.error("FTP didn't close properly it seems. Logging out and disconnecting");
-      client.logout();
-      client.disconnect();
-      logger.debug("Logged out and disconnected");
-      // throw new IOException("Failed to complete FTP InputStream close()");
-    } else {
-      logger.debug("FtpInputStream confirmed FTP stream closed");
+    long elapsed = elapsed();
+    if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
+      logger.debug("FTP server may have timed out operation after " + (elapsed / 1000) + " seconds");
     }
-    */
+    logger.debug("Closing input");
+    input.close();
+    logger.debug("Input closed. CompletePendingCommand?");
+    ExecutorService executor = Executors.newCachedThreadPool();
+    Callable<Object> task = new Callable<Object>()  {
+      public Object call() {
+        try {
+          return client.completePendingCommand();
+        } catch (IOException ioe) {
+          logger.error("CompletePendingCommand failed with "+ ioe.getMessage());
+          return false;
+        }
+      }
+    };
+    Future<Object> future = executor.submit(task);
+
+    try {
+      if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
+        logger.info("Attempting completePendingCommand with a " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minute timeout");
+      }
+      Boolean result = (Boolean) future.get(COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+      if (!result)  {
+        throw new IOException("CompletePendingCommand failed");
+      }
+    } catch (TimeoutException ex) {
+      if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
+        logger.info("CompletePendingCommand did not return in " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minutes. Cancelled, disconnecting.");
+      } else {
+        logger.error("CompletePendingCommand did not return in " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minutes. Cancelled, disconnecting.");
+      }
+      client.disconnect();
+    } catch (InterruptedException e) {
+      logger.error("Invocation of client.completePendingCommand interrupted: " + e.getMessage());
+    } catch (ExecutionException e) {
+      logger.error("Error executing client.completePendingCommand: " + e.getMessage());
+    } finally {
+      future.cancel(true);
+    }
+  }
+
+  private long elapsed() {
+    return System.currentTimeMillis()-startTime;
   }
 }

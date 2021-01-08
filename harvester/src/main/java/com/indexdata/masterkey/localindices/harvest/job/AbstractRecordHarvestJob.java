@@ -223,9 +223,9 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
 
   /**
    * 
-   * @param Set
+   * @param status
    *          the job ending status
-   * @param error
+   * @param msg
    *          An optional message to be displayed
    */
   @Override

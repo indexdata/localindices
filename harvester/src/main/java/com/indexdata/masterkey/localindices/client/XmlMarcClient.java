@@ -138,10 +138,34 @@ public class XmlMarcClient extends AbstractHarvestClient {
               } else {
                 throw se;
               }
+            } catch (StopException stoppedAtLimit) {
+              logger.debug("Stop Exception: " + stoppedAtLimit.getMessage());
+              throw stoppedAtLimit;
+            } catch (IOException ioe) {
+              if (ioe.getMessage().equals("Connection is not open")) {
+                // Could happen if most recent file was large enough for the server to hit some timeout
+                // (typically after 900 ms of idling)
+                retryFtpDownload(clientTransport, rf, ioe);
+              } else {
+                if (job.isKillSent()) {
+                  throw ioe;
+                }
+                logger.info("Problem occurred during download/store: " + ioe.getMessage() + ioe);
+                logger.info("Cause: " + ioe.getCause());
+                if (getResource().getAllowErrors()) {
+                  logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + ioe.getMessage());
+                  logger.debug("Cause", ioe);
+                  setErrors(getErrors() + (rf.getAbsoluteName() + " "));
+                } else {
+                  throw ioe;
+                }
+              }
             } catch (Exception e) {
-              logger.debug("XmlMarcClient caught Exception");
-              if (job.isKillSent()) throw e;
-              logger.info("Problem occurred during download/store: " + e.getMessage());
+              logger.debug("XmlMarcClient caught Exception " + (job.isKillSent()? " job killed(1)." : ""));
+              if (job.isKillSent()) {
+                throw e;
+              }
+              logger.info("Problem occurred during download/store: " + e.getMessage() + e);
               logger.info("Cause: " + e.getCause());
               if (getResource().getAllowErrors()) {
                 logger.warn(errorText + rf.getAbsoluteName() + ". Error: " + e.getMessage());
@@ -173,7 +197,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.info("Stop requested. Reason: " + ex.getMessage());
       return 0;
     } catch (Exception ex) {
-      logger.debug("XmlMarcClient caught exception");
+      logger.debug("XmlMarcClient caught exception" + (job.isKillSent() ? ": job killed(2)" : ""));
       if (job.isKillSent()) {
         throw ex;
       }
@@ -204,6 +228,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void storeAny(RemoteFile file, String cacheFile, boolean shouldBuffer) throws
     EOFException, FTPConnectionClosedException, IOException  {
     //buffer reads
+
     InputStream input = shouldBuffer
       ? new BufferedInputStream(file.getInputStream())
       : file.getInputStream();
@@ -306,13 +331,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //       This exception is used when deciding whether to attempt a reconnect.
         //       See download(URL url)
         logger.debug("In XmlMarcClient, storeAny, finally block. Attempting to close input");
-        try {
-          if (input != null) input.close();
-          //  logger.debug("StoreAny: Skipped closing input stream.");
-          logger.debug("StoreAny: Input stream closed.");
-        } catch (IOException ioe) {
-          logger.debug("IO exception when attempting to close input: " + ioe.getMessage());
-        }
+        input.close();
+        logger.debug("StoreAny: Input stream closed.");
     }
   }
 

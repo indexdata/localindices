@@ -1,3 +1,5 @@
+ * Workarounds to deal with FTP server timeouts for large files. PR-818.
+
 ## 2.14.0
 
  * Adds support for raw MARC file import to FOLIO Inventory

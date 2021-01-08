@@ -57,7 +57,7 @@ public class FtpRemoteFile extends RemoteFile {
     InputStream data = client.retrieveFileStream(rootRelPath);
     if (data == null) {
       String reply = client.getReplyString();
-      String msg = "Error retriving file " + rootRelPath;
+      String msg = "Error retrieving file " + rootRelPath;
       if (reply != null) msg += ": " + reply;
       throw new IOException(msg);
     }
