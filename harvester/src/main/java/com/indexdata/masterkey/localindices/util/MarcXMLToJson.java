@@ -28,6 +28,7 @@ public class MarcXMLToJson {
     JSONObject marcJson = new JSONObject();
     JSONArray fields = new JSONArray();
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+    documentBuilderFactory.setNamespaceAware(true);
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
     Document document = documentBuilder.parse(new InputSource(new StringReader(marcXML)));
     Element root = document.getDocumentElement();
@@ -45,8 +46,8 @@ public class MarcXMLToJson {
       } else {
         record = root;
       }
-    } else if (root.getTagName().equals("collection")) {
-      NodeList records = root.getElementsByTagName("record");
+    } else if (root.getLocalName().equals("collection")) {
+      NodeList records = root.getElementsByTagNameNS("*", "record");
       if (records != null && records.getLength()==1) {
         record = (Element) records.item(0);
       }
@@ -67,14 +68,14 @@ public class MarcXMLToJson {
       }
       childElement = (Element)childNode;
       String textContent = childElement.getTextContent();
-      if(childElement.getTagName().equals("leader")) {
+      if(childElement.getLocalName().equals("leader")) {
         marcJson.put("leader", textContent);
-      } else if(childElement.getTagName().equals("controlfield")) {
+      } else if(childElement.getLocalName().equals("controlfield")) {
         JSONObject field = new JSONObject();
         String marcTag = childElement.getAttribute("tag");
         field.put(marcTag, textContent);
         fields.add(field);
-      } else if(childElement.getTagName().equals("datafield")) {
+      } else if(childElement.getLocalName().equals("datafield")) {
         JSONObject field = new JSONObject();
         JSONObject fieldContent = new JSONObject();
         String marcTag = childElement.getAttribute("tag");
@@ -86,7 +87,7 @@ public class MarcXMLToJson {
         }
         JSONArray subfields = new JSONArray();
         fieldContent.put("subfields", subfields);
-        NodeList nodeList = childElement.getElementsByTagName("subfield");
+        NodeList nodeList = childElement.getElementsByTagNameNS( "*", "subfield");
         for(int i = 0; i < nodeList.getLength(); i++) {
           Element subField = (Element) nodeList.item(i);
           String code = subField.getAttribute("code");
