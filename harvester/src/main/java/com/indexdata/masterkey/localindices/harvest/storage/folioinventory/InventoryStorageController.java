@@ -245,7 +245,6 @@ public class InventoryStorageController implements RecordStorage {
       String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
       String itemsMessage = "Items_processed/loaded/deleted/failed:__" + ctxt.updateCounters.itemsProcessed + "___" + ctxt.updateCounters.itemsLoaded + "___" + ctxt.updateCounters.itemsDeleted + "___" + ctxt.updateCounters.itemsFailed + "_";
       String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.sourceRecordsProcessed + "___" + ctxt.updateCounters.sourceRecordsLoaded + "___" + ctxt.updateCounters.sourceRecordsDeleted + "___" + ctxt.updateCounters.sourceRecordsFailed + "_";
-
       logger.log((ctxt.updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
       logger.log((ctxt.updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
       logger.log((ctxt.updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
@@ -320,7 +319,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void delete(String id) {
-    throw new UnsupportedOperationException("delete by id not supported.");
+    logger.error("Delete by ID [" + id + "] not supported for Inventory");
   }
 
   @Override

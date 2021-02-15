@@ -33,8 +33,6 @@ public class MarcToJson {
       MarcWriter writer = new MarcXmlWriter(baos);
       writer.write(record);
       writer.close();
-      System.out.print(baos.toString("UTF-8"));
-      System.out.flush();
       JSONObject json = MarcXMLToJson.convertMarcXMLToJson(baos.toString("UTF-8"));
       jsonList.add(json);
     }

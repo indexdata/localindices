@@ -92,6 +92,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         inventoryRecordSet.put("instance", transformedRecord.getInstance());
         inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
+        logger.log(Level.TRACE, "Response was: " + responseJson.toJSONString());
         UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
 
         if (ctxt.harvestable.isStoreOriginal()) {
@@ -217,7 +218,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         json = upsertMetricsJson;
       }
       instance = new EntityMetrics((JSONObject) json.get("INSTANCE"));
-      holdingsRecord = new EntityMetrics((JSONObject) json.get("HOLDINGSRECORD"));
+      holdingsRecord = new EntityMetrics((JSONObject) json.get("HOLDINGS_RECORD"));
       item = new EntityMetrics((JSONObject) json.get("ITEM"));
     }
 
@@ -1026,7 +1027,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
         if (ctxt.useInventoryUpsert) {
-          logger.info("Sending delete request to " + ctxt.inventoryUpsertUrl);
+          logger.info("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryUpsertUrl);
               //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
               HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
               setHeaders(httpDelete,"application/json");

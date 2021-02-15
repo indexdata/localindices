@@ -42,13 +42,14 @@ public class FtpClientTransport implements ClientTransport {
     }
     connect(ftpUrl);
     login(ftpUrl.getUserInfo());
+    logger.info("Reconnected to " + ftpUrl.getHost());
   }
   
   @Override
   public void connect(URL ftpUrl) throws IOException {
     if (client == null) {
       client = new FTPClient();
-      this.ftpUrl = ftpUrl;  
+      this.ftpUrl = ftpUrl;
     }
     String host = ftpUrl.getHost();
     int port = (ftpUrl.getPort() != -1 ? ftpUrl.getPort() : ftpUrl.getDefaultPort());
@@ -60,8 +61,8 @@ public class FtpClientTransport implements ClientTransport {
       if (client.isConnected()) {
         logger.debug("Client is connected to " + host + serverReply);
       } else {
-        logger.error("Error connecting to " + ftpUrl.toString() + serverReply);
-        throw new IOException("Error connecting to " + ftpUrl.toString() + serverReply);
+        logger.error("Error connecting to " + ftpUrl.getHost() + serverReply);
+        throw new IOException("Error connecting to " + ftpUrl.getHost() + serverReply);
       }
       if (usePassive) {
         client.enterLocalPassiveMode();
@@ -138,7 +139,7 @@ public class FtpClientTransport implements ClientTransport {
     } else {
       logger.debug("Found " + files.length + " file(s) at " + path);
     }
-    logger.debug("Creating new FTPRemoteFileIterator with url " + url.toString());
+    logger.debug("Creating new FTPRemoteFileIterator with url " + url.getHost());
     return new FtpRemoteFileIterator(this, url, files, fileFilter, logger);
   }
 

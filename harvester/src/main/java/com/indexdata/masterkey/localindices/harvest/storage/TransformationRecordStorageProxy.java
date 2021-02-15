@@ -101,10 +101,27 @@ public class TransformationRecordStorageProxy extends AbstractTransformationReco
 
   @Override
   public void delete(String id) {
+    RecordDOMImpl recordDOM = new RecordDOMImpl(id, null, null, null);
     while (true) {
       if (job.isKillSent())
-	throw new RuntimeException("Job killed");
-      getTarget().delete(id);
+        throw new RuntimeException("Job killed");
+      try {
+        Record transformed = transformNode(recordDOM);
+        if (transformed != null)
+          getTarget().delete(transformed.getId());
+        else {
+          logger.warn("Record filtered out. " + recordDOM);
+        }
+        break;
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        try {
+          errors.put(e);
+        } catch (InterruptedException e1) {
+          logger.error("Record not added to error. " + recordDOM);
+          e1.printStackTrace();
+        }
+      }
     }
   }
 
