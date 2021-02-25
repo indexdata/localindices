@@ -12,10 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.marc4j.MarcXmlWriter;
-import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcWriter;
+import org.marc4j.*;
 import org.marc4j.marc.Record;
 import org.xml.sax.SAXException;
 
@@ -26,7 +23,7 @@ public class MarcToJson {
       throws UnsupportedEncodingException, SAXException, IOException,
       ParserConfigurationException {
     List<JSONObject> jsonList = new ArrayList<>();
-    MarcReader reader = new MarcStreamReader(inputStream);
+    MarcReader reader = new MarcPermissiveStreamReader(inputStream, true, true);
     while(reader.hasNext()) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       Record record = reader.next();

@@ -1,3 +1,6 @@
+
+
+ * Always convert MARC binary to UTF-8.
  * Workarounds to deal with FTP server timeouts for large files. PR-818.
 
 ## 2.14.0

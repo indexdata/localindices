@@ -21,12 +21,7 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
-import org.marc4j.MarcException;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcStreamWriter;
-import org.marc4j.MarcWriter;
-import org.marc4j.MarcXmlWriter;
-import org.marc4j.TurboMarcXmlWriter;
+import org.marc4j.*;
 import org.xml.sax.SAXException;
 
 import com.indexdata.masterkey.localindices.client.filefilters.CompositeEntryFilter;
@@ -505,9 +500,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
 
   private void storeMarc(InputStream input, String encoding) throws
     IOException {
-    //encoding defaults to MARC-8 when null
-    MarcStreamReader reader = new MarcStreamReader(input, encoding);
-    reader.setBadIndicators(false);
+    MarcPermissiveStreamReader reader = new MarcPermissiveStreamReader(input,true, true);
     boolean isTurboMarc = false;
     //check what MARC output we want
     MimeTypeCharSet mimeType =
