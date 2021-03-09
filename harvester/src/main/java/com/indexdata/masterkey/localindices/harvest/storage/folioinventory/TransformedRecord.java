@@ -192,7 +192,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
         }
         instance.remove("holdingsRecords");
         instance.remove("matchKey");
-    } catch (ParseException pe) {
+      } catch (ParseException pe) {
         logger.error("InventoryRecordStorage could not parse transformed record to get Instance: " + pe.getMessage());
       }
       return instance;
@@ -222,6 +222,25 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       }
       return holdings;
     }
+
+  public boolean hasInstanceRelations() {
+    return transformed.containsKey("instanceRelations");
+  }
+
+  public JSONObject getInstanceRelations() {
+      logger.log(Level.TRACE, "Looking for instance relations in root of " + transformed.toJSONString());
+      JSONObject instanceRelations = new JSONObject();
+      try {
+        if (transformed.containsKey("instanceRelations")) {
+          JSONObject instanceRelationsFromRecord = (JSONObject) (transformed.get("instanceRelations"));
+          instanceRelations = (JSONObject) parser.parse(instanceRelationsFromRecord.toJSONString());
+        }
+      } catch (ParseException pe) {
+        logger.error("InventoryRecordStorage could not parse transformed record to get Instance relations: " + pe.getMessage());
+      }
+      return instanceRelations;
+ }
+
 
     public boolean hasMatchKey () {
       return !(getMatchKey().isEmpty());

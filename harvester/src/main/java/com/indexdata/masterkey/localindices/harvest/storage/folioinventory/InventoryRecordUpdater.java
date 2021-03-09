@@ -91,6 +91,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         }
         inventoryRecordSet.put("instance", transformedRecord.getInstance());
         inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
+        if (transformedRecord.hasInstanceRelations()) {
+          inventoryRecordSet.put("instanceRelations", transformedRecord.getInstanceRelations());
+        }
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
         logger.log(Level.TRACE, "Response was: " + responseJson.toJSONString());
         UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
