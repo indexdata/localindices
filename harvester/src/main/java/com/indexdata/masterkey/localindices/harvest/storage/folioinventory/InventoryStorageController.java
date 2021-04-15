@@ -289,7 +289,8 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void shutdown() throws IOException {
-    logger.info("Shutdown request received by Inventory RecordStorage (noop)");
+    logger.info("Shutdown request received by Inventory RecordStorage - writing status");
+    databaseEnd();
   }
 
   @Override

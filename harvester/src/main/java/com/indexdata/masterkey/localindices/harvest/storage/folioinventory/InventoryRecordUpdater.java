@@ -90,7 +90,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           instance.put("matchKey", transformedRecord.getMatchKey());
         }
         inventoryRecordSet.put("instance", transformedRecord.getInstance());
-        inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
+        if (transformedRecord.getHoldings() != null) {
+          inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
+        }
         if (transformedRecord.hasInstanceRelations()) {
           inventoryRecordSet.put("instanceRelations", transformedRecord.getInstanceRelations());
         }

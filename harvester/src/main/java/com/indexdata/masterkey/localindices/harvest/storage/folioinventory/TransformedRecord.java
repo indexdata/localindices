@@ -203,7 +203,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
      * @return a detached object (not a reference) of the JSON Array of holdings records from the Record.
      */
     public JSONArray getHoldings () {
-      JSONArray holdings = new JSONArray();
+      JSONArray holdings = null;
       try {
         if (transformed.containsKey("holdingsRecords")) {
           JSONArray holdingsRecordsFromRecord = (JSONArray) (transformed.get("holdingsRecords"));
@@ -213,8 +213,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
           if (instance.containsKey("holdingsRecords")) {
             JSONArray holdingsRecordsFromInstance = (JSONArray) (instance.get("holdingsRecords"));
             holdings = (JSONArray) parser.parse(holdingsRecordsFromInstance.toJSONString());
-          } else {
-            logger.warn("InventoryRecordStorage could not find `holdingsRecord` anywhere in transformed record");
           }
         }
       } catch (ParseException pe) {
@@ -223,11 +221,11 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return holdings;
     }
 
-  public boolean hasInstanceRelations() {
-    return transformed.containsKey("instanceRelations");
-  }
+    public boolean hasInstanceRelations() {
+      return transformed.containsKey("instanceRelations");
+    }
 
-  public JSONObject getInstanceRelations() {
+    public JSONObject getInstanceRelations() {
       logger.log(Level.TRACE, "Looking for instance relations in root of " + transformed.toJSONString());
       JSONObject instanceRelations = new JSONObject();
       try {
@@ -239,8 +237,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
         logger.error("InventoryRecordStorage could not parse transformed record to get Instance relations: " + pe.getMessage());
       }
       return instanceRelations;
- }
-
+    }
 
     public boolean hasMatchKey () {
       return !(getMatchKey().isEmpty());
