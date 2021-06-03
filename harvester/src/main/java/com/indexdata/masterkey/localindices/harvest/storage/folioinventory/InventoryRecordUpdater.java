@@ -798,7 +798,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           marcJson = MarcXMLToJson.convertMarcXMLToJson(originalContentString);
         } else {
           logger.log(Level.TRACE,"Treating source record as ISO2079");
-          marcJson = MarcToJson.convertMarcRecordsToJson(originalContentString).get(0);
+          marcJson = MarcToJson.convertMarcRecordsToJson(record.getOriginalContent()).get(0);
         }
         logger.log(Level.TRACE,marcJson.toJSONString());
       } catch (IOException | ParserConfigurationException | SAXException e) {
