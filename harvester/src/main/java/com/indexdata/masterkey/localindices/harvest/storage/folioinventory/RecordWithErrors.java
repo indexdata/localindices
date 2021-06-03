@@ -12,6 +12,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.IntPredicate;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -194,33 +195,43 @@ public class RecordWithErrors {
   }
 
   /**
-   * Adds original record as XML to element `original` of the failed record XML
-   * @param builder
-   * @param failedRecord
-   * @throws SAXException
-   * @throws IOException
+   * Adds original record as either XML or a string to element `original` of the failed record XML
+   * @param builder The builder for creating the XML element
+   * @param failedRecord  The XML document to add the original record to
    */
   private void addOriginal(DocumentBuilder builder, Document failedRecord) {
+    String originalRecordAsString = getOriginalRecord() != null ? new String(getOriginalRecord()) : "";
+    Element originalElement = failedRecord.createElement("original");
     try {
-      if (getOriginalRecord() != null) {
-        String originalXml = new String(getOriginalRecord());
-        Document originalRecord = builder.parse(new InputSource(new StringReader(originalXml)));
-        Node originalRecordNode = failedRecord.importNode(originalRecord.getDocumentElement(),true);
-        Element originalElement = failedRecord.createElement("original");
+      if (!originalRecordAsString.isEmpty()) {
+        Document originalRecordAsDocument = builder.parse(new InputSource(new StringReader(originalRecordAsString)));
+        Node originalRecordNode = failedRecord.importNode(originalRecordAsDocument.getDocumentElement(),true);
         originalElement.appendChild(originalRecordNode);
-        failedRecord.getDocumentElement().appendChild(originalElement);
       }
     } catch (SAXException | IOException e) {
-      logger.error("Error when attempting to get original record as byte array and add it to the failed record XML;" + e.getMessage());
+      originalElement.setTextContent( stripChars( originalRecordAsString, c -> c > '\u001F' && c != '\u007F'));
     } catch (ClassCastException cce) {
       logger.error("ClassCastException when attempting get and add original record til failed record XML; " + cce.getMessage());
     }
+    failedRecord.getDocumentElement().appendChild(originalElement);
+  }
+
+  /**
+   * Strip string down to select characters.
+   * Purpose: strip record and field separators from MARC string before putting it in XML element
+   * @param s The string to strip from
+   * @param include The criteria for characters to keep
+   * @return the input string, now only including select characters
+   */
+  static String stripChars(String s, IntPredicate include) {
+    return s.codePoints().filter(include::test).collect(StringBuilder::new,
+            StringBuilder::appendCodePoint, StringBuilder::append).toString();
   }
 
   /**
    * Adds error log statements as XML elements to failed record XML
    *
-   * @param failedRecord
+   * @param failedRecord The record to add log statements to
    */
   private void addErrors(Document failedRecord) {
     try {
