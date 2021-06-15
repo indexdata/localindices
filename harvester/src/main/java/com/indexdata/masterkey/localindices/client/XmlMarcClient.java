@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -98,10 +99,16 @@ public class XmlMarcClient extends AbstractHarvestClient {
         storeAny(file, proposeCachePath());
         logger.debug("Done storing " + file.getName());
       } catch (IOException ioe) {
-        logger.error("Failure storing " + file.getName() + ": " + ioe.getMessage() +
-                (getResource().getAllowErrors() ? ". Continuing since job is set to proceed on errors." : ""));
-        if (!getResource().getAllowErrors()) {
-          throw ioe;
+        if (ioe.getMessage() != null && ioe.getMessage().toLowerCase( Locale.ROOT ).contains("completependingcommand")) {
+          logger.warn("Problem with CompletingPendingCommand after download of " + file.getName() + ": " + ioe.getMessage());
+          logger.debug("Done storing " + file.getName());
+        } else {
+          logger.error(
+                  "Failure storing " + file.getName() + ": " + ioe.getMessage() + ( getResource().getAllowErrors() ? ". Continuing since job is set to proceed on errors." : "" ) );
+          if ( !getResource().getAllowErrors() )
+          {
+            throw ioe;
+          }
         }
       }
       count++;
@@ -236,7 +243,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void storeAny(RemoteFile file, String cacheFile) throws IOException  {
     InputStream input;
     try {
-      logger.info("File: " + file.getName() + ". Content-type: " + file.getContentType() + ". Length: " + file.getLength());
+      logger.info("File: " + file.getName() + ". Length: " + file.getLength());
       input = new BufferedInputStream(file.getInputStream());
     } catch (IOException ioe) {
       if (ioe.getMessage().equals("Connection is not open")) {
@@ -345,7 +352,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //       FTPConnectionClosedException will be thrown here.
         //       This exception is used when deciding whether to attempt a reconnect.
         //       See download(URL url)
-        logger.info("Done reading " + file.getName() + ". In finally block of XmlMarcClient.storeAny(), closing input");
+        logger.info("Done reading " + file.getName() + ". Closing input.");
         input.close();
         logger.debug("StoreAny closed input stream");
     }
