@@ -51,19 +51,15 @@ public class FtpInputStream extends InputStream {
   @Override
   public void close() throws IOException {
     long elapsed = elapsed();
-    if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
-      logger.debug("FTP server may have timed out operation after " + (elapsed / 1000) + " seconds");
-    }
     logger.debug("Closing input");
     input.close();
-    logger.debug("Input closed. CompletePendingCommand?");
     ExecutorService executor = Executors.newCachedThreadPool();
     Callable<Object> task = new Callable<Object>()  {
       public Object call() {
         try {
           return client.completePendingCommand();
         } catch (IOException ioe) {
-          logger.error("CompletePendingCommand failed with "+ ioe.getMessage());
+          logger.warn("CompletePendingCommand did not complete "+ ioe.getMessage());
           return false;
         }
       }
@@ -72,17 +68,17 @@ public class FtpInputStream extends InputStream {
 
     try {
       if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
-        logger.info("Attempting completePendingCommand with a " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minute timeout");
+        logger.info("Calling CompletePendingCommand but FTP server may have timed out operation after " + (elapsed / 1000) + " seconds");
       }
       Boolean result = (Boolean) future.get(COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES, TimeUnit.MINUTES);
       if (!result)  {
-        throw new IOException("CompletePendingCommand failed");
+        throw new IOException("CompletePendingCommand timed out");
       }
     } catch (TimeoutException ex) {
       if (elapsed>ASSUMED_IDLING_TIMEOUT_MS) {
         logger.info("CompletePendingCommand did not return in " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minutes. Cancelled, disconnecting.");
       } else {
-        logger.error("CompletePendingCommand did not return in " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minutes. Cancelled, disconnecting.");
+        logger.warn("CompletePendingCommand did not return in " + COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES + " minutes. Cancelled, disconnecting.");
       }
       client.disconnect();
     } catch (InterruptedException e) {
