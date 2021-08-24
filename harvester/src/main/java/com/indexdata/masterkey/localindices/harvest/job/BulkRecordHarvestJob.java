@@ -10,6 +10,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -28,12 +29,14 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @SuppressWarnings("unused")
-  private List<URL> urls = new ArrayList<URL>();
+  private List<URL> urls = new ArrayList<>();
   private XmlBulkResource resource;
   // private RecordStorage transformationStorage;
   private Proxy proxy;
   private String errors;
   private HarvestStatus initialStatus;
+
+  private final Date previousHarvestStarted;
 
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
@@ -41,6 +44,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
     this.resource.setMessage(null);
     initialStatus = HarvestStatus.valueOf(resource.getCurrentStatus());
     setStatus(initialStatus);
+    previousHarvestStarted = resource.getLastHarvestStarted();
     setLogger((new FileStorageJobLogger(getClass(), resource)));
   }
 
@@ -102,7 +106,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       if (getStatus() == HarvestStatus.RUNNING)
         setStatus(HarvestStatus.OK);
       if (getStatus() == HarvestStatus.WARN || getStatus() == HarvestStatus.ERROR) {
-        subject = "Harvest status: " + getStatus().toString();
+        subject = "Harvest status: " + getStatus();
         msg = getHarvestable().getMessage();
         logError(subject, msg);
       }
@@ -152,22 +156,22 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   }
 
   private void downloadList(String[] list, boolean diskRun, DiskCache dc) throws Exception {
-    logger.debug("BulkRecordHarvestJob downloading list: " + Arrays.asList(list).toString());
+    logger.debug("BulkRecordHarvestJob downloading list: " + Arrays.asList(list));
     Date lastDate = null;
     if (resource.getAllowCondReq()) {
       // conditonal request are enabled, manual override takes precedence and
       // gets cleaned-up
       lastDate = resource.getFromDate();
       resource.setFromDate(null);
-      // when no manual override, use the last completion date
+      // when no manual override, use the last started date
       if (lastDate == null) {
-        lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestFinished();
+        lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : previousHarvestStarted;
       }
     }
     XmlMarcClient client = new XmlMarcClient(resource, this, proxy, logger, dc, lastDate);
     for (String item : list) {
       try {
-        int noErrors = 0;
+        int noErrors;
         if (!diskRun) {
           logger.debug("BulkRecordHarvestJob downloading URL: " + item);
           noErrors = client.download(new URL(item));
