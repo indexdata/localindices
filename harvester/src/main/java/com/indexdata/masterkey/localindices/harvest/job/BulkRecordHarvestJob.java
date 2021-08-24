@@ -36,12 +36,15 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
   private String errors;
   private HarvestStatus initialStatus;
 
+  private final Date previousHarvestStarted;
+
   public BulkRecordHarvestJob(XmlBulkResource resource, Proxy proxy) {
     this.proxy = proxy;
     this.resource = resource;
     this.resource.setMessage(null);
     initialStatus = HarvestStatus.valueOf(resource.getCurrentStatus());
     setStatus(initialStatus);
+    previousHarvestStarted = resource.getLastHarvestStarted();
     setLogger((new FileStorageJobLogger(getClass(), resource)));
   }
 
@@ -162,7 +165,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       resource.setFromDate(null);
       // when no manual override, use the last started date
       if (lastDate == null) {
-        lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : resource.getLastHarvestStarted();
+        lastDate = initialStatus == HarvestStatus.ERROR || initialStatus == HarvestStatus.WARN ? null : previousHarvestStarted;
       }
     }
     XmlMarcClient client = new XmlMarcClient(resource, this, proxy, logger, dc, lastDate);
