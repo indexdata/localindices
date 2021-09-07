@@ -27,11 +27,11 @@ public class EntityQuery {
 
   private Query query;
   private String filter = "";
-  private List<String> keywordAllFields = new ArrayList<String>();
+  private List<String> keywordAllFields = new ArrayList<>();
   private String acl = "";
   private String startsWithField = "";
   private String startsWith = "";
-  private static Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester");
+  private static final Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester");
 
 
   private Query getQuery () {
@@ -51,14 +51,31 @@ public class EntityQuery {
     String term = "";
     String operator = "";
     String value = "";
-    Pattern qry = Pattern.compile("\\(?(\\w+)[ ]*(\\!?=)[ ]*([\\*\\w]+)\\)?");
+
+    Pattern qry = Pattern.compile("\\(?([.\\w]+)[ ]*(!?=)[ ]*(.+)\\)?");
     Query (String query) {
-      Matcher matcher = qry.matcher(query);
-      if (matcher.find()) {
-        term = matcher.group(1);
-        operator = matcher.group(2);
-        value = matcher.group(3);
-        this.query = query;
+      if (query != null && !query.isEmpty())
+      {
+        LOGGER.info( "Constructing Query object from " + query );
+        if (query.startsWith("(") && query.endsWith(")"))
+          query = query.substring(1, query.length()-1);
+        Matcher matcher = qry.matcher( query );
+        if ( matcher.find() )
+        {
+          term = matcher.group( 1 );
+          operator = matcher.group( 2 );
+          value = matcher.group( 3 );
+          this.query = query;
+          LOGGER.info( "term: " + term);
+          LOGGER.info( "operator: " + operator );
+          LOGGER.info( "value: " + value );
+        }
+        else
+        {
+          LOGGER.info( "No Query object constructed, couldn't parse query " + query );
+        }
+      } else {
+        LOGGER.info("No query requested, constructing empty Query object.");
       }
     }
 
@@ -82,15 +99,16 @@ public class EntityQuery {
     }
 
     String asWhereClause (String tableAlias) {
-      StringBuilder str = new StringBuilder("");
-      str.append(" (")
+      return new StringBuilder()
+         .append(" (")
          .append(tableAlias)
          .append(".")
          .append(term)
-         .append(value.contains("*") ? (operator.equals("!=") ? " NOT " : "") + " LIKE '" + value.replaceAll("\\*","%") + "'" :  "")
+         .append(value.contains("*") ?
+                 (operator.equals("!=") ? " NOT " : "") + " LIKE '" + value.replaceAll("\\*","%") + "'"
+                 :  "")
          .append(!value.contains("*") ? operator + "'" + value + "'" : "")
-         .append(" )");
-      return str.toString();
+         .append(" )").toString();
     }
   }
 
@@ -188,13 +206,11 @@ public class EntityQuery {
 
   /**
   * Constructs where clause that would look for 'filter' in any of the provided columns.
-  * @param filterString
-  * @param columns
-  * @param tableAlias
+  * @param tableAlias The SQL query's alias for the table to create WHERE clause for
   * @return " where concat( [alias].[cols-1], '||', [alias].[cols-2], ...) like '%[filter]%' "
   */
   private String getFilteringWhereClause(String tableAlias, boolean withWHERE) {
-    StringBuilder expr = new StringBuilder("");
+    StringBuilder expr = new StringBuilder();
     if (filter != null && filter.length()>0 && keywordAllFields != null && keywordAllFields.size()>0) {
       int i = 0;
       expr.append(withWHERE ? " WHERE " : "");
@@ -225,7 +241,7 @@ public class EntityQuery {
   }
 
   private String getAclWhereClause (String tableAlias, boolean withWHERE ) {
-    StringBuilder expr = new StringBuilder("");
+    StringBuilder expr = new StringBuilder();
     if (hasAcl()) {
       expr.append(withWHERE ? " WHERE " : "")
               .append(tableAlias)
@@ -238,10 +254,10 @@ public class EntityQuery {
   }
 
   public String asWhereClause (String tableAlias) {
-    String whereClause = "";
+    StringBuilder whereClause = new StringBuilder();
     if (hasSearchCriteria()) {
-      whereClause += " WHERE ";
-      List<String> whereClauses = new ArrayList<String>();
+      whereClause.append( " WHERE " );
+      List<String> whereClauses = new ArrayList<>();
       if (hasFilter()) {
         whereClauses.add(getFilteringWhereClause(tableAlias));
       }
@@ -256,11 +272,11 @@ public class EntityQuery {
       }
       Iterator<String> iter = whereClauses.iterator();
       while (iter.hasNext()) {
-        whereClause += iter.next();
-        if (iter.hasNext()) whereClause += " AND ";
+        whereClause.append( iter.next());
+        if (iter.hasNext()) whereClause.append(" AND ");
       }
     }
-    return whereClause;
+    return whereClause.toString();
   }
 
   private static boolean isNotEmpty(String str) {
@@ -269,7 +285,6 @@ public class EntityQuery {
 
   @Override
   public boolean equals(Object o) {
-    String.join(", ", keywordAllFields);
     if (o instanceof EntityQuery) {
       EntityQuery p = (EntityQuery)o;
       return (p.asWhereClause("alias").equals(this.asWhereClause("alias")));
@@ -299,10 +314,10 @@ public class EntityQuery {
     query.setQuery("(usedBy=library)");
     System.out.println(query.asUrlParameters());
     System.out.println(query.asWhereClause("x"));
-    
+
     query = new EntityQuery();
     query.setQuery("(usedBy=library)");
-    System.out.println(query.asUrlParameters());    
+    System.out.println(query.asUrlParameters());
     System.out.println(query.asWhereClause("b"));
     query.setQuery("usedBy=*library");
     System.out.println(query.asUrlParameters());
