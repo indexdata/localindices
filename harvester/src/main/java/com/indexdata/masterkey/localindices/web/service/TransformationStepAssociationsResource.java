@@ -69,11 +69,12 @@ public class TransformationStepAssociationsResource {
   public TransformationStepAssociationsConverter get(
 
   @QueryParam("start") @DefaultValue("0") int start,
-  @QueryParam("max") @DefaultValue("100") int max) {
+  @QueryParam("max") @DefaultValue("100") int max,
+  @QueryParam("query") @DefaultValue("") String query) {
     List<TransformationStepAssociation> entities;
-    EntityQuery qry = new EntityQuery();
+    EntityQuery qry = new EntityQuery().withQuery( query );
     if (max <= 0)
-      entities = new ArrayList();
+      entities = new ArrayList<>();
     else
       entities = dao.retrieve(start, max, qry);
     return new TransformationStepAssociationsConverter(entities, context.getAbsolutePath(), start,

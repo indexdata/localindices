@@ -111,20 +111,22 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
         EntityManager em = getEntityManager();
         EntityTransaction tx = em.getTransaction();
         // HACK: Hides database errors but does not crash the Scheduler
-        List<TransformationStepAssociation> hables = new LinkedList<TransformationStepAssociation>();
+        List<TransformationStepAssociation> hables = new LinkedList<>();
         try {
             tx.begin();
+            String queryString = "select object(o) from TransformationStepAssociation as o" + query.asWhereClause("o");
             Query q = em.createQuery("select object(o) from TransformationStepAssociation as o" + query.asWhereClause("o"));
+            logger.info("Query is: " + queryString);
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
             tx.commit();
         } catch (Exception ex) {
-            logger.log(Level.DEBUG, ex);
+            logger.log(Level.INFO, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                logger.log(Level.DEBUG, e);
+                logger.log(Level.INFO, e);
             }
         } finally {
             em.close();
@@ -188,8 +190,7 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
         try {
         	Query query = em.createQuery("select count(o) from TransformationStepAssociation o where o.transformation.id = :id");
         	query.setParameter("id", id);
-        	int count = ((Long) query.getSingleResult()).intValue();
-            return count;
+        	return ((Long) query.getSingleResult()).intValue();
         } finally {
             em.close();
         }    
@@ -201,8 +202,7 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
         try {
         	Query query = em.createQuery("select count(o) from TransformationStepAssociation o where o.step.id = :id");
         	query.setParameter("id", id);
-        	int count = ((Long) query.getSingleResult()).intValue();
-            return count;
+        	return ((Long) query.getSingleResult()).intValue();
         } finally {
             em.close();
         }    
@@ -210,7 +210,7 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
 
 	@Override
     public List<TransformationStepAssociationBrief> retrieveBriefs(int start, int max, EntityQuery query) {
-        List<TransformationStepAssociationBrief> hrefs = new ArrayList<TransformationStepAssociationBrief>();
+        List<TransformationStepAssociationBrief> hrefs = new ArrayList<>();
         for (TransformationStepAssociation hable : retrieve(start, max, query)) {
         	TransformationStepAssociationBrief href = new TransformationStepAssociationBrief(hable);
             hrefs.add(href);
@@ -228,9 +228,8 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
 	public int getCount(EntityQuery entityQuery) {
         EntityManager em = getEntityManager();
         try {
-        	Query query = em.createQuery("select count(o) from TransformationStepAssociation o");
-        	int count = ((Long) query.getSingleResult()).intValue();
-            return count;
+        	Query query = em.createQuery("select count(o) from TransformationStepAssociation o " + entityQuery.asWhereClause("o"));
+        	return ((Long) query.getSingleResult()).intValue();
         } finally {
             em.close();
         }    
@@ -245,7 +244,7 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
   @Override
   public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
     int max, String sortKey, boolean asc, EntityQuery query) {
-    return retrieveBriefs(start, max, sortKey, asc, query);
+    return retrieveBriefs(start, max, query);
   }
 
 }
