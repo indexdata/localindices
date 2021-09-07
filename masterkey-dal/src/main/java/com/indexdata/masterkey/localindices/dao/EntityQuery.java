@@ -56,7 +56,7 @@ public class EntityQuery {
     Query (String query) {
       if (query != null && !query.isEmpty())
       {
-        LOGGER.info( "Constructing Query object from " + query );
+        LOGGER.debug( "Constructing Query object from " + query );
         if (query.startsWith("(") && query.endsWith(")"))
           query = query.substring(1, query.length()-1);
         Matcher matcher = qry.matcher( query );
@@ -66,16 +66,16 @@ public class EntityQuery {
           operator = matcher.group( 2 );
           value = matcher.group( 3 );
           this.query = query;
-          LOGGER.info( "term: " + term);
-          LOGGER.info( "operator: " + operator );
-          LOGGER.info( "value: " + value );
+          LOGGER.debug( "term: " + term);
+          LOGGER.debug( "operator: " + operator );
+          LOGGER.debug( "value: " + value );
         }
         else
         {
-          LOGGER.info( "No Query object constructed, couldn't parse query " + query );
+          LOGGER.error( "No Query object constructed, couldn't parse query " + query );
         }
       } else {
-        LOGGER.info("No query requested, constructing empty Query object.");
+        LOGGER.debug("No query requested, constructing empty Query object.");
       }
     }
 
