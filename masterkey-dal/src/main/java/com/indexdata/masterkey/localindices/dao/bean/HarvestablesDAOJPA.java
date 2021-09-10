@@ -31,15 +31,21 @@ import com.indexdata.utils.persistence.EntityUtil;
  * @author jakub
  */
 public class HarvestablesDAOJPA implements HarvestableDAO {
-  private static final Logger LOGGER = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
+  private static final Logger logger = Logger.getLogger("com.indexdata.masterkey.harvester.dao");
+
+  public HarvestablesDAOJPA () {
+    logger.setLevel( Level.INFO );
+  }
 
   @Override
   public List<Harvestable> retrieve(int start, int max, EntityQuery query) {
+    debugLog( "JPA: retrieve(start,max,query) harvestables, query: " + (query != null ? query.asUrlParameters() : "none" ));
     return retrieve(start, max, null, true, query);
   }
 
   @Override
   public List<HarvestableBrief> retrieveBriefs(int start, int max, EntityQuery query) {
+    debugLog( "JPA: retrieve harvestables briefs(start,max,query), query: " + (query != null ? query.asUrlParameters() : "none") );
     return retrieveBriefs(start, max, null, true, query);
   }
     public enum AllowedSortKey {
@@ -48,8 +54,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
       DATE_STARTED("lastHarvestStarted", "o.lastHarvestStarted"),
       DATE_FINISHED("lastHarvestFinished", "o.lastHarvestFinished"),
       DATE_STARTED_OR_FINISHED("lastHarvestStartedOrFinished", "coalesce(o.lastHarvestFinished, o.lastHarvestStarted)");
-      private String sortKey;
-      private String orderExpression;
+      private final String sortKey;
+      private final String orderExpression;
       AllowedSortKey(String sortKey, String orderExpression) {
         this.sortKey = sortKey;
         this.orderExpression = orderExpression;
@@ -63,7 +69,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
       public static List<AllowedSortKey> fromString(String spec) {
         if (spec != null) {
           String[] fieldNames = spec.split(",");
-          List<AllowedSortKey> allowed = new ArrayList<AllowedSortKey>(fieldNames.length);
+          List<AllowedSortKey> allowed = new ArrayList<>(fieldNames.length);
           for (String fieldName : fieldNames) {
             for (AllowedSortKey em : values()) {
               if (fieldName.equalsIgnoreCase(em.sortKey))
@@ -89,11 +95,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.persist(harvestable);
             tx.commit();
         } catch (Exception ex) {
-            LOGGER.log(Level.DEBUG, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                LOGGER.log(Level.DEBUG, e);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -118,11 +124,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             harvestable = em.merge(updHarvestable);
             tx.commit();
         } catch (Exception ex) {
-            LOGGER.log(Level.DEBUG, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                LOGGER.log(Level.DEBUG, e);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -140,11 +146,11 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             em.remove(harvestable);
             tx.commit();
         } catch (Exception ex) {
-            LOGGER.log(Level.DEBUG, ex);
+            logger.log(Level.DEBUG, ex);
             try {
                 tx.rollback();
             } catch (Exception e) {
-                LOGGER.log(Level.DEBUG, e);
+                logger.log(Level.DEBUG, e);
             }
         } finally {
             em.close();
@@ -153,6 +159,8 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     @Override
     public List<Harvestable> retrieve(int start, int max, String sortKey, boolean asc, EntityQuery query) {
+
+      debugLog("JPA: retrieve harvestables(start,max,sortKey,asc,query), sortKey: " +sortKey + ", query: " + (query != null ? query.asUrlParameters() : "none" ));
       EntityManager em = getEntityManager();
       EntityTransaction tx = em.getTransaction();
       // Communication errors with the persistence Layer will now just look like 0 records exists.
@@ -171,19 +179,21 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
             }
           }
           orderBy += (asc ? " ASC" : " DESC");
-          String qs = "select object(o) from Harvestable as o " + query.asWhereClause("o") + " order by "
-            + orderBy;
+          String qs = "select object(o) from Harvestable as o "
+                  + (query != null ? query.asWhereClause("o") : "")
+                  + " order by " + orderBy;
+          debugLog("JPA query is: " + qs);
           Query q = em.createQuery(qs);
           q.setMaxResults(max);
           q.setFirstResult(start);
           hables = q.getResultList();
           tx.commit();
       } catch (Exception ex) {
-          LOGGER.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
+          logger.log(Level.ERROR, "Failed to select Harvestable(s)", ex);
           try {
               tx.rollback();
           } catch (Exception e) {
-              LOGGER.log(Level.DEBUG, e);
+              logger.log(Level.DEBUG, e);
           }
           // Some sort of analysis on the exception is required.
           // Temporary should either ignored or throw as Interrupted
@@ -203,8 +213,7 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
     public int getCount(EntityQuery query) {
         EntityManager em = getEntityManager();
         try {
-            int count = ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause("o")).getSingleResult()).intValue();
-            return count;
+            return ((Long) em.createQuery("select count(o) from Harvestable as o " + query.asWhereClause("o")).getSingleResult()).intValue();
         } finally {
             em.close();
         }
@@ -213,7 +222,9 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
 
     @Override
     public List<HarvestableBrief> retrieveBriefs(int start, int max, String sortKey, boolean asc, EntityQuery query) {
-        List<HarvestableBrief> hrefs = new ArrayList<HarvestableBrief>();
+        debugLog("JPA: retrieve brief harvestables(start,max,sortKey,asc,query), sortKey: " +sortKey + ", query: " + (query != null ? query.asUrlParameters() : "none") );
+
+        List<HarvestableBrief> hrefs = new ArrayList<>();
         List<Harvestable> list = retrieve(start, max, sortKey, asc, query);
         if (list == null)
           return null;
@@ -242,5 +253,12 @@ public class HarvestablesDAOJPA implements HarvestableDAO {
   @Override
   public void resetCache(long id) throws DAOException {
     throw new UnsupportedOperationException("DiskCache removal must be performed through the web service.");
+  }
+
+  private void debugLog( String logStatement) {
+      if (!Thread.currentThread().getName().equals("SchedulerThread" ))
+      {
+          logger.debug( logStatement );
+      }
   }
 }
