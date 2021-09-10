@@ -34,14 +34,13 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 
     /**
      * create (POST) entity to the Web Service
-	 * @param TransformationStepAssociation
-     * @return
+	 * @param entity the TSA to create
      */
     @Override
     public void create(TransformationStepAssociation entity) {
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new ResourceConnector<>(
                     new URL(serviceBaseURL),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -59,7 +58,7 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
     	TransformationStepAssociation entity = null;
         try {
             ResourceConnector<TransformationStepAssociationConverter> connector =
-                new ResourceConnector<TransformationStepAssociationConverter>(
+                new ResourceConnector<>(
                     new URL(serviceBaseURL + id + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -72,13 +71,13 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
 
     /**
      * PUT Transformation to the Web Service
-     * @param Transformation entity to be put
+     * @param entity Transformation to be put
      */
     @Override
     public TransformationStepAssociation update(TransformationStepAssociation entity) {
         try {
             ResourceConnector<TransformationStepAssociationConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationConverter>(
+                    new ResourceConnector<>(
                     new URL(serviceBaseURL + entity.getId() + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -96,7 +95,7 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
     public void delete(TransformationStepAssociation entity) {
         try {
             ResourceConnector<TransformationStepAssociationConverter> connector =
-                new ResourceConnector<TransformationStepAssociationConverter>(
+                new ResourceConnector<>(
                     new URL(serviceBaseURL + entity.getId() + "/"),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -111,13 +110,13 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
         String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new ResourceConnector<>(
                     new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
-            TransformationStepAssociationsConverter  hc = connector.get();
+            // TransformationStepAssociationsConverter  hc = connector.get();
             // TODO implement convertion !!! 
-            hc.getReferences();
+            // hc.getReferences();
         } catch (Exception male) {
             logger.log(Level.DEBUG, male);
         }
@@ -129,7 +128,7 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
         String url = serviceBaseURL + "?start=" + start + "&max=" + max + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new ResourceConnector<>(
                     new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -152,7 +151,7 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
         String url = serviceBaseURL + "?start=0&max=0" + query.asUrlParameters();
         try {
             ResourceConnector<TransformationStepAssociationsConverter> connector =
-                    new ResourceConnector<TransformationStepAssociationsConverter>(
+                    new ResourceConnector<>(
                     new URL(url),
                     "com.indexdata.masterkey.localindices.entity" +
                     ":com.indexdata.masterkey.localindices.web.service.converter");
@@ -196,7 +195,7 @@ public class TransformationStepAssociationDAOWS extends CommonDAOWS implements T
   @Override
   public List<TransformationStepAssociationBrief> retrieveBriefs(int start,
     int max, String sortKey, boolean asc, EntityQuery query) {
-    return retrieveBriefs(start, max, sortKey, asc, query);
+    return retrieveBriefs(start, max, query);
   }
 
 	
