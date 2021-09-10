@@ -114,9 +114,9 @@ public class TransformationStepAssociationsDAOJPA implements TransformationStepA
         List<TransformationStepAssociation> hables = new LinkedList<>();
         try {
             tx.begin();
-            String queryString = "select object(o) from TransformationStepAssociation as o" + query.asWhereClause("o");
-            Query q = em.createQuery("select object(o) from TransformationStepAssociation as o" + query.asWhereClause("o"));
+            String queryString = "select object(o) from TransformationStepAssociation as o" + query.asWhereClause("o") + " order by o.transformation.id, o.position";
             logger.info("Query is: " + queryString);
+            Query q = em.createQuery(queryString);
             q.setMaxResults(max);
             q.setFirstResult(start);
             hables = q.getResultList();
