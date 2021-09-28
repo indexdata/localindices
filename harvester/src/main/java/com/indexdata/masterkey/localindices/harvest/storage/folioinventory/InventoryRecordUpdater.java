@@ -96,6 +96,16 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         if (transformedRecord.hasInstanceRelations()) {
           inventoryRecordSet.put("instanceRelations", transformedRecord.getInstanceRelations());
         }
+        // Add processing variables for shared index updates
+        if (ctxt.inventoryUpsertPath.contains( "matchkey" ))
+        {
+          JSONObject processingInfo = new JSONObject();
+          processingInfo.put( "identifierTypeId", transformedRecord.getIdentifierTypeId() );
+          processingInfo.put( "localIdentifier", transformedRecord.getLocalIdentifier() );
+          processingInfo.put( "institutionId", transformedRecord.getInstitutionId() );
+          inventoryRecordSet.put( "processingInfo", processingInfo );
+        }
+        logger.log(Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString());
         JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
         logger.log(Level.TRACE, "Response was: " + responseJson.toJSONString());
         UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
