@@ -1,5 +1,9 @@
 
 
+ * Inventory storage: pass on localIdentifier, identifierTypeId (MKH-536)
+ * Use `lastHarvestStarted` for `fromDate` (MKH-534)
+ * Support queries for TSAS entities too (step associations)
+ * Properly encode query parameters. 
  * Always convert MARC binary to UTF-8.
  * Workarounds to deal with FTP server timeouts for large files. PR-818.
 
@@ -25,6 +29,6 @@
 
 ## 2.12.0
 
-* Introduces query parameters object in data access layers layers
+* Introduces query parameters object in data access layers
 * Adds column for record level access control to STORAGE, HARVESTABLE, TRANSFORMATION, STEP
 * Supports query `acl=<tag>` for storages, harvestables, transformations, steps

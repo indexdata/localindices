@@ -19,10 +19,6 @@ import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 
 /**
- *
- * @author ne
- */
-/**
    * Represents the JSON coming out of the transformation pipeline, containing one or more Inventory
    * entities like Instance, holdings records, items, the original record, and other data needed for
    * the Inventory ingestion logic. <br/>
@@ -107,16 +103,32 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
      */
     public String getInstitutionId (Map<String,String> locationsToInstitutionsMap) {
       if (transformed.containsKey("institutionId")) {
-        return (String) transformed.get("institutionId");
+        return getInstitutionId();
       } else {
         return getInstitutionId(getHoldings(), locationsToInstitutionsMap);
       }
+    }
+
+  /**
+   * Retrieve institutionId from transformed record, null if none found
+   * @return the institution ID or null
+   */
+  public String getInstitutionId () {
+      return (String) transformed.get("institutionId");
     }
 
     public String getLocalIdentifier () {
       String id = (String) transformed.get("localIdentifier");
       if (id == null) id = (String) getInstance().get("hrid");
       return id;
+    }
+
+  /**
+   * Get FOLIO's UUID for the type of the localIdentifier
+   * @return the given library's identifierTypeId for its local identifiers
+   */
+  public String getIdentifierTypeId () {
+      return (String) transformed.get("identifierTypeId");
     }
 
     public String getOriginalXml() {
@@ -237,6 +249,14 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
         logger.error("InventoryRecordStorage could not parse transformed record to get Instance relations: " + pe.getMessage());
       }
       return instanceRelations;
+    }
+
+    public boolean hasProcessingInfo () {
+      return transformed.containsKey( "processing" );
+    }
+
+    public JSONObject getProcessingInfo () {
+      return (JSONObject) transformed.get("processing");
     }
 
     public boolean hasMatchKey () {
