@@ -123,14 +123,6 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return id;
     }
 
-  /**
-   * Get FOLIO's UUID for the type of the localIdentifier
-   * @return the given library's identifierTypeId for its local identifiers
-   */
-  public String getIdentifierTypeId () {
-      return (String) transformed.get("identifierTypeId");
-    }
-
     public String getOriginalXml() {
       String original = null;
       if (transformed.get("original") == null) {
