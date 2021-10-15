@@ -1,4 +1,4 @@
-
+## not tagged
 
  * Inventory storage: pass on localIdentifier, identifierTypeId (MKH-536)
  * Use `lastHarvestStarted` for `fromDate` (MKH-534)
