@@ -241,20 +241,23 @@ public class InventoryStorageController implements RecordStorage {
   public void databaseEnd() {
     logger.debug("Inventory RecordStorage: databaseEnd() invoked.");
     if (!statusWritten) {
+      String recordsSkippedMessage = (ctxt.updateCounters.recordsSkipped > 0 ? "Records skipped by date filter: " + ctxt.updateCounters.recordsSkipped : "");
       String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + ctxt.updateCounters.instancesProcessed + "___" + ctxt.updateCounters.instancesLoaded + "___" + ctxt.updateCounters.instanceDeletions + "(" + ctxt.updateCounters.instanceDeleteSignals + ")___" + ctxt.updateCounters.instancesFailed + "_";
       String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
       String itemsMessage = "Items_processed/loaded/deleted/failed:__" + ctxt.updateCounters.itemsProcessed + "___" + ctxt.updateCounters.itemsLoaded + "___" + ctxt.updateCounters.itemsDeleted + "___" + ctxt.updateCounters.itemsFailed + "_";
       String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.sourceRecordsProcessed + "___" + ctxt.updateCounters.sourceRecordsLoaded + "___" + ctxt.updateCounters.sourceRecordsDeleted + "___" + ctxt.updateCounters.sourceRecordsFailed + "_";
+      if (ctxt.updateCounters.recordsSkipped>0) logger.log(Level.INFO, recordsSkippedMessage);
       logger.log((ctxt.updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
       logger.log((ctxt.updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
       logger.log((ctxt.updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
       logger.log((ctxt.updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
+
       ctxt.failedRecordsController.writeLog();
       ctxt.timingsCreatingRecord.writeLog();
       ctxt.timingsTransformingRecord.writeLog();
       ctxt.timingsStoringInventoryRecordSet.writeLog();
-      harvestable.setMessage(instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+      harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
       statusWritten=true;
     }
   }

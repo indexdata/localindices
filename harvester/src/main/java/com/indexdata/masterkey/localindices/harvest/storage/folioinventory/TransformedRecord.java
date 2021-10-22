@@ -2,6 +2,11 @@ package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -121,6 +126,41 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       String id = (String) transformed.get("localIdentifier");
       if (id == null) id = (String) getInstance().get("hrid");
       return id;
+    }
+
+    public boolean hasLastUpdateDate () {
+      return ( getLastUpdateDate() != null  && ! getLastUpdateDate().isEmpty());
+    }
+
+    public String getLastUpdateDate () {
+      if (transformed.containsKey( "lastUpdateDate" )) {
+        return (String) transformed.get("lastUpdateDate");
+      } else {
+        return null;
+      }
+    }
+
+  /**
+   *
+   * @param overwrite indicates whether the job is configured to write all incoming records (no filtering)
+   * @param configuredFromDate the from-date configured for the job, null if none configured
+   * @param lastHarvestFinished the timestamp from the finish of the last harvest
+   * @return
+   */
+    public boolean passesDateFilterIfAny( boolean overwrite, Date configuredFromDate, Date lastHarvestFinished ) {
+      boolean passed = true;
+      if (!overwrite && getLastUpdateDate() != null) {
+        Date fromDate;
+        if (configuredFromDate != null) {
+          fromDate = configuredFromDate;
+        } else {
+          fromDate = lastHarvestFinished;
+        }
+        LocalDate lastUpdate = LocalDate.parse( getLastUpdateDate() );
+        Instant updated = lastUpdate.atStartOfDay().toInstant( ZoneOffset.UTC );
+        passed = !updated.isBefore( fromDate.toInstant() );
+      }
+      return passed;
     }
 
     public String getOriginalXml() {
