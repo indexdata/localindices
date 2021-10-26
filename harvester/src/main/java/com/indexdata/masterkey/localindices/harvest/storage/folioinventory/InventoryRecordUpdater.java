@@ -70,12 +70,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   /**
    * Adds or updates a set of Inventory records (an Instance with related holdings and/or a source record)
    * from the incoming bibliographic record.
-   * @param recordJSON
+   * @param recordJSON The JSON coming into the Harvester Inventory storage logic from the transformation pipeline
    */
   void addInventory(RecordJSON recordJSON) {
     try {
       long startStorageEntireRecord = System.currentTimeMillis();
-      /**
+
+      /*
        * TransformedRecord is a 'facade' that provides an API into RecordJSON and allows for (slight)
        * variations in the structure of the transformed record while shielding the client code from
        * those potential differences in structure. Thus safer to use than RecordJSON.
@@ -84,63 +85,83 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
 
       if (ctxt.useInventoryUpsert) {
-        JSONObject inventoryRecordSet = new JSONObject();
-        JSONObject instance = transformedRecord.getInstance();
-        if (transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains("matchkey")) {
-          instance.put("matchKey", transformedRecord.getMatchKey());
-        }
-        inventoryRecordSet.put("instance", transformedRecord.getInstance());
-        if (transformedRecord.getHoldings() != null) {
-          inventoryRecordSet.put("holdingsRecords", transformedRecord.getHoldings());
-        }
-        if (transformedRecord.hasInstanceRelations()) {
-          inventoryRecordSet.put("instanceRelations", transformedRecord.getInstanceRelations());
-        }
-        // Add processing info if provided by the transformation
-        if (transformedRecord.hasProcessingInfo()) {
-          inventoryRecordSet.put("processing", transformedRecord.getProcessingInfo());
-        }
-        logger.log(Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString());
-        JSONObject responseJson = upsertInventoryRecordSet(inventoryRecordSet);
-        logger.log(Level.TRACE, "Response was: " + responseJson.toJSONString());
-        UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseJson.get("metrics"));
+        if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
+            updateCounters.xmlBulkRecordsSkipped++;
+            ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+            ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+        } else {
+          JSONObject inventoryRecordSet = new JSONObject();
+          JSONObject instance = transformedRecord.getInstance();
+          if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
+          {
+            instance.put( "matchKey", transformedRecord.getMatchKey() );
+          }
+          inventoryRecordSet.put( "instance", instance );
+          if ( transformedRecord.getHoldings() != null )
+          {
+            inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
+          }
+          if ( transformedRecord.hasInstanceRelations() )
+          {
+            inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
+          }
+          // Add processing info if provided by the transformation
+          if ( transformedRecord.hasProcessingInfo() )
+          {
+            inventoryRecordSet.put( "processing", transformedRecord.getProcessingInfo() );
+          }
+          logger.log( Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString() );
+          JSONObject responseJson = upsertInventoryRecordSet( inventoryRecordSet );
+          logger.log( Level.TRACE, "Response was: " + responseJson.toJSONString() );
+          UpsertMetrics metrics = new UpsertMetrics( (JSONObject) responseJson.get( "metrics" ) );
 
-        if (ctxt.harvestable.isStoreOriginal()) {
-          if (metrics.instance.create.failed==0) {
-            String institutionId = transformedRecord.getInstitutionId(locInstMap);
-            String localIdentifier = transformedRecord.getLocalIdentifier();
+          if ( ctxt.harvestable.isStoreOriginal() )
+          {
+            if ( metrics.instance.create.failed == 0 )
+            {
+              String institutionId = transformedRecord.getInstitutionId( locInstMap );
+              String localIdentifier = transformedRecord.getLocalIdentifier();
 
-            updateCounters.sourceRecordsProcessed++;
-            if (ctxt.marcStorageUrlIsDefined) {
-              JSONObject marcJson = getMarcJson(transformedRecord);
-              JSONObject instanceJson = (JSONObject) responseJson.get("instance");
-              String instanceId = instanceJson.get("id").toString();
-              addOrUpdateMarcRecord(marcJson, instanceId, institutionId, localIdentifier);
-            } else {
-              updateCounters.sourceRecordsFailed++;
-              RecordError error = new ExceptionRecordError(
-                new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
-                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
-              recordWithErrors.reportError(error, Level.DEBUG);
+              updateCounters.sourceRecordsProcessed++;
+              if ( ctxt.marcStorageUrlIsDefined )
+              {
+                JSONObject marcJson = getMarcJson( transformedRecord );
+                JSONObject instanceJson = (JSONObject) responseJson.get( "instance" );
+                String instanceId = instanceJson.get( "id" ).toString();
+                addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier );
+              }
+              else
+              {
+                updateCounters.sourceRecordsFailed++;
+                RecordError error = new ExceptionRecordError( new InventoryUpdateException(
+                        "Configuration error: Cannot store original content as requested, no path configured for MARC storage" ),
+                        "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
+                        InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
+                recordWithErrors.reportError( error, Level.DEBUG );
+              }
             }
-          } else {
-            RecordError error = new ExceptionRecordError(
-              new InventoryUpdateException("Instance error: Cannot store original content as requested since Instance creation failed"),
-              "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "");
-            recordWithErrors.reportError(error, Level.DEBUG);
+            else
+            {
+              RecordError error = new ExceptionRecordError( new InventoryUpdateException(
+                      "Instance error: Cannot store original content as requested since Instance creation failed" ),
+                      "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
+                      InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
+              recordWithErrors.reportError( error, Level.DEBUG );
 
+            }
+          }
+          ctxt.timingsStoringInventoryRecordSet.time( startStorageEntireRecord );
+          ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+          ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+          ctxt.storageStatus.incrementAdd( 1 );
+          setCounters( metrics );
+          logRecordCounts();
+          if ( recordWithErrors.hasErrors() )
+          {
+            recordWithErrors.logFailedRecord();
           }
         }
-        ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
-        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
-        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
-        ctxt.storageStatus.incrementAdd(1);
-        setCounters(metrics);
-        logRecordCounts();
-        if (recordWithErrors.hasErrors()) {
-          recordWithErrors.logFailedRecord();
-        }
-      } else {
+    } else {
         // TODO: eventually deprecate this section and supporting methods
         JSONObject instanceResponse;
         if (ctxt.instanceStoragePath.contains("match")) {
@@ -193,7 +214,14 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   private void logRecordCounts() {
     if (updateCounters.instancesLoaded>0 && updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
-      logger.info("" + updateCounters.instancesLoaded + " instances, " + updateCounters.holdingsRecordsLoaded + " holdings records, " + updateCounters.itemsLoaded + " items, and " + updateCounters.sourceRecordsLoaded + " source records ingested. " + updateCounters.instanceDeleteSignals + " delete signal(s), " + updateCounters.instanceDeletions + " delete(s)");
+      logger.info("" + updateCounters.instancesLoaded + " instances, "
+              + updateCounters.holdingsRecordsLoaded + " holdings records, "
+              + updateCounters.itemsLoaded + " items, and "
+              + updateCounters.sourceRecordsLoaded + " source records ingested. "
+              + updateCounters.instanceDeleteSignals + " delete signal(s), "
+              + updateCounters.instanceDeletions + " delete(s)"
+              + (updateCounters.xmlBulkRecordsSkipped >0 ? " -- " + updateCounters.xmlBulkRecordsSkipped + " record(s) skipped by filter" : ""));
+
       if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
         logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
       }
@@ -239,8 +267,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     TransactionMetrics create;
     TransactionMetrics update;
     TransactionMetrics delete;
-    long processed = 0;
-    long failed = 0;
+    long processed;
+    long failed;
     public EntityMetrics (JSONObject entityMetricsJson) {
       JSONObject json = new JSONObject();
       if (entityMetricsJson != null) {
@@ -255,12 +283,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   }
 
-  public class TransactionMetrics {
+  public static class TransactionMetrics {
 
-    Long completed = new Long(0);
-    Long failed = new Long(0);
-    Long skipped = new Long(0);
-    Long processed = new Long(0);
+    Long completed = 0L;
+    Long failed = 0L;
+    Long skipped = 0L;
+    Long processed = 0L;
 
     public TransactionMetrics (JSONObject transactionMetricsJson) {
 

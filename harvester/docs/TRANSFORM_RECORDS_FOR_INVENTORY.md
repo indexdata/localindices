@@ -8,7 +8,7 @@ There are three phases to the ingestion of harvested bibliographic XML records i
 2.  Transform the XML records to JSON
 3.  Push the JSON records to Inventory
 
-### Writing the style sheets for phase 1
+### Writing the style sheets for transformation of instance, holdings and items
 
 The input to phase 1 could be OAI-PMH MARC21 records for example.
 
@@ -80,8 +80,41 @@ Secondly, any holdings records must be embedded as an array of holdings in the i
   </holdingsRecords>
 </record>
 ```
+#### Additional processing info
 
-If we apply these two conventions -- encode arrays with `<arr>` and `<i>` and embed arrays of holdings and items in the instance -- to an actual sample MARC record:
+Some additional processing information is required for Inventory Update's shared index API `shared-inventory-upsert-matchkey`:
+
+```
+<processing>
+  <institutionId>[]</institutionId>
+  <localIdentifier>[]</localIdentifier>
+  <localIdentifierTypeId>[]</localIdentifierTypeId>
+</processing>  
+```
+
+Finally, for Harvester to filter XML bulk records by date, a last update date on the format 'YYYY-MM-DD' is also required:
+
+```
+<processing>
+  <institutionId>[]</institutionId>
+  <localIdentifier>[]</localIdentifier>
+  <localIdentifierTypeId>[]</localIdentifierTypeId>
+  <lastUpdated>YYYY-MM-DD</lastUpdated>
+</processing>  
+```
+The processing info is put in the record element alongside the instance and the holdings list:
+
+```
+<record
+  <instance/>
+  <holdingsRecords/>
+  <processing/>
+</record>
+```
+
+  
+#### An example: transformation of a MARC record to an Inventory record set.
+Here we apply these two conventions -- encode arrays with `<arr>` and `<i>` and embed arrays of holdings and items in the instance -- to an actual sample MARC record:
 ```
 <record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
   <leader>00683cam a2200253I  4500</leader>

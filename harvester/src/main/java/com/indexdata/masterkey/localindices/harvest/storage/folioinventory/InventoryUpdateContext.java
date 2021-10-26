@@ -1,10 +1,12 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
+import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
@@ -52,13 +54,15 @@ public class InventoryUpdateContext {
     public String authToken;
 
     public StorageJobLogger logger;
-    public final Map<String,String> locationsToInstitutionsMap = new HashMap<String,String>();
+    public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
     public FailedRecordsController failedRecordsController;
     public RecordUpdateCounters updateCounters;
     public HourlyPerformanceStats timingsStoringInventoryRecordSet;
     public HourlyPerformanceStats timingsCreatingRecord;
     public HourlyPerformanceStats timingsTransformingRecord;
     public InventoryStorageStatus storageStatus;
+    private final boolean isXmlBulkJob;
+    private Instant xmlBulkRecordFilteringDate;
 
     public CloseableHttpClient inventoryClient = null;
 
@@ -89,6 +93,18 @@ public class InventoryUpdateContext {
         timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
         timingsTransformingRecord.setLogLevelForIntervals(Level.DEBUG);
         failedRecordsController = new FailedRecordsController(logger, harvestable);
+        isXmlBulkJob = (harvestable instanceof XmlBulkResource);
+        if (isXmlBulkJob && !harvestable.getOverwrite()) {
+            if (harvestable.getFromDate() != null) {
+                xmlBulkRecordFilteringDate = harvestable.getFromDate().toInstant();
+            } else if (harvestable.getLastHarvestFinished() != null) {
+                xmlBulkRecordFilteringDate = harvestable.getLastHarvestFinished().toInstant();
+            }
+            if (xmlBulkRecordFilteringDate != null) {
+                logger.info(
+                        "Filtering records by data, excluding records with an update date before " + xmlBulkRecordFilteringDate );
+            }
+        }
     }
 
     public void setClient (CloseableHttpClient inventoryClient) {
@@ -171,6 +187,19 @@ public class InventoryUpdateContext {
 
     public String getConfig(String key, String defaultValue) {
         return (storageConfig.get(key) != null ? (String) storageConfig.get(key) : "false" );
+    }
+
+    /**
+     * If harvestable is an XML bulk job and 'overwrite' is not checked, and if the job has a 'fromDate' or
+     * alternatively a 'lastHarvestFinished' date, then date filtering applies
+     * @return true if date filtering applies for this job.
+     */
+    public boolean xmlBulkRecordFilteringApplies() {
+        return xmlBulkRecordFilteringDate != null;
+    }
+
+    public Instant getBulkRecordFilteringInstant() {
+        return xmlBulkRecordFilteringDate;
     }
 
 }

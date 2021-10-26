@@ -1,6 +1,7 @@
 ## not tagged
 
- * Inventory storage: pass on localIdentifier, identifierTypeId (MKH-536)
+ * Bulk XML to Inventory: Add option to filter XML bulk records by date (MKH-537)
+ * Inventory match key processing: pass on localIdentifier, identifierTypeId (MKH-536)
  * Use `lastHarvestStarted` for `fromDate` (MKH-534)
  * Support queries for TSAS entities too (step associations)
  * Properly encode query parameters. 
