@@ -5,8 +5,7 @@ import java.io.StringReader;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -72,10 +71,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
    */
   public class TransformedRecord {
 
-    private RecordJSON recordJSON;
+    private final RecordJSON recordJSON;
     private JSONObject transformed;
-    private JSONParser parser = new JSONParser();
-    private StorageJobLogger logger;
+    private final JSONParser parser = new JSONParser();
+    private final StorageJobLogger logger;
 
     public TransformedRecord(RecordJSON recordJSON, StorageJobLogger logger) {
       this.recordJSON = recordJSON;
@@ -107,60 +106,71 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
      * @return Inventory institution UUID
      */
     public String getInstitutionId (Map<String,String> locationsToInstitutionsMap) {
-      if (transformed.containsKey("institutionId")) {
-        return getInstitutionId();
+      String id = getInstitutionId();
+      if (id == null) {
+        id = getInstitutionId(getHoldings(), locationsToInstitutionsMap);
+      }
+      return id;
+    }
+
+    /**
+    * Retrieve institutionId from transformed record, null if none found
+    * @return the institution ID or null
+    */
+    public String getInstitutionId () {
+      if (hasProcessingInfo() && getProcessingInfo().containsKey( "institutionId" )) {
+        return (String) getProcessingInfo().get("institutionId");
       } else {
-        return getInstitutionId(getHoldings(), locationsToInstitutionsMap);
+        return (String) transformed.get( "institutionId" );
       }
     }
 
-  /**
-   * Retrieve institutionId from transformed record, null if none found
-   * @return the institution ID or null
-   */
-  public String getInstitutionId () {
-      return (String) transformed.get("institutionId");
-    }
-
     public String getLocalIdentifier () {
-      String id = (String) transformed.get("localIdentifier");
-      if (id == null) id = (String) getInstance().get("hrid");
+      String id;
+      if (hasProcessingInfo() && getProcessingInfo().containsKey( "localIdentifier" )) {
+        id = (String) getProcessingInfo().get( "localIdentifier" );
+      } else {
+        id = (String) transformed.get( "localIdentifier" );
+        if ( id == null ) id = (String) getInstance().get( "hrid" );
+      }
       return id;
     }
 
     public boolean hasLastUpdateDate () {
-      return ( getLastUpdateDate() != null  && ! getLastUpdateDate().isEmpty());
+      return ( getLastUpdated() != null  && ! getLastUpdated().isEmpty());
     }
 
-    public String getLastUpdateDate () {
-      if (transformed.containsKey( "lastUpdateDate" )) {
-        return (String) transformed.get("lastUpdateDate");
+    public String getLastUpdated() {
+      if (hasProcessingInfo() && getProcessingInfo().containsKey(  "lastUpdated" )) {
+        return (String) getProcessingInfo().get("lastUpdated");
       } else {
         return null;
       }
     }
 
-  /**
-   *
-   * @param overwrite indicates whether the job is configured to write all incoming records (no filtering)
-   * @param configuredFromDate the from-date configured for the job, null if none configured
-   * @param lastHarvestFinished the timestamp from the finish of the last harvest
-   * @return
-   */
-    public boolean passesDateFilterIfAny( boolean overwrite, Date configuredFromDate, Date lastHarvestFinished ) {
-      boolean passed = true;
-      if (!overwrite && getLastUpdateDate() != null) {
-        Date fromDate;
-        if (configuredFromDate != null) {
-          fromDate = configuredFromDate;
-        } else {
-          fromDate = lastHarvestFinished;
+    public Instant getLastUpdateAsInstant () {
+      try {
+        LocalDate lastUpdateDate = LocalDate.parse(getLastUpdated());
+        if (lastUpdateDate!=null) {
+          return lastUpdateDate.atStartOfDay().toInstant( ZoneOffset.UTC );
         }
-        LocalDate lastUpdate = LocalDate.parse( getLastUpdateDate() );
-        Instant updated = lastUpdate.atStartOfDay().toInstant( ZoneOffset.UTC );
-        passed = !updated.isBefore( fromDate.toInstant() );
+      } catch( DateTimeParseException dtpe) {
+        logger.error("Could not parse date string [" + getLastUpdated() + "], cannot apply date filtering to this record, the record will be included: " + dtpe.getMessage() );
       }
-      return passed;
+      return null;
+    }
+
+    public boolean isRecordExcludedByDateFilter( InventoryUpdateContext ctxt ) {
+      if (ctxt.xmlBulkRecordFilteringApplies() && this.hasLastUpdateDate() ) {
+        Instant recordDateStamp = this.getLastUpdateAsInstant();
+        if (recordDateStamp == null) {
+          return false;
+        } else {
+          return recordDateStamp.isBefore( ctxt.getBulkRecordFilteringInstant() );
+        }
+      } else {
+        return false;
+      }
     }
 
     public String getOriginalXml() {

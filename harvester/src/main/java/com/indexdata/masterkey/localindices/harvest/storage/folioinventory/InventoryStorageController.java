@@ -153,11 +153,10 @@ public class InventoryStorageController implements RecordStorage {
    * Retrieve locations-to-institutions mappings from Inventory storage
    * Used for holdings/items deletion logic.
    * @throws IOException
-   * @throws ParseException
    */
   private Map<String,String> getLocationsMap() throws StorageException {
     try {
-      Map<String,String> locationsToInstitutions = new HashMap<String,String>();
+      Map<String,String> locationsToInstitutions = new HashMap<>();
       String url = String.format("%s", ctxt.folioAddress + "locations?limit=9999");
       HttpGet httpGet = new HttpGet(url);
       setHeaders(httpGet, "application/json");
@@ -241,12 +240,12 @@ public class InventoryStorageController implements RecordStorage {
   public void databaseEnd() {
     logger.debug("Inventory RecordStorage: databaseEnd() invoked.");
     if (!statusWritten) {
-      String recordsSkippedMessage = (ctxt.updateCounters.recordsSkipped > 0 ? "Records skipped by date filter: " + ctxt.updateCounters.recordsSkipped : "");
+      String recordsSkippedMessage = (ctxt.updateCounters.xmlBulkRecordsSkipped > 0 ? "Records skipped by date filter: " + ctxt.updateCounters.xmlBulkRecordsSkipped : "");
       String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + ctxt.updateCounters.instancesProcessed + "___" + ctxt.updateCounters.instancesLoaded + "___" + ctxt.updateCounters.instanceDeletions + "(" + ctxt.updateCounters.instanceDeleteSignals + ")___" + ctxt.updateCounters.instancesFailed + "_";
       String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
       String itemsMessage = "Items_processed/loaded/deleted/failed:__" + ctxt.updateCounters.itemsProcessed + "___" + ctxt.updateCounters.itemsLoaded + "___" + ctxt.updateCounters.itemsDeleted + "___" + ctxt.updateCounters.itemsFailed + "_";
       String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.sourceRecordsProcessed + "___" + ctxt.updateCounters.sourceRecordsLoaded + "___" + ctxt.updateCounters.sourceRecordsDeleted + "___" + ctxt.updateCounters.sourceRecordsFailed + "_";
-      if (ctxt.updateCounters.recordsSkipped>0) logger.log(Level.INFO, recordsSkippedMessage);
+      if (ctxt.updateCounters.xmlBulkRecordsSkipped >0) logger.log(Level.INFO, recordsSkippedMessage);
       logger.log((ctxt.updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
       logger.log((ctxt.updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
       logger.log((ctxt.updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
@@ -298,7 +297,7 @@ public class InventoryStorageController implements RecordStorage {
 
   @Override
   public void purge(boolean commit) throws IOException {
-    logger.debug("Purge request received by Inventory RecordStorage (noop)");
+    logger.debug("Purge request received, probably due to 'Overwrite' being checked ('Overwrite' disables date filtering for XML bulk, but 'purge' does nothing in Inventory context)");
   }
 
   @Override

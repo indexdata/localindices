@@ -70,12 +70,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   /**
    * Adds or updates a set of Inventory records (an Instance with related holdings and/or a source record)
    * from the incoming bibliographic record.
-   * @param recordJSON
+   * @param recordJSON The JSON coming into the Harvester Inventory storage logic from the transformation pipeline
    */
   void addInventory(RecordJSON recordJSON) {
     try {
       long startStorageEntireRecord = System.currentTimeMillis();
-      /**
+
+      /*
        * TransformedRecord is a 'facade' that provides an API into RecordJSON and allows for (slight)
        * variations in the structure of the transformed record while shielding the client code from
        * those potential differences in structure. Thus safer to use than RecordJSON.
@@ -84,11 +85,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
 
       if (ctxt.useInventoryUpsert) {
-        logger.info("Last harvest started: " + ctxt.harvestable.getLastHarvestStarted());
-        logger.info("Last harvest finished: " + ctxt.harvestable.getLastHarvestFinished());
-
-        if (transformedRecord.passesDateFilterIfAny( ctxt.harvestable.getOverwrite(), ctxt.harvestable.getFromDate(), ctxt.harvestable.getLastHarvestFinished()))
-        {
+        if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
+            updateCounters.xmlBulkRecordsSkipped++;
+            ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+            ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+        } else {
           JSONObject inventoryRecordSet = new JSONObject();
           JSONObject instance = transformedRecord.getInstance();
           if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
@@ -159,10 +160,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           {
             recordWithErrors.logFailedRecord();
           }
-        } else {
-          updateCounters.recordsSkipped++;
-          ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
-          ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
         }
     } else {
         // TODO: eventually deprecate this section and supporting methods
@@ -223,7 +220,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               + updateCounters.sourceRecordsLoaded + " source records ingested. "
               + updateCounters.instanceDeleteSignals + " delete signal(s), "
               + updateCounters.instanceDeletions + " delete(s)"
-              + (updateCounters.recordsSkipped>0 ? updateCounters.recordsSkipped + " record(s) skipped by filter" : ""));
+              + (updateCounters.xmlBulkRecordsSkipped >0 ? " -- " + updateCounters.xmlBulkRecordsSkipped + " record(s) skipped by filter" : ""));
+
       if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
         logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
       }
@@ -269,8 +267,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     TransactionMetrics create;
     TransactionMetrics update;
     TransactionMetrics delete;
-    long processed = 0;
-    long failed = 0;
+    long processed;
+    long failed;
     public EntityMetrics (JSONObject entityMetricsJson) {
       JSONObject json = new JSONObject();
       if (entityMetricsJson != null) {
@@ -285,12 +283,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   }
 
-  public class TransactionMetrics {
+  public static class TransactionMetrics {
 
-    Long completed = new Long(0);
-    Long failed = new Long(0);
-    Long skipped = new Long(0);
-    Long processed = new Long(0);
+    Long completed = 0L;
+    Long failed = 0L;
+    Long skipped = 0L;
+    Long processed = 0L;
 
     public TransactionMetrics (JSONObject transactionMetricsJson) {
 

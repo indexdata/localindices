@@ -11,7 +11,7 @@ package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
  */
 public class RecordUpdateCounters {
 
-  protected int recordsSkipped = 0;
+  protected int xmlBulkRecordsSkipped = 0;
 
   protected int instancesProcessed = 0;
   protected int instancesLoaded = 0;
