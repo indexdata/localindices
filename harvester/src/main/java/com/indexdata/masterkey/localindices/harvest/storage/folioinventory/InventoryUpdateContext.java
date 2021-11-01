@@ -24,9 +24,6 @@ public class InventoryUpdateContext {
     protected static final String FOLIO_USERNAME = "folioUsername";
     protected static final String FOLIO_PASSWORD = "folioPassword";
     protected static final String FOLIO_AUTH_SKIP = "folioAuthSkip";
-    protected static final String INSTANCE_STORAGE_PATH = "instanceStoragePath";
-    protected static final String HOLDINGS_STORAGE_PATH = "holdingsStoragePath";
-    protected static final String ITEM_STORAGE_PATH = "itemStoragePath";
     protected static final String MARC_STORAGE_PATH = "marcStoragePath";
     protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
 
@@ -37,16 +34,9 @@ public class InventoryUpdateContext {
     public String folioUsername;
     public String folioPassword;
     public boolean folioAuthSkip = false;
-    public String instanceStoragePath;
-    public String holdingsStoragePath;
-    public String itemStoragePath;
     public String marcStoragePath;
     public String inventoryUpsertPath;
-    public boolean useInventoryUpsert = false;
 
-    public String instanceStorageUrl;
-    public String holdingsStorageUrl;
-    public String itemStorageUrl;
     public String marcStorageUrl;
     public String inventoryUpsertUrl;
     public boolean marcStorageUrlIsDefined;
@@ -66,9 +56,6 @@ public class InventoryUpdateContext {
 
     public CloseableHttpClient inventoryClient = null;
 
-    public static final String FAILURE_ENTITY_TYPE_INSTANCE = "instance";
-    public static final String FAILURE_ENTITY_TYPE_HOLDINGS_RECORD = "holdings";
-    public static final String FAILURE_ENTITY_TYPE_ITEM = "items";
     public static final String FAILURE_ENTITY_TYPE_SOURCE_RECORD = "source record";
 
     /**
@@ -152,20 +139,8 @@ public class InventoryUpdateContext {
             folioUsername = getRequiredConfig(FOLIO_USERNAME);
             folioPassword = getRequiredConfig(FOLIO_PASSWORD);
         }
-        if (getConfig(INVENTORY_UPSERT_PATH) != null) {
-            useInventoryUpsert = true;
-            inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
-            inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
-        } else {
-            instanceStoragePath = getRequiredConfig(INSTANCE_STORAGE_PATH);
-            instanceStorageUrl = folioAddress + instanceStoragePath;
-
-            holdingsStoragePath = getRequiredConfig(HOLDINGS_STORAGE_PATH);
-            holdingsStorageUrl = folioAddress + holdingsStoragePath;
-
-            itemStoragePath = getRequiredConfig(ITEM_STORAGE_PATH);
-            itemStorageUrl = folioAddress + itemStoragePath;
-        }
+        inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
+        inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;
