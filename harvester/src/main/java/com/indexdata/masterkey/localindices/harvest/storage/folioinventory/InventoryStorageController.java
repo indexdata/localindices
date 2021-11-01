@@ -84,7 +84,7 @@ public class InventoryStorageController implements RecordStorage {
     ctxt = new InventoryUpdateContext(harvestable, logger);
 
     logger.info("Starting job [" + database + "]");
-    logger.info("Storage URL [" + ctxt.folioAddress + (ctxt.useInventoryUpsert ? ctxt.inventoryUpsertPath : ctxt.instanceStoragePath));
+    logger.info("Storage URL [" + ctxt.folioAddress + ctxt.inventoryUpsertPath);
     if (ctxt.folioAuthSkip) logger.info("Storage configured to skip FOLIO authentication!");
 
     client = HttpClients.createDefault();
@@ -152,7 +152,6 @@ public class InventoryStorageController implements RecordStorage {
   /**
    * Retrieve locations-to-institutions mappings from Inventory storage
    * Used for holdings/items deletion logic.
-   * @throws IOException
    */
   private Map<String,String> getLocationsMap() throws StorageException {
     try {
