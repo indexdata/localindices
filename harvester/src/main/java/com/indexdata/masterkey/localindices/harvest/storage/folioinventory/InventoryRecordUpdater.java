@@ -346,6 +346,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       upsertResponse = getResponseAsJson(responseAsString);
       checkForInventoryServiceErrors(response, responseAsString);
       checkForRecordErrors(response, upsertResponse);
+      if (responseAsString.contains( "already exists" )) {
+        logger.debug(responseAsString);
+      }
     } catch (StorageException se) {
       throw se;
     } catch (Exception e) {
@@ -1066,39 +1069,67 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         JSONObject deletionJson = transformedRecord.getDelete();
         if (ctxt.useInventoryUpsert) {
           logger.info("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryUpsertUrl);
-              //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
-              HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
-              setHeaders(httpDelete,"application/json");
-              StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
-              httpDelete.setEntity(entity);
-              CloseableHttpResponse response = null;
-              try {
-                response = ctxt.inventoryClient.execute(httpDelete);
-                String responseAsString = EntityUtils.toString(response.getEntity());
-                JSONObject responseAsJson = getResponseAsJson(responseAsString);
-                if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
-                  logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source", "DELETE", "{}");
-                  recordWithErrors.reportAndThrowError(error, Level.DEBUG);
+          HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
+          setHeaders(httpDelete,"application/json");
+          StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
+          httpDelete.setEntity(entity);
+          CloseableHttpResponse response = null;
+          try {
+            response = ctxt.inventoryClient.execute(httpDelete);
+            String responseAsString = EntityUtils.toString(response.getEntity());
+            JSONObject responseAsJson = getResponseAsJson(responseAsString);
+            int statusCodeInstanceDelete = response.getStatusLine().getStatusCode();
+            if (! Arrays.asList(200, 204, 404).contains(statusCodeInstanceDelete))
+            {
+              logger.error(
+                      "Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() );
+              RecordError error = new HttpRecordError( response.getStatusLine(), responseAsString, responseAsString,
+                      "Error deleting source record", "MARC source", "DELETE", "{}" );
+              recordWithErrors.reportAndThrowError( error, Level.DEBUG );
+            } else if (statusCodeInstanceDelete == 404) {
+              logger.info(
+                      "Did not find Instance to apply delete request to. Delete request body was: " + transformedRecord.getDelete().toJSONString());
+              logger.debug("Delete request response: " + responseAsString);
+            } else {
+              if (ctxt.marcStorageUrlIsDefined) {
+                String oaiId = (String) deletionJson.get( "oaiIdentifier" );
+                String localIdentifier = ( oaiId != null ? oaiId.substring( oaiId.lastIndexOf( ":" ) + 1 ) : null );
+                if ( localIdentifier == null )
+                {
+                  localIdentifier = (String) deletionJson.get( "localIdentifier" );
                 }
-                UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
-                logger.debug("metrics: " + responseAsJson.toJSONString());
-                setCounters(metrics);
-                logRecordCounts();
-              } catch (IOException e) {
-                RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet", "DELETE", "{}");
-                recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
-              } finally {
-                if (response != null) {
-                  try {
-                    response.close();
-                  } catch (IOException e) {
-                    throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
-                  }
-
+                String institutionId = (String) deletionJson.get( "institutionId" );
+                String instanceId;
+                JSONObject instanceResponse = (JSONObject) responseAsJson.get( "instance" );
+                if ( instanceResponse != null )
+                {
+                  instanceId = (String) instanceResponse.get( "id" );
+                  deleteMarcSourceRecordForInstitution( localIdentifier, institutionId, instanceId );
+                }
+                else
+                {
+                  logger.error(
+                   "Could not obtain ID of the Instance that a delete request was sent for. Consequently also no MARC record was deleted." );
                 }
               }
+            }
+            UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
+            logger.debug("metrics: " + responseAsJson.toJSONString());
+            setCounters(metrics);
+            logRecordCounts();
+          } catch (IOException e) {
+            RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet", "DELETE", "{}");
+            recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
+          } finally {
+            if (response != null) {
+              try {
+                response.close();
+              } catch (IOException e) {
+                throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
+              }
 
+            }
+          }
         } else {
           String oaiId = (String) deletionJson.get("oaiIdentifier");
           String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
