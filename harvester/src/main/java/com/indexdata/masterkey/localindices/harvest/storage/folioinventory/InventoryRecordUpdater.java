@@ -2,9 +2,9 @@ package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,7 +18,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
 import org.json.simple.JSONArray;
@@ -84,126 +83,80 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
       this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
 
-      if (ctxt.useInventoryUpsert) {
-        if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
-            updateCounters.xmlBulkRecordsSkipped++;
-            ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
-            ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
-        } else {
-          JSONObject inventoryRecordSet = new JSONObject();
-          JSONObject instance = transformedRecord.getInstance();
-          if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
-          {
-            instance.put( "matchKey", transformedRecord.getMatchKey() );
-          }
-          inventoryRecordSet.put( "instance", instance );
-          if ( transformedRecord.getHoldings() != null )
-          {
-            inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
-          }
-          if ( transformedRecord.hasInstanceRelations() )
-          {
-            inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
-          }
-          // Add processing info if provided by the transformation
-          if ( transformedRecord.hasProcessingInfo() )
-          {
-            inventoryRecordSet.put( "processing", transformedRecord.getProcessingInfo() );
-          }
-          logger.log( Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString() );
-          JSONObject responseJson = upsertInventoryRecordSet( inventoryRecordSet );
-          logger.log( Level.TRACE, "Response was: " + responseJson.toJSONString() );
-          UpsertMetrics metrics = new UpsertMetrics( (JSONObject) responseJson.get( "metrics" ) );
+      if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
+          updateCounters.xmlBulkRecordsSkipped++;
+          ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+          ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+      } else {
+        JSONObject inventoryRecordSet = new JSONObject();
+        JSONObject instance = transformedRecord.getInstance();
+        if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
+        {
+          instance.put( "matchKey", transformedRecord.getMatchKey() );
+        }
+        inventoryRecordSet.put( "instance", instance );
+        if ( transformedRecord.getHoldings() != null )
+        {
+          inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
+        }
+        if ( transformedRecord.hasInstanceRelations() )
+        {
+          inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
+        }
+        // Add processing info if provided by the transformation
+        if ( transformedRecord.hasProcessingInfo() )
+        {
+          inventoryRecordSet.put( "processing", transformedRecord.getProcessingInfo() );
+        }
+        logger.log( Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString() );
+        JSONObject responseJson = upsertInventoryRecordSet( inventoryRecordSet );
+        logger.log( Level.TRACE, "Response was: " + responseJson.toJSONString() );
+        UpsertMetrics metrics = new UpsertMetrics( (JSONObject) responseJson.get( "metrics" ) );
 
-          if ( ctxt.harvestable.isStoreOriginal() )
+        if ( ctxt.harvestable.isStoreOriginal() )
+        {
+          if ( metrics.instance.create.failed == 0 )
           {
-            if ( metrics.instance.create.failed == 0 )
+            String institutionId = transformedRecord.getInstitutionId( locInstMap );
+            String localIdentifier = transformedRecord.getLocalIdentifier();
+
+            updateCounters.sourceRecordsProcessed++;
+            if ( ctxt.marcStorageUrlIsDefined )
             {
-              String institutionId = transformedRecord.getInstitutionId( locInstMap );
-              String localIdentifier = transformedRecord.getLocalIdentifier();
-
-              updateCounters.sourceRecordsProcessed++;
-              if ( ctxt.marcStorageUrlIsDefined )
-              {
-                JSONObject marcJson = getMarcJson( transformedRecord );
-                JSONObject instanceJson = (JSONObject) responseJson.get( "instance" );
-                String instanceId = instanceJson.get( "id" ).toString();
-                addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier );
-              }
-              else
-              {
-                updateCounters.sourceRecordsFailed++;
-                RecordError error = new ExceptionRecordError( new InventoryUpdateException(
-                        "Configuration error: Cannot store original content as requested, no path configured for MARC storage" ),
-                        "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
-                        InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
-                recordWithErrors.reportError( error, Level.DEBUG );
-              }
+              JSONObject marcJson = getMarcJson( transformedRecord );
+              JSONObject instanceJson = (JSONObject) responseJson.get( "instance" );
+              String instanceId = instanceJson.get( "id" ).toString();
+              addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier );
             }
             else
             {
+              updateCounters.sourceRecordsFailed++;
               RecordError error = new ExceptionRecordError( new InventoryUpdateException(
-                      "Instance error: Cannot store original content as requested since Instance creation failed" ),
-                      "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
+                      "Configuration error: Cannot store original content as requested, no path configured for MARC storage" ),
+                      "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
                       InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
               recordWithErrors.reportError( error, Level.DEBUG );
-
             }
           }
-          ctxt.timingsStoringInventoryRecordSet.time( startStorageEntireRecord );
-          ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
-          ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
-          ctxt.storageStatus.incrementAdd( 1 );
-          setCounters( metrics );
-          logRecordCounts();
-          if ( recordWithErrors.hasErrors() )
+          else
           {
-            recordWithErrors.logFailedRecord();
-          }
-        }
-    } else {
-        // TODO: eventually deprecate this section and supporting methods
-        JSONObject instanceResponse;
-        if (ctxt.instanceStoragePath.contains("match")) {
-          instanceResponse = addInstanceRecord(transformedRecord.getInstance(), transformedRecord.getMatchKey());
-        } else {
-          instanceResponse = addInstanceRecord(transformedRecord.getInstance());
-        }
+            RecordError error = new ExceptionRecordError( new InventoryUpdateException(
+                    "Instance error: Cannot store original content as requested since Instance creation failed" ),
+                    "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
+                    InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
+            recordWithErrors.reportError( error, Level.DEBUG );
 
-        if (instanceResponse != null && instanceResponse.get("id") != null) {
-          String institutionId = transformedRecord.getInstitutionId(locInstMap);
-          String localIdentifier = transformedRecord.getLocalIdentifier();
-          try {
-            updateHoldings(transformedRecord, instanceResponse, institutionId);
-          } catch (InventoryUpdateException iue) {
-            // there were errors updating holdings/items - but continue with handling source record (if isStoreOriginal)
-          }
-          if (ctxt.harvestable.isStoreOriginal()) {
-            updateCounters.sourceRecordsProcessed++;
-            if (ctxt.marcStorageUrlIsDefined) {
-              JSONObject marcJson = getMarcJson(transformedRecord);
-              addOrUpdateMarcRecord(marcJson, (String) instanceResponse.get("id"), institutionId, localIdentifier);
-            } else {
-              updateCounters.sourceRecordsFailed++;
-              RecordError error = new ExceptionRecordError(
-                new InventoryUpdateException("Configuration error: Cannot store original content as requested, no path configured for MARC storage"),
-                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]", InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "");
-              recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-            }
-          }
-          ctxt.timingsStoringInventoryRecordSet.time(startStorageEntireRecord);
-          ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
-          ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
-          logRecordCounts();
-        } else {
-          if (transformedRecord.isDeleted()) {
-            logger.error("Deletion record received on 'add' channels: [" + transformedRecord.getLocalIdentifier() + "], [" + transformedRecord.getJson() + "]");
-          } else {
-            logger.error("Expected instance response on adding instance but response was null or had no ID property." + instanceResponse);
           }
         }
-        if (recordWithErrors.hasErrors())  {
-          recordWithErrors.writeErrorsLog(logger);
+        ctxt.timingsStoringInventoryRecordSet.time( startStorageEntireRecord );
+        ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+        ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+        ctxt.storageStatus.incrementAdd( 1 );
+        setCounters( metrics );
+        logRecordCounts();
+        if ( recordWithErrors.hasErrors() )
+        {
+          recordWithErrors.logFailedRecord();
         }
       }
     } catch (InventoryUpdateException iue) {
@@ -302,38 +255,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   }
 
-  /**
-   * Updates holdings/items for given instance - by wiping out existing holdings/items and creating new ones as received
-   * with the harvested bib record.
-   * @param transformedRecord  representation of the harvested, normalized bib record
-   * @param instanceResponse the instance to update holdings/items for
-   * @param institutionId id of the institution who holds the items on the instance to be updated
-   * @throws InventoryUpdateException
-   */
-  private void updateHoldings(TransformedRecord transformedRecord, JSONObject instanceResponse, String institutionId) throws InventoryUpdateException {
-    JSONArray holdingsJson = transformedRecord.getHoldings();
-    if (holdingsJson != null && holdingsJson.size() > 0) {
-      String instanceId = instanceResponse.get("id").toString();
-      // delete existing holdings/items from the same institution
-      // before attaching new holdings/items to the instance
-      deleteHoldingsAndItemsForInstitution(instanceId, institutionId, false);
-      addHoldingsRecordsAndItems(holdingsJson, instanceId);
-    }
-  }
-
-  /**
-   * Adds an Instance (without applying matchkey logic)
-   * @param instanceRecord
-   * @return Inventory's response to the request
-   * @throws InventoryUpdateException
-   */
-  private JSONObject addInstanceRecord(JSONObject instanceRecord) throws InventoryUpdateException {
-    JSONObject noMatchKey = new JSONObject();
-    return addInstanceRecord(instanceRecord, noMatchKey);
-  }
-
   private JSONObject upsertInventoryRecordSet(JSONObject inventoryRecordSet) throws InventoryUpdateException {
-    JSONObject upsertResponse = null;
+    JSONObject upsertResponse;
     try {
       String url = ctxt.folioAddress + ctxt.inventoryUpsertPath;
       HttpEntityEnclosingRequestBase httpUpdate = new HttpPut(url);
@@ -371,7 +294,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
       for (int i=0; i< errorsArray.size(); i++)  {
         JSONObject errorJson = (JSONObject) errorsArray.get(i);
-        String messageString = "";
+        String messageString;
         if (errorJson.get("message") instanceof JSONObject) {
           messageString = Jsoner.prettyPrint(((JSONObject) errorJson.get("message")).toJSONString());
         } else {
@@ -410,239 +333,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
   }
 
-  /**
-   * POST/PUT an Instance to Inventory
-   * @param instanceRecord
-   * @return
-   * @throws InventoryUpdateException
-   */
-  private JSONObject addInstanceRecord(JSONObject instanceRecord, JSONObject matchKey) throws InventoryUpdateException {
-    JSONObject instanceResponse = null;
-    updateCounters.instancesProcessed++;
-    String method = "";
-    try {
-      String url = ctxt.folioAddress + ctxt.instanceStoragePath;
-      HttpEntityEnclosingRequestBase httpUpdate;
-      if (url.contains("instance-storage/instances")) { // Vanilla instance storage, assume POST
-        httpUpdate = new HttpPost(url);
-        method="POST";
-      } else { // Otherwise assume FOLIO PUT API that knows whether to PUT or POST to instance storage
-        if (url.contains("matchkey") && !matchKey.isEmpty()) {
-          instanceRecord.put("matchKey", matchKey);
-        }
-        httpUpdate = new HttpPut(url);
-        method="PUT";
-      }
-      StringEntity entity = new StringEntity(instanceRecord.toJSONString(), "UTF-8");
-      httpUpdate.setEntity(entity);
-      setHeaders(httpUpdate,"application/json");
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
-      String responseAsString = EntityUtils.toString(response.getEntity());
-      instanceResponse = getResponseAsJson(responseAsString);
-      response.close();
-      if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 200) {
-        updateCounters.instancesFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString,"Error "+method+"ing Instance", "Instance", method, "");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-        logger.debug(String.format("Got error %s, %s adding Instance record: %s", response.getStatusLine().getStatusCode(), responseAsString, instanceRecord.toJSONString()));
-      } else {
-        ctxt.storageStatus.incrementAdd(1);
-        updateCounters.instancesLoaded++;
-      }
-    } catch (IOException  e) {
-      updateCounters.instancesFailed++;
-      RecordError error = new ExceptionRecordError(e, "Error adding Instance record", "Instance", "POST", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-    return instanceResponse;
-  }
-
-  /**
-   * PUTs the instance object argument to Inventory
-   * @param instance
-   * @throws InventoryUpdateException
-   */
-  private void updateInstance(JSONObject instance) throws InventoryUpdateException {
-    logger.debug("Updating Instance with " + instance.toJSONString());
-    try {
-      String url = ctxt.folioAddress + "instance-storage/instances/" + instance.get("id");
-      HttpEntityEnclosingRequestBase httpUpdate;
-      httpUpdate = new HttpPut(url);
-      StringEntity entity = new StringEntity(instance.toJSONString(), "UTF-8");
-      httpUpdate.setEntity(entity);
-      setHeaders(httpUpdate,"text/plain");
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
-      response.close();
-      logger.debug("Updated instance " + instance.get("id"));
-    } catch (IOException ioe) {
-      RecordError error = new ExceptionRecordError(ioe,"Error updating instance", "instance", "PUT", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-  }
-
-  /**
-   * POST holdings record to Inventory
-   * @param holdingsRecord
-   * @return
-   * @throws InventoryUpdateException
-   */
-  private JSONObject addHoldingsRecord(JSONObject holdingsRecord) throws InventoryUpdateException {
-    updateCounters.holdingsRecordsProcessed++;
-    String url = ctxt.folioAddress + ctxt.holdingsStoragePath;
-    HttpPost httpPost = new HttpPost(url);
-    StringEntity entity = new StringEntity(holdingsRecord.toJSONString(), "UTF-8");
-    httpPost.setEntity(entity);
-    setHeaders(httpPost,"application/json");
-    JSONObject holdingsRecordResponse = null;
-    try {
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpPost);
-      JSONParser parser = new JSONParser();
-      String responseAsString = EntityUtils.toString(response.getEntity());
-      if (response.getStatusLine().getStatusCode() != 201) {
-        updateCounters.holdingsRecordsFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding a holdingsRecord to Inventory", "holdings", "POST", "");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      } else {
-        updateCounters.holdingsRecordsLoaded++;
-        try {
-          holdingsRecordResponse = (JSONObject) parser.parse(responseAsString);
-        } catch (ParseException pe) {
-          holdingsRecordResponse = new JSONObject();
-          holdingsRecordResponse.put("wrappedErrorMessage", responseAsString);
-          RecordError error = new ExceptionRecordError(pe, "Error parsing holdingsRecords from response ", "holdings", "POST", "");
-          recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-        }
-      }
-      response.close();
-    } catch (IOException | org.apache.http.ParseException e) {
-      updateCounters.holdingsRecordsFailed++;
-      RecordError error = new ExceptionRecordError(e, "Exception while adding holdingsRecord","holdings","POST", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-    return holdingsRecordResponse;
-  }
-
-  /**
-   * Get holdings records for an instance
-   * @param instanceId
-   * @return
-   * @throws InventoryUpdateException
-   */
-  private JSONArray getHoldingsRecordsByInstanceId(String instanceId) throws InventoryUpdateException {
-    String url = String.format("%s?limit=1000&query=instanceId%%3D%%3D%s", ctxt.folioAddress + ctxt.holdingsStoragePath, instanceId);
-    HttpGet httpGet = new HttpGet(url);
-    setHeaders(httpGet,"application/json");
-    CloseableHttpResponse response;
-    try {
-      response = ctxt.inventoryClient.execute(httpGet);
-      if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-        String err = String.format("Got error retrieving holdings records for instance with id '%s': %s", instanceId, EntityUtils.toString(response.getEntity()));
-        throw new InventoryUpdateException(err);
-      }
-    } catch (IOException ioe) {
-      throw new InventoryUpdateException("IOException when trying to GET holdings records by instance ID", ioe);
-    }
-    JSONArray holdingsRecordsJson;
-    try {
-      JSONObject jsonResponse;
-      JSONParser parser = new JSONParser();
-      String responseString = EntityUtils.toString(response.getEntity());
-      jsonResponse = (JSONObject) parser.parse(responseString);
-      holdingsRecordsJson = (JSONArray) (jsonResponse.get("holdingsRecords"));
-    } catch (IOException ioe) {
-      throw new InventoryUpdateException("IO exception when trying to read holdings records by instance ID response", ioe);
-    } catch (ParseException pe) {
-      throw new InventoryUpdateException("Could not parse holdings records as JSONArray when trying to get holdings records by Instance ID", pe);
-    }
-    return holdingsRecordsJson;
-  }
-
-  /**
-   * Wipes out existing holdings and items belonging to the institution, for the given instance
-   * @param instanceId
-   * @throws InventoryUpdateException
-   */
-  private void deleteHoldingsAndItemsForInstitution(String instanceId, String institutionId, boolean countDeletions) throws InventoryUpdateException {
-    logger.log(Level.TRACE,"Deleting holdings and items for Instance Id " + instanceId + " for institution " + institutionId);
-    int itemsToDelete = 0;
-    if (institutionId != null) {
-      JSONArray existingHoldingsRecords = getHoldingsRecordsByInstanceId(instanceId);
-      if (existingHoldingsRecords != null) {
-        Iterator<JSONObject> existingHoldingsRecordsIterator = existingHoldingsRecords.iterator();
-        while (existingHoldingsRecordsIterator.hasNext()) {
-          JSONObject existingHoldingsRecord = existingHoldingsRecordsIterator.next();
-          String institutionIdExistingHoldingsRecord = getInstitutionId(existingHoldingsRecord);
-          String existingHoldingsRecordId = (String) existingHoldingsRecord.get("id");
-          if (institutionIdExistingHoldingsRecord.equals(institutionId)) {
-            JSONArray items = getItemsByHoldingsRecordId(existingHoldingsRecordId);
-            if (items != null) {
-              itemsToDelete = items.size();
-              Iterator<JSONObject> itemsIterator = items.iterator();
-              while (itemsIterator.hasNext()) {
-                JSONObject item = itemsIterator.next();
-                String itemId = (String) item.get("id");
-                deleteItem(itemId);
-                if (countDeletions) {
-                  updateCounters.itemsDeleted++;
-                }
-              }
-            }
-            try {
-              deleteHoldingsRecord(existingHoldingsRecordId);
-              if (countDeletions) {
-                updateCounters.holdingsRecordsDeleted++;
-              }
-            } catch (InventoryUpdateException e) {
-              // catch, add diagnostics to message and rethrow
-              if (e.getCause() != null && e.getCause().getMessage().contains("still referenced")) {
-                String err = "Holdings record for deletion: " + existingHoldingsRecord.toJSONString() + " had " + itemsToDelete + " items.";
-                err += "Items referencing the holdings record: " + getItemsByHoldingsRecordId(existingHoldingsRecordId).toJSONString();
-                throw new InventoryUpdateException(e.getMessage() + " " + err, e);
-              } else {
-                throw e;
-              }
-            }
-          } else {
-            logger.log(Level.TRACE, "holdingsRecord " + existingHoldingsRecordId + " belongs to a different institution (" + existingHoldingsRecord.get("permanentLocationId") + "), not deleting it.");
-          }
-        }
-      } else {
-        logger.info("No existing holdingsRecords found for the instance, nothing to delete.");
-      }
-    }
-  }
-
-  /**
-   * Delete an item by ID
-   * @param uuid
-   * @throws InventoryUpdateException
-   */
-  private void deleteItem(String uuid) throws InventoryUpdateException {
-    logger.log(Level.TRACE, "Deleting item with ID: " + uuid);
-    String url = String.format("%s/%s", ctxt.folioAddress + ctxt.itemStoragePath, uuid);
-    HttpDelete httpDelete = new HttpDelete(url);
-    setHeaders(httpDelete,"text/plain");
-    CloseableHttpResponse response = null;
-    try {
-      response = ctxt.inventoryClient.execute(httpDelete);
-      if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.toString(), response.toString(), "Error DELETEing item", "item", "DELETE", "{}");
-        recordWithErrors.reportAndThrowError(error, Level.ERROR);
-      }
-    } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "IOException when attempting to DELETE item", "item", "DELETE", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
-    } finally {
-      if (response != null) {
-        try {
-          response.close();
-        } catch (IOException e) {
-          throw new StorageException("Couldn't close response after DELETE item request", e);
-        }
-      }
-    }
-  }
-
   private String getLocationId(JSONObject holdingsRecord) {
     if (holdingsRecord != null) {
       return (String) holdingsRecord.get("permanentLocationId");
@@ -662,160 +352,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   /**
-   * Iterate holdings records and items of the instanceWithHoldingsAndItems object,
-   * and POST them to Inventory
-   * @param holdingsRecords
-   * @param instanceId
-   * @throws InventoryUpdateException
-   */
-  private void addHoldingsRecordsAndItems(JSONArray holdingsRecords, String instanceId) throws InventoryUpdateException {
-    if (holdingsRecords != null) {
-      Iterator<JSONObject> holdingsrecords = holdingsRecords.iterator();
-      while (holdingsrecords.hasNext()) {
-        JSONObject holdingsRecord;
-        Object holdingsObject = holdingsrecords.next();
-        holdingsRecord = (JSONObject) holdingsObject;
-        holdingsRecord.put("instanceId", instanceId);
-        if (holdingsRecord.containsKey("items")) {
-          JSONArray items = null;
-          try {
-            items = extractJsonArrayFromObject(holdingsRecord, "items");
-          } catch (ParseException e) {
-            RecordError error = new ExceptionRecordError(e, "Exception when trying to extract item array from holdings record JSON ", "holdings/items", "preparation", "");
-            recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
-          }
-          try {
-            JSONObject holdingsRecordResponse = addHoldingsRecord(holdingsRecord);
-            if (holdingsRecordResponse != null && holdingsRecordResponse.get("id") != null) {
-              Iterator<JSONObject> itemsIterator = items.iterator();
-              while (itemsIterator.hasNext()) {
-                JSONObject item = (JSONObject) itemsIterator.next();
-                item.put("holdingsRecordId", holdingsRecordResponse.get("id").toString());
-                try {
-                  addItem(item);
-                } catch (InventoryUpdateException iue) {
-                  // item update error was logged, continue with next item if any
-                }
-              }
-            }
-          } catch (InventoryUpdateException iue) {
-            // holdings update error was logged, continue with next holdings record if any
-          }
-        } else {
-          try {
-            addHoldingsRecord(holdingsRecord);
-          } catch (InventoryUpdateException iue) {
-            // holdings update error was logged, continue with next holdings record if any
-          }
-        }
-      }
-    } else {
-      logger.warn("Inventory record storage found empty list of holdings records in instance input");
-    }
-  }
-
-  /**
-   * POST item to Inventory
-   * @param item
-   * @return Inventory's response to the POST request
-   * @throws InventoryUpdateException
-   */
-  private JSONObject addItem(JSONObject item) throws InventoryUpdateException {
-    updateCounters.itemsProcessed++;
-    HttpPost httpPost = new HttpPost(ctxt.itemStorageUrl);
-    StringEntity entity = new StringEntity(item.toJSONString(), "UTF-8");
-    httpPost.setEntity(entity);
-    setHeaders(httpPost,"application/json");
-    JSONObject itemResponse = null;
-    try {
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpPost);
-      String responseAsString = EntityUtils.toString(response.getEntity());
-      itemResponse = getResponseAsJson(responseAsString);
-      response.close();
-      if (response.getStatusLine().getStatusCode() != 201) {
-        updateCounters.itemsFailed++;
-        RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding item record ", "item", "POST", "{}");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      } else {
-        updateCounters.itemsLoaded++;
-      }
-    } catch (IOException | org.apache.http.ParseException e ) {
-      updateCounters.itemsFailed++;
-      RecordError error = new ExceptionRecordError(e, "Error adding item record", "item","POST", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-    return itemResponse;
-  }
-
-
-  /**
-   * Get items for a holdings record
-   * @param holdingsRecordId
-   * @return Array of item objects
-   * @throws InventoryUpdateException
-   */
-  private JSONArray getItemsByHoldingsRecordId(String holdingsRecordId) throws InventoryUpdateException {
-    String url = String.format("%s?limit=1000&query=holdingsRecordId%%3D%%3D%s", ctxt.itemStorageUrl, holdingsRecordId);
-    HttpGet httpGet = new HttpGet(url);
-    setHeaders(httpGet,"application/json");
-    CloseableHttpResponse response = null;
-    try {
-      response = ctxt.inventoryClient.execute(httpGet);
-      if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(),
-                                          response.getEntity().toString(),
-                                          "Error retrieving items for holdingsRecord ", "items", "GET", "{}");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      }
-    } catch (IOException ioe) {
-      RecordError error = new ExceptionRecordError(ioe, "Exception when GETing items by holdings ID ", "item", "GET", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, ioe);
-    }
-    JSONArray itemsJson = null;
-    try {
-      JSONObject jsonResponse;
-      JSONParser parser = new JSONParser();
-      jsonResponse = (JSONObject) parser.parse(EntityUtils.toString(response.getEntity()));
-      itemsJson = (JSONArray) (jsonResponse.get("items"));
-    } catch (ParseException | IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET items by holdings ID", "item", "GET", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
-    }
-    return itemsJson;
-  }
-
-  /**
-   * Delete a holdings record by ID
-   * @param uuid
-   * @throws InventoryUpdateException
-   */
-  private void deleteHoldingsRecord(String uuid) throws InventoryUpdateException {
-    logger.log(Level.TRACE,"Deleting holdingsRecord with ID: " + uuid);
-    String url = String.format("%s/%s", ctxt.holdingsStorageUrl, uuid);
-    HttpDelete httpDelete = new HttpDelete(url);
-    setHeaders(httpDelete,"text/plain");
-    CloseableHttpResponse response = null;
-    try {
-      response = ctxt.inventoryClient.execute(httpDelete);
-      if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting holdingsRecord ", "holdingsRecord",  "DELETE", "{}");
-        recordWithErrors.reportAndThrowError(error, Level.ERROR);
-      }
-    } catch (IOException io) {
-      RecordError error = new ExceptionRecordError(io, "Exception when deleting holdingsRecord", "holdingsRecord", "DELETE", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, io);
-    } finally {
-      if (response != null) {
-        try {
-          response.close();
-        } catch (IOException ioe) {
-          throw new StorageException("Could not close response when trying to delete holdings record", ioe);
-        }
-      }
-    }
-  }
-
-  /**
    * Create JSONObject from the XML in the incoming record
    * @param record
    * @return
@@ -825,7 +361,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     JSONObject marcJson = null;
     if (record.getOriginalContent() != null) {
       try {
-        String originalContentString = new String(record.getOriginalContent(), "UTF-8");
+        String originalContentString = new String(record.getOriginalContent(), StandardCharsets.UTF_8 );
         if(originalContentString.startsWith("<") ) {
           logger.log(Level.TRACE,"Treating source record as XML");
           marcJson = MarcXMLToJson.convertMarcXMLToJson(originalContentString);
@@ -850,59 +386,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       }
     }
     return marcJson;
-  }
-
-
-  /**
-   * Gets an instance from FOLIO Inventory by identifier (type and value)
-   * @param localIdentifier  Identifier value
-   * @param identifierTypeId  Inventory identifier type ID
-   * @return Instance JSON response from FOLIO Inventory
-   * @throws InventoryUpdateException
-   */
-  private JSONObject getInstance(String localIdentifier, String identifierTypeId) throws InventoryUpdateException {
-    String url = String.format("%s?query=%%28identifiers%%20%%3D%%2F%%40value%%2F%%40identifierTypeId%%3D%%22%s%%22%%20%%22%s%%22%%29",
-                                ctxt.folioAddress + "instance-storage/instances", identifierTypeId, localIdentifier);
-    HttpGet httpGet = new HttpGet(url);
-    setHeaders(httpGet,"application/json");
-
-    CloseableHttpResponse response;
-    try {
-      response = ctxt.inventoryClient.execute(httpGet);
-    } catch (IOException ioe) {
-      throw new InventoryUpdateException("IOException when trying to GET Instance by local identifier and identifierTypeId "+ ioe.getMessage(), ioe);
-    }
-    if (!Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-      RecordError error = new HttpRecordError(
-        response.getStatusLine(), response.getEntity().toString(),
-        response.getEntity().toString(),
-        String.format("Error retrieving instance by local identifier %s and identifierTypeId %s", localIdentifier, identifierTypeId),
-        "instance", "GET", "{}");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-    JSONObject jsonResponse = null;
-    JSONParser parser = new JSONParser();
-    String responseString = null;
-    try {
-      responseString = EntityUtils.toString(response.getEntity());
-    } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when reading response for GET Instance ", "instance", "GET", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
-    }
-    logger.debug("getInstanceId response: " + responseString);
-    try {
-      jsonResponse = (JSONObject) parser.parse(responseString);
-    } catch (ParseException e) {
-      RecordError error = new ExceptionRecordError(e, "Exception when trying to Instance response as JSON ", "instance", "process result", "");
-      recordWithErrors.reportAndThrowError(error, Level.ERROR, e);
-    }
-    Long totalRecords = (Long) jsonResponse.getOrDefault("totalRecords", 0);
-    if (totalRecords == 1 && jsonResponse.get("instances") != null) {
-      return (JSONObject) ((JSONArray) jsonResponse.get("instances")).get(0);
-    } else {
-      logger.debug("totalRecords for instance query by identifier was " + totalRecords);
-      return null;
-    }
   }
 
   /**
@@ -1064,77 +547,40 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
-        if (ctxt.useInventoryUpsert) {
-          logger.info("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryUpsertUrl);
-              //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
-              HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
-              setHeaders(httpDelete,"application/json");
-              StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
-              httpDelete.setEntity(entity);
-              CloseableHttpResponse response = null;
-              try {
-                response = ctxt.inventoryClient.execute(httpDelete);
-                String responseAsString = EntityUtils.toString(response.getEntity());
-                JSONObject responseAsJson = getResponseAsJson(responseAsString);
-                if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
-                  logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-                  RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source", "DELETE", "{}");
-                  recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-                }
-                UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
-                logger.debug("metrics: " + responseAsJson.toJSONString());
-                setCounters(metrics);
-                logRecordCounts();
-              } catch (IOException e) {
-                RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet", "DELETE", "{}");
-                recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
-              } finally {
-                if (response != null) {
-                  try {
-                    response.close();
-                  } catch (IOException e) {
-                    throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
-                  }
-
-                }
-              }
-
-        } else {
-          String oaiId = (String) deletionJson.get("oaiIdentifier");
-          String localIdentifier = (oaiId != null ? oaiId.substring(oaiId.lastIndexOf(":")+1) : null);
-          String identifierTypeId = (String) deletionJson.get("identifierTypeId");
-          String institutionId = (String) deletionJson.get("institutionId");
-          if (localIdentifier != null && identifierTypeId != null && institutionId != null) {
-            // This is assumed to be a deletion record targeted for a shared inventory
-            logger.debug("Storage class received a deletion record with local identifier: [" + localIdentifier +"], identifierTypeId ["+identifierTypeId+"], institutionId ["+institutionId+"]");
-            JSONObject instance;
-            instance = getInstance(localIdentifier, identifierTypeId);
-            if (instance != null) {
-              String instanceId = (String) instance.get("id");
-              logger.debug("Found instance to 'delete' [" + instanceId + "]");
-              removeIdentifierFromInstanceForInstitution(localIdentifier, identifierTypeId, instance);
-              deleteHoldingsAndItemsForInstitution(instanceId, institutionId, true);
-              logger.debug("Gonna update with instance modified for local identifier");
-              updateInstance(instance);
-              if (ctxt.marcStorageUrlIsDefined) {
-                deleteMarcSourceRecordForInstitution(localIdentifier, institutionId, instanceId);
-              }
-              updateCounters.instanceDeletions++;
-              ((InventoryStorageStatus) ctxt.storageStatus).incrementDelete(1);
-            } else {
-              logger.info("Received delete signal but no existing instance found with local id ["+localIdentifier+"] and identifierTypeId ["+identifierTypeId+"]. No deletion performed.");
+        logger.info("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryUpsertUrl);
+        //HttpEntityEnclosingRequestBase httpDelete = new HttpEntityEnclosingRequestBase(ctxt.inventoryUpsertUrl);
+        HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
+        setHeaders(httpDelete,"application/json");
+        StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
+        httpDelete.setEntity(entity);
+        CloseableHttpResponse response = null;
+        try {
+          response = ctxt.inventoryClient.execute(httpDelete);
+          String responseAsString = EntityUtils.toString(response.getEntity());
+          JSONObject responseAsJson = getResponseAsJson(responseAsString);
+          if (! Arrays.asList(200, 204, 404).contains(response.getStatusLine().getStatusCode())) {
+            logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
+            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source", "DELETE", "{}");
+            recordWithErrors.reportAndThrowError(error, Level.DEBUG);
+          }
+          UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
+          logger.debug("metrics: " + responseAsJson.toJSONString());
+          setCounters(metrics);
+          logRecordCounts();
+        } catch (IOException e) {
+          RecordError error = new ExceptionRecordError(e, "Error DELETEing Inventory record set", "InventoryRecordSet", "DELETE", "{}");
+          recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
+        } finally {
+          if (response != null) {
+            try {
+              response.close();
+            } catch (IOException e) {
+              throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
             }
-          } else if (localIdentifier != null) {
-            // This is assumed to be a deletion record targeted for a simple inventory
-            logger.info("Storage class received a deletion record with ID: [" + localIdentifier +"]");
-          } else if (oaiId != null && localIdentifier == null) {
-            logger.error("ID not found in the OAI identifier [" + oaiId + "]. Cannot perform delete against Inventory");
-          } else if (oaiId == null) {
-            logger.error("No OAI identifier found in deletion record. Cannot perform delete against Inventory");
+
           }
         }
-      } else {
-        logger.error("Inventory storage class received delete request but didn't recognize the payload as a delete: " + transformedRecord.toString());
+
       }
       if (recordWithErrors.hasErrors()) {
         recordWithErrors.writeErrorsLog(logger);
@@ -1163,45 +609,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     }
   }
 
-  /**
-   * Shared Index (ReShare) logic for updating the Instance on delete requests: Remove a given library's record identifier from the
-   * shared master Instance. Mutates the `instance` argument
-   * @param localIdentifier
-   * @param identifierTypeId
-   * @param instance
-   */
-  private void removeIdentifierFromInstanceForInstitution(String localIdentifier, String identifierTypeId, JSONObject instance) {
-    JSONArray identifiers = (JSONArray)instance.get("identifiers");
-    JSONObject identifier = null;
-    Iterator<JSONObject> iter = identifiers.iterator();
-    while (iter.hasNext()) {
-      JSONObject identifierObject = (JSONObject) iter.next();
-      if (identifierTypeId.equals(identifierObject.get("identifierTypeId"))
-         && localIdentifier.equals(identifierObject.get("value"))) {
-        identifier = identifierObject;
-        break;
-      }
-    }
-    identifiers.remove(identifier);
-    logger.debug("Removed " + identifier.toJSONString() + " from " + instance.toJSONString());
-  }
-
-  /**
-   * Creates a deep clone of a JSONArray from a JSONObject, removes the array from the source object and returns the clone
-   * @param jsonObject Source object containing the array to extract
-   * @param arrayName Property name of the array to extract
-   * @return
-   * @throws ParseException
-   */
-  private static JSONArray extractJsonArrayFromObject(JSONObject jsonObject, String arrayName) throws ParseException {
-    JSONArray array = new JSONArray();
-    if (jsonObject.containsKey(arrayName)) {
-      JSONParser parser = new JSONParser();
-      array = (JSONArray) parser.parse(((JSONArray) jsonObject.get(arrayName)).toJSONString());
-      jsonObject.remove(arrayName);
-    }
-    return array;
-  }
 
   /**
    * Convenience method with the most common Inventory request headers
@@ -1213,23 +620,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     request.setHeader("Content-type", "application/json");
     request.setHeader("X-Okapi-Token", ctxt.authToken);
     request.setHeader("X-Okapi-Tenant", ctxt.folioTenant);
-  }
-
-  @SuppressWarnings("unused")
-  private void deleteInstanceRecord(CloseableHttpClient client, String id, String tenant, String authToken) throws InventoryUpdateException {
-    String url = String.format("%s/instances/%s", ctxt.folioAddress + ctxt.instanceStoragePath, id);
-    HttpDelete httpDelete = new HttpDelete(url);
-    setHeaders(httpDelete,"application/json");
-    CloseableHttpResponse response;
-    try {
-      response = client.execute(httpDelete);
-    } catch (IOException e) {
-      throw new InventoryUpdateException("IOException when trying to delete Instance record: " + e.getMessage(), e);
-    }
-    if (response.getStatusLine().getStatusCode() != 204) {
-      RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting instance record", "Instance", "DELETE", "{}");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
   }
 
 }
