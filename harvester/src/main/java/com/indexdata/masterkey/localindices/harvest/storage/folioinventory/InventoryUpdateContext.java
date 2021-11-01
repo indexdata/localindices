@@ -89,7 +89,7 @@ public class InventoryUpdateContext {
             }
             if (xmlBulkRecordFilteringDate != null) {
                 logger.info(
-                        "Filtering records by data, excluding records with an update date before " + xmlBulkRecordFilteringDate );
+                        "Filtering records by date, excluding records with an update date before " + xmlBulkRecordFilteringDate );
             }
         }
     }
