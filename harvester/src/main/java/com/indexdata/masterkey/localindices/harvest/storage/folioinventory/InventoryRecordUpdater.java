@@ -571,7 +571,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             logger.debug("Delete request response: " + responseAsString);
           } else
           {
-            if ( ctxt.marcStorageUrlIsDefined )
+            if ( ctxt.marcStorageUrlIsDefined && false ) // disabling MARC source deletion due to indexing problem in mod-marc-storage
             {
               String oaiId = (String) deletionJson.get( "oaiIdentifier" );
               String localIdentifier = ( oaiId != null ? oaiId.substring( oaiId.lastIndexOf( ":" ) + 1 ) : null );
