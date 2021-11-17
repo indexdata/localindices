@@ -1,39 +1,31 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
-import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class InventoryUpdateContext {
+public class InventoryUpdateContext extends FolioUpdateContext {
 
-    public Harvestable harvestable;
-    protected static final String FOLIO_TENANT = "folioTenant";
-    protected static final String FOLIO_AUTH_PATH = "folioAuthPath";
-    protected static final String FOLIO_USERNAME = "folioUsername";
-    protected static final String FOLIO_PASSWORD = "folioPassword";
-    protected static final String FOLIO_AUTH_SKIP = "folioAuthSkip";
     protected static final String MARC_STORAGE_PATH = "marcStoragePath";
     protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
 
-    public String folioAddress;
-    private JSONObject storageConfig;
-    public String folioTenant;
-    public String folioAuthPath;
-    public String folioUsername;
-    public String folioPassword;
-    public boolean folioAuthSkip = false;
     public String marcStoragePath;
     public String inventoryUpsertPath;
 
@@ -41,20 +33,11 @@ public class InventoryUpdateContext {
     public String inventoryUpsertUrl;
     public boolean marcStorageUrlIsDefined;
 
-    public String authToken;
-
-    public StorageJobLogger logger;
     public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
-    public FailedRecordsController failedRecordsController;
-    public RecordUpdateCounters updateCounters;
+    public InventoryRecordUpdateCounters updateCounters;
     public HourlyPerformanceStats timingsStoringInventoryRecordSet;
     public HourlyPerformanceStats timingsCreatingRecord;
     public HourlyPerformanceStats timingsTransformingRecord;
-    public InventoryStorageStatus storageStatus;
-    private final boolean isXmlBulkJob;
-    private Instant xmlBulkRecordFilteringDate;
-
-    public CloseableHttpClient inventoryClient = null;
 
     public static final String FAILURE_ENTITY_TYPE_SOURCE_RECORD = "source record";
 
@@ -68,41 +51,85 @@ public class InventoryUpdateContext {
      * @throws StorageException if mandatory configuration parameters are not found
      */
     public InventoryUpdateContext (Harvestable harvestable, StorageJobLogger logger) throws StorageException {
-        this.logger = logger;
-        this.harvestable = harvestable;
+        super(harvestable, logger);
         Storage storage = harvestable.getStorage();
         setStorageConfig(storage);
-        storageStatus = new InventoryStorageStatus();
-        updateCounters = new RecordUpdateCounters();
+        updateCounters = new InventoryRecordUpdateCounters();
         timingsStoringInventoryRecordSet = new HourlyPerformanceStats("Storing Inventory records", logger);
         timingsCreatingRecord = new HourlyPerformanceStats("Creating DOM for incoming record", logger);
         timingsCreatingRecord.setLogLevelForIntervals(Level.DEBUG);
         timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
         timingsTransformingRecord.setLogLevelForIntervals(Level.DEBUG);
         failedRecordsController = new FailedRecordsController(logger, harvestable);
-        isXmlBulkJob = (harvestable instanceof XmlBulkResource);
-        if (isXmlBulkJob && !harvestable.getOverwrite()) {
-            if (harvestable.getFromDate() != null) {
-                xmlBulkRecordFilteringDate = harvestable.getFromDate().toInstant();
-            } else if (harvestable.getLastHarvestFinished() != null) {
-                xmlBulkRecordFilteringDate = harvestable.getLastHarvestFinished().toInstant();
+    }
+
+    @Override
+    public void moduleDatabaseStart(String database, Map<String, String> properties) {
+        setLocationsToInstitutionsMap(getLocationsMap());
+    }
+
+    @Override
+    public void moduleDatabaseEnd() {
+        if (!statusWritten) {
+            String recordsSkippedMessage = (updateCounters.xmlBulkRecordsSkipped > 0 ? "Records skipped by date filter: " + updateCounters.xmlBulkRecordsSkipped : "");
+            String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + updateCounters.instancesProcessed + "___" + updateCounters.instancesLoaded + "___" + updateCounters.instanceDeletions + "(" + updateCounters.instanceDeleteSignals + ")___" + updateCounters.instancesFailed + "_";
+            String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + updateCounters.holdingsRecordsProcessed + "___" + updateCounters.holdingsRecordsLoaded + "___" + updateCounters.holdingsRecordsDeleted + "___" + updateCounters.holdingsRecordsFailed + "_";
+            String itemsMessage = "Items_processed/loaded/deleted/failed:__" + updateCounters.itemsProcessed + "___" + updateCounters.itemsLoaded + "___" + updateCounters.itemsDeleted + "___" + updateCounters.itemsFailed + "_";
+            String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + updateCounters.sourceRecordsProcessed + "___" + updateCounters.sourceRecordsLoaded + "___" + updateCounters.sourceRecordsDeleted + "___" + updateCounters.sourceRecordsFailed + "_";
+            if (updateCounters.xmlBulkRecordsSkipped >0) logger.log(Level.INFO, recordsSkippedMessage);
+            logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
+            logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
+            logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
+            logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
+
+            failedRecordsController.writeLog();
+            timingsCreatingRecord.writeLog();
+            timingsTransformingRecord.writeLog();
+            timingsStoringInventoryRecordSet.writeLog();
+            harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+            statusWritten=true;
+        }
+
+    }
+
+    /**
+     * Retrieve locations-to-institutions mappings from Inventory storage
+     * Used for holdings/items deletion logic.
+     */
+    private Map<String,String> getLocationsMap() throws StorageException {
+        try {
+            Map<String,String> locationsToInstitutions = new HashMap<>();
+            String url = String.format("%s", folioAddress + "locations?limit=9999");
+            HttpGet httpGet = new HttpGet(url);
+            setHeaders(httpGet, "application/json");
+            CloseableHttpResponse response = folioClient.execute(httpGet);
+            if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
+                throw new IOException(String.format("Got error '" +
+                                response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() + "' when retrieving locations",
+                        EntityUtils.toString(response.getEntity())));
             }
-            if (xmlBulkRecordFilteringDate != null) {
-                logger.info(
-                        "Filtering records by date, excluding records with an update date before " + xmlBulkRecordFilteringDate );
+            JSONObject jsonResponse;
+            JSONParser parser = new JSONParser();
+            String responseString = EntityUtils.toString(response.getEntity());
+            jsonResponse = (JSONObject) parser.parse(responseString);
+            JSONArray locationsJson = (JSONArray) (jsonResponse.get("locations"));
+            if (locationsJson != null) {
+                Iterator<?> locationsIterator = locationsJson.iterator();
+                while (locationsIterator.hasNext()) {
+                    JSONObject location = (JSONObject) locationsIterator.next();
+                    locationsToInstitutions.put((String)location.get("id"), (String)location.get("institutionId"));
+                }
+                logger.info("Initialized a map of " + locationsJson.size() + " FOLIO locations to institutions.");
+                return locationsToInstitutions;
+            } else {
+                throw new StorageException("Failed to retrieve any locations from Inventory, found no 'locations' in response");
             }
+        } catch (IOException | ParseException e) {
+            throw new StorageException ("Error occurred trying to build map of locations to institutions from FOLIO Inventory: " + e.getMessage());
         }
     }
 
-    public void setClient (CloseableHttpClient inventoryClient) {
-        this.inventoryClient = inventoryClient;
-    }
-
-    public void setAuthToken (String token) {
-        this.authToken = token;
-    }
-
-    public void setStorageStatus(InventoryStorageStatus status) {
+    public void setStorageStatus(FolioStorageStatus status) {
         this.storageStatus = status;
     }
 
@@ -110,35 +137,7 @@ public class InventoryUpdateContext {
         this.locationsToInstitutionsMap.putAll(locationsToInstitutions);
     }
 
-    private void setStorageConfig(Storage storage) {
-        folioAddress = storage.getUrl();
-        String configurationsJsonString = storage.getJson();
-        if (configurationsJsonString != null && configurationsJsonString.length()>0) {
-            try {
-                JSONParser parser = new JSONParser();
-                storageConfig = (JSONObject) parser.parse(configurationsJsonString);
-            } catch (ParseException pe) {
-                String error = "Could not parse JSON configuration from harvestable.json [" + configurationsJsonString + "]";
-                logger.error(error + pe.getMessage());
-                throw new StorageException (error,pe);
-            }
-        } else {
-            String error = "Cannot find required configuration for Inventory storage (looking in STORAGE.JSON). Cannot perform job.";
-            logger.error(error);
-            throw new StorageException(error);
-        }
-        setStorageConfigs();
-
-    }
-
-    private void setStorageConfigs() {
-        folioTenant = getRequiredConfig(FOLIO_TENANT);
-        folioAuthSkip = getConfig(FOLIO_AUTH_SKIP, "false").equalsIgnoreCase("true");
-        if (!folioAuthSkip) {
-            folioAuthPath = getRequiredConfig(FOLIO_AUTH_PATH);
-            folioUsername = getRequiredConfig(FOLIO_USERNAME);
-            folioPassword = getRequiredConfig(FOLIO_PASSWORD);
-        }
+    protected void setFolioModuleConfigs() {
         inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
         inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
@@ -146,35 +145,10 @@ public class InventoryUpdateContext {
         marcStorageUrlIsDefined = marcStorageUrl != null;
     }
 
-    private String getRequiredConfig(String key) throws StorageException {
-        String val = (String) storageConfig.get(key);
-        if (val == null || val.length()==0) {
-            logger.error("Missing required Inventory storage configuration for ["+ key + "].");
-            throw new StorageException("Missing mandatory configuration value [" + key + "]. Cannot perform harvest job");
-        } else {
-            return val;
-        }
+    @Override
+    public String getStoragePath() {
+        return inventoryUpsertPath;
     }
 
-    public String getConfig(String key) {
-        return (String) storageConfig.get(key);
-    }
-
-    public String getConfig(String key, String defaultValue) {
-        return (storageConfig.get(key) != null ? (String) storageConfig.get(key) : "false" );
-    }
-
-    /**
-     * If harvestable is an XML bulk job and 'overwrite' is not checked, and if the job has a 'fromDate' or
-     * alternatively a 'lastHarvestFinished' date, then date filtering applies
-     * @return true if date filtering applies for this job.
-     */
-    public boolean xmlBulkRecordFilteringApplies() {
-        return xmlBulkRecordFilteringDate != null;
-    }
-
-    public Instant getBulkRecordFilteringInstant() {
-        return xmlBulkRecordFilteringDate;
-    }
 
 }

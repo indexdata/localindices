@@ -9,7 +9,7 @@ package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
  * Holds counts of records processed, updated, deleted, failed
  * @author ne
  */
-public class RecordUpdateCounters {
+public class InventoryRecordUpdateCounters {
 
   protected int xmlBulkRecordsSkipped = 0;
 

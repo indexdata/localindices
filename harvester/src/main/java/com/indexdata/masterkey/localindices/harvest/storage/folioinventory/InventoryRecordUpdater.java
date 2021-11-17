@@ -26,7 +26,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.xml.sax.SAXException;
 
-import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.util.MarcToJson;
@@ -38,7 +37,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
  * holdings/items and possibly a source record, all created from one
  * incoming bibliographic record.
  *
- * InventoryRecordUpdate gets context from {@link InventoryStorageController},
+ * InventoryRecordUpdate gets context from {@link FolioStorageController},
  * for example the job logger and record update/failure counters for logging the
  * process.
  *
@@ -47,16 +46,16 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
  * @author ne
  */
  @SuppressWarnings("unchecked")
- public class InventoryRecordUpdater {
+ public class InventoryRecordUpdater extends FolioRecordUpdater {
 
-  private final StorageJobLogger logger;
+  protected InventoryUpdateContext ctxt;
+
   /** Container for errors encountered while updating Inventory from one incoming bib record */
   private RecordWithErrors recordWithErrors;
   /** Overall updates and errors counters */
-  private final RecordUpdateCounters updateCounters;
+  private final InventoryRecordUpdateCounters updateCounters;
   private final FailedRecordsController failedRecordsController;
   private final Map<String, String> locInstMap;
-  private final InventoryUpdateContext ctxt;
 
   public InventoryRecordUpdater (InventoryUpdateContext ctxt) {
     this.ctxt = ctxt;
@@ -71,7 +70,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * from the incoming bibliographic record.
    * @param recordJSON The JSON coming into the Harvester Inventory storage logic from the transformation pipeline
    */
-  void addInventory(RecordJSON recordJSON) {
+  public void addRecord(RecordJSON recordJSON) {
     try {
       long startStorageEntireRecord = System.currentTimeMillis();
 
@@ -263,7 +262,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       StringEntity entity = new StringEntity(inventoryRecordSet.toJSONString(), "UTF-8");
       httpUpdate.setEntity(entity);
       setHeaders(httpUpdate,"application/json");
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpUpdate);
+      CloseableHttpResponse response = ctxt.folioClient.execute(httpUpdate);
       String responseAsString = EntityUtils.toString(response.getEntity());
       response.close();
       upsertResponse = getResponseAsJson(responseAsString);
@@ -276,18 +275,6 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       throw se;
     } catch (Exception e) {
       throw new InventoryUpdateException("Inventory Upsert encountered an exception", e);
-    }
-    return upsertResponse;
-  }
-
-  private JSONObject getResponseAsJson(String responseAsString) {
-    JSONObject upsertResponse;
-    JSONParser parser = new JSONParser();
-    try {
-      upsertResponse = (JSONObject) parser.parse(responseAsString);
-    } catch (ParseException pe) {
-      upsertResponse = new JSONObject();
-      upsertResponse.put("wrappedErrorMessage", responseAsString);
     }
     return upsertResponse;
   }
@@ -408,7 +395,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       url = new StringBuilder().append(ctxt.marcStorageUrl).append("?query=").append(URLEncoder.encode(query.toString(), "UTF-8"));
       HttpGet httpGet = new HttpGet(url.toString());
       setHeaders(httpGet,"application/json");
-      CloseableHttpResponse response = ctxt.inventoryClient.execute(httpGet);
+      CloseableHttpResponse response = ctxt.folioClient.execute(httpGet);
       if (response.getStatusLine().getStatusCode() != 200) {
         RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error looking up existing MARC record, expected status 200", "MARC source", "GET", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
@@ -462,7 +449,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           request = new HttpPost(ctxt.marcStorageUrl);
           request.setEntity(entity);
           setHeaders(request,"application/json");
-          CloseableHttpResponse response = ctxt.inventoryClient.execute(request);
+          CloseableHttpResponse response = ctxt.folioClient.execute(request);
           String responseAsString = EntityUtils.toString(response.getEntity());
           marcResponse = getResponseAsJson(responseAsString);
           if (response.getStatusLine().getStatusCode() != 201) {
@@ -483,7 +470,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
           request = new HttpPut(url);
           request.setEntity(entity);
           setHeaders(request,"text/plain");
-          CloseableHttpResponse response = ctxt.inventoryClient.execute(request);
+          CloseableHttpResponse response = ctxt.folioClient.execute(request);
           response.close();
           if (response.getStatusLine().getStatusCode() != 204) {
             updateCounters.sourceRecordsFailed++;
@@ -516,7 +503,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     setHeaders(httpDelete,"text/plain");
     CloseableHttpResponse response = null;
     try {
-      response = ctxt.inventoryClient.execute(httpDelete);
+      response = ctxt.folioClient.execute(httpDelete);
       if (response.getStatusLine().getStatusCode() != 204) {
         RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting source record", "MARC source", "DELETE", "{}");
         recordWithErrors.reportAndThrowError(error, Level.DEBUG);
@@ -542,7 +529,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * Handles delete signal from the transformation pipeline according to Shared Index (ReShare) requirements
    * @param recordJSON contains deletion information
    */
-  public void delete(RecordJSON recordJSON) {
+  public void deleteRecord(RecordJSON recordJSON) {
     try {
       updateCounters.instanceDeleteSignals++;
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
@@ -557,7 +544,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
         httpDelete.setEntity(entity);
         CloseableHttpResponse response = null;
         try {
-          response = ctxt.inventoryClient.execute(httpDelete);
+          response = ctxt.folioClient.execute(httpDelete);
           String responseAsString = EntityUtils.toString(response.getEntity());
           JSONObject responseAsJson = getResponseAsJson(responseAsString);
           int statusCodeInstanceDelete = response.getStatusLine().getStatusCode();

@@ -160,7 +160,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return null;
     }
 
-    public boolean isRecordExcludedByDateFilter( InventoryUpdateContext ctxt ) {
+    public boolean isRecordExcludedByDateFilter( FolioUpdateContext ctxt ) {
       if (ctxt.xmlBulkRecordFilteringApplies() && this.hasLastUpdateDate() ) {
         Instant recordDateStamp = this.getLastUpdateAsInstant();
         if (recordDateStamp == null) {
