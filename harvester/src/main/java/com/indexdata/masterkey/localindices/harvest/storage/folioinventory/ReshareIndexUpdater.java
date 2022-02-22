@@ -27,7 +27,8 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
     this.ctxt = ctxt;
     logger = ctxt.logger;
      failedRecordsController = ctxt.failedRecordsController;
-   // updateCounters = ctxt.updateCounters;
+
+    // updateCounters = ctxt.updateCounters;
   }
 
   @Override
@@ -37,6 +38,8 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
 
     try
     {
+      if (recordJSON == null) throw new InventoryUpdateException ("The RSI storage logic " +
+              "received no record from the transformation pipeline");
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, ctxt.logger);
       if ( transformedRecord.isRecordExcludedByDateFilter(ctxt) )
       {
@@ -46,6 +49,10 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
       {
         JSONObject inventoryRecordSet = new JSONObject();
         JSONObject instance = transformedRecord.getInstance();
+        if (instance == null) throw new InventoryUpdateException("The RSI storage logic " +
+              "found no Instance object in the record from the transformation pipeline");
+        if (instance.get("title") == null) throw new InventoryUpdateException("The RSI storage logic " +
+                "found no 'title' in the Instance object in the record from the transformation pipeline");
         if ( transformedRecord.hasMatchKey())
         {
           instance.put( "matchKey", transformedRecord.getMatchKey() );
@@ -60,7 +67,8 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
           inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
         }
         JSONObject marcJson = getMarcJson(transformedRecord);
-
+        if (marcJson == null) throw new InventoryUpdateException("The RSI storage logic " +
+                "found no source MARC in the record from the transformation pipeline");
         JSONObject record = new JSONObject();
         record.put("localIdentifier", transformedRecord.getLocalIdentifier());
         record.put("libraryId", transformedRecord.getInstitutionId());
@@ -70,6 +78,10 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
         record.put("source", marcJson);
         logger.debug("Created request JSON: " + record.toJSONString());
         updateSharedIndexEntry(record);
+        ctxt.timingsIndexEntry.time(startStorageEntireRecord);
+        ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
+        ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
+        ctxt.storageStatus.incrementAdd( 1 );
       }
     } catch (InventoryUpdateException iue) {
       logger.error (iue.getMessage());
