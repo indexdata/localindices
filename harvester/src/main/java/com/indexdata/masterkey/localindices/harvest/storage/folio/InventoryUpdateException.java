@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 public class InventoryUpdateException extends Exception {
 

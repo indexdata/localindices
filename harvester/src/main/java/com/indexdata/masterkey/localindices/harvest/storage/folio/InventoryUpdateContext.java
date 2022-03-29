@@ -1,7 +1,6 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;

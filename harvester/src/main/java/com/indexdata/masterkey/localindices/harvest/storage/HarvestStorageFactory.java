@@ -5,7 +5,7 @@
  */
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-import com.indexdata.masterkey.localindices.harvest.storage.folioinventory.FolioStorageController;
+import com.indexdata.masterkey.localindices.harvest.storage.folio.FolioStorageController;
 import com.indexdata.masterkey.localindices.entity.FileStorageEntity;
 import com.indexdata.masterkey.localindices.entity.Storage;
 

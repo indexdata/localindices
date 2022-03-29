@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.entity.Storage;
@@ -8,7 +8,7 @@ import org.apache.log4j.Level;
 
 import java.util.Map;
 
-public class ReshareIndexUpdateContext extends FolioUpdateContext {
+public class ShareIndexUpdateContext extends FolioUpdateContext {
 
   private static final String RESHARE_INDEX_PATH = "reshareIndexPath";
   public String reshareIndexPath;
@@ -16,7 +16,7 @@ public class ReshareIndexUpdateContext extends FolioUpdateContext {
   public HourlyPerformanceStats timingsTransformingRecord;
   public HourlyPerformanceStats timingsIndexEntry;
 
-  public ReshareIndexUpdateContext(Harvestable harvestable, StorageJobLogger logger) throws StorageException {
+  public ShareIndexUpdateContext(Harvestable harvestable, StorageJobLogger logger) throws StorageException {
     super(harvestable, logger);
     Storage storage = harvestable.getStorage();
     setStorageConfig(storage);

@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
@@ -10,7 +10,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.xml.sax.SAXException;
 
@@ -18,12 +17,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class ReshareIndexUpdater extends FolioRecordUpdater {
+public class ShareIndexUpdater extends FolioRecordUpdater {
 
-  ReshareIndexUpdateContext ctxt;
+  ShareIndexUpdateContext ctxt;
   private final FailedRecordsController failedRecordsController;
 
-  public ReshareIndexUpdater (ReshareIndexUpdateContext ctxt) {
+  public ShareIndexUpdater(ShareIndexUpdateContext ctxt) {
     this.ctxt = ctxt;
     logger = ctxt.logger;
      failedRecordsController = ctxt.failedRecordsController;
@@ -72,8 +71,8 @@ public class ReshareIndexUpdater extends FolioRecordUpdater {
         JSONObject record = new JSONObject();
         record.put("localIdentifier", transformedRecord.getLocalIdentifier());
         record.put("libraryId", transformedRecord.getInstitutionId());
-        record.put("title", instance.get("title"));
-        record.put("matchKey", instance.get("title").toString().toLowerCase().replaceAll(" ", "_"));
+        //record.put("title", instance.get("title"));
+        //record.put("matchKey", instance.get("title").toString().toLowerCase().replaceAll(" ", "_"));
         record.put("inventory", inventoryRecordSet);
         record.put("source", marcJson);
         logger.debug("Created request JSON: " + record.toJSONString());

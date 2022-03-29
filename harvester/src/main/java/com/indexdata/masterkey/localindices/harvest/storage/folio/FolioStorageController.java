@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -83,7 +83,7 @@ public class FolioStorageController implements RecordStorage {
         ctxt = new InventoryUpdateContext(harvestable, logger);
       } else if (storageConfigJson.containsKey("reshareIndexPath")) {
         logger.info("Attaching job to ReShare Index Storage");
-        ctxt = new ReshareIndexUpdateContext(harvestable, logger);
+        ctxt = new ShareIndexUpdateContext(harvestable, logger);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
                 + "either an 'inventoryUpsertPath' or a 'reshareIndexPath'. Abandoning job.");
@@ -179,8 +179,8 @@ public class FolioStorageController implements RecordStorage {
     if (ctxt instanceof InventoryUpdateContext) {
       return new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
     }
-    if (ctxt instanceof ReshareIndexUpdateContext) {
-      return new ReshareIndexUpdater((ReshareIndexUpdateContext) ctxt);
+    if (ctxt instanceof ShareIndexUpdateContext) {
+      return new ShareIndexUpdater((ShareIndexUpdateContext) ctxt);
     }
     return null;
   }
