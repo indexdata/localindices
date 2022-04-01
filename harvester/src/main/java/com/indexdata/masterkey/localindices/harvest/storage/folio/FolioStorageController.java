@@ -81,12 +81,12 @@ public class FolioStorageController implements RecordStorage {
       if (storageConfigJson.containsKey("inventoryUpsertPath")) {
         logger.info("Attaching job to Inventory Storage");
         ctxt = new InventoryUpdateContext(harvestable, logger);
-      } else if (storageConfigJson.containsKey("reshareIndexPath")) {
-        logger.info("Attaching job to ReShare Index Storage");
+      } else if (storageConfigJson.containsKey("sharedIndexPath")) {
+        logger.info("Attaching job to Shared Index Storage");
         ctxt = new ShareIndexUpdateContext(harvestable, logger);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
-                + "either an 'inventoryUpsertPath' or a 'reshareIndexPath'. Abandoning job.");
+                + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
       }
     } else {
       throw new StorageException("No FOLIO storage config found. Abandoning job.");
