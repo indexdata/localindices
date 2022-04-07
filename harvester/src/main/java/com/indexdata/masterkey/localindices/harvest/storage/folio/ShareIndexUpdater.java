@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.xml.sax.SAXException;
 
@@ -37,7 +38,7 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
 
     try
     {
-      if (recordJSON == null) throw new InventoryUpdateException ("The RSI storage logic " +
+      if (recordJSON == null) throw new InventoryUpdateException ("The Shared Index storage logic " +
               "received no record from the transformation pipeline");
       TransformedRecord transformedRecord = new TransformedRecord(recordJSON, ctxt.logger);
       if ( transformedRecord.isRecordExcludedByDateFilter(ctxt) )
@@ -61,22 +62,20 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
         {
           inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
         }
-        if ( transformedRecord.hasInstanceRelations() )
-        {
-          inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
-        }
         JSONObject marcJson = getMarcJson(transformedRecord);
-        if (marcJson == null) throw new InventoryUpdateException("The RSI storage logic " +
+        if (marcJson == null) throw new InventoryUpdateException("The Shared Index storage logic " +
                 "found no source MARC in the record from the transformation pipeline");
+        JSONObject ingestRecordRequest = new JSONObject();
+        JSONArray records = new JSONArray();
         JSONObject record = new JSONObject();
-        record.put("localIdentifier", transformedRecord.getLocalIdentifier());
-        record.put("libraryId", transformedRecord.getInstitutionId());
-        //record.put("title", instance.get("title"));
-        //record.put("matchKey", instance.get("title").toString().toLowerCase().replaceAll(" ", "_"));
-        record.put("inventory", inventoryRecordSet);
-        record.put("source", marcJson);
-        logger.debug("Created request JSON: " + record.toJSONString());
-        updateSharedIndexEntry(record);
+        ingestRecordRequest.put("sourceId", transformedRecord.getInstitutionId());
+        record.put("localId", transformedRecord.getLocalIdentifier());
+        record.put("marcPayload", marcJson);
+        record.put("inventoryPayload", inventoryRecordSet);
+        records.add(record);
+        ingestRecordRequest.put("records", records);
+        logger.debug("Created request JSON: " + ingestRecordRequest.toJSONString());
+        updateSharedIndexEntry(ingestRecordRequest);
         ctxt.timingsIndexEntry.time(startStorageEntireRecord);
         ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
         ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
@@ -96,14 +95,14 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
       httpUpdate.setEntity(entity);
       ctxt.setHeaders(httpUpdate,"application/json");
       CloseableHttpResponse response = ctxt.folioClient.execute(httpUpdate);
-      if (response.getStatusLine().getStatusCode() != 204) {
+      if (response.getStatusLine().getStatusCode() != 200) {
         logger.error(EntityUtils.toString(response.getEntity()));
       }
       response.close();
     } catch ( StorageException se) {
       throw se;
     } catch (Exception e) {
-      throw new InventoryUpdateException("ReShare Index updater encountered an exception: "
+      throw new InventoryUpdateException("Shared Index updater encountered an exception: "
               + e.getMessage());
     }
   }
