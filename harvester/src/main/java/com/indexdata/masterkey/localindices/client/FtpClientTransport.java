@@ -35,6 +35,7 @@ public class FtpClientTransport implements ClientTransport {
   }
 
   public void reconnect (int wait_ms) throws IOException {
+    logger.info("Attempting reconnect.");
     try {
       Thread.sleep(wait_ms);
     } catch (InterruptedException ie) {

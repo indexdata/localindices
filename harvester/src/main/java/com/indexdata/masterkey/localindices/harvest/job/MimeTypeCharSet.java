@@ -73,7 +73,11 @@ public class MimeTypeCharSet {
   public boolean isZip() {
     return "application/zip".equals(mimeType);
   }
-  
+
+  public boolean is7z() {
+    return "application/x-7z-compressed".equals(mimeType);
+  }
+
   public boolean isHTML() {
     return "text/html".equalsIgnoreCase(mimeType) || "application/xhtml+xml".equals(mimeType);
   }
