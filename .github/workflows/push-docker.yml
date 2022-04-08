@@ -6,6 +6,8 @@ on:
 # For production:
 #  schedule:
 #    - cron: '07 01 * * *'
+  push:
+    branches: [DEVOPS-1002-ci-workflow]
   workflow_dispatch:
 
 env:
