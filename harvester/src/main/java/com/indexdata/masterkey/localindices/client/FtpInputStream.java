@@ -14,14 +14,14 @@ public class FtpInputStream extends InputStream {
   FTPClient client;
   InputStream input;
   long length;
-  // For logging long running FTP operations as timeouts can cause issues to debug
+  // For logging long-running FTP operations as timeouts can cause issues to debug
   long startTime;
   private static long ASSUMED_IDLING_TIMEOUT_MS = 900*1000;
-  // With long running FTP file reads, the server can time out in certain ways that
+  // With long-running FTP file reads, the server can time out in certain ways that
   // makes the completePendingCommand hang seemingly indefinitely. The typical server
   // time out seems to be 900 seconds (15 minutes). As no other way has been identified
   // to safely diagnose this condition, the completePendingCommand has been wrapped in
-  // a future that will be timed out eventually. Timing it out to soon seems to
+  // a future that will be timed out eventually. Timing it out too soon seems to
   // potentially lead to premature end of file for the current stream. The timeout is
   // set to 1 minute.
   private final long COMPLETE_PENDING_COMMAND_TIMEOUT_MINUTES = 1;

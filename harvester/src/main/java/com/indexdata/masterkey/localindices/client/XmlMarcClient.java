@@ -13,6 +13,8 @@ import java.net.Proxy;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
@@ -21,7 +23,12 @@ import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.dom.DOMResult;
 
+import com.indexdata.masterkey.localindices.harvest.cache.NonClosableInputStream;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.log4j.Level;
 import org.marc4j.*;
@@ -104,7 +111,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
           logger.debug("Done storing " + file.getName());
         } else {
           logger.error(
-                  "Failure storing " + file.getName() + ": " + ioe.getMessage() + ( getResource().getAllowErrors() ? ". Continuing since job is set to proceed on errors." : "" ) );
+                  "Failure storing " + file.getName() + ": " + ioe.getMessage() + ( getResource().getAllowErrors() ? " Continuing since job is set to proceed on errors." : "" ) );
           if ( !getResource().getAllowErrors() )
           {
             throw ioe;
@@ -149,7 +156,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
               } else {
                 logger.info("XmlMarcClient downloading " + rf.getAbsoluteName());
                 download(rf);
-                logger.debug("XmlMarcClient done downloading");
+                logger.debug("XmlMarcClient done downloading " + rf.getAbsoluteName());
               }
             } catch (FTPConnectionClosedException fcce) {
               logger.error("XmlMarcClient caught FTPConnectionClosedException");
@@ -195,8 +202,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
                 throw e;
               }
             }
-            logger.debug("XmlMarcClient done iterating file list at " + url.getHost());
           }
+          logger.debug("XmlMarcClient done iterating file list at " + url.getHost());
         } else {
           getJob().setStatus(HarvestStatus.OK, "Found no files at "+url+ (getResource().getAllowCondReq() ? ", possibly due to filtering. " : ""));
         }
@@ -243,7 +250,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
   private void storeAny(RemoteFile file, String cacheFile) throws IOException  {
     InputStream input;
     try {
-      logger.info("File: " + file.getName() + ". Length: " + file.getLength());
+      logger.info("File: " + file.getAbsoluteName() + ". Length: " + file.getLength());
       input = new BufferedInputStream(file.getInputStream());
     } catch (IOException ioe) {
       if (ioe.getMessage().equals("Connection is not open")) {
@@ -319,6 +326,48 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //we need to bugger again to detect file type
         input = new BufferedInputStream(input);
         mimeType = deduceMimeType(input, trimmedName, null);
+    } else if (mimeType.is7z()) {
+      logger.debug("Transport returned 7z archive file, expanding..");
+      SeekableInMemoryByteChannel inMemoryByteChannel;
+      try {
+        input.mark(Integer.MAX_VALUE);
+        inMemoryByteChannel = new SeekableInMemoryByteChannel(IOUtils.toByteArray(input));
+        SevenZFile sevenZFile = new SevenZFile(inMemoryByteChannel);
+        if (sevenZFileHasTooManyEntries(sevenZFile, logger)) {
+          sevenZFile.close();
+          input.close();
+          throw new IOException("7z file has too many entries. Maximum supported entries is 65536.");
+        } else {
+          logger.debug("7z file is within record count maximum.");
+        }
+        input.reset();
+        inMemoryByteChannel = new SeekableInMemoryByteChannel(IOUtils.toByteArray(input));
+        sevenZFile = new SevenZFile(inMemoryByteChannel);
+        SevenZArchiveEntry entry;
+        int count = 0;
+        while (( entry = sevenZFile.getNextEntry() ) != null) {
+          if (!entry.isDirectory()) {
+            URL url = new URL(file.getURL() + "/" + entry.getName());
+            RemoteFile remoteFile = new RemoteFile(url,
+                    new NonClosableInputStream(sevenZFile.getInputStream(entry)),
+                    logger);
+            remoteFile.setLength(entry.getSize());
+            storeAny(remoteFile, proposeCachePath());
+            count++;
+          }
+        }
+        if (count == 0) {
+          logger.info("Found no files in the 7z archive.");
+        } else {
+          logger.info("Found " + count + " files in the 7z archive");
+        }
+        sevenZFile.close();
+        input.close();
+        return;
+      } catch (OutOfMemoryError oome) {
+        logger.error("Out of memory error when reading input stream to in-memory byte channel.");
+        throw new IOException("Out of memory when expanding 7z archive.");
+      }
     }
     // user mime-type override
     if (getResource().getExpectedSchema() != null
@@ -348,14 +397,27 @@ public class XmlMarcClient extends AbstractHarvestClient {
       logger.error("IO exception occurred when running store function: " + ioe.getMessage());
       throw ioe;
     } finally {
-        // NOTE: If this was a FTP download and the FTP connection was lost, a
+        // NOTE: If this was an FTP download and the FTP connection was lost, a
         //       FTPConnectionClosedException will be thrown here.
         //       This exception is used when deciding whether to attempt a reconnect.
         //       See download(URL url)
-        logger.info("Done reading " + file.getName() + ". Closing input.");
+        logger.debug("Done reading " + file.getName() + ". Closing input.");
         input.close();
         logger.debug("StoreAny closed input stream");
     }
+  }
+
+  private static boolean sevenZFileHasTooManyEntries (SevenZFile file, StorageJobLogger logger) throws IOException{
+    SevenZArchiveEntry entry;
+    int entries=0;
+    while ((entry = file.getNextEntry()) != null) {
+      entries++;
+    }
+    if (entries > 65536) {
+      DecimalFormat df = new DecimalFormat("###,###,###");
+      logger.error("SevenZFile has too many entries. Maximum entries supported is 65,536, file has " + df.format(entries) + ".");
+    }
+    return entries > 65536;
   }
 
   private boolean isMarc(InputStream is) throws IOException {
@@ -486,6 +548,8 @@ public class XmlMarcClient extends AbstractHarvestClient {
           guess = "application/x-gtar";
         } else if (fileName.endsWith(".gz")) {
           guess = "application/gzip";
+        } else if (fileName.endsWith(".7z")) {
+          guess = "application/x-7z-compressed";
         } else if (fileName.endsWith(".mrc") || fileName.endsWith(".marc")) {
           guess = "application/marc";
         } else if (fileName.endsWith(".csv")) {
@@ -540,12 +604,12 @@ public class XmlMarcClient extends AbstractHarvestClient {
         //       stop reading certain MARC files mid-file and without a message. This is NOT a problem when using
         //       MarcPermissiveStreamReader on a regular InputStream but it _is_ a problem with the home-grown
         //       FtpInputStream that must be used for other reasons (the process for other file types breaks without it).
-        //       Thus the two-step reading of binary MARC streams.
+        //       Thus, the two-step reading of binary MARC streams.
         //
         // Note: No other good solution has been identified for converting incoming binary MARC to UTF-8 XML with
         //       this version of Marc4J.
         //
-        // Note: This nine year old version of Marc4J must be used because it has support from TurboMarc.
+        // Note: The nine year old version of Marc4J must be used because it has support for TurboMarc.
         org.marc4j.marc.Record convertedRecord = convertingReader.next();
         // Write to XML
         DOMResult result = new DOMResult();
@@ -600,7 +664,6 @@ public class XmlMarcClient extends AbstractHarvestClient {
     }
     if (iso2709writer != null) iso2709writer.close();
     logger.info("MARC records read: " + index);
-
   }
 
   private void storeXml(InputStream is) throws IOException {
