@@ -27,6 +27,26 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
 #          cache: maven
+      - name: Create Maven settings
+        uses: s4u/maven-settings-action@v2
+        with:
+          mirrors: |
+            [
+              {
+                "id": "id-maven-repo-https",
+                "name": "id-maven-repo via https",
+                "mirrorOf": "id-maven-repo",
+                "url": "https://maven.indexdata.com"
+              },
+              {
+                "id": "maven-restlet-https",
+                "name": "maven-restlet via https",
+                "mirrorOf": "maven-restlet",
+                "url": "https://maven.restlet.org"
+              }
+            ]
+      - name: Debug Maven settings
+        run: cat $HOME/.m2/settings.xml
       - name: Gather some variables
         run: |
           echo "MODULE_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
@@ -40,4 +60,4 @@ jobs:
           echo "github.REF=${{ github.REF }}"
           echo "github.REF_NAME=${{ github.REF_NAME }}"
       - name: Do Maven build harvester
-        run: mvn clean install
+        run: mvn verify
