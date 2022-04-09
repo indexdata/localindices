@@ -26,7 +26,7 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
-#          cache: maven
+          cache: maven
       - name: Create Maven settings
         uses: s4u/maven-settings-action@v2.6.0
         with:
@@ -45,8 +45,6 @@ jobs:
                 "url": "https://maven.restlet.org"
               }
             ]
-      - name: Debug Maven settings
-        run: cat $HOME/.m2/settings.xml
       - name: Gather some variables
         run: |
           echo "MODULE_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
