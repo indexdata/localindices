@@ -58,11 +58,19 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_1 }}
+          labels: |
+            org.opencontainers.image.title=Harvester
+            org.opencontainers.image.description=Harvester server
+            org.opencontainers.image.vendor=Index Data
       - name: Extract docker metadata for harvester-admin
         id: meta-2
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_2 }}
+          labels: |
+            org.opencontainers.image.title=Harvester Admin
+            org.opencontainers.image.description=Harvester administrative user interface
+            org.opencontainers.image.vendor=Index Data
       - name: Build and publish Docker for harvester
         uses: docker/build-push-action@v2
         with:
