@@ -45,17 +45,35 @@ jobs:
                 "url": "https://maven.restlet.org"
               }
             ]
-      - name: Gather some variables
-        run: |
-          echo "MODULE_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
-          echo "MODULE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-          echo "DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
-      - name: Report the variables
-        run: |
-          echo "MODULE_NAME=${{ env.MODULE_NAME }}"
-          echo "MODULE_VERSION=${{ env.MODULE_VERSION }}"
-          echo "DEFAULT_BRANCH=${{ env.DEFAULT_BRANCH }}"
-          echo "github.REF=${{ github.REF }}"
-          echo "github.REF_NAME=${{ github.REF_NAME }}"
       - name: Do Maven build harvester
         run: mvn verify
+      - name: Log into GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.CONTAINER_REGISTRY }}
+          username: ${{ github.ACTOR }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract docker metadata for harvester
+        id: meta-1
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_1 }}
+      - name: Extract docker metadata for harvester-admin
+        id: meta-2
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_2 }}
+      - name: Build and publish Docker for harvester
+        uses: docker/build-push-action@v2
+        with:
+          context: harvester
+          push: false
+          tags: ${{ steps.meta-1.outputs.tags }}
+          labels: ${{ steps.meta-1.outputs.labels }}
+      - name: Build and publish Docker for harvester-admin
+        uses: docker/build-push-action@v2
+        with:
+          context: harvester-admin
+          push: false
+          tags: ${{ steps.meta-2.outputs.tags }}
+          labels: ${{ steps.meta-2.outputs.labels }}
