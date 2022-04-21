@@ -58,7 +58,7 @@ public abstract class FolioUpdateContext {
   protected String getRequiredConfig(String key) throws StorageException {
     String val = (String) storageConfig.get(key);
     if (val == null || val.length()==0) {
-      logger.error("Missing required Inventory storage configuration for ["+ key + "].");
+      logger.error("Missing required FOLIO storage configuration for ["+ key + "].");
       throw new StorageException("Missing mandatory configuration value [" + key + "]. Cannot perform harvest job");
     } else {
       return val;

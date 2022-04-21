@@ -10,8 +10,8 @@ import java.util.Map;
 
 public class ShareIndexUpdateContext extends FolioUpdateContext {
 
-  private static final String RESHARE_INDEX_PATH = "reshareIndexPath";
-  public String reshareIndexPath;
+  private static final String SHARED_INDEX_PATH = "sharedIndexPath";
+  public String sharedIndexPath;
   public HourlyPerformanceStats timingsCreatingRecord;
   public HourlyPerformanceStats timingsTransformingRecord;
   public HourlyPerformanceStats timingsIndexEntry;
@@ -20,7 +20,7 @@ public class ShareIndexUpdateContext extends FolioUpdateContext {
     super(harvestable, logger);
     Storage storage = harvestable.getStorage();
     setStorageConfig(storage);
-    timingsIndexEntry = new HourlyPerformanceStats("Storing Inventory records", logger);
+    timingsIndexEntry = new HourlyPerformanceStats("Storing records", logger);
     timingsCreatingRecord = new HourlyPerformanceStats("Creating DOM for incoming record", logger);
     timingsCreatingRecord.setLogLevelForIntervals(Level.DEBUG);
     timingsTransformingRecord = new HourlyPerformanceStats("Transforming incoming record before storing", logger);
@@ -39,11 +39,11 @@ public class ShareIndexUpdateContext extends FolioUpdateContext {
 
   @Override
   protected void setFolioModuleConfigs() {
-    reshareIndexPath = getConfig(RESHARE_INDEX_PATH);
+    sharedIndexPath = getConfig(SHARED_INDEX_PATH);
   }
 
   @Override
   public String getStoragePath() {
-    return reshareIndexPath;
+    return sharedIndexPath;
   }
 }

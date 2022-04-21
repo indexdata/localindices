@@ -89,7 +89,7 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
 
   private void updateSharedIndexEntry(JSONObject record) throws InventoryUpdateException {
     try {
-      String url = ctxt.folioAddress + ctxt.reshareIndexPath;
+      String url = ctxt.folioAddress + ctxt.sharedIndexPath;
       HttpEntityEnclosingRequestBase httpUpdate = new HttpPut(url);
       StringEntity entity = new StringEntity(record.toJSONString(), "UTF-8");
       httpUpdate.setEntity(entity);

@@ -146,9 +146,9 @@ public class StorageController {
     return "new_consolestorage";
   }
 
-  public String prepareInventoryStorageToAdd() {
+  public String prepareFolioStorageToAdd() {
     storage = new InventoryStorageEntity();
-    return "new_inventorystorage";
+    return "new_foliostorage";
   }
 
   public String addStorage() {
@@ -166,7 +166,7 @@ public class StorageController {
     if (storage instanceof SolrStorageEntity) {
       return "edit_solrstorage";
     } else if (storage instanceof InventoryStorageEntity) {
-      return "edit_inventorystorage";
+      return "edit_foliostorage";
     }
     /*
      * else if (resource instanceof ZebraStorage) { return "edit_zebrastorage";
