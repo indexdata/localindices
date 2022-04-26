@@ -68,7 +68,15 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
         JSONObject ingestRecordRequest = new JSONObject();
         JSONArray records = new JSONArray();
         JSONObject record = new JSONObject();
-        ingestRecordRequest.put("sourceId", transformedRecord.getInstitutionId());
+        if (ctxt.sourceId != null && !ctxt.sourceId.isEmpty()) {
+          ingestRecordRequest.put("sourceId", ctxt.sourceId);
+        } else if (transformedRecord.getInstitutionId() != null &&
+                !transformedRecord.getInstitutionId().isEmpty()) {
+          ingestRecordRequest.put("sourceId", transformedRecord.getInstitutionId());
+        } else {
+          throw new InventoryUpdateException("No source ID found in neither job configuration" +
+                  " nor record. Source ID is mandatory in shared index, cannot ingest.");
+        }
         record.put("localId", transformedRecord.getLocalIdentifier());
         record.put("marcPayload", marcJson);
         record.put("inventoryPayload", inventoryRecordSet);
@@ -116,8 +124,7 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
   /**
    * Create JSONObject from the XML in the incoming record
    * @param record
-   * @return
-   * @throws InventoryUpdateException
+   * @return JSON formatted MARC record
    */
   private JSONObject getMarcJson(TransformedRecord record)  {
     JSONObject marcJson = null;
