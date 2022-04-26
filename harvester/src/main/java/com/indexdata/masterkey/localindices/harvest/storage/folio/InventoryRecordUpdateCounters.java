@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 /**
  * Holds counts of records processed, updated, deleted, failed
  * @author ne
  */
-public class RecordUpdateCounters {
+public class InventoryRecordUpdateCounters {
 
   protected int xmlBulkRecordsSkipped = 0;
 

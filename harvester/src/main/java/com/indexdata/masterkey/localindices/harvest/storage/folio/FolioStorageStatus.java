@@ -1,4 +1,4 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import com.indexdata.masterkey.localindices.harvest.storage.AbstractStorageStatus;
 
@@ -6,13 +6,13 @@ import com.indexdata.masterkey.localindices.harvest.storage.AbstractStorageStatu
  *
  * @author kurt
  */
-public class InventoryStorageStatus extends AbstractStorageStatus {
+public class FolioStorageStatus extends AbstractStorageStatus {
 
   long adds;
   long deletes;
   TransactionState transactionState = TransactionState.NoTransaction;
 
-  public InventoryStorageStatus() {
+  public FolioStorageStatus() {
     adds = 0L;
     deletes = 0L;
   }

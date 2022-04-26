@@ -151,8 +151,8 @@
             <to-view-id>/storages/add_zebra.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
-            <from-outcome>new_inventorystorage</from-outcome>
-            <to-view-id>/storages/add_inventory.xhtml</to-view-id>
+            <from-outcome>new_foliostorage</from-outcome>
+            <to-view-id>/storages/add_folio_storage.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_xmlstorage</from-outcome>
@@ -167,8 +167,8 @@
             <to-view-id>/storages/edit_solr.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
-            <from-outcome>edit_inventorystorage</from-outcome>
-            <to-view-id>/storages/edit_inventory.xhtml</to-view-id>
+            <from-outcome>edit_foliostorage</from-outcome>
+            <to-view-id>/storages/edit_folio_storage.xhtml</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>edit_zebrastorage</from-outcome>
