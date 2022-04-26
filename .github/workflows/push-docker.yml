@@ -1,10 +1,11 @@
 name: push-docker
 
-# STATUS: testing DEVOPS-1002
-
 on:
   schedule:
-    - cron: '15 01 * * *'
+    - cron: '15 01 * * 6'
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'  # i.e. release tag only
   workflow_dispatch:
 
 env:
@@ -58,7 +59,8 @@ jobs:
           labels: |
             org.opencontainers.image.title=Harvester
             org.opencontainers.image.description=Harvester server
-            org.opencontainers.image.vendor=Index Data
+            org.opencontainers.image.vendor=Index Data LLC
+            org.opencontainers.image.documentation=https://github.com/indexdata/localindices/tree/master/doc
       - name: Extract docker metadata for harvester-admin
         id: meta-2
         uses: docker/metadata-action@v3
@@ -67,18 +69,18 @@ jobs:
           labels: |
             org.opencontainers.image.title=Harvester Admin
             org.opencontainers.image.description=Harvester administrative user interface
-            org.opencontainers.image.vendor=Index Data
+            org.opencontainers.image.vendor=Index Data LLC
       - name: Build and publish Docker for harvester
         uses: docker/build-push-action@v2
         with:
           context: harvester
-          push: false
+          push: true
           tags: ${{ steps.meta-1.outputs.tags }}
           labels: ${{ steps.meta-1.outputs.labels }}
       - name: Build and publish Docker for harvester-admin
         uses: docker/build-push-action@v2
         with:
           context: harvester-admin
-          push: false
+          push: true
           tags: ${{ steps.meta-2.outputs.tags }}
           labels: ${{ steps.meta-2.outputs.labels }}
