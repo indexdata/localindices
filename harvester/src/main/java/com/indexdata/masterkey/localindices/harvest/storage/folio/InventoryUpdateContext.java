@@ -25,14 +25,21 @@ public class InventoryUpdateContext extends FolioUpdateContext {
     protected static final String MARC_STORAGE_PATH = "marcStoragePath";
     protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
 
+    protected static final String INVENTORY_BATCH_UPSERT_PATH = "inventoryBatchUpsertPath";
+
     public String marcStoragePath;
     public String inventoryUpsertPath;
 
+    public String inventoryBatchUpsertPath;
+
     public String marcStorageUrl;
     public String inventoryUpsertUrl;
+    public String inventoryBatchUpsertUrl;
     public boolean marcStorageUrlIsDefined;
 
     public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
+
+    public Integer batchSize;
     public InventoryRecordUpdateCounters updateCounters;
     public HourlyPerformanceStats timingsStoringInventoryRecordSet;
     public HourlyPerformanceStats timingsCreatingRecord;
@@ -51,6 +58,7 @@ public class InventoryUpdateContext extends FolioUpdateContext {
      */
     public InventoryUpdateContext (Harvestable harvestable, StorageJobLogger logger) throws StorageException {
         super(harvestable, logger);
+        batchSize = (harvestable.getStorageBatchLimit()==null ? 1 : harvestable.getStorageBatchLimit());
         Storage storage = harvestable.getStorage();
         setStorageConfig(storage);
         updateCounters = new InventoryRecordUpdateCounters();
@@ -69,6 +77,7 @@ public class InventoryUpdateContext extends FolioUpdateContext {
 
     @Override
     public void moduleDatabaseEnd() {
+
         if (!statusWritten) {
             String recordsSkippedMessage = (updateCounters.xmlBulkRecordsSkipped > 0 ? "Records skipped by date filter: " + updateCounters.xmlBulkRecordsSkipped : "");
             String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + updateCounters.instancesProcessed + "___" + updateCounters.instancesLoaded + "___" + updateCounters.instanceDeletions + "(" + updateCounters.instanceDeleteSignals + ")___" + updateCounters.instancesFailed + "_";
@@ -138,7 +147,9 @@ public class InventoryUpdateContext extends FolioUpdateContext {
 
     protected void setFolioModuleConfigs() {
         inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
+        inventoryBatchUpsertPath = getConfig(INVENTORY_BATCH_UPSERT_PATH);
         inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
+        inventoryBatchUpsertUrl = (inventoryBatchUpsertPath != null ? folioAddress + inventoryBatchUpsertPath : null);
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;

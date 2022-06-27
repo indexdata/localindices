@@ -18,12 +18,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class ShareIndexUpdater extends FolioRecordUpdater {
+public class SharedIndexUpdater extends FolioRecordUpdater {
 
   ShareIndexUpdateContext ctxt;
   private final FailedRecordsController failedRecordsController;
 
-  public ShareIndexUpdater(ShareIndexUpdateContext ctxt) {
+  public SharedIndexUpdater(ShareIndexUpdateContext ctxt) {
     this.ctxt = ctxt;
     logger = ctxt.logger;
      failedRecordsController = ctxt.failedRecordsController;
@@ -119,6 +119,11 @@ public class ShareIndexUpdater extends FolioRecordUpdater {
   @Override
   public void deleteRecord(RecordJSON recordJSON) {
 
+  }
+
+  @Override
+  public boolean releaseBatch() {
+    return true;
   }
 
   /**

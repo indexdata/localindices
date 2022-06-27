@@ -49,6 +49,8 @@ public class FolioStorageController implements RecordStorage {
   protected Map<String, String> databaseProperties;
   private FolioUpdateContext ctxt;
 
+  private FolioRecordUpdater recordStorageHandler;
+
   @Override
   public void setHarvestable(Harvestable harvestable) {
     this.harvestable = harvestable;
@@ -56,13 +58,7 @@ public class FolioStorageController implements RecordStorage {
   }
 
   /**
-   * Initializes storage job with regards to storage URL, Inventory API paths,
-   * logger, failed records logging, and various update statistics.
-   *
-   * All job-wide settings and objects, that are supposed to be "static" for
-   * the duration of the Harvest job, are stored in InventoryUpdateContext which
-   * is passed as 'context' to the executing classes.
-   *
+   * Initializes storage logger.
    */
   private void init() {
     try {
@@ -77,13 +73,15 @@ public class FolioStorageController implements RecordStorage {
     this.databaseProperties = properties;
     JSONObject storageConfigJson = getStorageConfigJson(harvestable.getStorage());
     logger.debug("Storage config: " + storageConfigJson.toJSONString());
-    if (storageConfigJson != null && !storageConfigJson.isEmpty()) {
+    if (!storageConfigJson.isEmpty()) {
       if (storageConfigJson.containsKey("inventoryUpsertPath")) {
         logger.info("Attaching job to Inventory Storage");
         ctxt = new InventoryUpdateContext(harvestable, logger);
+        recordStorageHandler = new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
       } else if (storageConfigJson.containsKey("sharedIndexPath")) {
         logger.info("Attaching job to Shared Index Storage");
         ctxt = new ShareIndexUpdateContext(harvestable, logger);
+        recordStorageHandler = new SharedIndexUpdater((ShareIndexUpdateContext) ctxt);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
                 + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
@@ -142,8 +140,6 @@ public class FolioStorageController implements RecordStorage {
    * @param password
    * @param tenant
    * @return
-   * @throws UnsupportedEncodingException
-   * @throws IOException
    * @throws StorageException
    */
   @SuppressWarnings("unchecked")
@@ -180,7 +176,7 @@ public class FolioStorageController implements RecordStorage {
       return new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
     }
     if (ctxt instanceof ShareIndexUpdateContext) {
-      return new ShareIndexUpdater((ShareIndexUpdateContext) ctxt);
+      return new SharedIndexUpdater((ShareIndexUpdateContext) ctxt);
     }
     return null;
   }
@@ -197,7 +193,6 @@ public class FolioStorageController implements RecordStorage {
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
-          FolioRecordUpdater recordStorageHandler = getRecordUpdater();
           recordStorageHandler.addRecord((RecordJSON) subRecord);
         }
       } else {
@@ -209,13 +204,11 @@ public class FolioStorageController implements RecordStorage {
         }
         logger.log(Level.DEBUG, "Iterating multiple subrecords of RecordJSON");
         for (Record subRecord : subrecords) {
-          FolioRecordUpdater recordStorageHandler = getRecordUpdater();
           recordStorageHandler.addRecord((RecordJSON) subRecord);
         }
       }
     } else {
       logger.log(Level.TRACE, "FOLIO Storage received add signal with a single record payload.");
-      FolioRecordUpdater recordStorageHandler = getRecordUpdater();
       recordStorageHandler.addRecord((RecordJSON) recordJSON);
     }
   }
@@ -237,6 +230,7 @@ public class FolioStorageController implements RecordStorage {
   @Override
   public void databaseEnd() {
     logger.debug("Folio RecordStorage: databaseEnd() invoked.");
+    recordStorageHandler.releaseBatch();
     ctxt.moduleDatabaseEnd();
   }
 
@@ -310,7 +304,7 @@ public class FolioStorageController implements RecordStorage {
 
   @Override
   public void setBatchLimit(int limit) {
-    throw new UnsupportedOperationException("set batch limit not supported.");
+    logger.info("Batch size: " + limit);
   }
 
 }

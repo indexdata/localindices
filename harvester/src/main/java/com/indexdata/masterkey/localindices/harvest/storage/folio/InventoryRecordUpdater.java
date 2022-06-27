@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -50,12 +52,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   protected InventoryUpdateContext ctxt;
 
-  /** Container for errors encountered while updating Inventory from one incoming bib record */
-  private RecordWithErrors recordWithErrors;
   /** Overall updates and errors counters */
   private final InventoryRecordUpdateCounters updateCounters;
   private final FailedRecordsController failedRecordsController;
   private final Map<String, String> locInstMap;
+  private List<TransformedRecord> batch;
 
   public InventoryRecordUpdater (InventoryUpdateContext ctxt) {
     this.ctxt = ctxt;
@@ -63,6 +64,162 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     failedRecordsController = ctxt.failedRecordsController;
     updateCounters = ctxt.updateCounters;
     locInstMap = ctxt.locationsToInstitutionsMap;
+    batch = new ArrayList<>();
+  }
+
+  public void addRecord(RecordJSON recordJSON) {
+    if (ctxt.batchSize==1) {
+      logger.debug("Adding record for single record update " + recordJSON.toJson().toJSONString());
+      addSingleRecord(recordJSON);
+    } else {
+      logger.debug("Adding record for batch update " + recordJSON.toJson().toJSONString());
+      addToBatch(recordJSON);
+    }
+  }
+
+
+  private void addToBatch(RecordJSON recordJSON) {
+    TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
+    if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
+      updateCounters.xmlBulkRecordsSkipped++;
+    } else {
+      if (!ctxt.inventoryBatchUpsertPath.contains("hrid") || gotAllHrids(transformedRecord)) {
+        batch.add(transformedRecord);
+        ctxt.timingsCreatingRecord.setTiming(recordJSON.getCreationTiming());
+        ctxt.timingsTransformingRecord.setTiming(recordJSON.getTransformationTiming());
+      } else {
+        logger.error("Record is missing some HRIDs, skipping. " + transformedRecord.getJson().toJSONString());
+      }
+    }
+    // Reached batch size, send off the batched records to FOLIO Inventory.
+    if (batch.size() >= ctxt.batchSize) {
+
+      boolean batchSucceeded = releaseBatch();
+
+      if (! batchSucceeded) {
+        logger.info("Falling back to single record-set upserts after encountering one or more errors in the attempted batch upsert.");
+        // To get all successful records upserted, and obtain error messages for all problems.
+        for (TransformedRecord record : batch) {
+          try {
+            addSingleRecord(record.getRecordJSON());
+          } catch (NullPointerException npe) {
+            logger.info("Internal error Inventory Updater: " + npe.getMessage());
+            npe.printStackTrace();
+          } catch (IndexOutOfBoundsException ioobe) {
+            logger.info("Internal error Inventory Updater: " + ioobe.getMessage());
+            ioobe.printStackTrace();
+          }
+        }
+        batch = new ArrayList<>();
+      }
+
+    }
+  }
+
+  public boolean gotAllHrids(TransformedRecord transformedRecord) {
+    if (transformedRecord.getInstance().get("hrid") == null) {
+      return false;
+    } else {
+      if (transformedRecord.getHoldings().isEmpty()) {
+        return true;
+      } else {
+        for (Object h : transformedRecord.getHoldings()) {
+          JSONObject holdingsJson = (JSONObject) h;
+          if (holdingsJson.get("hrid") == null || ((String) holdingsJson.get("hrid")).isEmpty()) {
+            return false;
+          } else {
+            for (Object i : (JSONArray) holdingsJson.get("items")) {
+              JSONObject itemJson = (JSONObject) i;
+              if (itemJson.get("hrid") == null || ((String) itemJson.get("hrid")).isEmpty()) {
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      }
+    }
+  }
+
+  public boolean releaseBatch() {
+    JSONObject inventoryRecordSets = makeInventoryRecordSets(batch);
+    try {
+      long startStorageBatch = System.currentTimeMillis();
+      CloseableHttpResponse response = batchUpsertInventoryRecordSets(inventoryRecordSets);
+      int statusCode = response.getStatusLine().getStatusCode();
+      String responseAsString;
+      try {
+        responseAsString = EntityUtils.toString(response.getEntity());
+        response.close();
+      } catch (IOException ioe) {
+        logger.error("Could not retrieve response from FOLIO: " + ioe.getMessage());
+        return false;
+      }
+      if (statusCode == 200) {
+        ctxt.timingsStoringInventoryRecordSet.time(startStorageBatch, batch.size());
+        ctxt.storageStatus.incrementAdd(batch.size());
+        UpsertMetrics metrics = new UpsertMetrics((JSONObject) getResponseAsJson(responseAsString).get("metrics"));
+        setCounters(metrics);
+        logRecordCounts();
+      } else {
+        JSONObject problem = getResponseAsJson(responseAsString);
+        if (problem.containsKey("errors")  && ((JSONArray) problem.get("errors")).size()>0) {
+          JSONObject firstError = ( (JSONObject) ( (JSONArray) problem.get("errors") ).get(0) );
+          if (firstError.containsKey("shortMessage")) {
+            logger.error("Batch upsert encountered a problem: " + firstError.get("shortMessage"));
+          } else if (firstError.containsKey("message")) {
+            logger.error("Batch upsert encountered a problem: " + firstError.get("message"));
+          } else {
+            logger.error("Batch upsert encountered a problem: " + firstError.toJSONString());
+          }
+        } else {
+          logger.error("Batch upsert encountered a problem: " + problem.toJSONString());
+        }
+        return false;
+      }
+    } catch (InventoryUpdateException iue) {
+      logger.error("Error in batch upsert: " + iue.getMessage());
+      return false;
+    }
+    for (TransformedRecord record : batch) {
+      // update marc storage
+    }
+    batch = new ArrayList<>();
+    return true;
+  }
+
+  private JSONObject makeInventoryRecordSets(List<TransformedRecord> transformedRecords) {
+    JSONObject inventoryRecordSets = new JSONObject();
+    JSONArray array = new JSONArray();
+    inventoryRecordSets.put("inventoryRecordSets", array);
+    for (TransformedRecord transformedRecord : transformedRecords) {
+      array.add(makeInventoryRecordSet(transformedRecord));
+    }
+    return inventoryRecordSets;
+  }
+
+  private JSONObject makeInventoryRecordSet(TransformedRecord transformedRecord) {
+    JSONObject inventoryRecordSet = new JSONObject();
+    JSONObject instance = transformedRecord.getInstance();
+    if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
+    {
+      instance.put( "matchKey", transformedRecord.getMatchKey() );
+    }
+    inventoryRecordSet.put( "instance", instance );
+    if ( transformedRecord.getHoldings() != null )
+    {
+      inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
+    }
+    if ( transformedRecord.hasInstanceRelations() )
+    {
+      inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
+    }
+    // Add processing info if provided by the transformation
+    if ( transformedRecord.hasProcessingInfo() )
+    {
+      inventoryRecordSet.put( "processing", transformedRecord.getProcessingInfo() );
+    }
+    return inventoryRecordSet;
   }
 
   /**
@@ -70,45 +227,25 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * from the incoming bibliographic record.
    * @param recordJSON The JSON coming into the Harvester Inventory storage logic from the transformation pipeline
    */
-  public void addRecord(RecordJSON recordJSON) {
+  public void addSingleRecord(RecordJSON recordJSON) {
+    TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
+    RecordWithErrors recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
     try {
       long startStorageEntireRecord = System.currentTimeMillis();
-
       /*
        * TransformedRecord is a 'facade' that provides an API into RecordJSON and allows for (slight)
        * variations in the structure of the transformed record while shielding the client code from
-       * those potential differences in structure. Thus safer to use than RecordJSON.
+       * those potential differences in structure. It's thus safer to use than RecordJSON.
        */
-      TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
-      this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
 
       if (transformedRecord.isRecordExcludedByDateFilter(ctxt)) {
           updateCounters.xmlBulkRecordsSkipped++;
           ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
           ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
       } else {
-        JSONObject inventoryRecordSet = new JSONObject();
-        JSONObject instance = transformedRecord.getInstance();
-        if ( transformedRecord.hasMatchKey() && ctxt.inventoryUpsertPath.contains( "matchkey" ) )
-        {
-          instance.put( "matchKey", transformedRecord.getMatchKey() );
-        }
-        inventoryRecordSet.put( "instance", instance );
-        if ( transformedRecord.getHoldings() != null )
-        {
-          inventoryRecordSet.put( "holdingsRecords", transformedRecord.getHoldings() );
-        }
-        if ( transformedRecord.hasInstanceRelations() )
-        {
-          inventoryRecordSet.put( "instanceRelations", transformedRecord.getInstanceRelations() );
-        }
-        // Add processing info if provided by the transformation
-        if ( transformedRecord.hasProcessingInfo() )
-        {
-          inventoryRecordSet.put( "processing", transformedRecord.getProcessingInfo() );
-        }
+        JSONObject inventoryRecordSet = makeInventoryRecordSet(transformedRecord);
         logger.log( Level.TRACE, "Sending upsert request with : " + inventoryRecordSet.toJSONString() );
-        JSONObject responseJson = upsertInventoryRecordSet( inventoryRecordSet );
+        JSONObject responseJson = upsertInventoryRecordSet( inventoryRecordSet, recordWithErrors );
         logger.log( Level.TRACE, "Response was: " + responseJson.toJSONString() );
         UpsertMetrics metrics = new UpsertMetrics( (JSONObject) responseJson.get( "metrics" ) );
 
@@ -122,10 +259,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             updateCounters.sourceRecordsProcessed++;
             if ( ctxt.marcStorageUrlIsDefined )
             {
-              JSONObject marcJson = getMarcJson( transformedRecord );
+              JSONObject marcJson = getMarcJson( recordWithErrors);
               JSONObject instanceJson = (JSONObject) responseJson.get( "instance" );
               String instanceId = instanceJson.get( "id" ).toString();
-              addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier );
+              addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier, recordWithErrors );
             }
             else
             {
@@ -165,7 +302,9 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
   }
 
   private void logRecordCounts() {
-    if (updateCounters.instancesLoaded>0 && updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
+    //if (updateCounters.instancesLoaded>0 && updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
+    if ((updateCounters.lastLogOfInstancesProcessed < 1000 && updateCounters.instancesProcessed >= updateCounters.lastLogOfInstancesProcessed + 100)
+        || (updateCounters.instancesProcessed >= updateCounters.lastLogOfInstancesProcessed + 1000)) {
       logger.info("" + updateCounters.instancesLoaded + " instances, "
               + updateCounters.holdingsRecordsLoaded + " holdings records, "
               + updateCounters.itemsLoaded + " items, and "
@@ -173,6 +312,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               + updateCounters.instanceDeleteSignals + " delete signal(s), "
               + updateCounters.instanceDeletions + " delete(s)"
               + (updateCounters.xmlBulkRecordsSkipped >0 ? " -- " + updateCounters.xmlBulkRecordsSkipped + " record(s) skipped by filter" : ""));
+      updateCounters.lastLogOfInstancesProcessed = updateCounters.instancesProcessed;
 
       if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
         logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
@@ -214,7 +354,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   }
 
-  public class EntityMetrics {
+  public static class EntityMetrics {
 
     TransactionMetrics create;
     TransactionMetrics update;
@@ -254,7 +394,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   }
 
-  private JSONObject upsertInventoryRecordSet(JSONObject inventoryRecordSet) throws InventoryUpdateException {
+  private JSONObject upsertInventoryRecordSet(JSONObject inventoryRecordSet, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
     JSONObject upsertResponse;
     try {
       String url = ctxt.folioAddress + ctxt.inventoryUpsertPath;
@@ -266,11 +406,8 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       String responseAsString = EntityUtils.toString(response.getEntity());
       response.close();
       upsertResponse = getResponseAsJson(responseAsString);
-      checkForInventoryServiceErrors(response, responseAsString);
-      checkForRecordErrors(response, upsertResponse);
-      if (responseAsString.contains( "already exists" )) {
-        logger.debug(responseAsString);
-      }
+      checkForInventoryServiceErrors(response, responseAsString, recordWithErrors);
+      checkForRecordErrors(response, upsertResponse, recordWithErrors);
     } catch (StorageException se) {
       throw se;
     } catch (Exception e) {
@@ -279,26 +416,46 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     return upsertResponse;
   }
 
-  private void checkForRecordErrors(CloseableHttpResponse response, JSONObject upsertResponse) {
+  private CloseableHttpResponse batchUpsertInventoryRecordSets (JSONObject inventoryRecordSets) throws InventoryUpdateException {
+    try {
+      String url = ctxt.folioAddress + ctxt.inventoryBatchUpsertPath;
+      HttpEntityEnclosingRequestBase httpUpdate = new HttpPut(url);
+      StringEntity entity = new StringEntity(inventoryRecordSets.toJSONString(), "UTF-8");
+      httpUpdate.setEntity(entity);
+      setHeaders(httpUpdate,"application/json");
+      return ctxt.folioClient.execute(httpUpdate);
+    } catch (StorageException se) {
+      throw se;
+    } catch (Exception e) {
+      throw new InventoryUpdateException("Inventory Upsert encountered an exception", e);
+    }
+  }
+
+  private void checkForRecordErrors(CloseableHttpResponse response, JSONObject upsertResponse, RecordWithErrors recordWithErrors) {
     if (upsertResponse.containsKey("errors")) {
       JSONArray errorsArray = (JSONArray) upsertResponse.get("errors");
       for (int i=0; i< errorsArray.size(); i++)  {
         JSONObject errorJson = (JSONObject) errorsArray.get(i);
-        String messageString;
-        if (errorJson.get("message") instanceof JSONObject) {
-          messageString = Jsoner.prettyPrint(((JSONObject) errorJson.get("message")).toJSONString());
+        String countingMessage;
+        if (errorJson.get("shortMessage") != null) {
+          countingMessage = (String) errorJson.get("shortMessage");
+
         } else {
-          messageString = errorJson.get("message").toString();
+          if (errorJson.get("message") instanceof JSONObject) {
+            countingMessage = Jsoner.prettyPrint(( (JSONObject) errorJson.get("message") ).toJSONString());
+          } else {
+            countingMessage = errorJson.get("message").toString();
+          }
         }
         RecordError error = new HttpRecordError(
                 response.getStatusLine().getStatusCode(),
                 response.getStatusLine().getReasonPhrase(),
-                errorJson.get("message").toString(),
-                messageString,
+                errorJson.containsKey("message") ? errorJson.get("message").toString() : "",
+                countingMessage,
                 "Error encountered during upsert of Inventory record set",
-                errorJson.get("entityType").toString(),
-                errorJson.get("transaction").toString(),
-                errorJson.get("entity").toString());
+                errorJson.containsKey("entityType") ? errorJson.get("entityType").toString() : "",
+                errorJson.containsKey("transaction") ? errorJson.get("transaction").toString() : "",
+                errorJson.containsKey("entity") ? errorJson.get("entity").toString() : "");
         if (i==0) {
           recordWithErrors.reportError(error, Level.DEBUG);
         } else {
@@ -308,13 +465,13 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
     }
   }
 
-  private void checkForInventoryServiceErrors(CloseableHttpResponse response, String responseAsString) {
+  private void checkForInventoryServiceErrors(CloseableHttpResponse response, String responseAsString, RecordWithErrors recordWithErrors) {
       final int statusCode = response.getStatusLine().getStatusCode();
       if (!Arrays.asList(200,201,422).contains(statusCode)) {
         updateCounters.instancesFailed++;
         final RecordError error = new HttpRecordError(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(), responseAsString, responseAsString, "Error upserting Inventory record set", "InventoryRecordSet", "upsert", "{}");
         recordWithErrors.reportError(error, Level.DEBUG);
-        logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), responseAsString));
+        logger.debug(String.format("Error %s, %s upserting Inventory record set", response.getStatusLine().getStatusCode(), error.getShortMessageForCounting()));
         if (Arrays.asList(403,500).contains(statusCode)) {
           throw new StorageException(error.getMessageWithContext());
         } else if (statusCode == 404 && responseAsString.contains("No suitable module found for path")) {
@@ -343,12 +500,12 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
   /**
    * Create JSONObject from the XML in the incoming record
-   * @param record
    * @return
    * @throws InventoryUpdateException
    */
-  private JSONObject getMarcJson(TransformedRecord record) throws InventoryUpdateException {
+  private JSONObject getMarcJson(RecordWithErrors recordWithErrors) throws InventoryUpdateException {
     JSONObject marcJson = null;
+    TransformedRecord record = recordWithErrors.transformedRecord;
     if (record.getOriginalContent() != null) {
       try {
         String originalContentString = new String(record.getOriginalContent(), StandardCharsets.UTF_8 );
@@ -386,7 +543,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @return
    * @throws InventoryUpdateException
    */
-  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier) throws InventoryUpdateException {
+  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
     long startGetExistingMarc = System.currentTimeMillis();
     JSONObject marcRecord = null;
     try {
@@ -431,7 +588,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @return
    * @throws InventoryUpdateException
    */
-  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier) throws InventoryUpdateException {
+  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
     JSONObject marcResponse = null;
     if (marcJson != null) {
       JSONObject marcPostJson = new JSONObject();
@@ -442,7 +599,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
       StringEntity entity = new StringEntity(marcPostJson.toJSONString(), "UTF-8");
       try {
         HttpEntityEnclosingRequestBase request;
-        JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
+        JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier, recordWithErrors);
         if (marcRecord == null) {
           logger.log(Level.TRACE,"This MARC record did not exist in storage; creating it.");
           long startAddingMarc = System.currentTimeMillis();
@@ -496,7 +653,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @param uuid
    * @throws InventoryUpdateException
    */
-  private void deleteSourceRecord(String uuid) throws InventoryUpdateException {
+  private void deleteSourceRecord(String uuid, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
     logger.log(Level.TRACE,"Deleting source record with ID: " + uuid);
     String url = String.format("%s/%s", ctxt.marcStorageUrl, uuid);
     HttpDelete httpDelete = new HttpDelete(url);
@@ -530,10 +687,10 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @param recordJSON contains deletion information
    */
   public void deleteRecord(RecordJSON recordJSON) {
+    TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
+    RecordWithErrors recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
     try {
       updateCounters.instanceDeleteSignals++;
-      TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
-      this.recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
@@ -572,7 +729,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
               if ( instanceResponse != null )
               {
                 instanceId = (String) instanceResponse.get( "id" );
-                deleteMarcSourceRecordForInstitution( localIdentifier, institutionId, instanceId );
+                deleteMarcSourceRecordForInstitution( localIdentifier, institutionId, instanceId, recordWithErrors );
               }
               else
               {
@@ -593,6 +750,7 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
             try {
               response.close();
             } catch (IOException e) {
+              // TODO: throw inside finally
               throw new StorageException("Couldn't close response after DELETE Inventory record set request", e);
             }
           }
@@ -616,11 +774,11 @@ import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
    * @param instanceId
    * @throws InventoryUpdateException
    */
-  private void deleteMarcSourceRecordForInstitution(String localIdentifier, String institutionId, String instanceId) throws InventoryUpdateException {
-    JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier);
+  private void deleteMarcSourceRecordForInstitution(String localIdentifier, String institutionId, String instanceId, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
+    JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier, recordWithErrors);
     if (marcRecord != null) {
       String sourceId = (String) marcRecord.get("id");
-      deleteSourceRecord(sourceId);
+      deleteSourceRecord(sourceId, recordWithErrors);
     } else {
       logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
     }

@@ -26,10 +26,6 @@ public class SummarizedProcessingTimes {
   long minExecTime = Long.MAX_VALUE;
   Map <Long, Integer> execTimeIntervals = new HashMap<>();
 
-  public void log (long start, long end) {
-    log ( end - start);
-  }
-
   public void log (long execTime) {
     execCount++;
     totalExecTime += execTime;
@@ -42,6 +38,21 @@ public class SummarizedProcessingTimes {
       execTimeIntervals.put(execTimeRounded,execTimeIntervals.get(execTimeRounded)+1);
     } else {
       execTimeIntervals.put(execTimeRounded,1);
+    }
+  }
+
+  public void log (long execTime, int records) {
+    execCount += records;
+    totalExecTime += execTime;
+    long execTimePerRecord = execTime/records;
+    maxExecTime = Math.max(maxExecTime, execTimePerRecord);
+    minExecTime = Math.min(minExecTime, execTimePerRecord);
+    long execTimeRounded = execTimePerRecord<1000 ? ((execTimePerRecord + 99) / 100) * 100 :
+            ((execTimePerRecord + 999) / 1000) * 1000;
+    if (execTimeIntervals.containsKey(execTimeRounded)) {
+      execTimeIntervals.put(execTimeRounded,execTimeIntervals.get(execTimeRounded)+records);
+    } else {
+      execTimeIntervals.put(execTimeRounded,records);
     }
   }
 }

@@ -209,6 +209,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return transformedExclussiveOriginal;
     }
 
+    public RecordJSON getRecordJSON () {
+      return this.recordJSON;
+    }
+
     public byte[] getOriginalContent () {
       return this.recordJSON.getOriginalContent();
     }

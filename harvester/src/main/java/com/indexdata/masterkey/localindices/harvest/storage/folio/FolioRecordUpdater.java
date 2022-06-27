@@ -11,6 +11,7 @@ public abstract class FolioRecordUpdater {
 
   abstract void addRecord (RecordJSON recordJSON);
   abstract void deleteRecord (RecordJSON recordJSON);
+  abstract boolean releaseBatch ();
 
   protected JSONObject getResponseAsJson(String responseAsString) {
     JSONObject upsertResponse;
