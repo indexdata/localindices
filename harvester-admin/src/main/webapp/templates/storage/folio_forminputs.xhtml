@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:id="http://java.sun.com/jsf/composite/indexdata">
+  <body>
+    <ui:composition>
+      <h5>FOLIO specific information: </h5>
+      <h:panelGrid columns="2">
+        <h:outputText value="Server URL:"/>
+        <h:panelGroup>
+          <h:inputText id="folioUrl" value="#{storageController.storage.url}" size="80"
+             required="true" requiredMessage="Please provide FOLIO URL!"/>
+          <id:helplink field="[Storage Engines][FOLIO specific information][Server URL]"/>
+          <h:message for="folioUrl" style="color: red;"/>
+        </h:panelGroup>
+        <h:outputText value="Storage configuration (JSON)" />
+        <h:panelGroup>
+          <h:inputTextarea id="folioConfiguration" cols="80" rows="10"
+            value="#{storageController.storage.json}"
+            required="true" requiredMessage="Please provide JSON configuration for FOLIO storage. Click help icon for configuration templates."/>
+          <id:helplink field="[Storage Engines][FOLIO specific information][Storage configuration (JSON)]"/>
+          <br><h:message for="folioConfiguration" style="color: red;"/></br>
+        </h:panelGroup>
+
+      </h:panelGrid>
+    </ui:composition>
+  </body>
+</html>

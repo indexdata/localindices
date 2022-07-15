@@ -1,27 +1,20 @@
-package com.indexdata.masterkey.localindices.harvest.storage.folioinventory;
+package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
+import com.indexdata.masterkey.localindices.entity.Storage;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.FileStorageJobLogger;
@@ -33,6 +26,8 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
 import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * Implements RecordStorage in order to receive add-record-messages from the transformation
@@ -46,14 +41,13 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
  *
  * @author kurt
  */
-public class InventoryStorageController implements RecordStorage {
+public class FolioStorageController implements RecordStorage {
   protected CloseableHttpClient client;
   protected StorageJobLogger logger;
   protected Harvestable harvestable;
 
   protected Map<String, String> databaseProperties;
-  private boolean statusWritten = false;
-  private InventoryUpdateContext ctxt;
+  private FolioUpdateContext ctxt;
 
   @Override
   public void setHarvestable(Harvestable harvestable) {
@@ -72,7 +66,7 @@ public class InventoryStorageController implements RecordStorage {
    */
   private void init() {
     try {
-      logger = new FileStorageJobLogger(InventoryStorageController.class, harvestable);
+      logger = new FileStorageJobLogger(FolioStorageController.class, harvestable);
     } catch (StorageException e) {
       throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
     }
@@ -81,23 +75,55 @@ public class InventoryStorageController implements RecordStorage {
   @Override
   public void databaseStart(String database, Map<String, String> properties) throws StorageException {
     this.databaseProperties = properties;
-    ctxt = new InventoryUpdateContext(harvestable, logger);
-
+    JSONObject storageConfigJson = getStorageConfigJson(harvestable.getStorage());
+    logger.debug("Storage config: " + storageConfigJson.toJSONString());
+    if (storageConfigJson != null && !storageConfigJson.isEmpty()) {
+      if (storageConfigJson.containsKey("inventoryUpsertPath")) {
+        logger.info("Attaching job to Inventory Storage");
+        ctxt = new InventoryUpdateContext(harvestable, logger);
+      } else if (storageConfigJson.containsKey("sharedIndexPath")) {
+        logger.info("Attaching job to Shared Index Storage");
+        ctxt = new ShareIndexUpdateContext(harvestable, logger);
+      } else {
+        throw new StorageException("No valid FOLIO inventory config found. Config must contain "
+                + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
+      }
+    } else {
+      throw new StorageException("No FOLIO storage config found. Abandoning job.");
+    }
     logger.info("Starting job [" + database + "]");
-    logger.info("Storage URL [" + ctxt.folioAddress + ctxt.inventoryUpsertPath);
+    logger.info("Main storage URL [" + ctxt.folioAddress + ctxt.getStoragePath());
     if (ctxt.folioAuthSkip) logger.info("Storage configured to skip FOLIO authentication!");
 
     client = HttpClients.createDefault();
     ctxt.setClient(client);
     if (!ctxt.folioAuthSkip) {
-      authenticateToInventory();
+      authenticateToFolio();
     }
-
-    ctxt.setLocationsToInstitutionsMap(getLocationsMap());
+    ctxt.moduleDatabaseStart(database, properties);
   }
 
-  private void authenticateToInventory() throws StorageException {
-    String authToken = getAuthtoken(client,
+  protected JSONObject getStorageConfigJson (Storage storage) {
+    String configurationsJsonString = storage.getJson();
+    if (configurationsJsonString != null && configurationsJsonString.length()>0) {
+      try {
+        JSONParser parser = new JSONParser();
+        return (JSONObject) parser.parse(configurationsJsonString);
+      } catch ( ParseException pe) {
+        String error = "Could not parse JSON configuration from harvestable.json [" + configurationsJsonString + "]";
+        logger.error(error + pe.getMessage());
+        throw new StorageException (error,pe);
+      }
+    } else {
+      String error = "Cannot find required configuration for Inventory storage (looking in STORAGE.JSON). Cannot perform job.";
+      logger.error(error);
+      throw new StorageException(error);
+    }
+  }
+
+
+  private void authenticateToFolio() throws StorageException {
+    String authToken = getAuthToken(client,
                                     ctxt.folioAddress,
                                     ctxt.folioAuthPath,
                                     ctxt.folioUsername,
@@ -121,7 +147,7 @@ public class InventoryStorageController implements RecordStorage {
    * @throws StorageException
    */
   @SuppressWarnings("unchecked")
-  private String getAuthtoken(CloseableHttpClient client,
+  private String getAuthToken(CloseableHttpClient client,
                               String folioAddress,
                               String folioAuthPath,
                               String username,
@@ -149,41 +175,14 @@ public class InventoryStorageController implements RecordStorage {
     }
   }
 
-  /**
-   * Retrieve locations-to-institutions mappings from Inventory storage
-   * Used for holdings/items deletion logic.
-   */
-  private Map<String,String> getLocationsMap() throws StorageException {
-    try {
-      Map<String,String> locationsToInstitutions = new HashMap<>();
-      String url = String.format("%s", ctxt.folioAddress + "locations?limit=9999");
-      HttpGet httpGet = new HttpGet(url);
-      setHeaders(httpGet, "application/json");
-      CloseableHttpResponse response = client.execute(httpGet);
-      if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-        throw new IOException(String.format("Got error '" +
-                    response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() + "' when retrieving locations",
-            EntityUtils.toString(response.getEntity())));
-      }
-      JSONObject jsonResponse;
-      JSONParser parser = new JSONParser();
-      String responseString = EntityUtils.toString(response.getEntity());
-      jsonResponse = (JSONObject) parser.parse(responseString);
-      JSONArray locationsJson = (JSONArray) (jsonResponse.get("locations"));
-      if (locationsJson != null) {
-        Iterator<?> locationsIterator = locationsJson.iterator();
-        while (locationsIterator.hasNext()) {
-          JSONObject location = (JSONObject) locationsIterator.next();
-          locationsToInstitutions.put((String)location.get("id"), (String)location.get("institutionId"));
-        }
-        logger.info("Initialized a map of " + locationsJson.size() + " FOLIO locations to institutions.");
-        return locationsToInstitutions;
-      } else {
-        throw new StorageException("Failed to retrieve any locations from Inventory, found no 'locations' in response");
-      }
-    } catch (IOException | ParseException e) {
-      throw new StorageException ("Error occurred trying to build map of locations to institutions from FOLIO Inventory: " + e.getMessage());
+  FolioRecordUpdater getRecordUpdater () {
+    if (ctxt instanceof InventoryUpdateContext) {
+      return new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
     }
+    if (ctxt instanceof ShareIndexUpdateContext) {
+      return new ShareIndexUpdater((ShareIndexUpdateContext) ctxt);
+    }
+    return null;
   }
 
   /**
@@ -198,8 +197,8 @@ public class InventoryStorageController implements RecordStorage {
       if (subrecords.size()==1) {
         for (Record subRecord : subrecords) {
           logger.log(Level.TRACE, "Iterating subrecords of a RecordJSON of one subrecord");
-          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
-          recordStorageHandler.addInventory((RecordJSON) subRecord);
+          FolioRecordUpdater recordStorageHandler = getRecordUpdater();
+          recordStorageHandler.addRecord((RecordJSON) subRecord);
         }
       } else {
         if (harvestable.isStoreOriginal()) {
@@ -210,14 +209,14 @@ public class InventoryStorageController implements RecordStorage {
         }
         logger.log(Level.DEBUG, "Iterating multiple subrecords of RecordJSON");
         for (Record subRecord : subrecords) {
-          InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
-          recordStorageHandler.addInventory((RecordJSON) subRecord);
+          FolioRecordUpdater recordStorageHandler = getRecordUpdater();
+          recordStorageHandler.addRecord((RecordJSON) subRecord);
         }
       }
     } else {
-      logger.log(Level.TRACE, "Inventory Storage received add signal with a single record payload.");
-      InventoryRecordUpdater recordStorageHandler = new InventoryRecordUpdater(ctxt);
-      recordStorageHandler.addInventory((RecordJSON) recordJSON);
+      logger.log(Level.TRACE, "FOLIO Storage received add signal with a single record payload.");
+      FolioRecordUpdater recordStorageHandler = getRecordUpdater();
+      recordStorageHandler.addRecord((RecordJSON) recordJSON);
     }
   }
 
@@ -228,8 +227,8 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void delete(Record record) {
-    InventoryRecordUpdater updater = new InventoryRecordUpdater(ctxt);
-    updater.delete((RecordJSON) record);
+    FolioRecordUpdater updater = getRecordUpdater();
+    updater.deleteRecord((RecordJSON) record);
   }
 
   /**
@@ -237,27 +236,8 @@ public class InventoryStorageController implements RecordStorage {
    */
   @Override
   public void databaseEnd() {
-    logger.debug("Inventory RecordStorage: databaseEnd() invoked.");
-    if (!statusWritten) {
-      String recordsSkippedMessage = (ctxt.updateCounters.xmlBulkRecordsSkipped > 0 ? "Records skipped by date filter: " + ctxt.updateCounters.xmlBulkRecordsSkipped : "");
-      String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + ctxt.updateCounters.instancesProcessed + "___" + ctxt.updateCounters.instancesLoaded + "___" + ctxt.updateCounters.instanceDeletions + "(" + ctxt.updateCounters.instanceDeleteSignals + ")___" + ctxt.updateCounters.instancesFailed + "_";
-      String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.holdingsRecordsProcessed + "___" + ctxt.updateCounters.holdingsRecordsLoaded + "___" + ctxt.updateCounters.holdingsRecordsDeleted + "___" + ctxt.updateCounters.holdingsRecordsFailed + "_";
-      String itemsMessage = "Items_processed/loaded/deleted/failed:__" + ctxt.updateCounters.itemsProcessed + "___" + ctxt.updateCounters.itemsLoaded + "___" + ctxt.updateCounters.itemsDeleted + "___" + ctxt.updateCounters.itemsFailed + "_";
-      String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + ctxt.updateCounters.sourceRecordsProcessed + "___" + ctxt.updateCounters.sourceRecordsLoaded + "___" + ctxt.updateCounters.sourceRecordsDeleted + "___" + ctxt.updateCounters.sourceRecordsFailed + "_";
-      if (ctxt.updateCounters.xmlBulkRecordsSkipped >0) logger.log(Level.INFO, recordsSkippedMessage);
-      logger.log((ctxt.updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
-      logger.log((ctxt.updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
-      logger.log((ctxt.updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-      logger.log((ctxt.updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
-
-
-      ctxt.failedRecordsController.writeLog();
-      ctxt.timingsCreatingRecord.writeLog();
-      ctxt.timingsTransformingRecord.writeLog();
-      ctxt.timingsStoringInventoryRecordSet.writeLog();
-      harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
-      statusWritten=true;
-    }
+    logger.debug("Folio RecordStorage: databaseEnd() invoked.");
+    ctxt.moduleDatabaseEnd();
   }
 
   @Override
@@ -265,32 +245,26 @@ public class InventoryStorageController implements RecordStorage {
     return this.ctxt.storageStatus;
   }
 
-  private void setHeaders (HttpRequestBase request, String accept) {
-    request.setHeader("Accept", accept);
-    request.setHeader("Content-type", "application/json");
-    request.setHeader("X-Okapi-Token", ctxt.authToken);
-    request.setHeader("X-Okapi-Tenant", ctxt.folioTenant);
-  }
 
   // Unsupported interface methods
   @Override
   public void begin() throws IOException {
-    logger.debug("Transaction begin request received by Inventory RecordStorage (noop)");
+    logger.debug("Transaction begin request received by FOLIO RecordStorage (noop)");
   }
 
   @Override
   public void commit() throws IOException {
-    logger.debug("Commit request received by Inventory RecordStorage (noop)");
+    logger.debug("Commit request received by FOLIO RecordStorage (noop)");
   }
 
   @Override
   public void rollback() throws IOException {
-    logger.debug("Rollback request received by Inventory RecordStorage (noop)");
+    logger.debug("Rollback request received by FOLIO RecordStorage (noop)");
   }
 
   @Override
   public void shutdown() throws IOException {
-    logger.info("Shutdown request received by Inventory RecordStorage - writing status");
+    logger.info("Shutdown request received by FOLIO RecordStorage - writing status");
     databaseEnd();
   }
 

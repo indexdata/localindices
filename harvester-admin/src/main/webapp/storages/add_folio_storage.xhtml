@@ -8,11 +8,11 @@
   <h:body>
 
     <ui:composition template="/templates/master.xhtml">
-      <ui:param name="title" value="Add new FOLIO Inventory Storage" />
+      <ui:param name="title" value="Add new FOLIO Storage" />
       <ui:define name="content">
             <h:form>
                 <ui:include src="/templates/storage/generic_storage_forminputs.xhtml" />
-                <ui:include src="/templates/storage/inventory_forminputs.xhtml" />
+                <ui:include src="/templates/storage/folio_forminputs.xhtml" />
                 <h5>Actions: </h5>
                 <h:commandButton value="Add" action="#{storageController.addStorage}"/>
             </h:form>
