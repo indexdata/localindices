@@ -12,20 +12,22 @@ public class HttpRecordError implements RecordError {
     public String countingMessage;
     public String transaction;
     public String entity;
+    public String requestJson;
 
-    public HttpRecordError(int statusCode, String reasonPhrase, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity) {
+    public HttpRecordError(int statusCode, String reasonPhrase, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity, String requestJson) {
       this.statusCode = statusCode;
       this.reasonPhrase = reasonPhrase;
       this.serverMessage = serverMessage;
       this.additionalContext = additionalContext;
+      this.requestJson = requestJson;
       this.recordType = recordType;
       this.countingMessage = countingMessage;
       this.transaction = transaction;
       this.entity = entity;
     }
 
-    public HttpRecordError(StatusLine httpStatus, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity) {
-      this(httpStatus.getStatusCode(), httpStatus.getReasonPhrase(), serverMessage, countingMessage, additionalContext, recordType, transaction, entity);
+    public HttpRecordError(StatusLine httpStatus, String serverMessage, String countingMessage, String additionalContext, String recordType, String transaction, String entity, String requestJson) {
+      this(httpStatus.getStatusCode(), httpStatus.getReasonPhrase(), serverMessage, countingMessage, additionalContext, recordType, transaction, entity, requestJson);
     }
 
     @Override

@@ -122,8 +122,7 @@ public class SharedIndexUpdater extends FolioRecordUpdater {
   }
 
   @Override
-  public boolean releaseBatch() {
-    return true;
+  public void releaseBatch() {
   }
 
   /**
