@@ -29,12 +29,8 @@ public class InventoryUpdateContext extends FolioUpdateContext {
 
     public String marcStoragePath;
     public String inventoryUpsertPath;
-
-    public String inventoryBatchUpsertPath;
-
     public String marcStorageUrl;
     public String inventoryUpsertUrl;
-    public String inventoryBatchUpsertUrl;
     public boolean marcStorageUrlIsDefined;
 
     public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
@@ -146,10 +142,8 @@ public class InventoryUpdateContext extends FolioUpdateContext {
     }
 
     protected void setFolioModuleConfigs() {
-        inventoryUpsertPath = getConfig(INVENTORY_UPSERT_PATH);
-        inventoryBatchUpsertPath = getConfig(INVENTORY_BATCH_UPSERT_PATH);
-        inventoryUpsertUrl = (inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null);
-        inventoryBatchUpsertUrl = (inventoryBatchUpsertPath != null ? folioAddress + inventoryBatchUpsertPath : null);
+        inventoryUpsertPath = batchSize > 1 ? getConfig(INVENTORY_BATCH_UPSERT_PATH) : getConfig(INVENTORY_UPSERT_PATH);
+        inventoryUpsertUrl = ( inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null );
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;
