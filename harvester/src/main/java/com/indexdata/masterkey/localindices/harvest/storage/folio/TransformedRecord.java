@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -75,6 +76,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
     private JSONObject transformed;
     private final JSONParser parser = new JSONParser();
     private final StorageJobLogger logger;
+
+    public static final String PROCESSING = "processing";
+    public static final String BATCH_INDEX = "batchIndex";
+
 
     public TransformedRecord(RecordJSON recordJSON, StorageJobLogger logger) {
       this.recordJSON = recordJSON;
@@ -209,6 +214,10 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       return transformedExclussiveOriginal;
     }
 
+    public RecordJSON getRecordJSON () {
+      return this.recordJSON;
+    }
+
     public byte[] getOriginalContent () {
       return this.recordJSON.getOriginalContent();
     }
@@ -294,11 +303,11 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
     }
 
     public boolean hasProcessingInfo () {
-      return transformed.containsKey( "processing" );
+      return transformed.containsKey(PROCESSING);
     }
 
     public JSONObject getProcessingInfo () {
-      return (JSONObject) transformed.get("processing");
+      return (JSONObject) transformed.get(PROCESSING);
     }
 
     public boolean hasMatchKey () {

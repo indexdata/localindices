@@ -24,7 +24,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `STORAGE` WRITE;
 /*!40000 ALTER TABLE `STORAGE` DISABLE KEYS */;
-INSERT INTO `STORAGE` (`ID`, `DTYPE`, `ENABLED`, `CURRENTSTATUS`, `NAME`, `MESSAGE`, `TRANSFORMATION`, `DESCRIPTION`, `URL`, `CUSTOMCLASS`, `LOGLEVEL`, `MAILLEVEL`, `MAILADDRESS`, `BULKSIZE`, `TIMEOUT`, `RETRYCOUNT`, `RETRYWAIT`, `ACL`,`JSON`) VALUES (1002,'InventoryStorageEntity',1,'TODO','GBV Demo',NULL,NULL,'GBV\'s public Folio demo.','https://folio-demo.gbv.de/okapi','',NULL,NULL,NULL,1000,NULL,NULL,NULL,'','{\r\n \"folioAuthPath\": \"bl-users/login\",\r\n \"folioTenant\": \"diku\",\r\n \"folioUsername\": \"diku_admin\",\r\n \"folioPassword\": \"admin\",\r\n \"instanceStoragePath\": \"instance-storage/instances\",\r\n \"holdingsStoragePath\": \"holdings-storage/holdings\",\r\n \"itemStoragePath\": \"item-storage/items\"\r\n}');
+INSERT INTO `STORAGE` (`ID`, `DTYPE`, `ENABLED`, `CURRENTSTATUS`, `NAME`, `MESSAGE`, `TRANSFORMATION`, `DESCRIPTION`, `URL`, `CUSTOMCLASS`, `LOGLEVEL`, `MAILLEVEL`, `MAILADDRESS`, `BULKSIZE`, `TIMEOUT`, `RETRYCOUNT`, `RETRYWAIT`, `ACL`,`JSON`) VALUES (1002,'InventoryStorageEntity',1,'TODO','GBV Demo',NULL,NULL,'GBV\'s public Folio demo.','http://10.0.2.2:9130/','',NULL,NULL,NULL,1000,NULL,NULL,NULL,'','{\r\n \"folioAuthPath\": \"bl-users/login\",\r\n \"folioTenant\": \"diku\",\r\n \"folioUsername\": \"diku_admin\",\r\n \"folioPassword\": \"admin\",\r\n \"inventoryUpsertPath\": \"inventory-upsert-hrid\",\r\n \"inventoryBatchUpsertPath\": \"inventory-batch-upsert-hrid\"\r\n}');
 /*!40000 ALTER TABLE `STORAGE` ENABLE KEYS */;
 UNLOCK TABLES;
 

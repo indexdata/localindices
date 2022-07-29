@@ -34,4 +34,6 @@ public class InventoryRecordUpdateCounters {
   protected int sourceRecordsDeleted = 0;
   protected int sourceRecordsFailed = 0;
 
+  protected int lastLogOfInstancesProcessed = 0;
+
 }
