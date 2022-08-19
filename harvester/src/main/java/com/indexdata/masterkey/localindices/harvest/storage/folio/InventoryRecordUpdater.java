@@ -812,6 +812,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     public JSONObject getEntity () {
       return getJsonObject(ENTITY);
     }
+
     public JSONObject getRequestJson() {
       return json.containsKey(REQUEST_JSON) ? getJsonObject(REQUEST_JSON) : new JSONObject();
     }
