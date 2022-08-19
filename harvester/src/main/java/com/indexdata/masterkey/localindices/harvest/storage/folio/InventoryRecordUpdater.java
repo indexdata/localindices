@@ -114,9 +114,8 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
       setCounters(response.getMetrics());
       logRecordCounts();
       if (response.hasErrors()) {
+        logger.error("Problem in upsert: " + response.getErrorsAsJsonArray().toJSONString());
         for (ErrorReport report : response.getErrors().values()) {
-          logger.error("" + report.getStatusCode() + ": " + report.getShortMessage());
-
           RecordError error = new HttpRecordError(
                   report.getStatusCode(),
                   report.getMessage().toJSONString(),
@@ -127,10 +126,13 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
                   "",
                   report.getEntity().toJSONString(),
                   report.getRequestJson().toJSONString());
-          batch.get(report.getBatchIndex()).reportError(error,Level.DEBUG);
-          batch.get(report.getBatchIndex()).writeErrorsLog(logger);
-          batch.get(report.getBatchIndex()).logFailedRecord();
-
+          if (report.getBatchIndex() != null) {
+            batch.get(report.getBatchIndex()).reportError(error, Level.DEBUG);
+            batch.get(report.getBatchIndex()).writeErrorsLog(logger);
+            batch.get(report.getBatchIndex()).logFailedRecord();
+          } else {
+            logger.error("Could not get batch record by batchIndex, no index found: " + response.response.toJSONString());
+          }
         }
       }
     }
@@ -708,7 +710,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     request.setHeader("X-Okapi-Tenant", ctxt.folioTenant);
   }
 
-  private static class BatchUpsertResponse {
+  private class BatchUpsertResponse {
     int statusCode;
     public final String ERRORS = "errors";
     public final String METRICS = "metrics";
@@ -757,7 +759,9 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
         for (Object o : getErrorsAsJsonArray() ) {
           JSONObject err = (JSONObject) o;
           ErrorReport report = new ErrorReport(err);
-          reports.put(report.getBatchIndex(), report);
+          if (report.getBatchIndex()!=null) {
+            reports.put(report.getBatchIndex(), report);
+          }
         }
       }
       return reports;
@@ -808,14 +812,19 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     public JSONObject getEntity () {
       return getJsonObject(ENTITY);
     }
-    public JSONObject getRequestJson() { return getJsonObject(REQUEST_JSON); }
+
+    public JSONObject getRequestJson() {
+      return json.containsKey(REQUEST_JSON) ? getJsonObject(REQUEST_JSON) : new JSONObject();
+    }
 
     public Integer getBatchIndex () {
-      return Integer.parseInt(getProcessingInstructions().get(BATCH_INDEX).toString());
+      return (getProcessingInstructions().containsKey(BATCH_INDEX) ?
+              Integer.parseInt(getProcessingInstructions().get(BATCH_INDEX).toString()) :
+              null);
     }
 
     public JSONObject getProcessingInstructions() {
-      return getRequestJson().get(PROCESSING) != null ? (JSONObject) getRequestJson().get(PROCESSING) : new JSONObject();
+      return getRequestJson() != null && getRequestJson().get(PROCESSING) != null ? (JSONObject) getRequestJson().get(PROCESSING) : new JSONObject();
     }
     public JSONObject getDetails () {
       return getJsonObject(DETAILS);
