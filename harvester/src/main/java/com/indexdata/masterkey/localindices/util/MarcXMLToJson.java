@@ -5,9 +5,12 @@
  */
 package com.indexdata.masterkey.localindices.util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 
+import java.util.Scanner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,9 +42,9 @@ public class MarcXMLToJson {
       Element metadata = (Element)topRecord.getElementsByTagName("metadata").item(0);
       record = (Element) metadata.getElementsByTagName("record").item(0);
     } else if (root.getTagName().equals("record")) {
-      NodeList recordsEmbeddedInRecord = root.getElementsByTagName("record");
+      NodeList recordsEmbeddedInRecord = root.getElementsByTagNameNS("*","record");
       if (recordsEmbeddedInRecord != null && recordsEmbeddedInRecord.getLength()==1) {
-        // e.g. a MARC record embeddded in OAI-PMH record
+        // e.g. a MARC record embedded in OAI-PMH record
         record = (Element) recordsEmbeddedInRecord.item(0);
       } else {
         record = root;
@@ -106,6 +109,26 @@ public class MarcXMLToJson {
     }
 
     return marcJson;
+  }
+
+  /**
+   * Test method, pass full path to the MARC XML file to parse as the argument to main.
+   */
+  public static void main (String[] args) {
+    File marcRecord = new File(args[0]);
+    try {
+      Scanner sc = new Scanner(marcRecord);
+      sc.useDelimiter("\\Z");
+      try {
+        JSONObject parsedMarc = convertMarcXMLToJson(sc.next());
+        System.out.println("Parsed MARC:");
+        System.out.println(parsedMarc.toJSONString());
+      } catch (SAXException | IOException | ParserConfigurationException e) {
+        e.printStackTrace();
+      }
+    } catch (FileNotFoundException fnfe) {
+      fnfe.printStackTrace();
+    }
   }
 
 }
