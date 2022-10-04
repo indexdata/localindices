@@ -1,5 +1,6 @@
 ## not tagged
 
+ * MARC-to-JSON: Handles (any or no) namespace on the 'record' field (DEVOPS-1198)
  * Bulk XML to Inventory: Add option to filter XML bulk records by date (MKH-537)
  * Inventory match key processing: pass on localIdentifier, identifierTypeId (MKH-536)
  * Use `lastHarvestStarted` for `fromDate` (MKH-534)
