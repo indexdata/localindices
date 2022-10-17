@@ -41,6 +41,10 @@ public class HourlyPerformanceStats {
     setTiming(System.currentTimeMillis()-wasStartedAt);
   }
 
+  public void time(long wasStartedAt, int records) {
+    if (records>0) setTiming(System.currentTimeMillis()-wasStartedAt, records);
+  }
+
   public void setLogLevelForSummaries(Level level) {
     logLevelSummaries = level;
   }
@@ -58,6 +62,19 @@ public class HourlyPerformanceStats {
       // then create a new bucket for timing stats
       hourstats = new SummarizedProcessingTimes();
       hourstats.log(timing);
+      execTimes.put(hour,hourstats);
+    }
+  }
+
+  public void setTiming(long timing, int records) {
+    String hour = HOUR.format(new Date());
+    if (execTimes.containsKey(hour)) {
+      execTimes.get(hour).log(timing, records);
+    } else {
+      writeLog(); // at top of the hour, write out logs up until the previous hour
+      // then create a new bucket for timing stats
+      hourstats = new SummarizedProcessingTimes();
+      hourstats.log(timing, records);
       execTimes.put(hour,hourstats);
     }
   }

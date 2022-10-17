@@ -38,10 +38,11 @@ import com.indexdata.utils.XmlUtils;
  */
 public class RecordWithErrors {
 
-  List<RecordError> errors = new ArrayList<RecordError>();
+  List<RecordError> errors = new ArrayList<>();
   FailedRecordsController failCtrl;
   TransformedRecord transformedRecord;
   StorageJobLogger logger;
+  Integer batchIndex = null;
 
   RecordWithErrors(TransformedRecord transformedRecord, FailedRecordsController controller) {
     this.failCtrl = controller;
@@ -50,11 +51,15 @@ public class RecordWithErrors {
   }
 
   String getRecordIdentifier () {
-    return ((String) transformedRecord.getLocalIdentifier());
+    return transformedRecord.getLocalIdentifier();
   }
 
   void addResponseError(HttpRecordError error) {
     errors.add(error);
+  }
+
+  void setBatchIndex (Integer index) {
+    batchIndex = index;
   }
 
   void addException(ExceptionRecordError error) {
