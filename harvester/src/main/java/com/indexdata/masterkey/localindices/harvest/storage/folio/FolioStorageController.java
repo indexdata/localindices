@@ -2,7 +2,6 @@ package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -171,16 +170,6 @@ public class FolioStorageController implements RecordStorage {
     }
   }
 
-  FolioRecordUpdater getRecordUpdater () {
-    if (ctxt instanceof InventoryUpdateContext) {
-      return new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
-    }
-    if (ctxt instanceof ShareIndexUpdateContext) {
-      return new SharedIndexUpdater((ShareIndexUpdateContext) ctxt);
-    }
-    return null;
-  }
-
   /**
    * Invokes {@link InventoryRecordUpdater} to create or add records in Inventory from
    * an incoming {@link RecordJSON}
@@ -220,8 +209,7 @@ public class FolioStorageController implements RecordStorage {
    */
   @Override
   public void delete(Record record) {
-    FolioRecordUpdater updater = getRecordUpdater();
-    updater.deleteRecord((RecordJSON) record);
+    recordStorageHandler.deleteRecord((RecordJSON) record);
   }
 
   /**
