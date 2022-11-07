@@ -217,12 +217,8 @@ public class HarvestableResource {
         throw new WebApplicationException(Response.Status.NO_CONTENT);
       }
       return lines;
-    } catch (FileNotFoundException fnf) {
+    } catch (IOException | ParseException fnf) {
       throw new WebApplicationException(fnf);
-    } catch (IOException io) {
-      throw new WebApplicationException(io);
-    } catch (ParseException pe) {
-      throw new WebApplicationException(pe);
     }
   }
 
@@ -230,16 +226,17 @@ public class HarvestableResource {
   @GET
   @Produces("application/xml")
   public String getHarvestableFailedRecords(@QueryParam("originalAt") String originalRecordPath) {
+    logger.info(context.getBaseUri());
+    FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY,id);
     try {
-      logger.info(context.getBaseUri());
-      FailedRecords failedRecords = new FailedRecords(LOGDIRECTORY,id);
       return failedRecords.getListOfFailedRecordsAsXml(context.getBaseUri(), originalRecordPath);
     } catch (FileNotFoundException fnf) {
-      throw new WebApplicationException(fnf);
+      StringBuilder response = new StringBuilder();
+      response.append("<failed-records count=\"0\">");
+      response.append("</failed-records>");
+      return response.toString();
     }
   }
-
-
 
   @Path("failed-records/{name}")
   @GET
