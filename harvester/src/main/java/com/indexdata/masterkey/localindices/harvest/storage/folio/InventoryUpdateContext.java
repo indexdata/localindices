@@ -97,24 +97,6 @@ public class InventoryUpdateContext extends FolioUpdateContext {
             harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
             statusWritten=true;
         }
-        try {
-            if (logHistoryStorageUrlIsDefined) {
-                String url = logHistoryStorageUrl.replace("{id}", harvestable.getId().toString());
-                HttpGet httpGet = new HttpGet(url);
-                setHeaders(httpGet,"application/json");
-                CloseableHttpResponse response = folioClient.execute(httpGet);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    logger.info("Logs persisted in FOLIO Harvester Admin");
-                } else {
-                    logger.error("Request to persist logs at " + url + " returned ["
-                        + response.getStatusLine().getStatusCode() + "]: "
-                        + response.getStatusLine().getReasonPhrase());
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error persisting harvest log: " + e.getMessage());
-        }
-
     }
 
     /**
