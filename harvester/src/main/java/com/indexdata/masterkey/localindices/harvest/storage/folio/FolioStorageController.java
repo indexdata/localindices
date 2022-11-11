@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Storage;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -46,7 +47,7 @@ public class FolioStorageController implements RecordStorage {
   protected Harvestable harvestable;
 
   protected Map<String, String> databaseProperties;
-  private FolioUpdateContext ctxt;
+  private FolioUpdateContext context;
 
   private FolioRecordUpdater recordStorageHandler;
 
@@ -75,12 +76,12 @@ public class FolioStorageController implements RecordStorage {
     if (!storageConfigJson.isEmpty()) {
       if (storageConfigJson.containsKey("inventoryUpsertPath")) {
         logger.info("Attaching job to Inventory Storage");
-        ctxt = new InventoryUpdateContext(harvestable, logger);
-        recordStorageHandler = new InventoryRecordUpdater((InventoryUpdateContext) ctxt);
+        context = new InventoryUpdateContext(harvestable, logger);
+        recordStorageHandler = new InventoryRecordUpdater((InventoryUpdateContext) context);
       } else if (storageConfigJson.containsKey("sharedIndexPath")) {
         logger.info("Attaching job to Shared Index Storage");
-        ctxt = new ShareIndexUpdateContext(harvestable, logger);
-        recordStorageHandler = new SharedIndexUpdater((ShareIndexUpdateContext) ctxt);
+        context = new ShareIndexUpdateContext(harvestable, logger);
+        recordStorageHandler = new SharedIndexUpdater((ShareIndexUpdateContext) context);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
                 + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
@@ -89,15 +90,15 @@ public class FolioStorageController implements RecordStorage {
       throw new StorageException("No FOLIO storage config found. Abandoning job.");
     }
     logger.info("Starting job [" + database + "]");
-    logger.info("Main storage URL [" + ctxt.folioAddress + ctxt.getStoragePath());
-    if (ctxt.folioAuthSkip) logger.info("Storage configured to skip FOLIO authentication!");
+    logger.info("Main storage URL [" + context.folioAddress + context.getStoragePath());
+    if (context.folioAuthSkip) logger.info("Storage configured to skip FOLIO authentication!");
 
     client = HttpClients.createDefault();
-    ctxt.setClient(client);
-    if (!ctxt.folioAuthSkip) {
+    context.setClient(client);
+    if (!context.folioAuthSkip) {
       authenticateToFolio();
     }
-    ctxt.moduleDatabaseStart(database, properties);
+    context.moduleDatabaseStart(database, properties);
   }
 
   protected JSONObject getStorageConfigJson (Storage storage) {
@@ -121,13 +122,13 @@ public class FolioStorageController implements RecordStorage {
 
   private void authenticateToFolio() throws StorageException {
     String authToken = getAuthToken(client,
-                                    ctxt.folioAddress,
-                                    ctxt.folioAuthPath,
-                                    ctxt.folioUsername,
-                                    ctxt.folioPassword,
-                                    ctxt.folioTenant);
-    ctxt.setAuthToken(authToken);
-    logger.info("Authenticated to FOLIO Inventory, tenant [" + ctxt.folioTenant + "]");
+                                    context.folioAddress,
+                                    context.folioAuthPath,
+                                    context.folioUsername,
+                                    context.folioPassword,
+                                    context.folioTenant);
+    context.setAuthToken(authToken);
+    logger.info("Authenticated to FOLIO Inventory, tenant [" + context.folioTenant + "]");
   }
 
   /**
@@ -219,12 +220,12 @@ public class FolioStorageController implements RecordStorage {
   public void databaseEnd() {
     logger.debug("Folio RecordStorage: databaseEnd() invoked.");
     recordStorageHandler.releaseBatch();
-    ctxt.moduleDatabaseEnd();
+    context.moduleDatabaseEnd();
   }
 
   @Override
   public StorageStatus getStatus() throws StatusNotImplemented {
-    return this.ctxt.storageStatus;
+    return this.context.storageStatus;
   }
 
 
@@ -236,7 +237,6 @@ public class FolioStorageController implements RecordStorage {
 
   @Override
   public void commit() throws IOException {
-    logger.debug("Commit request received by FOLIO RecordStorage (noop)");
   }
 
   @Override
@@ -246,8 +246,31 @@ public class FolioStorageController implements RecordStorage {
 
   @Override
   public void shutdown() throws IOException {
-    logger.info("Shutdown request received by FOLIO RecordStorage - writing status");
+    logger.info("Shutdown request received by FOLIO RecordStorage - writing status, saving logs");
     databaseEnd();
+    persistLogsInFolio();
+  }
+
+  private void persistLogsInFolio() {
+    try {
+      if (((InventoryUpdateContext)context).logHistoryStorageUrlIsDefined) {
+        String url = ((InventoryUpdateContext)context)
+            .logHistoryStorageUrl.replace("{id}", harvestable.getId().toString());
+        HttpGet httpGet = new HttpGet(url);
+        context.setHeaders(httpGet,"application/json");
+        CloseableHttpResponse response = context.folioClient.execute(httpGet);
+        if (response.getStatusLine().getStatusCode() == 200) {
+          logger.info("Logs persisted in FOLIO Harvester Admin");
+        } else {
+          logger.error("Request to persist logs at " + url + " returned ["
+              + response.getStatusLine().getStatusCode() + "]: "
+              + response.getStatusLine().getReasonPhrase());
+        }
+      }
+    } catch (Exception e) {
+      logger.error("Error persisting harvest log: " + e.getMessage());
+    }
+
   }
 
   @Override
