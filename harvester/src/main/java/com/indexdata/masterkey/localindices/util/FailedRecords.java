@@ -34,9 +34,7 @@ public class FailedRecords {
     public FailedRecords (String logDir, long jobId) {
         this.logDir = logDir;
         this.jobId = jobId;
-        this.directory = new StringBuilder()
-                .append(logDir).append("/failed-records/").append(jobId).append("/")
-                .toString();
+        this.directory = logDir + "/failed-records/" + jobId + "/";
     }
 
     public File[] getRecords() throws FileNotFoundException {
@@ -44,8 +42,7 @@ public class FailedRecords {
         if (!dir.isDirectory()) {
           throw new FileNotFoundException("Error file directory not found: "+directory);
         }
-        File[] failedRecords = dir.listFiles();
-        return failedRecords;
+      return dir.listFiles();
     }
 
     public Iterator<File> getFilesIterator() throws FileNotFoundException {
@@ -53,18 +50,10 @@ public class FailedRecords {
         return Arrays.asList(files).iterator();
     }
 
-    public File getRecord (String name) throws FileNotFoundException {
-        File file = new File(directory + name);
-        if (!file.exists()) {
-            throw new FileNotFoundException("Error file not found: " + name);
-        }
-        return file;
-    }
-
     public String getListOfFailedRecordsAsXml(URI baseUri, String originalRecordPath) throws FileNotFoundException {
       Iterator<File> files = getFilesIterator();
       StringBuilder response = new StringBuilder();
-      response.append("<failed-records>");
+      response.append("<failed-records count=\"").append(getRecords().length).append("\">");
       while (files.hasNext()) {
         File file = files.next();
         String url = baseUri.toString() + "harvestables/" + jobId + "/failed-records/" + file.getName();
@@ -85,7 +74,7 @@ public class FailedRecords {
             if (originalRecordPath != null && originalRecordPath.length()>0) {
               response
               .append("<original-record-url>")
-                .append(url).append("?element="+URLEncoder.encode(originalRecordPath,"UTF-8"))
+                .append(url).append("?element=").append(URLEncoder.encode(originalRecordPath,"UTF-8"))
               .append("</original-record-url>");
             }
           } catch (UnsupportedEncodingException uee) {}
@@ -149,7 +138,6 @@ public class FailedRecords {
      *
      * @param root the starting point
      * @param path list of Element localNames pointing down into a hierarchical structure of elements
-     * @return
      */
     private Element getElement (Element root, String ... path) {
       Element found = null;

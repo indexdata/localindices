@@ -54,24 +54,12 @@ public class RecordWithErrors {
     return transformedRecord.getLocalIdentifier();
   }
 
-  void addResponseError(HttpRecordError error) {
-    errors.add(error);
-  }
-
   void setBatchIndex (Integer index) {
     batchIndex = index;
   }
 
-  void addException(ExceptionRecordError error) {
-    errors.add(error);
-  }
-
   void addError(RecordError error) {
-    if (error instanceof HttpRecordError) {
-      addResponseError((HttpRecordError)error);
-    } else if (error instanceof ExceptionRecordError) {
-      addException((ExceptionRecordError) error);
-    }
+    errors.add(error);
   }
 
   void reportAndThrowError(RecordError error, Level logLevel) throws InventoryUpdateException {
@@ -142,18 +130,6 @@ public class RecordWithErrors {
    */
   private byte[] getOriginalRecord () {
     return transformedRecord.getOriginalContent();
-    /*
-    if (transformedRecord.getOriginalXml() != null) {
-      return transformedRecord.getOriginalXml().getBytes();
-    } else {
-      if (transformedRecord.getOriginalContent() != null) {
-        return transformedRecord.getOriginalContent();
-      } else {
-        logger.warn("No original record found, neither stored in Record with 'store original', nor passed through as element 'original' in transformed record XML/JSON");
-        return null;
-      }
-    }
-    */
   }
 
   /**

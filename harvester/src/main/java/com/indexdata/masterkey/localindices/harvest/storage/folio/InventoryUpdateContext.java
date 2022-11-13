@@ -23,6 +23,7 @@ import org.json.simple.parser.ParseException;
 public class InventoryUpdateContext extends FolioUpdateContext {
 
     protected static final String MARC_STORAGE_PATH = "marcStoragePath";
+    protected static final String LOG_HISTORY_STORAGE_PATH = "logHistoryStoragePath";
     protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
 
     protected static final String INVENTORY_BATCH_UPSERT_PATH = "inventoryBatchUpsertPath";
@@ -32,6 +33,9 @@ public class InventoryUpdateContext extends FolioUpdateContext {
     public String marcStorageUrl;
     public String inventoryUpsertUrl;
     public boolean marcStorageUrlIsDefined;
+    public String logHistoryStoragePath;
+    public String logHistoryStorageUrl;
+    public boolean logHistoryStorageUrlIsDefined;
 
     public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
 
@@ -93,7 +97,6 @@ public class InventoryUpdateContext extends FolioUpdateContext {
             harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
             statusWritten=true;
         }
-
     }
 
     /**
@@ -147,6 +150,9 @@ public class InventoryUpdateContext extends FolioUpdateContext {
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;
+        logHistoryStoragePath = getConfig(LOG_HISTORY_STORAGE_PATH);
+        logHistoryStorageUrl = (logHistoryStoragePath != null ? folioAddress + logHistoryStoragePath : null);
+        logHistoryStorageUrlIsDefined = logHistoryStorageUrl != null;
     }
 
     @Override
