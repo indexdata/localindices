@@ -22,10 +22,10 @@ import org.apache.commons.io.FileUtils;
  */
 public class FailedRecordsController {
     // Configuration
-    protected int maxFailedRecordFilesThisRun = 100;
-    protected int maxFailedRecordFilesTotal = 450;
-    protected enum StoreMode {NO_STORE, CLEAN_DIRECTORY, CREATE_OVERWRITE, ADD_ALL};
-    protected StoreMode mode = StoreMode.CLEAN_DIRECTORY;
+    protected int maxFailedRecordFilesThisRun;
+    protected int maxFailedRecordFilesTotal;
+    protected enum StoreMode {NO_STORE, CLEAN_DIRECTORY, CREATE_OVERWRITE, ADD_ALL}
+    protected StoreMode mode;
     protected static final String HARVESTER_LOG_DIR = "/var/log/masterkey/harvester/";
     protected static final String FAILED_RECORDS_DIR = "failed-records/";
     // End of configuration
@@ -58,8 +58,6 @@ public class FailedRecordsController {
      * in the directory if mode is CLEAN_DIRECTORY, count the files in it in order to observe
      * max failed-record files settings for the job.
      *
-     * @param logger
-     * @param jobId
      */
     private void prepareFailedRecordsDirectory(StorageJobLogger logger, Long jobId) {
         Path failedRecordsDirectory = Paths.get(HARVESTER_LOG_DIR, FAILED_RECORDS_DIR, jobId.toString());
@@ -149,9 +147,6 @@ public class FailedRecordsController {
 
     /**
      *
-     * @param failedRecord
-     * @param xml
-     * @throws IOException
      */
     private void saveToFile(RecordWithErrors failedRecord) {
         try {
@@ -176,7 +171,6 @@ public class FailedRecordsController {
      * avoid overwriting existing files by appending a sequence number (up to 9)
      * to the simple file name.
      * @param failedRecord the record to find file name for
-     * @return
      */
     private Path calculateFilePath(RecordWithErrors failedRecord) {
         Path filePath = Paths.get(getFailedRecordPath(getFileName(failedRecord)));
@@ -204,8 +198,7 @@ public class FailedRecordsController {
 
     private String timestamp () {
         LocalDateTime now = LocalDateTime.now();
-        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS", Locale.getDefault()));
-        return timestamp;
+        return now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS", Locale.getDefault()));
     }
 
     private String getFileName (RecordWithErrors failedRecord, int version) {
