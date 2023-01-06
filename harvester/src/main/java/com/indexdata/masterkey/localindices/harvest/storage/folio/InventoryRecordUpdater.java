@@ -839,8 +839,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     }
 
     private int getInt(String key) {
-      System.out.println("getInt: " + json.get(key));
-
       return Integer.parseInt(json.get(key).toString());
     }
 
