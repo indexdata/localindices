@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
+import com.indexdata.utils.DateUtil;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -7,7 +8,7 @@ import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Storage;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -247,18 +248,28 @@ public class FolioStorageController implements RecordStorage {
   @Override
   public void shutdown() throws IOException {
     logger.info("Shutdown request received by FOLIO RecordStorage - writing status, saving logs");
-    databaseEnd();
     persistLogsInFolio();
   }
 
   private void persistLogsInFolio() {
     try {
       if (((InventoryUpdateContext)context).logHistoryStorageUrlIsDefined) {
+        // We need to post the job status to FOLIO Harvester Admin, since the status is
+        // not yet written to the database and still might not be when FOLIO Harvester Admin
+        // in a few moments pulls the job through Harvester's WS API.
+        JSONObject jobStatus = new JSONObject();
+        jobStatus.put("finished",
+            DateUtil.serialize(harvestable.getLastHarvestFinished(), DateUtil.DateTimeFormat.ISO));
+        jobStatus.put("amountHarvested", harvestable.getAmountHarvested().toString());
+        jobStatus.put("message", harvestable.getMessage());
+        StringEntity entity = new StringEntity(jobStatus.toJSONString(), "UTF-8");
+        HttpEntityEnclosingRequestBase request;
         String url = ((InventoryUpdateContext)context)
             .logHistoryStorageUrl.replace("{id}", harvestable.getId().toString());
-        HttpGet httpGet = new HttpGet(url);
-        context.setHeaders(httpGet,"application/json");
-        CloseableHttpResponse response = context.folioClient.execute(httpGet);
+        request = new HttpPost(url);
+        request.setEntity(entity);
+        context.setHeaders(request,"application/json");
+        CloseableHttpResponse response = context.folioClient.execute(request);
         if (response.getStatusLine().getStatusCode() == 200) {
           logger.info("Logs persisted in FOLIO Harvester Admin");
         } else {
