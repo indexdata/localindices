@@ -126,13 +126,13 @@
     <repository>
       <id>id-maven-repo</id>
       <name>Indexdata Maven Repository</name>
-      <url>http://maven.indexdata.com/</url>
+      <url>https://maven.indexdata.com/</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>id-maven-repo</id>
-      <url>http://maven.indexdata.com</url>
+      <url>https://maven.indexdata.com</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
