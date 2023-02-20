@@ -40,7 +40,7 @@ jobs:
                 "id": "maven-restlet-https",
                 "name": "maven-restlet via https",
                 "mirrorOf": "maven-restlet",
-                "url": "https://maven.restlet.org"
+                "url": "https://maven.restlet.talend.com"
               }
             ]
       - name: Do Maven build harvester
