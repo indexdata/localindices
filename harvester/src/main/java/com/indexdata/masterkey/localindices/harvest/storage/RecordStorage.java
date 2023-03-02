@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Harvestable;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 
 public interface RecordStorage  {
 
@@ -81,7 +82,7 @@ public interface RecordStorage  {
   DatabaseContenthandler getContentHandler();
 
   // Some storages needs to close resources/shutdown connections.
-  void shutdown() throws IOException;
+  void shutdown(HarvestStatus status) throws IOException;
 
   /**
    * Sets number of record stored within a single batch.

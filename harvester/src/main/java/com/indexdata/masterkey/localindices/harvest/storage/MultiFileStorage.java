@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -279,7 +280,7 @@ public class MultiFileStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() throws IOException {
+  public void shutdown(HarvestStatus status) throws IOException {
     // TODO Auto-generated method stub
   }
 

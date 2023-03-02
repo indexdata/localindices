@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -127,7 +128,7 @@ public class ConsoleRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() throws IOException{
+  public void shutdown(HarvestStatus status) throws IOException{
     message("Closing/shutdown ConsoleStorage");
   }
 

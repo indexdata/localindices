@@ -198,12 +198,12 @@ public abstract class AbstractRecordHarvestJob implements RecordHarvestJob {
     logger.error(logSubject + ": " + message);
   }
 
-  protected void shutdown() {
+  protected void shutdown(HarvestStatus status) {
     getHarvestable().setDiskRun(false);
     markForUpdate();
     try {
       if (getStorage() != null)
-        getStorage().shutdown();
+        getStorage().shutdown(status);
     } catch (IOException ioe) {
       logger.warn("Storage shutdown exception: " + ioe.getMessage());
     } finally {

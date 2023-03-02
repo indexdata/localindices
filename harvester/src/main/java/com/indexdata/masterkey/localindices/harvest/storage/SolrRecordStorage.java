@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -412,7 +413,7 @@ public class SolrRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown(HarvestStatus status) {
     storageStatus =  new SimpleStorageStatus(storageStatus);
     logger.info("SolrRecordStorage shutdown");
     server.shutdown();
