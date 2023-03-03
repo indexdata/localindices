@@ -31,12 +31,6 @@ jobs:
           mirrors: |
             [
               {
-                "id": "id-maven-repo-https",
-                "name": "id-maven-repo via https",
-                "mirrorOf": "id-maven-repo",
-                "url": "https://maven.indexdata.com"
-              },
-              {
                 "id": "maven-restlet-https",
                 "name": "maven-restlet via https",
                 "mirrorOf": "maven-restlet",
