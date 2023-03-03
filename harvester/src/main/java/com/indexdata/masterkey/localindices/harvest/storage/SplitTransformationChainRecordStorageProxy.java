@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -106,7 +107,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
   }
 
   @Override
-  public void shutdown() throws IOException {
+  public void shutdown(HarvestStatus status) throws IOException {
       try {
 	if (output != null) {
 	  logger.error("Closing Storage before commit/rollback");
@@ -119,7 +120,7 @@ public class SplitTransformationChainRecordStorageProxy extends RecordStoragePro
 	logger.warn("Exception while closing: " + e.getMessage());
 	e.printStackTrace();
       }
-    super.shutdown();
+    super.shutdown(status);
   }
 
   @Override

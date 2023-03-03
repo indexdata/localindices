@@ -112,7 +112,7 @@ public class ConnectorHarvestJob extends AbstractRecordHarvestJob {
       msg = error + " " + msg;
     } finally {
       mailMessage(subject, msg);
-      shutdown();
+      shutdown(getStatus());
     }
   }
 

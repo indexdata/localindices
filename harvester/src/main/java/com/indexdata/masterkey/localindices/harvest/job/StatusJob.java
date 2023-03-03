@@ -116,7 +116,7 @@ public class StatusJob extends AbstractRecordHarvestJob {
     finally {
       mailMessage(subject, msg);
       setStatus(HarvestStatus.FINISHED);
-      shutdown();
+      shutdown(getStatus());
     }
   }
 
@@ -307,9 +307,6 @@ public class StatusJob extends AbstractRecordHarvestJob {
   /**
    * Gets all harvestables (after overall filtering) that are tagged by 'usedBy'
    *  
-   * @param harvestables
-   * @param usedBy
-   * @return
    */
   private List<Harvestable> getHarvestablesByUsedByTag (List<Harvestable> harvestables, String usageTag) {
     List<Harvestable> harvestablesFiltered = new ArrayList<Harvestable>();

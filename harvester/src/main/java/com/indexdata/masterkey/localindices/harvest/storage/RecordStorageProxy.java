@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -104,7 +105,7 @@ public abstract class RecordStorageProxy implements RecordStorage {
   };
 
   @Override
-  public void shutdown() throws IOException {
-    storage.shutdown();
+  public void shutdown(HarvestStatus status) throws IOException {
+    storage.shutdown(status);
   }
 }
