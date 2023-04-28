@@ -2,6 +2,7 @@ package com.indexdata.masterkey.localindices.harvest.messaging;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -188,7 +189,9 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
       if (isOriginalRecordElement(node)) {
         saveOriginalXml(inventoryJson, node.getFirstChild());
       } else if (isSimpleElement(node)) {
-        inventoryJson.put(node.getLocalName(), node.getTextContent());
+          inventoryJson.put(node.getLocalName(), node.getTextContent());
+      } else if (isEmpty(node)) {
+          inventoryJson.put(node.getLocalName(), null);
       } else if (isObject(node)) {
         inventoryJson.put(node.getLocalName(), makeJsonObject(node));
       } else if (isArray(node)) {
@@ -253,6 +256,8 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
         saveOriginalXml(jsonObject, objectProperty.getFirstChild());
       } else if (isSimpleElement(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), objectProperty.getTextContent());
+      } else if (isEmpty(objectProperty)) {
+        jsonObject.put(objectProperty.getLocalName(), null);
       } else if (isObject(objectProperty)) {
         jsonObject.put(objectProperty.getLocalName(), makeJsonObject(objectProperty));
       } else if (isArray(objectProperty)) {
@@ -292,12 +297,20 @@ public class InstanceXmlToInstanceJsonTransformerRouter implements MessageRouter
   /**
    *
    * @param node
-   * @return true if element is simple, non-empty scalar
+   * @return true if element is simple scalar
    */
   private static boolean isSimpleElement(Node node) {
     return (node.hasChildNodes()
-            && node.getFirstChild().getNodeType() == Node.TEXT_NODE
-            && !node.getFirstChild().getTextContent().isEmpty());
+            && node.getFirstChild().getNodeType() == Node.TEXT_NODE);
+  }
+
+  /**
+   *
+   * @param node
+   * @return true if element has no content
+   */
+  private static boolean isEmpty(Node node) {
+    return (!node.hasChildNodes());
   }
 
   /**

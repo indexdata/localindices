@@ -8,7 +8,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -292,7 +291,7 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
       logger.log(Level.TRACE, "Looking for instance relations in root of " + transformed.toJSONString());
       JSONObject instanceRelations = new JSONObject();
       try {
-        if (transformed.containsKey("instanceRelations")) {
+        if (hasPopulatedProperty(transformed, "instanceRelations")) {
           JSONObject instanceRelationsFromRecord = (JSONObject) (transformed.get("instanceRelations"));
           instanceRelations = (JSONObject) parser.parse(instanceRelationsFromRecord.toJSONString());
         }
@@ -317,12 +316,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
     public JSONObject getMatchKey () {
       JSONObject matchKey = new JSONObject();
       try {
-        if (transformed.containsKey("matchKey")) {
+        if (hasPopulatedProperty(transformed,"matchKey")) {
           JSONObject matchKeyFromRecord = (JSONObject) (transformed.get("matchKey"));
           matchKey = (JSONObject) parser.parse(matchKeyFromRecord.toJSONString());
         } else if (transformed.containsKey("instance")) {
           JSONObject instance = (JSONObject) transformed.get("instance");
-          if (instance.containsKey("matchKey")) {
+          if (hasPopulatedProperty(instance,"matchKey")) {
             JSONObject matchKeyFromInstance = (JSONObject) (instance.get("matchKey"));
             matchKey = (JSONObject) parser.parse(matchKeyFromInstance.toJSONString());
           }
@@ -362,5 +361,9 @@ import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
     @Override
     public String toString() {
       return transformed != null ? transformed.toJSONString() : "no record";
+    }
+
+    private boolean hasPopulatedProperty(JSONObject object, String key) {
+      return object.containsKey(key) && object.get(key) != null;
     }
   }
