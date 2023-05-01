@@ -251,7 +251,7 @@ public class FolioStorageController implements RecordStorage {
         // in a few moments pulls the job through Harvester's WS API.
         JSONObject jobStatusMessage = new JSONObject();
         jobStatusMessage.put("status", status.name());
-        if (harvestable.getLastHarvestFinished() != null) {
+        if (harvestable.getLastHarvestFinished() != null && status.name().equals("OK")) {
           jobStatusMessage.put("finished",
               DateUtil.serialize(harvestable.getLastHarvestFinished(),
                   DateUtil.DateTimeFormat.ISO));
