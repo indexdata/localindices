@@ -1,5 +1,16 @@
 name: push-docker
 
+# IMAGE_NAME_1: string; The name of the first image.
+#  'indexdata/harvester'
+#
+# IMAGE_NAME_2: string; The name of the second image.
+#  'indexdata/harvester-admin'
+
+env:
+  CONTAINER_REGISTRY: 'ghcr.io'
+  IMAGE_NAME_1: 'indexdata/harvester'
+  IMAGE_NAME_2: 'indexdata/harvester-admin'
+
 on:
   schedule:
     - cron: '15 01 * * 6'
@@ -7,11 +18,6 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'  # i.e. release tag only
   workflow_dispatch:
-
-env:
-  CONTAINER_REGISTRY: 'ghcr.io'
-  IMAGE_NAME_1: 'indexdata/harvester'
-  IMAGE_NAME_2: 'indexdata/harvester-admin'
 
 jobs:
   push-docker:
