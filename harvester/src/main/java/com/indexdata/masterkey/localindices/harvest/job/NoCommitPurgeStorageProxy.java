@@ -44,8 +44,8 @@ public class NoCommitPurgeStorageProxy extends RecordStorageProxy {
   }
 
   @Override
-  public void shutdown() throws IOException {
-    getTarget().shutdown();
+  public void shutdown(HarvestStatus status) throws IOException {
+    getTarget().shutdown(status);
   }
 
   @Override

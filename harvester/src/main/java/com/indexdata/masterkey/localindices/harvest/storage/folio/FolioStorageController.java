@@ -1,5 +1,7 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
+import com.indexdata.utils.DateUtil;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -7,7 +9,7 @@ import java.util.Map;
 
 import com.indexdata.masterkey.localindices.entity.Storage;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -23,18 +25,14 @@ import com.indexdata.masterkey.localindices.harvest.storage.DatabaseContenthandl
 import com.indexdata.masterkey.localindices.harvest.storage.Record;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.RecordStorage;
-import com.indexdata.masterkey.localindices.harvest.storage.StatusNotImplemented;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
-import com.indexdata.masterkey.localindices.harvest.storage.StorageStatus;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
  * Implements RecordStorage in order to receive add-record-messages from the transformation
  * process.
- *
  * Contains the logic for initializing storage, loggers, and update statistics.
- *
  * Accepts Inventory record sets (instances, holdings, items, source records) coming
  * in from the transformation pipeline and forwards each incoming record to
  * {@link InventoryRecordUpdater} for creation/update/deletion in FOLIO Inventory.
@@ -64,7 +62,7 @@ public class FolioStorageController implements RecordStorage {
     try {
       logger = new FileStorageJobLogger(FolioStorageController.class, harvestable);
     } catch (StorageException e) {
-      throw new RuntimeException("Unable to init: " + e.getLocalizedMessage(), e);
+      throw new RuntimeException("Unable to initialize logger: " + e.getLocalizedMessage(), e);
     }
   }
 
@@ -84,7 +82,7 @@ public class FolioStorageController implements RecordStorage {
         recordStorageHandler = new SharedIndexUpdater((ShareIndexUpdateContext) context);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
-                + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
+            + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
       }
     } else {
       throw new StorageException("No FOLIO storage config found. Abandoning job.");
@@ -101,7 +99,7 @@ public class FolioStorageController implements RecordStorage {
     context.moduleDatabaseStart(database, properties);
   }
 
-  protected JSONObject getStorageConfigJson (Storage storage) {
+  private JSONObject getStorageConfigJson (Storage storage) {
     String configurationsJsonString = storage.getJson();
     if (configurationsJsonString != null && configurationsJsonString.length()>0) {
       try {
@@ -133,14 +131,6 @@ public class FolioStorageController implements RecordStorage {
 
   /**
    * Sends authentication POST request to FOLIO service
-   * @param client
-   * @param folioAddress
-   * @param folioAuthPath
-   * @param username
-   * @param password
-   * @param tenant
-   * @return
-   * @throws StorageException
    */
   @SuppressWarnings("unchecked")
   private String getAuthToken(CloseableHttpClient client,
@@ -224,7 +214,7 @@ public class FolioStorageController implements RecordStorage {
   }
 
   @Override
-  public StorageStatus getStatus() throws StatusNotImplemented {
+  public FolioStorageStatus getStatus() {
     return this.context.storageStatus;
   }
 
@@ -245,20 +235,42 @@ public class FolioStorageController implements RecordStorage {
   }
 
   @Override
-  public void shutdown() throws IOException {
-    logger.info("Shutdown request received by FOLIO RecordStorage - writing status, saving logs");
-    databaseEnd();
-    persistLogsInFolio();
+  public void shutdown(HarvestStatus status) throws IOException {
+    logger.info("Shutdown request received by FOLIO RecordStorage, with status [" + status.name() + "] - writing status, saving logs");
+    if (status.equals(HarvestStatus.FINISHED)) {
+      status = HarvestStatus.OK;
+    }
+    persistLogsInFolio(status);
   }
 
-  private void persistLogsInFolio() {
+  private void persistLogsInFolio(HarvestStatus status) {
     try {
       if (((InventoryUpdateContext)context).logHistoryStorageUrlIsDefined) {
+        // We need to post the job status to FOLIO Harvester Admin, since the status is
+        // not yet written to the database and still might not be when FOLIO Harvester Admin
+        // in a few moments pulls the job through Harvester's WS API.
+        JSONObject jobStatusMessage = new JSONObject();
+        jobStatusMessage.put("status", status.name());
+        if (harvestable.getLastHarvestFinished() != null && status.name().equals("OK")) {
+          jobStatusMessage.put("finished",
+              DateUtil.serialize(harvestable.getLastHarvestFinished(),
+                  DateUtil.DateTimeFormat.ISO));
+        }
+        if (harvestable.getLastHarvestStarted() != null) {
+          jobStatusMessage.put("started",
+              DateUtil.serialize(harvestable.getLastHarvestStarted(),
+                  DateUtil.DateTimeFormat.ISO));
+        }
+        jobStatusMessage.put("amountHarvested", Long.toString(getStatus().adds));
+        jobStatusMessage.put("message", harvestable.getMessage());
+        StringEntity entity = new StringEntity(jobStatusMessage.toJSONString(), "UTF-8");
+        HttpEntityEnclosingRequestBase request;
         String url = ((InventoryUpdateContext)context)
             .logHistoryStorageUrl.replace("{id}", harvestable.getId().toString());
-        HttpGet httpGet = new HttpGet(url);
-        context.setHeaders(httpGet,"application/json");
-        CloseableHttpResponse response = context.folioClient.execute(httpGet);
+        request = new HttpPost(url);
+        request.setEntity(entity);
+        context.setHeaders(request,"application/json");
+        CloseableHttpResponse response = context.folioClient.execute(request);
         if (response.getStatusLine().getStatusCode() == 200) {
           logger.info("Logs persisted in FOLIO Harvester Admin");
         } else {

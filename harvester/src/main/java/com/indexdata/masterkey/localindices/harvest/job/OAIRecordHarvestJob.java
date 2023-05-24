@@ -281,7 +281,7 @@ public class OAIRecordHarvestJob extends AbstractRecordHarvestJob {
     } finally {
       logger.info("In finally block with subject " + subject + ", message " + msg);
       mailMessage(subject, msg);
-      shutdown();
+      shutdown(getStatus());
     }
   }
 

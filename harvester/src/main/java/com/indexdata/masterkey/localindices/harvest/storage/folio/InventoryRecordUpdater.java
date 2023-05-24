@@ -107,7 +107,8 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     }
 
     if (response.isError()) {
-      logger.error(response.getErrorReport().getStatusCode() + ": " + response.getErrorReport().getMessage());
+      logger.error("Batch update returned error code "
+          + response.getErrorReport().getStatusCode() + ": " + response.getErrorReport().getMessage());
     } else {
       ctxt.timingsStoringInventoryRecordSet.time(startStorageBatch, batch.size());
       ctxt.storageStatus.incrementAdd(batch.size());
@@ -710,7 +711,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     request.setHeader("X-Okapi-Tenant", ctxt.folioTenant);
   }
 
-  private class BatchUpsertResponse {
+  private static class BatchUpsertResponse {
     int statusCode;
     public final String ERRORS = "errors";
     public final String METRICS = "metrics";
@@ -839,9 +840,11 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     }
 
     private int getInt(String key) {
-      System.out.println("getInt: " + json.get(key));
-
-      return Integer.parseInt(json.get(key).toString());
+      if (json.containsKey(key)) {
+        return Integer.parseInt(json.get(key).toString());
+      } else {
+        return -1;
+      }
     }
 
   }

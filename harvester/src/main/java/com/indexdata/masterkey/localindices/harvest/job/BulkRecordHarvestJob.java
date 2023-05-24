@@ -10,7 +10,6 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -29,12 +28,12 @@ import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
 public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
 
   @SuppressWarnings("unused")
-  private List<URL> urls = new ArrayList<>();
-  private XmlBulkResource resource;
+  private final List<URL> urls = new ArrayList<>();
+  private final XmlBulkResource resource;
   // private RecordStorage transformationStorage;
-  private Proxy proxy;
+  private final Proxy proxy;
   private String errors;
-  private HarvestStatus initialStatus;
+  private final HarvestStatus initialStatus;
 
   private final Date previousHarvestStarted;
 
@@ -151,7 +150,7 @@ public class BulkRecordHarvestJob extends AbstractRecordHarvestJob {
       logError(subject, msg);
     } finally {
       mailMessage(subject, msg);
-      shutdown();
+      shutdown(getStatus());
     }
   }
 

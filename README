@@ -4,7 +4,7 @@ doc/dev-notes.md*
   
 -- COMPILING AND BUILDING
 
-To compile and build the source you will Maven2 (http://maven.apache.org), on
+To compile and build the source you will Maven2 (https://maven.apache.org), on
 debian/ubuntu you can install it via apt:
 
 sudo apt-get install maven2
@@ -15,7 +15,7 @@ mvn install
 
 You can either do it in the top-level ('localindices') dir to build all the 
 submodules or in each submodule dir (e.g 'harvester') - in this case maven will
-fetch module dependecies from ID's maven repo at http://maven.indexdata.com.
+fetch module dependecies from ID's maven repo at https://maven.indexdata.com.
 
 -- RUNNING HARVESTER AND HARVESTER-ADMIN
 

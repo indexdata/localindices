@@ -94,29 +94,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>jms</artifactId>
-          <groupId>javax.jms</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jmxri</artifactId>
-          <groupId>com.sun.jmx</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jmxtools</artifactId>
-          <groupId>com.sun.jdmk</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>mail</artifactId>
-          <groupId>javax.mail</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>com.indexdata</groupId>
       <artifactId>masterkey-common</artifactId>
       <version>0.1.36</version>
@@ -126,13 +103,13 @@
     <repository>
       <id>id-maven-repo</id>
       <name>Indexdata Maven Repository</name>
-      <url>http://maven.indexdata.com/</url>
+      <url>https://maven.indexdata.com/</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>id-maven-repo</id>
-      <url>http://maven.indexdata.com</url>
+      <url>https://maven.indexdata.com</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>

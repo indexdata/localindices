@@ -1,5 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -132,7 +133,7 @@ public class DuplicateKeyCheckerRecordStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown(HarvestStatus status) {
     // TODO Auto-generated method stub
   }
 

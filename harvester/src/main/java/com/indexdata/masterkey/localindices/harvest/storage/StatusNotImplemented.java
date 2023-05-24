@@ -1,6 +1,6 @@
 package com.indexdata.masterkey.localindices.harvest.storage;
 
-public class StatusNotImplemented extends Exception {
+public class StatusNotImplemented extends RuntimeException {
 
   /**
    * 

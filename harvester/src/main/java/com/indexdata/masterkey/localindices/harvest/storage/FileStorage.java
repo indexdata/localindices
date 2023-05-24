@@ -6,6 +6,7 @@
 
 package com.indexdata.masterkey.localindices.harvest.storage;
 
+import com.indexdata.masterkey.localindices.harvest.job.HarvestStatus;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -154,7 +155,7 @@ public class FileStorage implements RecordStorage {
   }
 
   @Override
-  public void shutdown() {
+  public void shutdown(HarvestStatus status) {
     logger.debug("Closing Storage");
     try {
       out.close();
