@@ -1,12 +1,13 @@
-## not tagged
+## 2.15.0 2023-07-06
 
- * Inventory XML-to-JSON: Transform empty element to property with value null (MKH-543)
- * Upgrades MySQL client to 8.0.32
+ * FOLIO storage: XML-to-JSON, transforms empty element to property with value null (MKH-543)
+ * Upgrades MySQL client to 8.0.32, Log4j to version 2 (MODHAADM-27)
+ * FOLIO storage: Supports Inventory batch upsert
+ * FOLIO storage: adds option to save logs in FOLIO (MODHAADM-30) 
+ * Adds support for harvesting 7Zip files (MKH-535)
  * MARC-to-JSON: Handles (any or no) namespace on the 'record' field (DEVOPS-1198)
- * Bulk XML to Inventory: Add option to filter XML bulk records by date (MKH-537)
- * Inventory match key processing: pass on localIdentifier, identifierTypeId (MKH-536)
- * Use `lastHarvestStarted` for `fromDate` (MKH-534)
- * Support queries for TSAS entities too (step associations)
+ * FOLIO storage: Adds option to filter XML bulk records by date (MKH-537)
+ * Support queries for TSAS entities (step associations)
  * Properly encode query parameters. 
  * Always convert MARC binary to UTF-8.
  * Workarounds to deal with FTP server timeouts for large files. PR-818.
