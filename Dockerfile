@@ -8,7 +8,7 @@ RUN mvn package
 
 ### harvester runtime image
 
-FROM jetty:9.4-jre8 as masterkey-harvester
+FROM jetty:9.4-jre8 as harvester
 USER root
 RUN mkdir -p /etc/masterkey/harvester && \
     mkdir -p /var/cache/harvester && \
@@ -26,7 +26,7 @@ CMD ["java", "-jar", "/usr/local/jetty/start.jar"]
 
 ### harvester-admin runtime image
 
-FROM jetty:9.4-jre8 as masterkey-harvester-admin
+FROM jetty:9.4-jre8 as harvester-admin
 
 USER root
 RUN mkdir -p /etc/masterkey/harvester && \
