@@ -3,7 +3,7 @@
     <Arg></Arg>
     <Arg>localindicesDS</Arg>
     <Arg>
-        <New class="com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource">
+        <New class="com.mysql.cj.jdbc.MysqlConnectionPoolDataSource">
             <Set name="Url"><Env name="MYSQLURL"/></Set>
             <Set name="User"><Env name="MYSQLUSER"/></Set>
             <Set name="Password"><Env name="MYSQLPASS"/></Set>
