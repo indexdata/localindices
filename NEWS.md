@@ -1,3 +1,8 @@
+## 2.15.1 2023-08-11
+ * Update classname of MySQL 8 connector in Docker Jetty config
+ * Add new top-level Dockerfile which will build both harvester and harvester-admin Docker images
+ * Add Docker README (README-Docker.md)
+
 ## 2.15.0 2023-07-06
 
  * FOLIO storage: XML-to-JSON, transforms empty element to property with value null (MKH-543)
