@@ -104,7 +104,7 @@ public class HttpClientTransport implements ClientTransport {
     if (lastFrom != null) {
       try {
         String lastModified = DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT);
-        logger.info("Conditional request If-Modified-Since: " + lastModified);
+        logger.debug("Conditional request If-Modified-Since: " + lastModified);
         conn.setRequestProperty("If-Modified-Since", lastModified);
       } catch (ParseException pe) {
         logger.error("Failed to parse last modified date: " + lastFrom);
@@ -140,7 +140,7 @@ public class HttpClientTransport implements ClientTransport {
       }
     } else if (responseCode == 304) {// not-modified
       try {
-        logger.info("Content was not modified since '" + DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
+        logger.debug("Content was not modified since '" + DateUtil.serialize(lastFrom, DateUtil.DateTimeFormat.RFC_GMT) + "', completing.");
       } catch (ParseException pe) {
         throw new RuntimeException("Failed to parse Date: " + lastFrom, pe);
       }
