@@ -283,7 +283,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     updateCounters.holdingsRecordsFailed += metrics.holdingsRecord.failed;
     updateCounters.holdingsRecordsLoaded += metrics.holdingsRecord.create.completed + metrics.holdingsRecord.update.completed;
     updateCounters.holdingsRecordsProcessed += metrics.holdingsRecord.processed;
-    updateCounters.instanceDeleteSignals += metrics.instance.delete.processed;
     updateCounters.instanceDeletions += metrics.instance.delete.completed;
     updateCounters.instancesFailed += metrics.instance.failed;
     updateCounters.instancesLoaded += metrics.instance.create.completed + metrics.instance.update.completed;
@@ -617,8 +616,8 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
-        logger.debug("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryUpsertUrl);
-        HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryUpsertUrl);
+        logger.debug("Sending delete request " + transformedRecord.getJson().toJSONString() + " to " + ctxt.inventoryDeleteUrl);
+        HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(ctxt.inventoryDeleteUrl);
         setHeaders(httpDelete,"application/json");
         StringEntity entity = new StringEntity(deletionJson.toJSONString(), "UTF-8");
         httpDelete.setEntity(entity);
