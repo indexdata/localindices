@@ -32,6 +32,7 @@ public class InventoryUpdateContext extends FolioUpdateContext {
     public String inventoryUpsertPath;
     public String marcStorageUrl;
     public String inventoryUpsertUrl;
+    public String inventoryDeleteUrl;
     public boolean marcStorageUrlIsDefined;
     public String logHistoryStoragePath;
     public String logHistoryStorageUrl;
@@ -147,6 +148,7 @@ public class InventoryUpdateContext extends FolioUpdateContext {
     protected void setFolioModuleConfigs() {
         inventoryUpsertPath = batchSize > 1 ? getConfig(INVENTORY_BATCH_UPSERT_PATH) : getConfig(INVENTORY_UPSERT_PATH);
         inventoryUpsertUrl = ( inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null );
+        inventoryDeleteUrl = (inventoryUpsertPath != null ? folioAddress + getConfig(INVENTORY_UPSERT_PATH) : null);
         marcStoragePath = getConfig(MARC_STORAGE_PATH);
         marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
         marcStorageUrlIsDefined = marcStorageUrl != null;
