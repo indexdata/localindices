@@ -1,3 +1,7 @@
+## 2.15.2 2023-11-05
+ * Bug fix, inventory delete URL when using batch upsert (MKH-546, MODHAADM-75)
+ * Increase column size for transformation scripts (`STEP.SCRIPT`) (MKH-547)
+
 ## 2.15.1 2023-08-11
  * Update classname of MySQL 8 connector in Docker Jetty config
  * Add new top-level Dockerfile which will build both harvester and harvester-admin Docker images
