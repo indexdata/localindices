@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.indexdata</groupId>
     <artifactId>localindices</artifactId>
-    <version>2.15.2-SNAPSHOT</version>
+    <version>2.15.2</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>masterkey-dal</artifactId>
