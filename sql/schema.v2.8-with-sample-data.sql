@@ -171,7 +171,7 @@ CREATE TABLE `STEP` (
   `DESCRIPTION` varchar(4096) DEFAULT NULL,
   `ENABLED` tinyint(1) DEFAULT '0',
   `NAME` varchar(255) DEFAULT NULL,
-  `SCRIPT` text,
+  `SCRIPT` mediumtext,
   `TYPE` varchar(255) DEFAULT NULL,
   `OUTPUTFORMAT` varchar(255) DEFAULT NULL,
   `INPUTFORMAT` varchar(255) DEFAULT NULL,
