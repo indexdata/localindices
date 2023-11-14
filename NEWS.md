@@ -1,3 +1,7 @@
+## 2.15.3 2023-11-14
+ * Bug fix, add proper DTD to Jetty env XML config
+ * Add Maven 'clean' step prior to 'package' in Dockerfile
+
 ## 2.15.2 2023-11-05
  * Bug fix, inventory delete URL when using batch upsert (MKH-546, MODHAADM-75)
  * Increase column size for transformation scripts (`STEP.SCRIPT`) (MKH-547)
