@@ -95,6 +95,14 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <!-- patch security vulnerabilities:
+           https://security.snyk.io/package/maven/commons-fileupload:commons-fileupload
+      -->
+      <dependency>
+        <groupId>commons-fileupload</groupId>
+        <artifactId>commons-fileupload</artifactId>
+        <version>1.5</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
