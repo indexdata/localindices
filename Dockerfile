@@ -4,7 +4,7 @@ FROM maven:3.6.3-openjdk-8 as builder
 COPY . /usr/src
 
 WORKDIR /usr/src
-RUN mvn package
+RUN mvn clean package
 
 ### harvester runtime image
 
