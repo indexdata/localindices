@@ -609,6 +609,10 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
    * @param recordJSON contains deletion information
    */
   public void deleteRecord(RecordJSON recordJSON) {
+    if (batchIndex > 0) {
+      // Run pending upserts first to ensure the order of operations in the harvested file
+      releaseBatch();
+    }
     TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
     RecordWithErrors recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
     try {
@@ -825,9 +829,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
 
     public JSONObject getProcessingInstructions() {
       return getRequestJson() != null && getRequestJson().get(PROCESSING) != null ? (JSONObject) getRequestJson().get(PROCESSING) : new JSONObject();
-    }
-    public JSONObject getDetails () {
-      return getJsonObject(DETAILS);
     }
 
     private String getString(String key) {
