@@ -1,3 +1,6 @@
+## 2.15.4 2024-01-20
+ * Bug fix, FOLIO batch update, preserve order of updates, deletes in incoming files (MKH-548, MODHAADM-83)
+
 ## 2.15.3 2023-11-14
  * Bug fix, add proper DTD to Jetty env XML config
  * Add Maven 'clean' step prior to 'package' in Dockerfile
