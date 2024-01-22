@@ -18,7 +18,7 @@ Then, with the help of Ansible (dev-deploy.yml) and Vagrant, install everything 
 
 `vagrant up`
 
-And create the database from within the box <sup>[^why]</sup>:
+And create the database from within the box <sup>[why]</sup>:
 
 `vagrant ssh -c "/vagrant/sql/create-database-populate-tables.sh"`
 
@@ -27,5 +27,5 @@ Test the administration interface at
 `http://localhost:8080/harvester-admin`
 
 
-<sup>[^why] Due some issue with passing credentials to the creation of MySQL in Ansible, database creation is handled in a
+<sup>[why] Due some issue with passing credentials to the creation of MySQL in Ansible, database creation is handled in a
 script afterwards.</sup>
