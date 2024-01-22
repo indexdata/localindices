@@ -35,16 +35,16 @@
           - python-apt
           - apt-transport-https
           - ca-certificates
-          - openjdk-8-jdk
-          - tomcat8
-          - tomcat8-admin
+          - openjdk-8-jre-headless
+          - tomcat9
+          - tomcat9-admin
           - mysql-server
-          - python-mysqldb
+          - python3-pymysql
           - maven
 
     - name: Create tomcat administrative user
       become: yes
-      lineinfile: dest=/etc/tomcat8/tomcat-users.xml insertbefore="</tomcat-users>" line={{ item }}
+      lineinfile: dest=/etc/tomcat9/tomcat-users.xml insertbefore="</tomcat-users>" line={{ item }}
       with_items:
         - '  <role rolename="manager-gui"/>'
         - '  <user username="{{ tomcat_admin.user }}" password="{{ tomcat_admin.password }}" roles="manager-gui"/>'
@@ -52,9 +52,24 @@
 
     - name: Update permissions on harvester directories
       become: yes
-      file: path={{ item }} owner=tomcat8
+      file: path={{ item }} owner=tomcat
       with_items:
         - /var/log/masterkey/harvester
+
+    - name: Create systemd directory if not exists
+      become: yes
+      file:
+        path: /etc/systemd/system/tomcat9.service.d
+        state: directory
+
+    - name: Creating logging-allow config
+      become: yes
+      copy:
+        dest: /etc/systemd/system/tomcat9.service.d/logging-allow.conf
+        content: |
+          [Service]
+          ReadWritePaths=/var/log/masterkey
+      notify: Restart Tomcat
 
     - name: Create lui-solr account
       become: yes
@@ -91,101 +106,6 @@
       become: yes
       service: name=lui-solr state=started
 
-    - name: Update MySQL root password
-      become: yes
-      mysql_user: name=root password={{ mysql_root_password }}
-
-    - name: Update my.cnf
-      become: yes
-      copy:
-        dest: /root/.my.cnf
-        mode: 0600
-        content: |
-          [client]
-          user=root
-          password={{ mysql_root_password }}
-
-    - name: Create localindices database
-      become: yes
-      mysql_db: name=localindices state=present
-
-    - name: Create the mysql user
-      become: yes
-      mysql_user: name={{ mysql_credentials.user }} password={{ mysql_credentials.password }} priv="localindices.*:all" append_privs=yes state=present
-
-    # These tasks are not idempotent - they will zap all tables in the database
-
-    # The "right way" - initialize the database, load alter scripts on top
-    # Unfortunately, it fails
-    # - name: Initialize the database
-    #   become: yes
-    #   mysql_db: name=localindices state=import target=/vagrant/sql/localindices.sql
-
-    # - name: Collect the db alterations
-    #   shell: "find /vagrant/sql/v*.* -name \"????-??-??.sql\" -print"
-    #   register: db_alter
-
-    # - name: Run the alteration scripts
-    #   become: yes
-    #   mysql_db: name=localindices state=import target={{ item }}
-    #   with_items: "{{ db_alter.stdout_lines }}"
-
-    # The "wrong way" - load a database from production
-    # - name: Initialize the database
-    #   become: yes
-    #   mysql_db: name=localindices state=import target=/vagrant/sql/samples/localindices-katsu--2016-05-01_06-00-01.sql
-    # Which didn't work, either.
-
-    # Loading new schema 2.8-2.14
-    - name: Initialize the database
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/schema.v2.8-with-sample-data.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.9 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.9/2016-05-03.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.10 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.10/2016-07-04.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.11 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.11/2016-07-15.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.11 table data
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.11/v2.11-data.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.12 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.12/2020-04-01.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.13 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.13/2020-04-15.sql
-      notify: Restart Tomcat
-
-    - name: Load 2.14 table alteration
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/v2.14/2020-04-14.sql
-      notify: Restart Tomcat
-      
-    - name: Load gbv table data
-      become: yes
-      mysql_db: name=localindices state=import target=/vagrant/sql/load-gbv-data-to-v2.13.sql
-      notify: Restart Tomcat
-
-    - name: Build Harvester and Harvester Admin web apps
-      shell: mvn install > mvn-install.log creates=/vagrant/mvn-install.log chdir=/vagrant/
-      notify: Restart Tomcat
-
     - name: Link Harvester web app
       become: yes
       file: src=/vagrant/harvester/target/harvester path=/usr/share/masterkey/harvester state=link
@@ -196,7 +116,7 @@
 
     - name: Link Harvester stylesheets
       become: yes
-      file: src=/vagrant/harvester/target/harvester/WEB-INF/stylesheets/{{ item }} path=/var/lib/tomcat8/{{ item }} state=link
+      file: src=/vagrant/harvester/target/harvester/WEB-INF/stylesheets/{{ item }} path=/var/lib/tomcat9/{{ item }} state=link
       with_items:
         - ARTstor-electronic-url-fix.xsl
         - addmergekey.xsl
@@ -221,28 +141,25 @@
 
     - name: Create Harvester cache directory
       become: yes
-      file: path=/var/cache/harvester owner=tomcat8 group=adm state=directory
+      file: path=/var/cache/harvester owner=tomcat group=adm state=directory
 
     - name: Provide access to Harvester test data
       become: yes
-      lineinfile: dest=/etc/tomcat8/server.xml line="\t<Context docBase=\"/vagrant/harvester/test\" path=\"/test\" />" insertbefore="</Host>"
-      notify: Restart Tomcat
+      lineinfile: dest=/etc/tomcat9/server.xml line="\t<Context docBase=\"/vagrant/harvester/test\" path=\"/test\" />" insertbefore="</Host>"
 
     - name: Deploy Tomcat context fragment for Harvester
       become: yes
-      file: src=/vagrant/etc/harvester-context.xml path=/etc/tomcat8/Catalina/localhost/harvester.xml state=link
-      notify: Restart Tomcat
+      file: src=/vagrant/etc/harvester-context.xml path=/etc/tomcat9/Catalina/localhost/harvester.xml state=link
 
     - name: Link Harvester Admin web app
       become: yes
       file: src=/vagrant/harvester-admin/target/harvester-admin path=/usr/share/masterkey/harvester-admin state=link
-      notify: Restart Tomcat
 
     - name: Deploy Tomcat context fragment for Harvester Admin
       become: yes
-      file: src=/vagrant/etc/harvester-admin-context.xml path=/etc/tomcat8/Catalina/localhost/harvester-admin.xml state=link
+      file: src=/vagrant/etc/harvester-admin-context.xml path=/etc/tomcat9/Catalina/localhost/harvester-admin.xml state=link
 
   handlers:
     - name: Restart Tomcat
       become: yes
-      service: name=tomcat8 state=restarted
+      service: name=tomcat9 state=restarted
