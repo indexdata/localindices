@@ -24,7 +24,7 @@ And create the database from within the box <sup>[why]</sup>:
 
 Test the administration interface at
 
-`http://localhost:8080/harvester-admin`
+`http://localhost:8080/harvester-admin/`
 
 
 <sup>[why] Due some issue with passing credentials to the creation of MySQL in Ansible, database creation is handled in a
