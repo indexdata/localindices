@@ -1,3 +1,6 @@
+## 2.15.5 2024-01-22
+ * Maintenance (obsolete dependency with vulnerability, outdated dev tools) 
+
 ## 2.15.4 2024-01-20
  * Bug fix, FOLIO batch update, preserve order of updates, deletes in incoming files (MKH-548, MODHAADM-83)
 
