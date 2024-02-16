@@ -46,7 +46,7 @@ jobs:
       - name: Do Maven build harvester
         run: mvn verify
       - name: Log into GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.CONTAINER_REGISTRY }}
           username: ${{ github.ACTOR }}
