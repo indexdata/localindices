@@ -74,15 +74,15 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
-          target: harvester 
+          push: true
+          target: harvester
           tags: ${{ steps.meta-1.outputs.tags }}
           labels: ${{ steps.meta-1.outputs.labels }}
       - name: Build and publish Docker for harvester-admin
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           target: harvester-admin
           tags: ${{ steps.meta-2.outputs.tags }}
           labels: ${{ steps.meta-2.outputs.labels }}
