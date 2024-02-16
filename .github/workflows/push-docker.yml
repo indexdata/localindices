@@ -74,7 +74,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
+          push: false
           target: harvester 
           tags: ${{ steps.meta-1.outputs.tags }}
           labels: ${{ steps.meta-1.outputs.labels }}
@@ -82,7 +82,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
+          push: false
           target: harvester-admin
           tags: ${{ steps.meta-2.outputs.tags }}
           labels: ${{ steps.meta-2.outputs.labels }}
