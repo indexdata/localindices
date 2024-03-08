@@ -150,16 +150,25 @@ public class HttpClientTransport implements ClientTransport {
     }
   }
 
+  /**
+   * Content-Length header value of conn, or -1 if the header is missing or invalid.
+   */
   private long getContentLength(HttpURLConnection conn) {
-    // conn.getContentLength() overruns at 2GB, since the interface returns a integer
-    long contentLength;
-    try {
-      contentLength = Long.parseLong(conn.getHeaderField("Content-Length"));
-    } catch (NumberFormatException e) {
-      logger.warn("Problem with parsing Content-Length: " + conn.getHeaderField("Content-Length"));
-      contentLength = -1;
+    String contentLength = conn.getHeaderField("Content-Length");
+    if (contentLength == null) {
+      // -1 if Content-Length is missing. Content-Length is optional, see
+      // https://www.rfc-editor.org/rfc/rfc9110#field.content-length
+      return -1;
     }
-    return contentLength;
+
+    try {
+      // Long, because HTTP has no predefined limit, see
+      // https://www.rfc-editor.org/rfc/rfc9110#field.content-length
+      return Long.parseLong(contentLength);
+    } catch (NumberFormatException e) {
+      logger.warn("Problem with parsing Content-Length: " + contentLength);
+      return -1;
+    }
   }
 
   public Integer getTimeout() {
