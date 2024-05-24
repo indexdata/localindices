@@ -81,21 +81,19 @@ public class InventoryUpdateContext extends FolioUpdateContext {
 
         if (!statusWritten) {
             String recordsSkippedMessage = (updateCounters.xmlBulkRecordsSkipped > 0 ? "Records skipped by date filter: " + updateCounters.xmlBulkRecordsSkipped : "");
-            String instancesMessage = "Instances_processed/loaded/deletions(signals)/failed:__" + updateCounters.instancesProcessed + "___" + updateCounters.instancesLoaded + "___" + updateCounters.instanceDeletions + "(" + updateCounters.instanceDeleteSignals + ")___" + updateCounters.instancesFailed + "_";
-            String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted/failed:__" + updateCounters.holdingsRecordsProcessed + "___" + updateCounters.holdingsRecordsLoaded + "___" + updateCounters.holdingsRecordsDeleted + "___" + updateCounters.holdingsRecordsFailed + "_";
-            String itemsMessage = "Items_processed/loaded/deleted/failed:__" + updateCounters.itemsProcessed + "___" + updateCounters.itemsLoaded + "___" + updateCounters.itemsDeleted + "___" + updateCounters.itemsFailed + "_";
-            String sourceRecordsMessage = "Source_records_processed/loaded/deleted/failed:__" + updateCounters.sourceRecordsProcessed + "___" + updateCounters.sourceRecordsLoaded + "___" + updateCounters.sourceRecordsDeleted + "___" + updateCounters.sourceRecordsFailed + "_";
+            String instancesMessage = "Instances_processed/loaded/deleted(skipped)/failed:__" + updateCounters.instancesProcessed + "___" + updateCounters.instancesLoaded + "___" + updateCounters.instancesDeleted + "(" + updateCounters.instanceDeletesSkipped + ")___" + updateCounters.instancesFailed + "_";
+            String holdingsRecordsMessage = "Holdings_records_processed/loaded/deleted(skipped)/failed:__" + updateCounters.holdingsRecordsProcessed + "___" + updateCounters.holdingsRecordsLoaded + "___" + updateCounters.holdingsRecordsDeleted + "(" + updateCounters.holdingsRecordDeletesSkipped + ")___" + updateCounters.holdingsRecordsFailed + "_";
+            String itemsMessage = "Items_processed/loaded/deleted(skipped)/failed:__" + updateCounters.itemsProcessed + "___" + updateCounters.itemsLoaded + "___" + updateCounters.itemsDeleted + "(" + updateCounters.itemDeletesSkipped + ")___" + updateCounters.itemsFailed + "_";
             if (updateCounters.xmlBulkRecordsSkipped >0) logger.log(Level.INFO, recordsSkippedMessage);
             logger.log((updateCounters.instancesFailed>0 ? Level.WARN : Level.INFO), instancesMessage);
             logger.log((updateCounters.holdingsRecordsFailed>0 ? Level.WARN : Level.INFO), holdingsRecordsMessage);
             logger.log((updateCounters.itemsFailed>0 ? Level.WARN : Level.INFO), itemsMessage);
-            logger.log((updateCounters.sourceRecordsFailed>0 ? Level.WARN : Level.INFO), sourceRecordsMessage);
 
             failedRecordsController.writeLog();
             timingsCreatingRecord.writeLog();
             timingsTransformingRecord.writeLog();
             timingsStoringInventoryRecordSet.writeLog();
-            harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage + " " + sourceRecordsMessage);
+            harvestable.setMessage(recordsSkippedMessage + "  " + instancesMessage + " " + holdingsRecordsMessage + " " + itemsMessage );
             statusWritten=true;
         }
     }

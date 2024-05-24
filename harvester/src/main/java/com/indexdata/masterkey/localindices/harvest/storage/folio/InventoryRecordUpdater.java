@@ -265,10 +265,8 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
         || (updateCounters.instancesProcessed >= updateCounters.lastLogOfInstancesProcessed + 1000)) {
       logger.info("" + updateCounters.instancesLoaded + " instances, "
               + updateCounters.holdingsRecordsLoaded + " holdings records, "
-              + updateCounters.itemsLoaded + " items, and "
-              + updateCounters.sourceRecordsLoaded + " source records ingested. "
-              + updateCounters.instanceDeleteSignals + " delete signal(s), "
-              + updateCounters.instanceDeletions + " delete(s)"
+              + updateCounters.itemsLoaded + " items "
+               + updateCounters.instancesDeleted + " delete(s)"
               + (updateCounters.xmlBulkRecordsSkipped >0 ? " -- " + updateCounters.xmlBulkRecordsSkipped + " record(s) skipped by filter" : ""));
       updateCounters.lastLogOfInstancesProcessed = updateCounters.instancesProcessed;
 
@@ -280,17 +278,20 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
 
   private void setCounters (UpsertMetrics metrics) {
     updateCounters.holdingsRecordsDeleted += metrics.holdingsRecord.delete.completed;
-    updateCounters.holdingsRecordsFailed += metrics.holdingsRecord.failed;
-    updateCounters.holdingsRecordsLoaded += metrics.holdingsRecord.create.completed + metrics.holdingsRecord.update.completed;
-    updateCounters.holdingsRecordsProcessed += metrics.holdingsRecord.processed;
-    updateCounters.instanceDeletions += metrics.instance.delete.completed;
-    updateCounters.instancesFailed += metrics.instance.failed;
-    updateCounters.instancesLoaded += metrics.instance.create.completed + metrics.instance.update.completed;
-    updateCounters.instancesProcessed += metrics.instance.processed;
+    updateCounters.holdingsRecordDeletesSkipped += metrics.holdingsRecord.delete.skipped;
+    updateCounters.holdingsRecordsFailed += (int) metrics.holdingsRecord.failed;
+    updateCounters.holdingsRecordsLoaded += (int) (metrics.holdingsRecord.create.completed + metrics.holdingsRecord.update.completed);
+    updateCounters.holdingsRecordsProcessed += (int) metrics.holdingsRecord.processed;
+    updateCounters.instancesDeleted += metrics.instance.delete.completed;
+    updateCounters.instanceDeletesSkipped += metrics.instance.delete.skipped;
+    updateCounters.instancesFailed += (int) metrics.instance.failed;
+    updateCounters.instancesLoaded += (int) (metrics.instance.create.completed + metrics.instance.update.completed);
+    updateCounters.instancesProcessed += (int) metrics.instance.processed;
     updateCounters.itemsDeleted += metrics.item.delete.completed;
-    updateCounters.itemsFailed += metrics.item.failed;
-    updateCounters.itemsLoaded += metrics.item.create.completed + metrics.item.update.completed;
-    updateCounters.itemsProcessed += metrics.item.processed;
+    updateCounters.itemDeletesSkipped += metrics.item.delete.skipped;
+    updateCounters.itemsFailed += (int) metrics.item.failed;
+    updateCounters.itemsLoaded += (int) (metrics.item.create.completed + metrics.item.update.completed);
+    updateCounters.itemsProcessed += (int) metrics.item.processed;
   }
 
   public static class UpsertMetrics {
@@ -326,7 +327,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
       create = new TransactionMetrics((JSONObject) json.get("CREATE"));
       update = new TransactionMetrics((JSONObject) json.get("UPDATE"));
       delete = new TransactionMetrics((JSONObject) json.get("DELETE"));
-      processed = create.processed + update.processed;
+      processed = create.processed + update.processed + delete.processed;
       failed = create.failed + update.failed + delete.failed;
     }
 
@@ -476,10 +477,8 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     long startGetExistingMarc = System.currentTimeMillis();
     JSONObject marcRecord = null;
     try {
-      StringBuilder query = new StringBuilder().append("(instanceId==\"").append(instanceId).append("\"").append(" and institutionId==\"").append(institutionId).append("\"").append(" and localIdentifier==\"").append(localIdentifier).append("\")");
-      StringBuilder url;
-      url = new StringBuilder().append(ctxt.marcStorageUrl).append("?query=").append(URLEncoder.encode(query.toString(), "UTF-8"));
-      HttpGet httpGet = new HttpGet(url.toString());
+      String url = ctxt.marcStorageUrl + "?query=" + URLEncoder.encode("(instanceId==\"" + instanceId + "\"" + " and institutionId==\"" + institutionId + "\"" + " and localIdentifier==\"" + localIdentifier + "\")", "UTF-8");
+      HttpGet httpGet = new HttpGet(url);
       setHeaders(httpGet,"application/json");
       CloseableHttpResponse response = ctxt.folioClient.execute(httpGet);
       if (response.getStatusLine().getStatusCode() != 200) {
@@ -616,7 +615,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     TransformedRecord transformedRecord = new TransformedRecord(recordJSON, logger);
     RecordWithErrors recordWithErrors = new RecordWithErrors(transformedRecord, failedRecordsController);
     try {
-      updateCounters.instanceDeleteSignals++;
       if (transformedRecord.isDeleted()) {
         logger.log(Level.TRACE, "Delete request received: " + transformedRecord.getDelete().toJSONString());
         JSONObject deletionJson = transformedRecord.getDelete();
