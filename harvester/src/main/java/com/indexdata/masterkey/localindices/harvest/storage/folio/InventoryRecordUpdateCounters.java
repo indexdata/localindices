@@ -15,18 +15,20 @@ public class InventoryRecordUpdateCounters {
 
   protected int instancesProcessed = 0;
   protected int instancesLoaded = 0;
-  protected int instanceDeleteSignals = 0;
-  protected int instanceDeletions = 0;
+  protected int instancesDeleted = 0;
+  protected int instanceDeletesSkipped = 0;
   protected int instancesFailed = 0;
 
   protected int holdingsRecordsProcessed = 0;
   protected int holdingsRecordsLoaded = 0;
   protected int holdingsRecordsDeleted = 0;
+  protected int holdingsRecordDeletesSkipped = 0;
   protected int holdingsRecordsFailed = 0;
 
   protected int itemsProcessed = 0;
   protected int itemsLoaded = 0;
   protected int itemsDeleted = 0;
+  protected int itemDeletesSkipped = 0;
   protected int itemsFailed = 0;
 
   protected int sourceRecordsProcessed = 0;
