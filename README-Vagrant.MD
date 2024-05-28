@@ -18,14 +18,23 @@ Then, with the help of Ansible (dev-deploy.yml) and Vagrant, install everything 
 
 `vagrant up`
 
+## Create database unless previous one can be used
 And create the database from within the box <sup>[why]</sup>:
 
 `vagrant ssh -c "/vagrant/sql/create-database-populate-tables.sh"`
+
+## Otherwise, just restart tomcat<sup>[why2]</sup>
+
+`vagrant ssh -c 'sudo service tomcat9 restart'`
+
+## verify
 
 Test the administration interface at
 
 `http://localhost:8080/harvester-admin/`
 
 
-<sup>[why] Due some issue with passing credentials to the creation of MySQL in Ansible, database creation is handled in a
-script afterwards.</sup>
+<sup>[why]</sup> Due some issue with passing credentials to the creation of MySQL in Ansible, database creation is handled in a
+script afterward.
+
+<sup>[why2]</sup> Cannot make dev-deploy.yml restart it.
