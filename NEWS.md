@@ -1,3 +1,7 @@
+## 2.15.6 2024-01-23
+ * Annul obsolete log statement (MODHAADM-86)
+ * Include counts of skipped deletes in status message (MODHAADM-89)
+
 ## 2.15.5 2024-01-22
  * Maintenance (obsolete dependency with vulnerability, outdated dev tools) 
 
