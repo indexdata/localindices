@@ -22,31 +22,22 @@ import org.json.simple.parser.ParseException;
 
 public class InventoryUpdateContext extends FolioUpdateContext {
 
-    protected static final String MARC_STORAGE_PATH = "marcStoragePath";
     protected static final String LOG_HISTORY_STORAGE_PATH = "logHistoryStoragePath";
     protected static final String INVENTORY_UPSERT_PATH = "inventoryUpsertPath";
-
     protected static final String INVENTORY_BATCH_UPSERT_PATH = "inventoryBatchUpsertPath";
 
-    public String marcStoragePath;
     public String inventoryUpsertPath;
-    public String marcStorageUrl;
     public String inventoryUpsertUrl;
     public String inventoryDeleteUrl;
-    public boolean marcStorageUrlIsDefined;
     public String logHistoryStoragePath;
     public String logHistoryStorageUrl;
     public boolean logHistoryStorageUrlIsDefined;
-
-    public final Map<String,String> locationsToInstitutionsMap = new HashMap<>();
-
     public Integer batchSize;
     public InventoryRecordUpdateCounters updateCounters;
     public HourlyPerformanceStats timingsStoringInventoryRecordSet;
     public HourlyPerformanceStats timingsCreatingRecord;
     public HourlyPerformanceStats timingsTransformingRecord;
 
-    public static final String FAILURE_ENTITY_TYPE_SOURCE_RECORD = "source record";
 
     /**
      * Holds job-wide configurations, settings, and objects - for example a shared Inventory HTTP client,
@@ -73,7 +64,6 @@ public class InventoryUpdateContext extends FolioUpdateContext {
 
     @Override
     public void moduleDatabaseStart(String database, Map<String, String> properties) {
-        setLocationsToInstitutionsMap(getLocationsMap());
     }
 
     @Override
@@ -98,58 +88,14 @@ public class InventoryUpdateContext extends FolioUpdateContext {
         }
     }
 
-    /**
-     * Retrieve locations-to-institutions mappings from Inventory storage
-     * Used for holdings/items deletion logic.
-     */
-    private Map<String,String> getLocationsMap() throws StorageException {
-        try {
-            Map<String,String> locationsToInstitutions = new HashMap<>();
-            String url = String.format("%s", folioAddress + "locations?limit=9999");
-            HttpGet httpGet = new HttpGet(url);
-            setHeaders(httpGet, "application/json");
-            CloseableHttpResponse response = folioClient.execute(httpGet);
-            if(! Arrays.asList(200, 404).contains(response.getStatusLine().getStatusCode())) {
-                throw new IOException(String.format("Got error '" +
-                                response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase() + "' when retrieving locations",
-                        EntityUtils.toString(response.getEntity())));
-            }
-            JSONObject jsonResponse;
-            JSONParser parser = new JSONParser();
-            String responseString = EntityUtils.toString(response.getEntity());
-            jsonResponse = (JSONObject) parser.parse(responseString);
-            JSONArray locationsJson = (JSONArray) (jsonResponse.get("locations"));
-            if (locationsJson != null) {
-                Iterator<?> locationsIterator = locationsJson.iterator();
-                while (locationsIterator.hasNext()) {
-                    JSONObject location = (JSONObject) locationsIterator.next();
-                    locationsToInstitutions.put((String)location.get("id"), (String)location.get("institutionId"));
-                }
-                logger.info("Initialized a map of " + locationsJson.size() + " FOLIO locations to institutions.");
-                return locationsToInstitutions;
-            } else {
-                throw new StorageException("Failed to retrieve any locations from Inventory, found no 'locations' in response");
-            }
-        } catch (IOException | ParseException e) {
-            throw new StorageException ("Error occurred trying to build map of locations to institutions from FOLIO Inventory: " + e.getMessage());
-        }
-    }
-
     public void setStorageStatus(FolioStorageStatus status) {
         this.storageStatus = status;
-    }
-
-    public void setLocationsToInstitutionsMap(Map<String,String> locationsToInstitutions) {
-        this.locationsToInstitutionsMap.putAll(locationsToInstitutions);
     }
 
     protected void setFolioModuleConfigs() {
         inventoryUpsertPath = batchSize > 1 ? getConfig(INVENTORY_BATCH_UPSERT_PATH) : getConfig(INVENTORY_UPSERT_PATH);
         inventoryUpsertUrl = ( inventoryUpsertPath != null ? folioAddress + inventoryUpsertPath : null );
         inventoryDeleteUrl = (inventoryUpsertPath != null ? folioAddress + getConfig(INVENTORY_UPSERT_PATH) : null);
-        marcStoragePath = getConfig(MARC_STORAGE_PATH);
-        marcStorageUrl = (marcStoragePath != null ? folioAddress + marcStoragePath : null);
-        marcStorageUrlIsDefined = marcStorageUrl != null;
         logHistoryStoragePath = getConfig(LOG_HISTORY_STORAGE_PATH);
         logHistoryStorageUrl = (logHistoryStoragePath != null ? folioAddress + logHistoryStoragePath : null);
         logHistoryStorageUrlIsDefined = logHistoryStorageUrl != null;

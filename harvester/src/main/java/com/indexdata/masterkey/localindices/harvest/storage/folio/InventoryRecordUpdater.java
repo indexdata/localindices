@@ -1,22 +1,14 @@
 package com.indexdata.masterkey.localindices.harvest.storage.folio;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import com.github.cliftonlabs.json_simple.Jsoner;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
@@ -26,12 +18,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.xml.sax.SAXException;
 
 import com.indexdata.masterkey.localindices.harvest.storage.RecordJSON;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
-import com.indexdata.masterkey.localindices.util.MarcToJson;
-import com.indexdata.masterkey.localindices.util.MarcXMLToJson;
 
 import static com.indexdata.masterkey.localindices.harvest.storage.folio.TransformedRecord.BATCH_INDEX;
 import static com.indexdata.masterkey.localindices.harvest.storage.folio.TransformedRecord.PROCESSING;
@@ -54,7 +43,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
   /** Overall updates and errors counters */
   private final InventoryRecordUpdateCounters updateCounters;
   private final FailedRecordsController failedRecordsController;
-  private final Map<String, String> locInstMap;
   private Map<Integer, RecordWithErrors> batch;
   private Integer batchIndex = 0;
 
@@ -63,8 +51,19 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     logger = ctxt.logger;
     failedRecordsController = ctxt.failedRecordsController;
     updateCounters = ctxt.updateCounters;
-    locInstMap = ctxt.locationsToInstitutionsMap;
     batch = new HashMap<>();
+  }
+
+  public static JSONObject getResponseAsJson(String responseAsString) {
+    JSONObject upsertResponse;
+    JSONParser parser = new JSONParser();
+    try {
+      upsertResponse = (JSONObject) parser.parse(responseAsString);
+    } catch ( ParseException pe) {
+      upsertResponse = new JSONObject();
+      upsertResponse.put("wrappedErrorMessage", responseAsString);
+    }
+    return upsertResponse;
   }
 
   public void addRecord(RecordJSON recordJSON) {
@@ -202,10 +201,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
         logger.log( Level.TRACE, "Response was: " + responseJson.toJSONString() );
         UpsertMetrics metrics = new UpsertMetrics( (JSONObject) responseJson.get( "metrics" ) );
 
-        if ( ctxt.harvestable.isStoreOriginal() )
-        {
-          storeOriginal(transformedRecord, recordWithErrors, responseJson, metrics);
-        }
         ctxt.timingsStoringInventoryRecordSet.time( startStorageEntireRecord );
         ctxt.timingsCreatingRecord.setTiming( recordJSON.getCreationTiming() );
         ctxt.timingsTransformingRecord.setTiming( recordJSON.getTransformationTiming() );
@@ -223,42 +218,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     }
   }
 
-  private void storeOriginal(TransformedRecord transformedRecord, RecordWithErrors recordWithErrors, JSONObject responseJson, UpsertMetrics metrics) throws InventoryUpdateException {
-    if ( metrics.instance.create.failed == 0 )
-    {
-      String institutionId = transformedRecord.getInstitutionId( locInstMap );
-      String localIdentifier = transformedRecord.getLocalIdentifier();
-
-      updateCounters.sourceRecordsProcessed++;
-      if ( ctxt.marcStorageUrlIsDefined )
-      {
-        JSONObject marcJson = getMarcJson(recordWithErrors);
-        JSONObject instanceJson = (JSONObject) responseJson.get( "instance" );
-        String instanceId = instanceJson.get( "id" ).toString();
-        addOrUpdateMarcRecord( marcJson, instanceId, institutionId, localIdentifier,
-                recordWithErrors);
-      }
-      else
-      {
-        updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError( new InventoryUpdateException(
-                "Configuration error: Cannot store original content as requested, no path configured for MARC storage" ),
-                "Missing configuration: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
-                InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
-        recordWithErrors.reportError( error, Level.DEBUG );
-      }
-    }
-    else
-    {
-      RecordError error = new ExceptionRecordError( new InventoryUpdateException(
-              "Instance error: Cannot store original content as requested since Instance creation failed" ),
-              "Missing Instance, source record skipped: [" + InventoryUpdateContext.MARC_STORAGE_PATH + "]",
-              InventoryUpdateContext.FAILURE_ENTITY_TYPE_SOURCE_RECORD, "", "" );
-      recordWithErrors.reportError( error, Level.DEBUG );
-
-    }
-  }
-
   private void logRecordCounts() {
     //if (updateCounters.instancesLoaded>0 && updateCounters.instancesLoaded % (updateCounters.instancesLoaded < 1000 ? 100 : 1000) == 0) {
     if ((updateCounters.lastLogOfInstancesProcessed < 1000 && updateCounters.instancesProcessed >= updateCounters.lastLogOfInstancesProcessed + 100)
@@ -271,7 +230,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
       updateCounters.lastLogOfInstancesProcessed = updateCounters.instancesProcessed;
 
       if (updateCounters.instancesFailed + updateCounters.holdingsRecordsFailed + updateCounters.itemsFailed > 0) {
-        logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, " + updateCounters.itemsFailed + " items, and " + updateCounters.sourceRecordsFailed + " source records.");
+        logger.info("Failed: " + updateCounters.instancesFailed + " instances, " + updateCounters.holdingsRecordsFailed + " holdings records, and " + updateCounters.itemsFailed + " items");
       }
     }
   }
@@ -359,7 +318,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
       StringEntity entity = new StringEntity(inventoryRecordSet.toJSONString(), "UTF-8");
       httpUpdate.setEntity(entity);
       setHeaders(httpUpdate,"application/json");
-      CloseableHttpResponse response = ctxt.folioClient.execute(httpUpdate);
+      CloseableHttpResponse response = ctxt.executeWithToken(httpUpdate);
       String responseAsString = EntityUtils.toString(response.getEntity());
       response.close();
       upsertResponse = getResponseAsJson(responseAsString);
@@ -379,7 +338,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     StringEntity entity = new StringEntity(inventoryRecordSets.toJSONString(), "UTF-8");
     httpUpdate.setEntity(entity);
     setHeaders(httpUpdate,"application/json");
-    CloseableHttpResponse response = ctxt.folioClient.execute(httpUpdate);
+    CloseableHttpResponse response = ctxt.executeWithToken(httpUpdate);
     String responseAsString = EntityUtils.toString(response.getEntity());
     response.close();
     return new BatchUpsertResponse(response.getStatusLine().getStatusCode(), getResponseAsJson(responseAsString));
@@ -436,175 +395,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
   }
 
   /**
-   * Create JSONObject from the XML in the incoming record
-   */
-  private JSONObject getMarcJson(RecordWithErrors recordWithErrors) throws InventoryUpdateException {
-    JSONObject marcJson = null;
-    TransformedRecord record = recordWithErrors.transformedRecord;
-    if (record.getOriginalContent() != null) {
-      try {
-        String originalContentString = new String(record.getOriginalContent(), StandardCharsets.UTF_8 );
-        if(originalContentString.startsWith("<") ) {
-          logger.log(Level.TRACE,"Treating source record as XML");
-          marcJson = MarcXMLToJson.convertMarcXMLToJson(originalContentString);
-        } else {
-          logger.log(Level.TRACE,"Treating source record as ISO2079");
-          marcJson = MarcToJson.convertMarcRecordsToJson(record.getOriginalContent()).get(0);
-        }
-        logger.log(Level.TRACE,marcJson.toJSONString());
-      } catch (IOException | ParserConfigurationException | SAXException e) {
-
-        updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError(e, "Error creating MARC JSON for source record", "MARC source", "GET", "");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      }
-    } else {
-      if (ctxt.harvestable.isStoreOriginal()) {
-        updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError(new InventoryUpdateException("Job set to store original source but no original content found."),
-                                              "Job set to store original source but no original content found.",
-                                              "MARC source", "preparation", "");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      }
-    }
-    return marcJson;
-  }
-
-  /**
-   * Looks for existing MARC record in FOLIO by uniquely identifying criteria
-   */
-  private JSONObject getExistingMarcRecord(String instanceId, String institutionId, String localIdentifier, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
-    long startGetExistingMarc = System.currentTimeMillis();
-    JSONObject marcRecord = null;
-    try {
-      String url = ctxt.marcStorageUrl + "?query=" + URLEncoder.encode("(instanceId==\"" + instanceId + "\"" + " and institutionId==\"" + institutionId + "\"" + " and localIdentifier==\"" + localIdentifier + "\")", "UTF-8");
-      HttpGet httpGet = new HttpGet(url);
-      setHeaders(httpGet,"application/json");
-      CloseableHttpResponse response = ctxt.folioClient.execute(httpGet);
-      if (response.getStatusLine().getStatusCode() != 200) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error looking up existing MARC record, expected status 200", "MARC source", "GET", "{}", "{}");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      } else {
-        String responseAsString = EntityUtils.toString(response.getEntity());
-        JSONObject marcRecords = (JSONObject) (new JSONParser().parse(responseAsString));
-        final Long count = (Long) (marcRecords.getOrDefault("totalRecords", 0));
-        if (count == 0) {
-          logger.log(Level.TRACE,"No MARC source record found for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
-        } else if (count == 1) {
-          logger.log(Level.TRACE, "Found existing MARC source record for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
-          JSONArray records = (JSONArray) marcRecords.get("marcrecords");
-          marcRecord = (JSONObject) records.get(0);
-        } else {
-          logger.error("Expected zero or one MARC source records for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "] but count was " + count);
-        }
-      }
-      response.close();
-    } catch (IOException | ParseException e) {
-      RecordError error = new ExceptionRecordError(e, "Error when checking for previously existing MARC record","MARC source","GET", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-    }
-    logger.log(Level.TRACE,"Got existing MARC in: " + (System.currentTimeMillis()-startGetExistingMarc));
-    return marcRecord;
-  }
-
-  /**
-   * Creates or updates a MARC record in storage.
-   * @return Response from storage
-   */
-  private JSONObject addOrUpdateMarcRecord(JSONObject marcJson, String instanceId, String institutionId, String localIdentifier, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
-    JSONObject marcResponse = null;
-    if (marcJson != null) {
-      JSONObject marcPostJson = new JSONObject();
-      marcPostJson.put("instanceId", instanceId);
-      marcPostJson.put("institutionId", institutionId);
-      marcPostJson.put("localIdentifier", localIdentifier);
-      marcPostJson.put("parsedMarc", marcJson);
-      StringEntity entity = new StringEntity(marcPostJson.toJSONString(), "UTF-8");
-      try {
-        HttpEntityEnclosingRequestBase request;
-        JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier, recordWithErrors);
-        if (marcRecord == null) {
-          logger.log(Level.TRACE,"This MARC record did not exist in storage; creating it.");
-          long startAddingMarc = System.currentTimeMillis();
-          request = new HttpPost(ctxt.marcStorageUrl);
-          request.setEntity(entity);
-          setHeaders(request,"application/json");
-          CloseableHttpResponse response = ctxt.folioClient.execute(request);
-          String responseAsString = EntityUtils.toString(response.getEntity());
-          marcResponse = getResponseAsJson(responseAsString);
-          if (response.getStatusLine().getStatusCode() != 201) {
-            updateCounters.sourceRecordsFailed++;
-            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error adding MARC source record ", "MARC source", "POST", "{}", "{}");
-            recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-          } else {
-            logger.log(Level.TRACE, "Status code: " + response.getStatusLine().getStatusCode() + " for POST of marc json " + marcPostJson.toJSONString());
-            updateCounters.sourceRecordsLoaded++;
-          }
-          response.close();
-          logger.log(Level.TRACE, "Added MARC in " + (System.currentTimeMillis()-startAddingMarc));
-        } else {
-          logger.log(Level.TRACE, "This MARC record already existed in storage; updating it.");
-          long startUpdatingMarc = System.currentTimeMillis();
-          String id = (String) marcRecord.get("id");
-          String url = ctxt.marcStorageUrl + "/" + id;
-          request = new HttpPut(url);
-          request.setEntity(entity);
-          setHeaders(request,"text/plain");
-          CloseableHttpResponse response = ctxt.folioClient.execute(request);
-          response.close();
-          if (response.getStatusLine().getStatusCode() != 204) {
-            updateCounters.sourceRecordsFailed++;
-            RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error updating existing MARC record", "MARC source", "PUT", "{}", "{}");
-            recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-          } else {
-            logger.log(Level.TRACE,"Status code: " + response.getStatusLine().getStatusCode() + " for PUT of marc json " + marcPostJson.toJSONString());
-            updateCounters.sourceRecordsLoaded++;
-          }
-          logger.log(Level.TRACE, "Updated MARC in " + (System.currentTimeMillis()-startUpdatingMarc));
-        }
-      } catch (IOException | org.apache.http.ParseException | UnsupportedCharsetException e) {
-        updateCounters.sourceRecordsFailed++;
-        RecordError error = new ExceptionRecordError(e, "Error adding MARC source record", "MARC source", "POST", "");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      }
-    }
-    return marcResponse;
-  }
-
-  /**
-   * Delete a source record by ID
-   */
-  private void deleteSourceRecord(String uuid, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
-    logger.log(Level.TRACE,"Deleting source record with ID: " + uuid);
-    String url = String.format("%s/%s", ctxt.marcStorageUrl, uuid);
-    HttpDelete httpDelete = new HttpDelete(url);
-    setHeaders(httpDelete,"text/plain");
-    CloseableHttpResponse response = null;
-    try {
-      response = ctxt.folioClient.execute(httpDelete);
-      if (response.getStatusLine().getStatusCode() != 204) {
-        RecordError error = new HttpRecordError(response.getStatusLine(), response.getEntity().toString(), response.getEntity().toString(), "Error deleting source record", "MARC source", "DELETE", "{}", "{]");
-        recordWithErrors.reportAndThrowError(error, Level.DEBUG);
-      } else {
-        updateCounters.sourceRecordsDeleted++;
-      }
-    } catch (IOException e) {
-      RecordError error = new ExceptionRecordError(e, "Error DELETEing MARC source record", "MARC source", "DELETE", "");
-      recordWithErrors.reportAndThrowError(error, Level.DEBUG, e);
-    } finally {
-      if (response != null) {
-        try {
-          response.close();
-        } catch (IOException e) {
-          logger.error("Exception when closing response in finally block: " + e.getMessage());
-        }
-
-      }
-    }
-  }
-
-  /**
-   * Handles delete signal from the transformation pipeline according to Shared Index (ReShare) requirements
+   * Handles delete signal from the transformation pipeline
    * @param recordJSON contains deletion information
    */
   public void deleteRecord(RecordJSON recordJSON) {
@@ -625,40 +416,16 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
         httpDelete.setEntity(entity);
         CloseableHttpResponse response = null;
         try {
-          response = ctxt.folioClient.execute(httpDelete);
+          response = ctxt.executeWithToken(httpDelete);
           String responseAsString = EntityUtils.toString(response.getEntity());
           JSONObject responseAsJson = getResponseAsJson(responseAsString);
           int statusCodeInstanceDelete = response.getStatusLine().getStatusCode();
           if (! Arrays.asList(200, 204, 404).contains(statusCodeInstanceDelete)) {
             logger.error("Error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting source record", "MARC source", "DELETE", "{}", "{}");
+            RecordError error = new HttpRecordError(response.getStatusLine(), responseAsString, responseAsString, "Error deleting inventory record set", "Instance", "DELETE", "{}", "{}");
             recordWithErrors.reportAndThrowError(error, Level.DEBUG);
           } else if (statusCodeInstanceDelete == 404) {
             logger.debug("Delete request response: " + responseAsString);
-          } else
-          {
-            if ( ctxt.marcStorageUrlIsDefined && false ) // disabling MARC source deletion due to indexing problem in mod-marc-storage
-            {
-              String oaiId = (String) deletionJson.get( "oaiIdentifier" );
-              String localIdentifier = ( oaiId != null ? oaiId.substring( oaiId.lastIndexOf( ":" ) + 1 ) : null );
-              if ( localIdentifier == null )
-              {
-                localIdentifier = (String) deletionJson.get( "localIdentifier" );
-              }
-              String institutionId = (String) deletionJson.get( "institutionId" );
-              String instanceId;
-              JSONObject instanceResponse = (JSONObject) responseAsJson.get( "instance" );
-              if ( instanceResponse != null )
-              {
-                instanceId = (String) instanceResponse.get( "id" );
-                deleteMarcSourceRecordForInstitution( localIdentifier, institutionId, instanceId, recordWithErrors );
-              }
-              else
-              {
-                logger.error(
-                        "Could not obtain ID of the Instance that a delete request was sent for. Consequently also no MARC record was deleted." );
-              }
-            }
           }
           UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
           logger.debug("metrics: " + responseAsJson.toJSONString());
@@ -688,27 +455,11 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
   }
 
   /**
-   * Shared Index (ReShare) logic for removing underlying MARC source record, if any, that was received
-   * from the institution now sending a delete request.
-   */
-  private void deleteMarcSourceRecordForInstitution(String localIdentifier, String institutionId, String instanceId, RecordWithErrors recordWithErrors) throws InventoryUpdateException {
-    JSONObject marcRecord = getExistingMarcRecord(instanceId, institutionId, localIdentifier, recordWithErrors);
-    if (marcRecord != null) {
-      String sourceId = (String) marcRecord.get("id");
-      deleteSourceRecord(sourceId, recordWithErrors);
-    } else {
-      logger.log(Level.DEBUG,"Found no source record to delete for instance [" + instanceId + "], institution [" + institutionId + "] and local identifier [" + localIdentifier + "]");
-    }
-  }
-
-
-  /**
    * Convenience method setting the most common Inventory request headers
    */
   private void setHeaders (HttpRequestBase request, String accept) {
     request.setHeader("Accept", accept);
     request.setHeader("Content-type", "application/json");
-    request.setHeader("X-Okapi-Token", ctxt.authToken);
     request.setHeader("X-Okapi-Tenant", ctxt.folioTenant);
   }
 
