@@ -14,7 +14,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
 import org.json.simple.JSONObject;
 
@@ -76,13 +75,9 @@ public class FolioStorageController implements RecordStorage {
         logger.info("Attaching job to Inventory Storage");
         context = new InventoryUpdateContext(harvestable, logger);
         recordStorageHandler = new InventoryRecordUpdater((InventoryUpdateContext) context);
-      } else if (storageConfigJson.containsKey("sharedIndexPath")) {
-        logger.info("Attaching job to Shared Index Storage");
-        context = new ShareIndexUpdateContext(harvestable, logger);
-        recordStorageHandler = new SharedIndexUpdater((ShareIndexUpdateContext) context);
       } else {
         throw new StorageException("No valid FOLIO inventory config found. Config must contain "
-            + "either an 'inventoryUpsertPath' or a 'sharedIndexPath'. Abandoning job.");
+            + " an 'inventoryUpsertPath'. Abandoning job.");
       }
     } else {
       throw new StorageException("No FOLIO storage config found. Abandoning job.");
@@ -93,15 +88,12 @@ public class FolioStorageController implements RecordStorage {
 
     client = HttpClients.createDefault();
     context.setClient(client);
-    if (!context.folioAuthSkip) {
-      authenticateToFolio();
-    }
     context.moduleDatabaseStart(database, properties);
   }
 
   private JSONObject getStorageConfigJson (Storage storage) {
     String configurationsJsonString = storage.getJson();
-    if (configurationsJsonString != null && configurationsJsonString.length()>0) {
+    if (configurationsJsonString != null && !configurationsJsonString.isEmpty()) {
       try {
         JSONParser parser = new JSONParser();
         return (JSONObject) parser.parse(configurationsJsonString);
@@ -114,50 +106,6 @@ public class FolioStorageController implements RecordStorage {
       String error = "Cannot find required configuration for Inventory storage (looking in STORAGE.JSON). Cannot perform job.";
       logger.error(error);
       throw new StorageException(error);
-    }
-  }
-
-
-  private void authenticateToFolio() throws StorageException {
-    String authToken = getAuthToken(client,
-                                    context.folioAddress,
-                                    context.folioAuthPath,
-                                    context.folioUsername,
-                                    context.folioPassword,
-                                    context.folioTenant);
-    context.setAuthToken(authToken);
-    logger.info("Authenticated to FOLIO Inventory, tenant [" + context.folioTenant + "]");
-  }
-
-  /**
-   * Sends authentication POST request to FOLIO service
-   */
-  @SuppressWarnings("unchecked")
-  private String getAuthToken(CloseableHttpClient client,
-                              String folioAddress,
-                              String folioAuthPath,
-                              String username,
-                              String password,
-                              String tenant)
-      throws  StorageException {
-    try {
-      HttpPost httpPost = new HttpPost(folioAddress + folioAuthPath);
-      JSONObject loginJson = new JSONObject();
-      loginJson.put("username", username);
-      loginJson.put("password", password);
-      StringEntity entity = new StringEntity(loginJson.toJSONString());
-      httpPost.setEntity(entity);
-      httpPost.setHeader("Accept", "application/json");
-      httpPost.setHeader("Content-type", "application/json");
-      httpPost.setHeader("X-Okapi-Tenant", tenant);
-      CloseableHttpResponse response = client.execute(httpPost);
-      if(response.getStatusLine().getStatusCode() != 201) {
-        throw new StorageException(String.format("Got bad response obtaining authtoken: %s, %s",
-            response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity())));
-      }
-      return response.getFirstHeader("X-Okapi-Token").getValue();
-    } catch (IOException | org.apache.http.ParseException e) {
-      throw new StorageException("Request to obtain FOLIO authtoken failed with " + e.getMessage());
     }
   }
 

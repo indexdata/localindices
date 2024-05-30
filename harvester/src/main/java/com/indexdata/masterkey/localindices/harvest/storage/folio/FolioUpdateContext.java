@@ -5,14 +5,24 @@ import com.indexdata.masterkey.localindices.entity.Storage;
 import com.indexdata.masterkey.localindices.entity.XmlBulkResource;
 import com.indexdata.masterkey.localindices.harvest.job.StorageJobLogger;
 import com.indexdata.masterkey.localindices.harvest.storage.StorageException;
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
+
+import static com.indexdata.masterkey.localindices.harvest.storage.folio.InventoryRecordUpdater.getResponseAsJson;
 
 public abstract class FolioUpdateContext {
 
@@ -31,6 +41,7 @@ public abstract class FolioUpdateContext {
   public String folioPassword;
   public boolean folioAuthSkip = false;
   public String authToken;
+  public Instant authTokenExpiration;
   protected boolean isXmlBulkJob;
   protected Instant xmlBulkRecordFilteringDate;
   public FailedRecordsController failedRecordsController;
@@ -125,8 +136,82 @@ public abstract class FolioUpdateContext {
     this.folioClient = folioClient;
   }
 
+  public CloseableHttpResponse executeWithToken(HttpRequestBase request) throws StorageException, IOException {
+    if (isNewTokenRequired()) {
+      requestAuthToken();
+      if (authToken != null) {
+        logger.info("Authenticated to FOLIO Inventory using " + folioAuthPath + ", tenant [" + folioTenant + "]");
+      } else {
+        logger.error("Authentication process did not retrieve an auth token");
+      }
+      if (authTokenExpiration != null) {
+        logger.info("Auth token expires " + authTokenExpiration);
+      }
+    }
+    request.setHeader("X-Okapi-Token", authToken);
+    return this.folioClient.execute(request);
+  }
+
+  /**
+   * Sends authentication POST request to FOLIO service if required
+   */
+  @SuppressWarnings("unchecked")
+  private void requestAuthToken()
+          throws  StorageException {
+    try {
+      HttpPost httpPost = getAuthPost();
+      CloseableHttpResponse response = folioClient.execute(httpPost);
+      String responseString = EntityUtils.toString(response.getEntity());
+      if (response.getStatusLine().getStatusCode() != 201) {
+        throw new StorageException(String.format("Got bad response obtaining authtoken from %s: %s, %s",
+                folioAddress+folioAuthPath, response.getStatusLine().getStatusCode(), responseString));
+      }
+      if (folioAuthPath.contains("login-with-expiry")) {
+        for (Header header : response.getHeaders("Set-Cookie")) {
+          if (header.getValue().startsWith("folioAccessToken=")) {
+            logger.info("Obtained access token from " + folioAddress+folioAuthPath);
+            setAuthToken(header.getValue().substring("folioAccessToken=".length(), header.getValue().indexOf(';')));
+          }
+        }
+        setAuthTokenExpiration(getResponseAsJson(responseString).get("accessTokenExpiration").toString());
+      } else {
+        logger.info("Obtained Okapi token from " + folioAddress+folioAuthPath);
+        setAuthToken(response.getFirstHeader("X-Okapi-Token").getValue());
+      }
+    } catch (IOException | org.apache.http.ParseException e) {
+      throw new StorageException("Request to obtain FOLIO authtoken failed with " + e.getMessage());
+    }
+  }
+
+  private HttpPost getAuthPost() throws UnsupportedEncodingException {
+    HttpPost httpPost = new HttpPost(folioAddress + folioAuthPath);
+    JSONObject loginJson = new JSONObject();
+    loginJson.put("username", folioUsername);
+    loginJson.put("password", folioPassword);
+    StringEntity entity = new StringEntity(loginJson.toJSONString());
+    httpPost.setEntity(entity);
+    httpPost.setHeader("Accept", "application/json");
+    httpPost.setHeader("Content-type", "application/json");
+    httpPost.setHeader("X-Okapi-Tenant", folioTenant);
+    return httpPost;
+  }
+
+
+
+
   public void setAuthToken (String token) {
     this.authToken = token;
+  }
+  public void setAuthTokenExpiration (String expiration) {
+    this.authTokenExpiration = Instant.parse(expiration).minusSeconds(10);
+  }
+
+  public boolean isNewTokenRequired() {
+    return !folioAuthSkip && (authToken == null || authTokenExpired());
+  }
+
+  private boolean authTokenExpired () {
+    return (authTokenExpiration != null && Instant.now(Clock.systemUTC()).isAfter(authTokenExpiration));
   }
 
   protected void setHeaders (HttpRequestBase request, String accept) {
