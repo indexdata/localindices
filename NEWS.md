@@ -1,4 +1,7 @@
-## 2.15.6 2024-01-23
+## 2.15.7 2024-06-01
+ * FOLIO storage: support for login-with expiry (MODHAADM-91) 
+
+## 2.15.6 2024-05-28
  * Annul obsolete log statement (MODHAADM-86)
  * Include counts of skipped deletes in status message (MODHAADM-89)
 
