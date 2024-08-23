@@ -71,7 +71,7 @@ jobs:
             org.opencontainers.image.description=Harvester administrative user interface
             org.opencontainers.image.vendor=Index Data LLC
       - name: Build and publish Docker for harvester
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -79,7 +79,7 @@ jobs:
           tags: ${{ steps.meta-1.outputs.tags }}
           labels: ${{ steps.meta-1.outputs.labels }}
       - name: Build and publish Docker for harvester-admin
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
