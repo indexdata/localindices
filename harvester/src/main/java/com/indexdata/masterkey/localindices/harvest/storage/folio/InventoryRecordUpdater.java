@@ -429,6 +429,7 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
           }
           UpsertMetrics metrics = new UpsertMetrics((JSONObject)responseAsJson.get("metrics"));
           logger.debug("metrics: " + responseAsJson.toJSONString());
+          ctxt.storageStatus.incrementDelete(1);
           setCounters(metrics);
           logRecordCounts();
         } catch (IOException e) {
@@ -530,7 +531,6 @@ import static com.indexdata.masterkey.localindices.harvest.storage.folio.Transfo
     public final String ENTITY = "entity";
     public final String STATUS_CODE = "statusCode";
     public final String REQUEST_JSON = "requestJson";
-    public final String DETAILS = "details";
 
     public ErrorReport (JSONObject errorReportJson) {
       json = errorReportJson;
