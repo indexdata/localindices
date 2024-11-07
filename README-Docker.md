@@ -51,3 +51,24 @@ Example:
 docker run -d --networks harvester -p 8081:8081 -e HARVESTER_HOST=harvester harvester-admin
 ```
 
+### Using docker compose, development install
+
+Example:
+
+```
+docker compose up -d
+```
+
+This command should install
+
+* a mysql database with the latest localindices schema, without any data, accessible from the host at port 3306
+* a harvester responding at port 8080, i.e. to be accessed from FOLIO mod-harvester-admin
+* a legacy harvester admin responding at port 8081, i.e. open the legacy admin UI in a browser
+  with http://localhost:8081/harvester-admin
+
+This is supporting harvest jobs populating FOLIO Inventory but does not include a solr back-end.
+
+When creating the storage definition for harvest jobs that will populate a FOLIO Inventory installed on localhost, the
+Harvester storage definition should use `http://host.docker.internal:9130/`  for "Server URL". This is Docker's internal
+name for the host's localhost, followed by Okapi's standard port. 
+
