@@ -5,7 +5,7 @@ the Index Data Github Packages container registry.
 
 ```
 docker pull ghcr.io/indexdata/harvester:master
-docker pull ghrc.io/indexdata/harvester-admin:master
+docker pull ghcr.io/indexdata/harvester-admin:master
 ```
 
 See https://github.com/indexdata/localindices/pkgs/container/harvester and 
