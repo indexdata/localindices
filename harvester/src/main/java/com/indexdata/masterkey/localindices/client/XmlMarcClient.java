@@ -394,7 +394,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         logger.info("Ignoring file '" + file.getName() + "' because of unsupported content-type '" + mimeType + "'");
       }
     } catch (IOException ioe) {
-      logger.error("IO exception occurred when running store function: " + ioe.getMessage());
+      logger.error("IO exception occurred when running store function: " + ioe.getMessage(), ioe);
       throw ioe;
     } finally {
         // NOTE: If this was an FTP download and the FTP connection was lost, a
@@ -630,7 +630,7 @@ public class XmlMarcClient extends AbstractHarvestClient {
         } else {
           logger.log( Level.TRACE, "Adding new Record to storage");
           logger.log( Level.TRACE, "XML value of Record is " + TextUtils.nodeToXMLString(result.getNode()));
-          Node node = result.getNode();       
+          Node node = result.getNode();
           RecordDOMImpl rdi = new RecordDOMImpl(record.getControlNumber(), null, node, singleRecord);
           storage.add(rdi);
         }
