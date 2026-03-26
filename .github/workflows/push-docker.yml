@@ -46,14 +46,14 @@ jobs:
       - name: Do Maven build harvester
         run: mvn verify
       - name: Log into GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.CONTAINER_REGISTRY }}
           username: ${{ github.ACTOR }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract docker metadata for harvester
         id: meta-1
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_1 }}
           labels: |
@@ -63,7 +63,7 @@ jobs:
             org.opencontainers.image.documentation=https://github.com/indexdata/localindices/tree/master/doc
       - name: Extract docker metadata for harvester-admin
         id: meta-2
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME_2 }}
           labels: |
@@ -71,7 +71,7 @@ jobs:
             org.opencontainers.image.description=Harvester administrative user interface
             org.opencontainers.image.vendor=Index Data LLC
       - name: Build and publish Docker for harvester
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -79,7 +79,7 @@ jobs:
           tags: ${{ steps.meta-1.outputs.tags }}
           labels: ${{ steps.meta-1.outputs.labels }}
       - name: Build and publish Docker for harvester-admin
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
