@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
+import com.google.common.base.Strings;
 import com.indexdata.masterkey.localindices.dao.DAOException;
 import com.indexdata.masterkey.localindices.dao.EntityInUse;
 import com.indexdata.masterkey.localindices.dao.EntityQuery;
@@ -247,23 +247,26 @@ public class JobController {
   }
 
   private void scheduleStringToInputs(String scheduleString) {
-    if (scheduleString != null) {
-      String[] inputs = scheduleString.split(" +");
-      if (inputs.length == 5) {
-	min = inputs[0];
-	hour = inputs[1];
-	dayOfMonth = inputs[2].equals("*") ? "0" : inputs[2];
-	month = inputs[3].equals("*") ? "0" : inputs[3];
-	dayOfWeek = inputs[4];
-      } else {
-	logger.log(Level.ERROR, "Something messed up with the persisted schedule string ("
-	    + scheduleString + ").");
-      }
-    } else {
-      this.dayOfMonth = this.month = this.dayOfWeek = null;
-      this.min = "0";
-      this.hour = "12";
+    this.dayOfMonth = this.month = this.dayOfWeek = null;
+    this.min = "0";
+    this.hour = "12";
+
+    if (Strings.isNullOrEmpty(scheduleString)) {
+      return;
     }
+
+    String[] inputs = scheduleString.split(" +");
+    if (inputs.length != 5) {
+      logger.log(Level.ERROR, "Something messed up with the persisted schedule string ("
+          + scheduleString + ").");
+      return;
+    }
+
+    min = inputs[0];
+    hour = inputs[1];
+    dayOfMonth = inputs[2].equals("*") ? "0" : inputs[2];
+    month = inputs[3].equals("*") ? "0" : inputs[3];
+    dayOfWeek = inputs[4];
   }
 
   public List<SelectItem> getMonths() {
