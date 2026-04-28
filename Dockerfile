@@ -1,14 +1,16 @@
 ### Build
-FROM maven:3.6.3-openjdk-8 as builder
+FROM maven:3.6.3-openjdk-8 AS builder
 
 COPY . /usr/src
 
 WORKDIR /usr/src
-RUN mvn clean package
+RUN wget  --no-check-certificate -O /tmp/ca.crt https://download.indexdata.com/pub/id-ssl/ca.crt && \
+    keytool -import -storepass changeit -file /tmp/ca.crt -keystore $JAVA_HOME/jre/lib/security/cacerts -noprompt && \
+    mvn clean package
 
 ### harvester runtime image
 
-FROM jetty:9.4-jre8 as harvester
+FROM jetty:9.4-jre8 AS harvester
 USER root
 RUN mkdir -p /etc/masterkey/harvester && \
     mkdir -p /var/cache/harvester && \
@@ -26,7 +28,7 @@ CMD ["java", "-jar", "/usr/local/jetty/start.jar"]
 
 ### harvester-admin runtime image
 
-FROM jetty:9.4-jre8 as harvester-admin
+FROM jetty:9.4-jre8 AS harvester-admin
 
 USER root
 RUN mkdir -p /etc/masterkey/harvester && \
