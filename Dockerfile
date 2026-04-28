@@ -4,7 +4,9 @@ FROM maven:3.6.3-openjdk-8 as builder
 COPY . /usr/src
 
 WORKDIR /usr/src
-RUN mvn clean package
+RUN wget  --no-check-certificate -O /tmp/ca.crt https://download.indexdata.com/pub/id-ssl/ca.crt && \
+    keytool -import -storepass changeit -file /tmp/ca.crt -keystore $JAVA_HOME/jre/lib/security/cacerts -noprompt && \
+    mvn clean package
 
 ### harvester runtime image
 
