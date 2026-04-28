@@ -32,12 +32,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Download ID CA cert
-        run: wget -O /tmp/ca.crt https://download.indexdata.com/pub/id-ssl/ca.crt
-
-      - name: Add CA cert to Java 8 TrustStore
-        run: sudo keytool -import -storepass changeit -file /tmp/ca.crt -keystore $JAVA_HOME/jre/lib/security/cacerts
-
       - name: Create Maven settings
         uses: s4u/maven-settings-action@v4.0.0
         with:
